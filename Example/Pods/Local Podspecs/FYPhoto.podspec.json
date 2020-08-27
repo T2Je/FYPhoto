@@ -1,0 +1,42 @@
+{
+  "name": "FYPhoto",
+  "version": "0.1.0",
+  "summary": "A short description of FYPhoto.",
+  "description": "TODO: Add long description of the pod here.",
+  "homepage": "http://git.feeyo.com/",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "xiaoyang": "xiaoyang@variflight.com"
+  },
+  "source": {
+    "git": "http://git.feeyo.com/acdm-ios-base/fyphoto.git",
+    "tag": "0.1.0"
+  },
+  "platforms": {
+    "ios": "10"
+  },
+  "swift_versions": "5",
+  "source_files": "FYPhoto/Classes/**/*",
+  "resource_bundles": {
+    "FYPhoto": [
+      "FYPhoto/Assets/*.{xcassets}",
+      "FYPhoto/Assets/*.lproj/*.strings"
+    ]
+  },
+  "frameworks": [
+    "UIKit",
+    "Photos"
+  ],
+  "dependencies": {
+    "SDWebImage/Core": [
+
+    ],
+    "UICircularProgressRing": [
+
+    ]
+  },
+  "swift_version": "5"
+}

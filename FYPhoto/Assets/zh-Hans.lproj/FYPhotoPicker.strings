@@ -1,0 +1,15 @@
+/* 
+  FYPhotoPicker.strings
+  Pods
+
+  Created by xiaoyang on 2020/7/29.
+  
+*/
+
+"add" = "添加";
+
+"All Photos" = "全部照片";
+"Smart Albums" = "分类相簿";
+"User Albums" = "自定义相簿";
+
+"hour" = "小时";

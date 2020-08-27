@@ -21,22 +21,24 @@ Pod::Spec.new do |s|
 TODO: Add long description of the pod here.
                        DESC
 
-  s.homepage         = 'https://github.com/t2je/FYPhoto'
+  s.homepage         = 'http://git.feeyo.com/'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
-  s.author           = { 't2je' => 'xiaoyang@variflight.com' }
-  s.source           = { :git => 'https://github.com/t2je/FYPhoto.git', :tag => s.version.to_s }
+  s.author           = { 'xiaoyang' => 'xiaoyang@variflight.com' }
+  s.source           = { :git => 'http://git.feeyo.com/acdm-ios-base/fyphoto.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
-  s.ios.deployment_target = '8.0'
+   s.ios.deployment_target = '10'
+   s.swift_version = '5'
 
-  s.source_files = 'FYPhoto/Classes/**/*'
-  
-  # s.resource_bundles = {
-  #   'FYPhoto' => ['FYPhoto/Assets/*.png']
-  # }
+   s.source_files = 'FYPhoto/Classes/**/*'
 
-  # s.public_header_files = 'Pod/Classes/**/*.h'
-  # s.frameworks = 'UIKit', 'MapKit'
-  # s.dependency 'AFNetworking', '~> 2.3'
+   s.resource_bundles = {
+       'FYPhoto' => ['FYPhoto/Assets/*.{xcassets}', 'FYPhoto/Assets/*.lproj/*.strings']
+   }
+
+   s.frameworks = 'UIKit', 'Photos'
+
+   s.dependency 'SDWebImage/Core'
+   s.dependency 'UICircularProgressRing'
 end

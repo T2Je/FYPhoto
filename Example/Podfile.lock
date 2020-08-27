@@ -1,0 +1,35 @@
+PODS:
+  - FBSnapshotTestCase (2.1.4):
+    - FBSnapshotTestCase/SwiftSupport (= 2.1.4)
+  - FBSnapshotTestCase/Core (2.1.4)
+  - FBSnapshotTestCase/SwiftSupport (2.1.4):
+    - FBSnapshotTestCase/Core
+  - FYPhoto (0.1.0):
+    - SDWebImage/Core
+    - UICircularProgressRing
+  - SDWebImage/Core (5.8.4)
+  - UICircularProgressRing (7.0.0)
+
+DEPENDENCIES:
+  - FBSnapshotTestCase (~> 2.1.4)
+  - FYPhoto (from `../`)
+
+SPEC REPOS:
+  trunk:
+    - FBSnapshotTestCase
+    - SDWebImage
+    - UICircularProgressRing
+
+EXTERNAL SOURCES:
+  FYPhoto:
+    :path: "../"
+
+SPEC CHECKSUMS:
+  FBSnapshotTestCase: 094f9f314decbabe373b87cc339bea235a63e07a
+  FYPhoto: 8e9e3cca8be1311a3cffd1c92666da67fd03901f
+  SDWebImage: cf6922231e95550934da2ada0f20f2becf2ceba9
+  UICircularProgressRing: 738b48db0ec1fbbd8482d727979392bb8c272e8d
+
+PODFILE CHECKSUM: c5bb9bcc16cba360385a51583e5c2709336c291b
+
+COCOAPODS: 1.9.3
