@@ -1,23 +1,77 @@
 PODS:
-  - FBSnapshotTestCase (2.1.4):
-    - FBSnapshotTestCase/SwiftSupport (= 2.1.4)
-  - FBSnapshotTestCase/Core (2.1.4)
-  - FBSnapshotTestCase/SwiftSupport (2.1.4):
-    - FBSnapshotTestCase/Core
+  - FGBase (4.0.9):
+    - FGBase/Category (= 4.0.9)
+    - FGBase/Config (= 4.0.9)
+    - FGBase/FGPullToRefresh (= 4.0.9)
+    - FGBase/Grid (= 4.0.9)
+    - FGBase/Menu (= 4.0.9)
+    - FGBase/NavigationBar (= 4.0.9)
+    - FGBase/Picker (= 4.0.9)
+    - FGBase/Popup (= 4.0.9)
+    - FGBase/Progress (= 4.0.9)
+    - FGBase/SegmentControl (= 4.0.9)
+    - FGBase/SwipeView (= 4.0.9)
+    - FGBase/Switch (= 4.0.9)
+    - FGBase/TableView (= 4.0.9)
+    - FGBase/Text (= 4.0.9)
+    - FGBase/Tips (= 4.0.9)
+    - FGBase/ViewKit (= 4.0.9)
+  - FGBase/Category (4.0.9):
+    - FGBase/Config
+  - FGBase/Config (4.0.9)
+  - FGBase/FGPullToRefresh (4.0.9):
+    - FGBase/Category
+  - FGBase/Grid (4.0.9):
+    - FGBase/Category
+    - SnapKit
+  - FGBase/Menu (4.0.9):
+    - FGBase/Category
+    - SnapKit
+  - FGBase/NavigationBar (4.0.9):
+    - FGBase/Category
+  - FGBase/Picker (4.0.9):
+    - FGBase/Category
+  - FGBase/Popup (4.0.9)
+  - FGBase/Progress (4.0.9):
+    - FGBase/Category
+  - FGBase/SegmentControl (4.0.9)
+  - FGBase/SwipeView (4.0.9)
+  - FGBase/Switch (4.0.9)
+  - FGBase/TableView (4.0.9):
+    - FGBase/Category
+  - FGBase/Text (4.0.9):
+    - FGBase/Category
+  - FGBase/Tips (4.0.9):
+    - FGBase/Category
+    - MBProgressHUD
+    - Toast-Swift
+  - FGBase/ViewKit (4.0.9):
+    - FGBase/Category
+    - FGBase/Config
+    - FGBase/NavigationBar
+    - FGBase/Tips
+    - SnapKit
   - FYPhoto (0.1.0):
     - SDWebImage/Core
     - UICircularProgressRing
+  - MBProgressHUD (1.2.0)
   - SDWebImage/Core (5.8.4)
+  - SnapKit (5.0.1)
+  - Toast-Swift (5.0.1)
   - UICircularProgressRing (7.0.0)
 
 DEPENDENCIES:
-  - FBSnapshotTestCase (~> 2.1.4)
+  - FGBase
   - FYPhoto (from `../`)
 
 SPEC REPOS:
+  http://git.feeyo.com/wangkun/specs.git:
+    - FGBase
   trunk:
-    - FBSnapshotTestCase
+    - MBProgressHUD
     - SDWebImage
+    - SnapKit
+    - Toast-Swift
     - UICircularProgressRing
 
 EXTERNAL SOURCES:
@@ -25,11 +79,14 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  FBSnapshotTestCase: 094f9f314decbabe373b87cc339bea235a63e07a
+  FGBase: c36d0311b2f6ea29eb662634f4d8fcf39305dd3c
   FYPhoto: 8e9e3cca8be1311a3cffd1c92666da67fd03901f
+  MBProgressHUD: 3ee5efcc380f6a79a7cc9b363dd669c5e1ae7406
   SDWebImage: cf6922231e95550934da2ada0f20f2becf2ceba9
+  SnapKit: 97b92857e3df3a0c71833cce143274bf6ef8e5eb
+  Toast-Swift: 9b6a70f28b3bf0b96c40d46c0c4b9d6639846711
   UICircularProgressRing: 738b48db0ec1fbbd8482d727979392bb8c272e8d
 
-PODFILE CHECKSUM: c5bb9bcc16cba360385a51583e5c2709336c291b
+PODFILE CHECKSUM: ab52a93876a781552e0e74b1a724bc198b97845e
 
 COCOAPODS: 1.9.3

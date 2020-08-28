@@ -1,0 +1,15 @@
+/* 
+  FGBaseLocalizable.strings
+  Pods
+
+  Created by wangkun on 2017/9/15.
+
+*/
+"Request time out, try later" = "請求超時，請稍後再試";
+"Loading..." = "正在載入...";
+"Send" = "傳送";
+
+"End page" = "已經是最後一頁了";
+"Release to load..." = "鬆開載入...";
+"Last update:" = "上次更新:";
+"Never" = "沒有過";

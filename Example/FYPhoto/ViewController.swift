@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import FYPhotoPicker
+import FYPhoto
 import Photos
 
 class ViewController: UIViewController {
@@ -19,7 +19,6 @@ class ViewController: UIViewController {
         setupUI()
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
-        NotificationCenter.default.addObserver(self, selector: #selector(screenshotTaken(_:)), name: NSNotification.Name.UIApplicationUserDidTakeScreenshot, object: nil)
         // Do any additional setup after loading the view.
     }
 

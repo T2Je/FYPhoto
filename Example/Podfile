@@ -1,11 +1,17 @@
 use_frameworks!
 
+source 'https://cdn.cocoapods.org/'
+source 'http://git.feeyo.com/wangkun/specs.git'
+
 target 'FYPhoto_Example' do
   pod 'FYPhoto', :path => '../'
-
+  pod 'FGBase'
+  
   target 'FYPhoto_Tests' do
     inherit! :search_paths
 
-    pod 'FBSnapshotTestCase' , '~> 2.1.4'
+#    pod 'FBSnapshotTestCase' , '~> 2.1.4'
+
+
   end
 end

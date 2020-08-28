@@ -12,7 +12,6 @@ import UIKit
 import UIKit
 import Photos
 import PhotosUI
-import QuickLook
 
 public class AssetGridViewController: UICollectionViewController {
 
@@ -51,7 +50,7 @@ public class AssetGridViewController: UICollectionViewController {
         }
     }
 
-    fileprivate let imageManager = PHCachingImageManager()
+    internal let imageManager = PHCachingImageManager()
     fileprivate var thumbnailSize: CGSize!
     fileprivate var previousPreheatRect = CGRect.zero
 
@@ -60,7 +59,7 @@ public class AssetGridViewController: UICollectionViewController {
 
     fileprivate var selectedAssetIsVideo: Bool? = nil
 
-    fileprivate var fetchResult: PHFetchResult<PHAsset>! {
+    internal var fetchResult: PHFetchResult<PHAsset>! {
         willSet {
             if newValue != fetchResult {
                 collectionView.reloadData()

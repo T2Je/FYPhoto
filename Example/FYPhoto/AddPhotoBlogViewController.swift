@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import FYPhotoPicker
+import FYPhoto
 import FGBase
 
 private let cellIdentifier = "AddPhotoCollectionViewCell"
