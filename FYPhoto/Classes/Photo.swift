@@ -17,6 +17,10 @@ public protocol PhotoProtocol {
 
     var captionContent: String? { get set }
     var captionSignature: String? { get set }
+
+    var initialFrame: CGRect? { get set }
+    var targetFrame: CGRect? { get set }
+
 }
 
 public class Photo: PhotoProtocol, Equatable {
@@ -41,6 +45,10 @@ public class Photo: PhotoProtocol, Equatable {
     public var asset: PHAsset?
 
     public var index: Int = 0
+
+    public var initialFrame: CGRect?
+
+    public var targetFrame: CGRect?    
     
     init() {
 

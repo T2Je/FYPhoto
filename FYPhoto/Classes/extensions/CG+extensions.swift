@@ -33,11 +33,9 @@ public extension CGRect {
 public extension CGFloat {
     /// Returns the value, scaled-and-shifted to the targetRange.
     /// If no target range is provided, we assume the unit range (0, 1)
-    static func scaleAndShift(
-        value: CGFloat,
-        inRange: (min: CGFloat, max: CGFloat),
-        toRange: (min: CGFloat, max: CGFloat) = (min: 0.0, max: 1.0)
-        ) -> CGFloat {
+    static func scaleAndShift(value: CGFloat,
+                              inRange: (min: CGFloat, max: CGFloat),
+                              toRange: (min: CGFloat, max: CGFloat) = (min: 0.0, max: 1.0)) -> CGFloat {
         assert(inRange.max > inRange.min)
         assert(toRange.max > toRange.min)
 

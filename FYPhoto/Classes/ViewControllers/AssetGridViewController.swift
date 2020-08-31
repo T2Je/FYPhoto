@@ -26,7 +26,7 @@ public class AssetGridViewController: UICollectionViewController {
     fileprivate var selectedAlbumIndexPath = IndexPath(row: 0, section: 0)
 
     /// Grid cell indexPath
-    fileprivate var lastSelectedIndexPath: IndexPath?
+    internal var lastSelectedIndexPath: IndexPath?
 
     fileprivate let customTitleView = CustomNavigationTitleView()
 
@@ -67,6 +67,8 @@ public class AssetGridViewController: UICollectionViewController {
         }
     }
 
+    var transitionController: AssetTransitionController?
+
     fileprivate let maximumNumber: Int
     fileprivate let isOnlyImages: Bool
     // MARK: - Init
@@ -102,6 +104,8 @@ public class AssetGridViewController: UICollectionViewController {
         setupNavigationBar()
 
         resetCachedAssets()
+
+        setupTransitionController()
 
         PHPhotoLibrary.shared().register(self)
 //        setupNavigationToolBar()
@@ -171,6 +175,13 @@ public class AssetGridViewController: UICollectionViewController {
         }
     }
 
+    func setupTransitionController() {
+        guard let navigationController = self.navigationController else { return }
+        if transitionController == nil {
+            transitionController = AssetTransitionController(navigationController: navigationController)
+            navigationController.delegate = transitionController
+        }
+    }
     @objc func backBarButton(_ sender: UIBarButtonItem) {
         self.navigationController?.dismiss(animated: true, completion: nil)
     }
@@ -490,32 +501,32 @@ extension AssetGridViewController: PHPhotoLibraryChangeObserver {
     }
 }
 
-extension AssetGridViewController: PhotoDetailTransitionAnimatorDelegate {
-    public func transitionWillStart() {
-        guard let indexPath = lastSelectedIndexPath else { return }
-        collectionView.cellForItem(at: indexPath)?.isHidden = true
-    }
-
-    public func transitionDidEnd() {
-        guard let indexPath = lastSelectedIndexPath else { return }
-        collectionView.cellForItem(at: indexPath)?.isHidden = false
-    }
-
-    public func referenceImage() -> UIImage? {
-        guard let indexPath = lastSelectedIndexPath else { return nil }
-        guard let cell = collectionView.cellForItem(at: indexPath) as? GridViewCell else {
-            return nil
-        }
-        return cell.imageView.image
-    }
-
-    public func imageFrame() -> CGRect? {
-        guard
-            let lastSelected = lastSelectedIndexPath,
-            let cell = self.collectionView.cellForItem(at: lastSelected)
-        else {
-            return nil
-        }
-        return collectionView.convert(cell.frame, to: self.view)
-    }
-}
+//extension AssetGridViewController: PhotoDetailTransitionAnimatorDelegate {
+//    public func transitionWillStart() {
+//        guard let indexPath = lastSelectedIndexPath else { return }
+//        collectionView.cellForItem(at: indexPath)?.isHidden = true
+//    }
+//
+//    public func transitionDidEnd() {
+//        guard let indexPath = lastSelectedIndexPath else { return }
+//        collectionView.cellForItem(at: indexPath)?.isHidden = false
+//    }
+//
+//    public func referenceImage() -> UIImage? {
+//        guard let indexPath = lastSelectedIndexPath else { return nil }
+//        guard let cell = collectionView.cellForItem(at: indexPath) as? GridViewCell else {
+//            return nil
+//        }
+//        return cell.imageView.image
+//    }
+//
+//    public func imageFrame() -> CGRect? {
+//        guard
+//            let lastSelected = lastSelectedIndexPath,
+//            let cell = self.collectionView.cellForItem(at: lastSelected)
+//        else {
+//            return nil
+//        }
+//        return collectionView.convert(cell.frame, to: self.view)
+//    }
+//}

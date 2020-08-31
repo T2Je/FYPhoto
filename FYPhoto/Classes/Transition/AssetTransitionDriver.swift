@@ -15,12 +15,23 @@ class AssetTransitionDriver {
     private let operation: UINavigationController.Operation
     private let panGestureRecognizer: UIPanGestureRecognizer
     private var itemFrameAnimator: UIViewPropertyAnimator?
-    private var items: Array<AssetTransitionItem> = []
-    private var interactiveItem: AssetTransitionItem?
+    private var item: Photo?
+    private var interactiveItem: Photo?
 
+//    private var initialFrame: CGRect?
+//    private var targetFrame: CGRect?
+
+    var fromAssetTransitioning: AssetTransitioning?
+    var toAssetTransitioning: AssetTransitioning?
+
+    var toView: UIView?
+    var fromView: UIView?
+
+    var visualEffectView = UIVisualEffectView()
     /// The snapshotView that is animating between the two view controllers.
     fileprivate let transitionImageView: UIImageView = {
         let imageView = UIImageView()
+        imageView.isUserInteractionEnabled = true
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         if #available(iOS 11.0, *) {
@@ -43,12 +54,26 @@ class AssetTransitionDriver {
 
     func setup(_ context: UIViewControllerContextTransitioning) {
         // Setup the transition "chrome"
-        let fromViewController = context.viewController(forKey: .from)!
-        let toViewController = context.viewController(forKey: .to)!
-        let fromAssetTransitioning = (fromViewController as! AssetTransitioning)
-        let toAssetTransitioning = (toViewController as! AssetTransitioning)
-        let fromView = fromViewController.view!
-        let toView = toViewController.view!
+        guard
+            let fromViewController = context.viewController(forKey: .from),
+            let toViewController = context.viewController(forKey: .to),
+            let fromAssetTransitioning = (fromViewController as? AssetTransitioning),
+            let toAssetTransitioning = (toViewController as? AssetTransitioning),
+            let fromView = fromViewController.view,
+            let toView = toViewController.view
+            else {
+                assertionFailure("None of them should be nil")
+                return
+        }
+
+//        initialFrame = fromAssetTransitioning.imageFrame()
+//        targetFrame = toAssetTransitioning.imageFrame()
+
+        self.fromAssetTransitioning = fromAssetTransitioning
+        self.toAssetTransitioning = toAssetTransitioning
+        self.toView = toView
+        self.fromView = fromView
+
         let containerView = context.containerView
 
         // Add ourselves as a target of the pan gesture
@@ -60,7 +85,8 @@ class AssetTransitionDriver {
         // Create a visual effect view and animate the effect in the transition animator
         let effect: UIVisualEffect? = (operation == .pop) ? UIBlurEffect(style: .extraLight) : nil
         let targetEffect: UIVisualEffect? = (operation == .pop) ? nil : UIBlurEffect(style: .light)
-        let visualEffectView = UIVisualEffectView(effect: effect)
+//        let visualEffectView = UIVisualEffectView(effect: effect)
+        visualEffectView.effect = effect
         visualEffectView.frame = containerView.bounds
         visualEffectView.autoresizingMask = [.flexibleWidth,.flexibleHeight]
         containerView.addSubview(visualEffectView)
@@ -79,54 +105,41 @@ class AssetTransitionDriver {
             containerView.insertSubview(toView, at: 0)
         }
 
-        // Initiate the handshake between view controller, per the AssetTransitioning Protocol
-        self.items = fromAssetTransitioning.itemsForTransition(context: context).filter({ (item) -> Bool in
-            guard let targetFrame = toAssetTransitioning.targetFrame(transitionItem: item), !targetFrame.isEmpty && !targetFrame.isNull && !targetFrame.isInfinite else {
-                return false
-            }
+//        let item = fromAssetTransitioning.itemForTransition(context: context)
+//        self.item = item
+        if let fromImage = fromAssetTransitioning.referenceImage() {
+            transitionImageView.image = fromImage
+        }
 
-            item.targetFrame = containerView.convert(targetFrame, from: toView)
-            item.imageView = {
-                let imageView = UIImageView(frame: containerView.convert(item.initialFrame, from: nil))
-                imageView.clipsToBounds = true
-                imageView.contentMode = .scaleAspectFill
-                imageView.isUserInteractionEnabled = true
-                imageView.image = item.image
+        if let frame = fromAssetTransitioning.imageFrame() {
+            transitionImageView.frame = frame
+        }
 
-                let longPressGestureRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(press(_ :)))
-                longPressGestureRecognizer.minimumPressDuration = 0.0
-                imageView.addGestureRecognizer(longPressGestureRecognizer)
-
-                containerView.addSubview(imageView)
-                return imageView
-            }()
-
-            return true
-        })
+        containerView.addSubview(transitionImageView)
 
         // Inform the view controller's the transition is about to start
-        fromAssetTransitioning.willTransition(fromController: fromViewController, toController: toViewController, items: items)
-        toAssetTransitioning.willTransition(fromController: fromViewController, toController: toViewController, items: items)
+        fromAssetTransitioning.transitionWillStart()
+        toAssetTransitioning.transitionWillStart()
 
         // Add animations and completion to the transition animator
         self.setupTransitionAnimator({
             topView.alpha = topViewTargetAlpha
-            visualEffectView.effect = targetEffect
+            self.visualEffectView.effect = targetEffect
+//            fromView.alpha = 0
         }, transitionCompletion: { [unowned self] (position) in
             // Finish the protocol handshake
-            fromAssetTransitioning.didTransition(fromController: fromViewController, toController: toViewController, items: self.items)
-            toAssetTransitioning.didTransition(fromController: fromViewController, toController: toViewController, items: self.items)
-
-            // Remove all transition views
-            for item in self.items {
-                item.imageView?.removeFromSuperview()
-            }
-            visualEffectView.removeFromSuperview()
+            fromAssetTransitioning.transitionDidEnd()
+            toAssetTransitioning.transitionDidEnd()
+            // Remove transition views
+            self.transitionImageView.image = nil
+            self.transitionImageView.removeFromSuperview()
+            self.visualEffectView.removeFromSuperview()
         })
 
         if context.isInteractive {
             // If the transition is initially interactive, ensure we know what item is being manipulated
-            self.updateInteractiveItemFor(panGestureRecognizer.location(in: containerView))
+//            self.updateInteractiveItemFor(panGestureRecognizer.location(in: containerView))
+            self.interactiveItem = self.item
         } else {
             // Begin the animation phase immediately if the transition is not initially interactive
             animate(.end)
@@ -135,16 +148,6 @@ class AssetTransitionDriver {
 
     // MARK: Gesture Callbacks
 
-    @objc func press(_ longPressGesture: UILongPressGestureRecognizer) {
-        switch longPressGesture.state {
-        case .began:
-            pauseAnimation()
-            updateInteractiveItemFor(longPressGesture.location(in: transitionContext.containerView))
-        case .ended, .cancelled:
-            endInteraction()
-        default: break
-        }
-    }
 
     // MARK: Interesting UIViewPropertyAnimator Setup
 
@@ -155,118 +158,37 @@ class AssetTransitionDriver {
 
         // The duration of the transition, if uninterrupted
         let transitionDuration = AssetTransitionDriver.animationDuration()
-
+        print("transitionDuration: \(transitionDuration)")
         // Create a UIViewPropertyAnimator that lives the lifetime of the transition
         transitionAnimator = UIViewPropertyAnimator(duration: transitionDuration, curve: .easeOut, animations: transitionAnimations)
 
-        transitionAnimator.addCompletion { [unowned self] (position) in
-            // Call the supplied completion
-            transitionCompletion(position)
-
-            // Inform the transition context that the transition has completed
-            let completed = (position == .end)
-            self.transitionContext.completeTransition(completed)
-        }
+//        transitionAnimator.addCompletion { [unowned self] (position) in
+//            print("transitionAnimator completed!")
+//            print("current thread: \(Thread.current)")
+//            // Call the supplied completion
+//            transitionCompletion(position)
+//
+//            // Inform the transition context that the transition has completed
+//            let completed = (position == .end)
+//            self.transitionContext.completeTransition(completed)
+//        }
     }
 
-    // MARK: Private Helpers
 
-    private func updateInteractiveItemFor(_ locationInContainer: CGPoint) {
-
-        func itemAtPoint(point: CGPoint) -> AssetTransitionItem? {
-            if let view = transitionContext.containerView.hitTest(point, with: nil) {
-                for item in self.items {
-                    if item.imageView == view {
-                        return item
-                    }
-                }
-            }
-            return nil
-        }
-
-        if let item = itemAtPoint(point: locationInContainer), let itemCenter = item.imageView?.center {
-            item.touchOffset = locationInContainer - itemCenter
-            interactiveItem = item
-        }
-    }
-
-    private func progressStepFor(translation: CGPoint) -> CGFloat {
-        return (operation == .push ? -1.0 : 1.0) * translation.y / transitionContext.containerView.bounds.midY
-    }
-
-    private func updateItemsForInteractive(translation: CGPoint) {
-        let progressStep = progressStepFor(translation: translation)
-        for item in items {
-            let initialSize = item.initialFrame.size
-            if let imageView = item.imageView, let finalSize = item.targetFrame?.size {
-                let currentSize = imageView.frame.size
-
-                let itemPercentComplete = clip(-0.05, 1.05, (currentSize.width - initialSize.width) / (finalSize.width - initialSize.width) + progressStep)
-                let itemWidth = lerp(initialSize.width, finalSize.width, itemPercentComplete)
-                let itemHeight = lerp(initialSize.height, finalSize.height, itemPercentComplete)
-                let scaleTransform = CGAffineTransform(scaleX: (itemWidth / currentSize.width), y: (itemHeight / currentSize.height))
-                let scaledOffset = item.touchOffset.apply(transform: scaleTransform)
-
-                imageView.center = (imageView.center + (translation + (item.touchOffset - scaledOffset))).point
-                imageView.bounds = CGRect(origin: CGPoint.zero, size: CGSize(width: itemWidth, height: itemHeight))
-                item.touchOffset = scaledOffset
-            }
-        }
-    }
-
-    private func completionPosition() -> UIViewAnimatingPosition {
-        let completionThreshold: CGFloat = 0.33
-        let flickMagnitude: CGFloat = 1200 //pts/sec
-        let velocity = panGestureRecognizer.velocity(in: transitionContext.containerView).vector
-        let isFlick = (velocity.magnitude > flickMagnitude)
-        let isFlickDown = isFlick && (velocity.dy > 0.0)
-        let isFlickUp = isFlick && (velocity.dy < 0.0)
-
-        if (operation == .push && isFlickUp) || (operation == .pop && isFlickDown) {
-            return .end
-        } else if (operation == .push && isFlickDown) || (operation == .pop && isFlickUp) {
-            return .start
-        } else if transitionAnimator.fractionComplete > completionThreshold {
-            return .end
-        } else {
-            return .start
-        }
-    }
-
-    private func timingCurveVelocity() -> CGVector {
-        // Convert the gesture recognizer's velocity into the initial velocity for the animation curve
-        let gestureVelocity = panGestureRecognizer.velocity(in: transitionContext.containerView)
-        return convert(gestureVelocity, for: interactiveItem)
-    }
-
-    private func convert(_ velocity: CGPoint, for item: AssetTransitionItem?) -> CGVector {
-        guard let currentFrame = item?.imageView?.frame, let targetFrame = item?.targetFrame else {
-            return CGVector.zero
-        }
-
-        let dx = abs(targetFrame.midX - currentFrame.midX)
-        let dy = abs(targetFrame.midY - currentFrame.midY)
-
-        guard dx > 0.0 && dy > 0.0 else {
-            return CGVector.zero
-        }
-
-        let range = CGFloat(35.0)
-        let clippedVx = clip(-range, range, velocity.x / dx)
-        let clippedVy = clip(-range, range, velocity.y / dy)
-        return CGVector(dx: clippedVx, dy: clippedVy)
-    }
 
     // MARK: Interesting Interruptible Transitioning Stuff
 
     @objc func updateInteraction(_ fromGesture: UIPanGestureRecognizer) {
         switch fromGesture.state {
+
             case .began, .changed:
                 // Ask the gesture recognizer for it's translation
                 let translation = fromGesture.translation(in: transitionContext.containerView)
 
                 // Calculate the percent complete
-                let percentComplete = transitionAnimator.fractionComplete + progressStepFor(translation: translation)
+                let percentComplete = competionFor(translation: translation)
+
+                let transitionImageScale = transitionImageScaleFor(percentageComplete: percentComplete)
 
                 // Update the transition animator's fractionCompete to scrub it's animations
                 transitionAnimator.fractionComplete = percentComplete
@@ -275,10 +197,7 @@ class AssetTransitionDriver {
                 transitionContext.updateInteractiveTransition(percentComplete)
 
                 // Update each transition item for the
-                updateItemsForInteractive(translation: translation)
-
-                // Reset the gestures translation
-                fromGesture.setTranslation(CGPoint.zero, in: transitionContext.containerView)
+                updateItemForInteractive(translation: translation, scale: transitionImageScale)
             case .ended, .cancelled:
                 // End the interactive phase of the transition
                 endInteraction()
@@ -304,13 +223,59 @@ class AssetTransitionDriver {
 
     func animate(_ toPosition: UIViewAnimatingPosition) {
         // Create a property animator to animate each image's frame change
-        let itemFrameAnimator = AssetTransitionDriver.propertyAnimator(initialVelocity: timingCurveVelocity())
-        itemFrameAnimator.addAnimations {
-            for item in self.items {
-                item.imageView?.frame = (toPosition == .end ? item.targetFrame : item.initialFrame)!
+//        let itemFrameAnimator = AssetTransitionDriver.propertyAnimator(initialVelocity: timingCurveVelocity())
+        // The cancel and complete animations have different timing values.
+        // I dialed these in on-device using SwiftTweaks.
+        let completionDuration: Double
+        let completionDamping: CGFloat
+//        let finalFrame: CGRect
+        if toPosition != .end { // cancel
+            completionDuration = 0.45
+            completionDamping = 0.75
+        } else {
+            completionDuration = 0.37
+            completionDamping = 0.90
+        }
+
+        let itemFrameAnimator = UIViewPropertyAnimator(duration: completionDuration, dampingRatio: completionDamping) {
+            self.transitionImageView.transform = CGAffineTransform.identity
+            if toPosition == .end {
+                if self.operation == .push {
+                    if let referencedImage = self.fromAssetTransitioning?.referenceImage(),
+                        let toView = self.toView {
+                        let toReferenceFrame = AssetTransitionDriver.calculateZoomInImageFrame(image: referencedImage, forView: toView)
+                        self.transitionImageView.frame = toReferenceFrame
+                    }
+                } else {
+                    if let imageFrame = self.toAssetTransitioning?.imageFrame() {
+                        self.transitionImageView.frame = imageFrame
+                    }
+                }
+            } else { // cancel
+                if let imageFrame = self.fromAssetTransitioning?.imageFrame() {
+                    self.transitionImageView.frame = imageFrame
+                }
             }
         }
 
+        itemFrameAnimator.addCompletion { [weak self] position in
+            guard let self = self else { return }
+            // Finish the protocol handshake
+            self.fromAssetTransitioning?.transitionDidEnd()
+            self.toAssetTransitioning?.transitionDidEnd()
+            // Remove transition views
+            self.transitionImageView.image = nil
+            self.transitionImageView.removeFromSuperview()
+            self.visualEffectView.removeFromSuperview()
+
+            if position == .end {
+                self.transitionContext.finishInteractiveTransition()
+                self.transitionContext.completeTransition(true)
+            } else {
+                self.transitionContext.cancelInteractiveTransition()
+                self.transitionContext.completeTransition(false)
+            }
+        }
         // Start the property animator and keep track of it
         itemFrameAnimator.startAnimation()
         self.itemFrameAnimator = itemFrameAnimator
@@ -346,8 +311,70 @@ class AssetTransitionDriver {
         return AssetTransitionDriver.propertyAnimator().duration
     }
 
+
+    // MARK: Private Helpers
+
+
+    //    private func progressStepFor(translation: CGPoint) -> CGFloat {
+    //        return (operation == .push ? -1.0 : 1.0) * translation.y / transitionContext.containerView.bounds.midY
+    //    }
+
+        func competionFor(translation: CGPoint) -> CGFloat {
+            return (operation == .push ? -1.0 : 1.0) * translation.y / transitionContext.containerView.bounds.midY
+        }
+
+        private func transitionImageScaleFor(percentageComplete: CGFloat) -> CGFloat {
+            let minScale = CGFloat(0.68)
+            let result = 1 - (1 - minScale) * percentageComplete
+            return result
+        }
+
+        func updateItemForInteractive(translation: CGPoint, scale: CGFloat) {
+            transitionImageView.transform = CGAffineTransform.identity.scaledBy(x: scale, y: scale)
+                .translatedBy(x: translation.x, y: translation.y)
+        }
+
+        private func completionPosition() -> UIViewAnimatingPosition {
+            let completionThreshold: CGFloat = 0.33
+            let flickMagnitude: CGFloat = 1200 //pts/sec
+            let velocity = panGestureRecognizer.velocity(in: transitionContext.containerView).vector
+            let isFlick = (velocity.magnitude > flickMagnitude)
+            let isFlickDown = isFlick && (velocity.dy > 0.0)
+            let isFlickUp = isFlick && (velocity.dy < 0.0)
+
+            if (operation == .push && isFlickUp) || (operation == .pop && isFlickDown) {
+                return .end
+            } else if (operation == .push && isFlickDown) || (operation == .pop && isFlickUp) {
+                return .start
+            } else if transitionAnimator.fractionComplete > completionThreshold {
+                return .end
+            } else {
+                return .start
+            }
+        }
+    /// For a given vertical offset, what's the percentage complete for the transition?
+    /// e.g. -100pts -> 0%, 0pts -> 0%, 20pts -> 10%, 200pts -> 100%, 400pts -> 100%
+    private func percentageComplete(forVerticalDrag verticalDrag: CGFloat) -> CGFloat {
+        let maximumDelta = CGFloat(200)
+        return CGFloat.scaleAndShift(value: verticalDrag, inRange: (min: CGFloat(0), max: maximumDelta))
+    }
+
     class func propertyAnimator(initialVelocity: CGVector = .zero) -> UIViewPropertyAnimator {
         let timingParameters = UISpringTimingParameters(mass: 4.5, stiffness: 1300, damping: 95, initialVelocity: initialVelocity)
         return UIViewPropertyAnimator(duration: assetTransitionDuration, timingParameters:timingParameters)
+    }
+
+    /// If no location is provided by the fromDelegate, we'll use an offscreen-bottom position for the image.
+    private static func defaultOffscreenFrameForPresentation(image: UIImage, forView view: UIView) -> CGRect {
+        var result = AssetTransitionDriver.calculateZoomInImageFrame(image: image, forView: view)
+        result.origin.y = view.bounds.height
+        return result
+    }
+
+    /// Because the photoDetailVC isn't laid out yet, we calculate a default rect here.
+    // TODO: Move this into PhotoDetailViewController, probably!
+    private static func calculateZoomInImageFrame(image: UIImage, forView view: UIView) -> CGRect {
+        let rect = CGRect.makeRect(aspectRatio: image.size, insideRect: view.bounds)
+        return rect
     }
 }

@@ -108,7 +108,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         view.addSubview(captionView)
 
         setupCollectionView()
-        setupPanGesture()
+//        setupPanGesture()
 
         setupNavigationBar()
         setupNavigationToolBar()
@@ -158,12 +158,12 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 //        collectionView.backgroundColor = .white
     }
 
-    func setupPanGesture() {
-        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(PhotoDetailCollectionViewController.dismissPanGestureDidChange(_:)))
-        panGesture.minimumNumberOfTouches = 1
-        panGesture.maximumNumberOfTouches = 1
-        view.addGestureRecognizer(panGesture)
-    }
+//    func setupPanGesture() {
+//        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(PhotoDetailCollectionViewController.dismissPanGestureDidChange(_:)))
+//        panGesture.minimumNumberOfTouches = 1
+//        panGesture.maximumNumberOfTouches = 1
+//        view.addGestureRecognizer(panGesture)
+//    }
 
     func setupNavigationBar() {
         self.navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
@@ -318,24 +318,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     }
 
-    @objc private func dismissPanGestureDidChange(_ gesture: UIPanGestureRecognizer) {
-        // Decide whether we're interactively-dismissing, and notify our navigation controller.
-        switch gesture.state {
-        case .began:
-            self.isInteractivelyDismissing = true
-            self.navigationController?.popViewController(animated: true)
-        case .cancelled, .failed, .ended:
-            self.isInteractivelyDismissing = false // 需要设置为false，以便从navigationbar 返回的时候 CustomNavigationController 判断
-        case .changed, .possible:
-            break
-        @unknown default:
-            break
-        }
-
-        // We want to update our transition controller, too!
-        self.transitionController?.didPanWith(gestureRecognizer: gesture)
-    }
-
     // MARK: -Bar item actions
     @objc func doneBarButtonClicked(_ sender: UIBarButtonItem) {
         assert(!selectedPhotos.isEmpty, "photos shouldn't be empty")
@@ -397,6 +379,10 @@ extension PhotoDetailCollectionViewController: UIScrollViewDelegate {
         let currentPage = Int((scrollView.contentOffset.x + pageWidth / 2) / pageWidth)
         lastDisplayedIndexPath = IndexPath(row: currentPage, section: 0)
     }
+    
+    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        print(#function)
+    }
 }
 
 // MARK: - Router event
@@ -439,7 +425,7 @@ extension PhotoDetailCollectionViewController {
 }
 
 // MARK: - PhotoDetailTransitionAnimatorDelegate
-extension PhotoDetailCollectionViewController: PhotoDetailTransitionAnimatorDelegate {
+extension PhotoDetailCollectionViewController: AssetTransitioning {
     
     public func transitionWillStart() {
         guard let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) else { return }

@@ -43,7 +43,7 @@ class ViewController: UIViewController {
         suishoupaiBtn.setTitleColor(.systemBlue, for: .normal)
 
         photosViewBtn.addTarget(self, action: #selector(photosViewButtonClicked(_:)), for: .touchUpInside)
-        suishoupaiBtn.addTarget(self, action: #selector(suishoupaiButtonClicked(_:)), for: .touchUpInside)
+        suishoupaiBtn.addTarget(self, action: #selector(suiShouPaiButtonClicked(_:)), for: .touchUpInside)
 
         stackView.addArrangedSubview(photosViewBtn)
         stackView.addArrangedSubview(suishoupaiBtn)
@@ -84,10 +84,13 @@ class ViewController: UIViewController {
                     gridVC.selectedPhotos = { [weak self] images in
                         print("selected \(images.count) photos: \(images)")
                     }
-                    let navi = CustomTransitionNavigationController(rootViewController: gridVC)
+//                    let navi = CustomTransitionNavigationController(rootViewController: gridVC)
 //                    let navi = UINavigationController(rootViewController: gridVC)
-                    navi.modalPresentationStyle = .fullScreen
-                    self.present(navi, animated: true, completion: nil)
+//                    navi.modalPresentationStyle = .fullScreen
+//                    self.present(navi, animated: true, completion: nil)
+
+                    self.navigationController?.pushViewController(gridVC, animated: true)
+
                 case .denied, .restricted, .notDetermined:
                     print("⚠️ without authorization! ⚠️")
                 @unknown default:
@@ -98,7 +101,7 @@ class ViewController: UIViewController {
         }
     }
 
-    @objc func suishoupaiButtonClicked(_ sender: UIButton) {
+    @objc func suiShouPaiButtonClicked(_ sender: UIButton) {
         PHPhotoLibrary.requestAuthorization { (status) in
                     DispatchQueue.main.async {
                         switch status {

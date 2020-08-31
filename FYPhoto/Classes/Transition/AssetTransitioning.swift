@@ -32,17 +32,33 @@ class AssetTransitionItem: NSObject {
 }
 
 protocol AssetTransitioning {
-    func itemsForTransition(context: UIViewControllerContextTransitioning) -> Array<AssetTransitionItem>
-    func targetFrame(transitionItem: AssetTransitionItem) -> CGRect?
-    func willTransition(fromController: UIViewController, toController: UIViewController, items: Array<AssetTransitionItem>)
-    func didTransition(fromController: UIViewController, toController: UIViewController, items: Array<AssetTransitionItem>)
+//    func itemForTransition(context: UIViewControllerContextTransitioning) -> Photo?
+//    func targetFrame(transitionItem: Photo) -> CGRect?
+//    func willTransition(fromController: UIViewController, toController: UIViewController, item: Photo)
+//    func didTransition(fromController: UIViewController, toController: UIViewController, item: Photo)
 
+    /// Called just-before the transition animation begins.
+    /// Use this to prepare for the transition.
+    func transitionWillStart()
+
+    /// Called right-after the transition animation ends.
+    /// Use this to clean up after the transition.
+    func transitionDidEnd()
+
+    /// The animator needs a UIImageView for the transition;
+    /// eg the Photo Detail screen should provide a snapshotView of its image,
+    /// and a collectionView should do the same for its image views.
+    func referenceImage() -> UIImage?
+
+    /// The location onscreen for the imageView provided in `referenceImageView(for:)`
+    func imageFrame() -> CGRect?
+    
     /// if true, self is pushed by navigation controller using Asset transition.
-    func willPushedByAssetTransition() -> Bool
+    func enableAssetTransitionPush() -> Bool
 }
 
 extension AssetTransitioning {
-    func willPushedByAssetTransition() -> Bool {
+    func enableAssetTransitionPush() -> Bool {
         true
     }
 }
