@@ -88,7 +88,7 @@ class ViewController: UIViewController {
 //                    let navi = UINavigationController(rootViewController: gridVC)
 //                    navi.modalPresentationStyle = .fullScreen
 //                    self.present(navi, animated: true, completion: nil)
-
+                    
                     self.navigationController?.pushViewController(gridVC, animated: true)
 
                 case .denied, .restricted, .notDetermined:

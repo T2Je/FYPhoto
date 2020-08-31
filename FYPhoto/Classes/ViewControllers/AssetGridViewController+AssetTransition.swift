@@ -18,6 +18,7 @@ extension AssetGridViewController: AssetTransitioning {
     public func transitionDidEnd() {
         guard let indexPath = lastSelectedIndexPath else { return }
         collectionView.cellForItem(at: indexPath)?.isHidden = false
+        print(#function, indexPath)
     }
 
     public func referenceImage() -> UIImage? {

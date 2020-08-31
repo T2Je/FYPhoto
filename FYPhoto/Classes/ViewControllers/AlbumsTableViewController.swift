@@ -32,14 +32,14 @@ class AlbumsTableViewController: UITableViewController {
     let smartAlbums: [PHAssetCollection]!
     let userCollections: PHFetchResult<PHCollection>
 
-    let sectionLocalizedTitles = ["", "Smart Albums".ppTablelocalized, "User Albums".ppTablelocalized]
+    let sectionLocalizedTitles = ["", "Smart Albums".photoTablelocalized, "User Albums".photoTablelocalized]
 
     var selectedIndexPath: IndexPath
 
     /// 封面
     fileprivate let coverSize = CGSize(width: 50, height: 50)
 
-    fileprivate let coverPlaceholder = "cover_placeholder".ppImage
+    fileprivate let coverPlaceholder = "cover_placeholder".photoImage
 
 //    <a target="_blank" href="https://icons8.com/icons/set/full-image">Full Image icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
     init(allPhotos: PHFetchResult<PHAsset>,
@@ -88,7 +88,7 @@ class AlbumsTableViewController: UITableViewController {
         switch Section(rawValue: indexPath.section)! {
         case .allPhotos:
             cell = tableView.dequeueReusableCell(withIdentifier: CellIdentifier.allPhotos.rawValue, for: indexPath)
-            cell.textLabel?.text = "All Photo".ppTablelocalized
+            cell.textLabel?.text = "All Photo".photoTablelocalized
         case .smartAlbums:
             let albumCell = tableView.dequeueReusableCell(withIdentifier: CellIdentifier.collection.rawValue, for: indexPath) as! AlbumCell
             albumCell.name = smartAlbums[indexPath.row].localizedTitle

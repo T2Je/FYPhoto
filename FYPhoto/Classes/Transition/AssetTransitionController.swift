@@ -46,16 +46,18 @@ class AssetTransitionController: NSObject {
 extension AssetTransitionController: UIGestureRecognizerDelegate {
 
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        return true
+        return false
     }
 
     func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
         guard let transitionDriver = self.transitionDriver else {
             let translation = panGestureRecognizer.translation(in: panGestureRecognizer.view)
             let translationIsVertical = (translation.y > 0) && (abs(translation.y) > abs(translation.x))
+            print(#function, translationIsVertical && (navigationController?.viewControllers.count ?? 0 > 1))
             return translationIsVertical && (navigationController?.viewControllers.count ?? 0 > 1)
         }
 
+        print("transitionDriver.isInteractive = \(transitionDriver.isInteractive)")
         return transitionDriver.isInteractive
     }
 }
@@ -86,7 +88,11 @@ extension AssetTransitionController: UINavigationControllerDelegate {
 
 extension AssetTransitionController: UIViewControllerAnimatedTransitioning {
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        assetTransitionDuration
+        if operation == .push {
+            return 0.4
+        } else {
+            return 0.38
+        }
     }
 
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -110,7 +116,7 @@ extension AssetTransitionController: UIViewControllerAnimatedTransitioning {
 extension AssetTransitionController: UIViewControllerInteractiveTransitioning {
     func startInteractiveTransition(_ transitionContext: UIViewControllerContextTransitioning) {
         // Create our helper object to manage the transition for the given transitionContext.
-        transitionDriver = AssetTransitionDriver(operation: operation, context: transitionContext, panGestureRecognizer: panGestureRecognizer)
+        transitionDriver = AssetTransitionDriver(operation: operation, context: transitionContext, panGestureRecognizer: panGestureRecognizer, duration: transitionDuration(using: transitionContext))
     }
 
     var wantsInteractiveStart: Bool {

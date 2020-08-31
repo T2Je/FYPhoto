@@ -94,9 +94,27 @@ public class AssetGridViewController: UICollectionViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-        collectionView.backgroundColor = .white
+        self.view.backgroundColor = .white
+        collectionView.backgroundColor = .clear
         collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: String(describing: GridViewCell.self))
-
+        self.automaticallyAdjustsScrollViewInsets = false
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        if #available(iOS 11.0, *) {
+            NSLayoutConstraint.activate([
+                collectionView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor),
+                collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
+                collectionView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor),
+                collectionView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
+            ])
+        } else {
+            // Fallback on earlier versions
+            NSLayoutConstraint.activate([
+                collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+                collectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+                collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+                collectionView.topAnchor.constraint(equalTo: self.view.topAnchor),
+            ])
+        }
         requestAlbumsData()
 
         initalFetchResult()
@@ -138,12 +156,11 @@ public class AssetGridViewController: UICollectionViewController {
         let cellSize = (collectionViewLayout as! UICollectionViewFlowLayout).itemSize
         thumbnailSize = CGSize(width: cellSize.width * scale, height: cellSize.height * scale)
 
-        self.navigationController?.setNavigationBarHidden(false, animated: false)
-    }
 
-    public override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        updateCachedAssets()
+        self.navigationController?.setNavigationBarHidden(false, animated: animated)        
+        if self.navigationController?.navigationBar.alpha == 0 {
+            self.navigationController?.navigationBar.alpha = 1
+        }
     }
 
     // MARK: -NavigationBar
@@ -170,7 +187,7 @@ public class AssetGridViewController: UICollectionViewController {
                 albumsVC.delegate = self
                 self.present(albumsVC, animated: true, completion: nil)
             }
-            customTitleView.title = "All photos".ppTablelocalized
+            customTitleView.title = "All photos".photoTablelocalized
             self.navigationItem.titleView = customTitleView
         }
     }
@@ -183,7 +200,7 @@ public class AssetGridViewController: UICollectionViewController {
         }
     }
     @objc func backBarButton(_ sender: UIBarButtonItem) {
-        self.navigationController?.dismiss(animated: true, completion: nil)
+        self.navigationController?.popViewController(animated: true)
     }
 
     @objc func doneBarButton(_ sender: UIBarButtonItem) {
@@ -198,7 +215,7 @@ public class AssetGridViewController: UICollectionViewController {
     ///   - assets: selected assets
     ///   - animated: dissmiss animated
     func selectionCompleted(assets: [PHAsset], animated: Bool) {
-        self.navigationController?.dismiss(animated: animated, completion: nil)
+        self.navigationController?.popViewController(animated: true)
         guard !assets.isEmpty else {
             return
         }
@@ -378,7 +395,7 @@ extension AssetGridViewController: AlbumsTableViewControllerDelegate {
         switch AlbumsTableViewController.Section(rawValue: indexPath.section)! {
         case .allPhotos:
             fetchResult = allPhotos
-            customTitleView.title = "All photos".ppTablelocalized
+            customTitleView.title = "All photos".photoTablelocalized
         case .smartAlbums:
             let collection = smartAlbums[indexPath.row]
             fetchResult = PHAsset.fetchAssets(in: collection, options: nil)
@@ -498,6 +515,12 @@ extension AssetGridViewController: PHPhotoLibraryChangeObserver {
             }
             resetCachedAssets()
         }
+    }
+}
+
+extension AssetGridViewController {
+    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        print(#function)
     }
 }
 

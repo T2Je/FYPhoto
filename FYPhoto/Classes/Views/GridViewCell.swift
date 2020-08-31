@@ -60,7 +60,7 @@ class GridViewCell: UICollectionViewCell {
 
         imageView.image = nil
         livePhotoBadgeImageView.image = nil
-        selectionButton.setImage("ImageSelectedSmallOff".ppImage, for: .normal)
+        selectionButton.setImage("ImageSelectedSmallOff".photoImage, for: .normal)
         indexPath = nil
     }
     
@@ -71,7 +71,7 @@ class GridViewCell: UICollectionViewCell {
         videoDurationLabel.font = UIFont.systemFont(ofSize: 11, weight: .light)
         videoDurationLabel.textColor =  .white
 
-        selectionButton.setImage("ImageSelectedSmallOff".ppImage, for: .normal)
+        selectionButton.setImage("ImageSelectedSmallOff".photoImage, for: .normal)
         selectionButton.addTarget(self, action: #selector(selectionButtonClicked(_:)), for: .touchUpInside)
 
         selectionButton.layer.masksToBounds = true
@@ -139,7 +139,7 @@ class GridViewCell: UICollectionViewCell {
     /// - Parameter title: if title is empty, button display cirle image, otherwise, button display number string.
     func displayButtonTitle(_ title: String) {
         if title.isEmpty {
-            selectionButton.setImage("ImageSelectedSmallOff".ppImage, for: .normal)
+            selectionButton.setImage("ImageSelectedSmallOff".photoImage, for: .normal)
             selectionButton.setTitle(title, for: .normal)
             selectionButton.backgroundColor = .clear
         } else {

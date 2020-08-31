@@ -20,17 +20,17 @@ extension Bundle {
 
     private class func bundleURL() -> URL? {
         let bundle = Bundle(for: FYPickerResource.self)
-        return bundle.url(forResource: "FYPhotoPicker", withExtension: "bundle")
+        return bundle.url(forResource: "FYPhoto", withExtension: "bundle")
     }
 }
 
 extension String {
-    var ppTablelocalized: String {
-        let string = NSLocalizedString(self, tableName: "FYPhotoPicker", bundle: Bundle.ppBundle(), value: "", comment: "")
+    var photoTablelocalized: String {
+        let string = NSLocalizedString(self, tableName: "FYPhoto", bundle: Bundle.ppBundle(), value: "", comment: "")
         return string
     }
 
-    var ppImage: UIImage? {
+    var photoImage: UIImage? {
         let image = UIImage(named: self, in: Bundle.ppBundle(), compatibleWith: nil)
         return image
     }

@@ -18,7 +18,7 @@ class ZoomingScrollView: UIScrollView {
 
     var photo: PhotoProtocol! {
         didSet {
-            imageView.image = "cover_placeholder".ppImage
+            imageView.image = "cover_placeholder".photoImage
             circularProgressView.isHidden = true
             if photo != nil {
                 if let image = photo.underlyingImage {
@@ -51,7 +51,7 @@ class ZoomingScrollView: UIScrollView {
     }
 
     func setup() {
-        backgroundColor = .clear
+//        backgroundColor = .clear
         imageView.delegate = self
         imageView.contentMode = .scaleAspectFit
 
@@ -146,7 +146,7 @@ class ZoomingScrollView: UIScrollView {
     }
 
     func displayImageFailure() {
-        imageView.image = "ImageError".ppImage
+        imageView.image = "ImageError".photoImage
         imageView.contentMode = .center
         setNeedsDisplay()
     }

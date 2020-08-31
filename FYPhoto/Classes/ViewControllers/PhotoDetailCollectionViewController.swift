@@ -71,7 +71,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     fileprivate var initialScrollDone = false
 
-    fileprivate let addLocalizedString = "add".ppTablelocalized
+    fileprivate let addLocalizedString = "add".photoTablelocalized
 
     fileprivate var originalNavigationBarHidden: Bool?
     fileprivate var originalToolBarHidden: Bool?
@@ -122,19 +122,24 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 //        hideNavigationViews(false, animated: false)
 //        // FIXME: ToolBar comes up strangely. Maybe custom setToolIsHidden in CustomNavigationController is the way
 //    }
-
-    public override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
+    public override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         if let showNavigationBar = delegate?.showNavigationBar(in: self) {
-            self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: true)
+            self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: animated)
+            if showNavigationBar {
+                self.navigationController?.navigationBar.alpha = 1
+            }
         } else {
-            self.navigationController?.setNavigationBarHidden(true, animated: false)
+            self.navigationController?.setNavigationBarHidden(true, animated: animated)
         }
 
         if let showToolBar = delegate?.showNavigationToolBar(in: self) {
-            self.navigationController?.setToolbarHidden(!showToolBar, animated: false)
+            self.navigationController?.setToolbarHidden(!showToolBar, animated: animated)
+            if showToolBar {
+                self.navigationController?.toolbar.alpha = 1
+            }
         } else {
-            self.navigationController?.setToolbarHidden(true, animated: false)
+            self.navigationController?.setToolbarHidden(true, animated: animated)
         }
 
         originCaptionTransform = captionView.transform
@@ -143,10 +148,10 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         if let originalIsNavigationBarHidden = originalNavigationBarHidden {
-            navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: false)
+            navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: animated)
         }
         if let originalToolBarHidden = originalToolBarHidden {
-            navigationController?.setToolbarHidden(originalToolBarHidden, animated: false)
+            navigationController?.setToolbarHidden(originalToolBarHidden, animated: animated)
         }
     }
 
@@ -155,7 +160,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         collectionView.isPagingEnabled = true
         collectionView.delegate = self
         collectionView.dataSource = self
-//        collectionView.backgroundColor = .white
+        collectionView.backgroundColor = .white
     }
 
 //    func setupPanGesture() {
@@ -378,10 +383,6 @@ extension PhotoDetailCollectionViewController: UIScrollViewDelegate {
         let pageWidth = scrollView.frame.size.width
         let currentPage = Int((scrollView.contentOffset.x + pageWidth / 2) / pageWidth)
         lastDisplayedIndexPath = IndexPath(row: currentPage, section: 0)
-    }
-    
-    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        print(#function)
     }
 }
 

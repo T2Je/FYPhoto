@@ -14,6 +14,7 @@ class AssetTransitionDriver {
 
     private let operation: UINavigationController.Operation
     private let panGestureRecognizer: UIPanGestureRecognizer
+    private let duration: TimeInterval
     private var itemFrameAnimator: UIViewPropertyAnimator?
     private var item: Photo?
     private var interactiveItem: Photo?
@@ -44,10 +45,11 @@ class AssetTransitionDriver {
 
     // MARK: Initialization
 
-    init(operation: UINavigationController.Operation, context: UIViewControllerContextTransitioning, panGestureRecognizer panGesture: UIPanGestureRecognizer) {
+    init(operation: UINavigationController.Operation, context: UIViewControllerContextTransitioning, panGestureRecognizer panGesture: UIPanGestureRecognizer, duration: TimeInterval) {
         self.transitionContext = context
         self.operation = operation
         self.panGestureRecognizer = panGesture
+        self.duration = duration
 
         setup(context)
     }
@@ -66,9 +68,6 @@ class AssetTransitionDriver {
                 return
         }
 
-//        initialFrame = fromAssetTransitioning.imageFrame()
-//        targetFrame = toAssetTransitioning.imageFrame()
-
         self.fromAssetTransitioning = fromAssetTransitioning
         self.toAssetTransitioning = toAssetTransitioning
         self.toView = toView
@@ -78,9 +77,6 @@ class AssetTransitionDriver {
 
         // Add ourselves as a target of the pan gesture
         self.panGestureRecognizer.addTarget(self, action: #selector(updateInteraction(_:)))
-
-        // Ensure the toView has the correct size and position
-        toView.frame = context.finalFrame(for: toViewController)
 
         // Create a visual effect view and animate the effect in the transition animator
         let effect: UIVisualEffect? = (operation == .pop) ? UIBlurEffect(style: .extraLight) : nil
@@ -105,8 +101,9 @@ class AssetTransitionDriver {
             containerView.insertSubview(toView, at: 0)
         }
 
-//        let item = fromAssetTransitioning.itemForTransition(context: context)
-//        self.item = item
+        // Ensure the toView has the correct size and position
+        toView.frame = context.finalFrame(for: toViewController)
+        
         if let fromImage = fromAssetTransitioning.referenceImage() {
             transitionImageView.image = fromImage
         }
@@ -121,20 +118,12 @@ class AssetTransitionDriver {
         fromAssetTransitioning.transitionWillStart()
         toAssetTransitioning.transitionWillStart()
 
-        // Add animations and completion to the transition animator
-        self.setupTransitionAnimator({
+        // Create a UIViewPropertyAnimator that lives the lifetime of the transition
+        let spring = CGFloat(0.95)
+        transitionAnimator = UIViewPropertyAnimator(duration: duration, dampingRatio: spring) {
             topView.alpha = topViewTargetAlpha
             self.visualEffectView.effect = targetEffect
-//            fromView.alpha = 0
-        }, transitionCompletion: { [unowned self] (position) in
-            // Finish the protocol handshake
-            fromAssetTransitioning.transitionDidEnd()
-            toAssetTransitioning.transitionDidEnd()
-            // Remove transition views
-            self.transitionImageView.image = nil
-            self.transitionImageView.removeFromSuperview()
-            self.visualEffectView.removeFromSuperview()
-        })
+        }
 
         if context.isInteractive {
             // If the transition is initially interactive, ensure we know what item is being manipulated
@@ -148,7 +137,6 @@ class AssetTransitionDriver {
 
     // MARK: Gesture Callbacks
 
-
     // MARK: Interesting UIViewPropertyAnimator Setup
 
     /// UIKit calls startInteractiveTransition(_ transitionContext: UIViewControllerContextTransitioning)
@@ -156,11 +144,7 @@ class AssetTransitionDriver {
     /// then created with the transitionContext to manage the transition. It calls this func from Init().
     func setupTransitionAnimator(_ transitionAnimations: @escaping ()->(), transitionCompletion: @escaping (UIViewAnimatingPosition)->()) {
 
-        // The duration of the transition, if uninterrupted
-        let transitionDuration = AssetTransitionDriver.animationDuration()
-        print("transitionDuration: \(transitionDuration)")
-        // Create a UIViewPropertyAnimator that lives the lifetime of the transition
-        transitionAnimator = UIViewPropertyAnimator(duration: transitionDuration, curve: .easeOut, animations: transitionAnimations)
+
 
 //        transitionAnimator.addCompletion { [unowned self] (position) in
 //            print("transitionAnimator completed!")
@@ -211,11 +195,11 @@ class AssetTransitionDriver {
 
         // Inform the transition context of whether we are finishing or cancelling the transition
         let completionPosition = self.completionPosition()
-        if completionPosition == .end {
-            transitionContext.finishInteractiveTransition()
-        } else {
-            transitionContext.cancelInteractiveTransition()
-        }
+//        if completionPosition == .end {
+//            transitionContext.finishInteractiveTransition()
+//        } else {
+//            transitionContext.cancelInteractiveTransition()
+//        }
 
         // Begin the animation phase of the transition to either the start or finsh position
         animate(completionPosition)
@@ -258,7 +242,7 @@ class AssetTransitionDriver {
             }
         }
 
-        itemFrameAnimator.addCompletion { [weak self] position in
+        itemFrameAnimator.addCompletion { [weak self] _ in
             guard let self = self else { return }
             // Finish the protocol handshake
             self.fromAssetTransitioning?.transitionDidEnd()
@@ -268,7 +252,7 @@ class AssetTransitionDriver {
             self.transitionImageView.removeFromSuperview()
             self.visualEffectView.removeFromSuperview()
 
-            if position == .end {
+            if toPosition == .end {
                 self.transitionContext.finishInteractiveTransition()
                 self.transitionContext.completeTransition(true)
             } else {
@@ -294,17 +278,6 @@ class AssetTransitionDriver {
         }
     }
 
-    func pauseAnimation() {
-        // Stop (without finishing) the property animator used for transition item frame changes
-        itemFrameAnimator?.stopAnimation(true)
-
-        // Pause the transition animator
-        transitionAnimator.pauseAnimation()
-
-        // Inform the transition context that we have paused
-        transitionContext.pauseInteractiveTransition()
-    }
-
     // MARK: Interesting Property Animator Stuff
 
     class func animationDuration() -> TimeInterval {
@@ -313,11 +286,6 @@ class AssetTransitionDriver {
 
 
     // MARK: Private Helpers
-
-
-    //    private func progressStepFor(translation: CGPoint) -> CGFloat {
-    //        return (operation == .push ? -1.0 : 1.0) * translation.y / transitionContext.containerView.bounds.midY
-    //    }
 
         func competionFor(translation: CGPoint) -> CGFloat {
             return (operation == .push ? -1.0 : 1.0) * translation.y / transitionContext.containerView.bounds.midY
