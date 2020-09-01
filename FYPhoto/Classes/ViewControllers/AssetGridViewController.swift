@@ -124,7 +124,6 @@ public class AssetGridViewController: UICollectionViewController {
         setupTransitionController()
 
         PHPhotoLibrary.shared().register(self)
-//        setupNavigationToolBar()
     }
 
     func requestAlbumsData() {

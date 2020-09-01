@@ -113,7 +113,7 @@ extension PhotoTransitionController: UIViewControllerAnimatedTransitioning {
 //        } else {
 //            return 0.38
 //        }
-        return 5
+        return 1
     }
 
     public func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {

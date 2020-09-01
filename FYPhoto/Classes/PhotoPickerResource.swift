@@ -34,9 +34,13 @@ public class PhotoPickerResource {
     }
 
     public func userCollection() -> PHFetchResult<PHCollection> {
-        let options = PHFetchOptions()
-        options.predicate = NSPredicate(format: "estimatedAssetCount > %d", 0)
-        return PHCollectionList.fetchTopLevelUserCollections(with: options)
+        if #available(iOS 13, *) {
+            let options = PHFetchOptions()
+            options.predicate = NSPredicate(format: "estimatedAssetCount != 0")
+            return PHCollectionList.fetchTopLevelUserCollections(with: options)
+        } else {
+            return PHCollectionList.fetchTopLevelUserCollections(with: nil)
+        }
     }
 
     /// favorites, selfies, live(>=iOS10.3), panoramas, slomos, videos, screenshots, animated(>= iOS11), longExposure(>= iOS11)
