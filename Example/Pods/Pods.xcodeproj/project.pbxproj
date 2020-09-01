@@ -305,6 +305,7 @@
 		E282277BCBF970C6604CC0C336CDA942 /* fg_ic_view_empty@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = F1A5AAEA060C100E4CA6AFBEABE2E04A /* fg_ic_view_empty@3x.png */; };
 		E343E63124F7BCEB003341DE /* AssetGridViewController+AssetTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E63024F7BCEB003341DE /* AssetGridViewController+AssetTransition.swift */; };
 		E36BFC219FA096D4A2314AE07C9EBF56 /* SDWebImageDownloaderConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 66052BCA2D72E00B124872BABE9B1F85 /* SDWebImageDownloaderConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E374363E24FE3B2B00D27260 /* UIImagePickerController+Tool.swift in Sources */ = {isa = PBXBuildFile; fileRef = E374363D24FE3B2B00D27260 /* UIImagePickerController+Tool.swift */; };
 		E3DB129E24FDDCA20056545A /* PhotoTransitionPushPopDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3DB129D24FDDCA20056545A /* PhotoTransitionPushPopDriver.swift */; };
 		E3DB12A024FDDF070056545A /* TransitionDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3DB129F24FDDF070056545A /* TransitionDriver.swift */; };
 		E41A68C343A153F945CF52ADA5F24FF6 /* SDWebImageCompat.m in Sources */ = {isa = PBXBuildFile; fileRef = E9DAB1F1384FCDD4C4553FE50F7DCA50 /* SDWebImageCompat.m */; };
@@ -775,6 +776,7 @@
 		E2E76BA8DB89E800593F59A0BCD9FF49 /* DGRunkeeperSwitch.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DGRunkeeperSwitch.swift; path = FGBase/Classes/Switch/DGRunkeeperSwitch.swift; sourceTree = "<group>"; };
 		E33F2CEAF5940389EE4DF651356D8626 /* FGBaseLocalizable.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = FGBaseLocalizable.strings; path = "zh-Hant.lproj/FGBaseLocalizable.strings"; sourceTree = "<group>"; };
 		E343E63024F7BCEB003341DE /* AssetGridViewController+AssetTransition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AssetGridViewController+AssetTransition.swift"; sourceTree = "<group>"; };
+		E374363D24FE3B2B00D27260 /* UIImagePickerController+Tool.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = "UIImagePickerController+Tool.swift"; path = "FYPhoto/Classes/UIImagePickerController+Tool.swift"; sourceTree = "<group>"; };
 		E3DB129D24FDDCA20056545A /* PhotoTransitionPushPopDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoTransitionPushPopDriver.swift; sourceTree = "<group>"; };
 		E3DB129F24FDDF070056545A /* TransitionDriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransitionDriver.swift; sourceTree = "<group>"; };
 		E4F25C295E6419659CBB36D29AF1607F /* UICircularProgressRing-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "UICircularProgressRing-umbrella.h"; sourceTree = "<group>"; };
@@ -1498,6 +1500,7 @@
 				9FAA2840E6E3CE864C97427A829F2769 /* Transition */,
 				452D7733E75E7386776DC9B39A97C3F9 /* ViewControllers */,
 				60D7391430530B42A58AC98AF1FEF214 /* Views */,
+				E374363D24FE3B2B00D27260 /* UIImagePickerController+Tool.swift */,
 			);
 			name = FYPhoto;
 			path = ../..;
@@ -2305,6 +2308,7 @@
 				E3DB12A024FDDF070056545A /* TransitionDriver.swift in Sources */,
 				F06F13BBB475E1CC3EC932864B69C087 /* PhotoPickerResource.swift in Sources */,
 				9D256CC06E0B1ED024EB0A6FD0A0CDA2 /* PhotoPickerSettingsOptions.swift in Sources */,
+				E374363E24FE3B2B00D27260 /* UIImagePickerController+Tool.swift in Sources */,
 				2C29024F76422725953DC780D2A7478B /* ResourceTool.swift in Sources */,
 				E3DB129E24FDDCA20056545A /* PhotoTransitionPushPopDriver.swift in Sources */,
 				269BE5D6690896CE14E2A72EFA75EDCB /* UICollectionView+IndexPathsInRect.swift in Sources */,
