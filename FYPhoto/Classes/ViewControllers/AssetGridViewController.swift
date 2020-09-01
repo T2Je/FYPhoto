@@ -7,8 +7,6 @@
 
 import UIKit
 
-//private let reuseIdentifier = "Cell"
-
 import UIKit
 import Photos
 import PhotosUI
@@ -67,7 +65,7 @@ public class AssetGridViewController: UICollectionViewController {
         }
     }
 
-    var transitionController: AssetTransitionController?
+    var transitionController: PhotoTransitionController?
 
     fileprivate let maximumNumber: Int
     fileprivate let isOnlyImages: Bool
@@ -195,12 +193,12 @@ public class AssetGridViewController: UICollectionViewController {
     func setupTransitionController() {
         guard let navigationController = self.navigationController else { return }
         if transitionController == nil {
-            transitionController = AssetTransitionController(navigationController: navigationController)
+            transitionController = PhotoTransitionController(navigationController: navigationController)
             navigationController.delegate = transitionController
         }
     }
     @objc func backBarButton(_ sender: UIBarButtonItem) {
-        self.navigationController?.popViewController(animated: true)
+        back()
     }
 
     @objc func doneBarButton(_ sender: UIBarButtonItem) {
@@ -215,12 +213,21 @@ public class AssetGridViewController: UICollectionViewController {
     ///   - assets: selected assets
     ///   - animated: dissmiss animated
     func selectionCompleted(assets: [PHAsset], animated: Bool) {
-        self.navigationController?.popViewController(animated: true)
+        back()
+//        self.navigationController?.popViewController(animated: true)
         guard !assets.isEmpty else {
             return
         }
         PhotoPickerResource.shared.fetchHighQualityImages(assets) {
             self.selectedPhotos?($0)
+        }
+    }
+
+    func back() {
+        if self.presentingViewController != nil {
+            self.dismiss(animated: true, completion: nil)
+        } else {
+            self.navigationController?.popViewController(animated: true)
         }
     }
 
@@ -247,6 +254,7 @@ public class AssetGridViewController: UICollectionViewController {
 
         // Request an image for the asset from the PHCachingImageManager.
         cell.representedAssetIdentifier = asset.localIdentifier
+
         imageManager.requestImage(for: asset, targetSize: thumbnailSize, contentMode: .aspectFill, options: nil, resultHandler: { image, info in
             // The cell may have been recycled by the time this handler gets called;
             // set the cell's thumbnail image only if it's still showing the same asset.

@@ -7,23 +7,17 @@
 
 import Foundation
 
-class AssetTransitionDriver {
+class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
     var transitionAnimator: UIViewPropertyAnimator!
     var isInteractive: Bool { return transitionContext.isInteractive }
     let transitionContext: UIViewControllerContextTransitioning
 
-    private let operation: UINavigationController.Operation
     private let panGestureRecognizer: UIPanGestureRecognizer
     private let duration: TimeInterval
     private var itemFrameAnimator: UIViewPropertyAnimator?
-    private var item: Photo?
-    private var interactiveItem: Photo?
 
-//    private var initialFrame: CGRect?
-//    private var targetFrame: CGRect?
-
-    var fromAssetTransitioning: AssetTransitioning?
-    var toAssetTransitioning: AssetTransitioning?
+    var fromAssetTransitioning: PhotoTransitioning?
+    var toAssetTransitioning: PhotoTransitioning?
 
     var toView: UIView?
     var fromView: UIView?
@@ -45,9 +39,8 @@ class AssetTransitionDriver {
 
     // MARK: Initialization
 
-    init(operation: UINavigationController.Operation, context: UIViewControllerContextTransitioning, panGestureRecognizer panGesture: UIPanGestureRecognizer, duration: TimeInterval) {
+    init(context: UIViewControllerContextTransitioning, panGestureRecognizer panGesture: UIPanGestureRecognizer, duration: TimeInterval) {
         self.transitionContext = context
-        self.operation = operation
         self.panGestureRecognizer = panGesture
         self.duration = duration
 
@@ -59,8 +52,8 @@ class AssetTransitionDriver {
         guard
             let fromViewController = context.viewController(forKey: .from),
             let toViewController = context.viewController(forKey: .to),
-            let fromAssetTransitioning = (fromViewController as? AssetTransitioning),
-            let toAssetTransitioning = (toViewController as? AssetTransitioning),
+            let fromAssetTransitioning = (fromViewController as? PhotoTransitioning),
+            let toAssetTransitioning = (toViewController as? PhotoTransitioning),
             let fromView = fromViewController.view,
             let toView = toViewController.view
             else {
@@ -79,9 +72,9 @@ class AssetTransitionDriver {
         self.panGestureRecognizer.addTarget(self, action: #selector(updateInteraction(_:)))
 
         // Create a visual effect view and animate the effect in the transition animator
-        let effect: UIVisualEffect? = (operation == .pop) ? UIBlurEffect(style: .extraLight) : nil
-        let targetEffect: UIVisualEffect? = (operation == .pop) ? nil : UIBlurEffect(style: .light)
-//        let visualEffectView = UIVisualEffectView(effect: effect)
+        let effect: UIVisualEffect? = UIBlurEffect(style: .extraLight)
+        let targetEffect: UIVisualEffect? = nil
+
         visualEffectView.effect = effect
         visualEffectView.frame = containerView.bounds
         visualEffectView.autoresizingMask = [.flexibleWidth,.flexibleHeight]
@@ -90,16 +83,10 @@ class AssetTransitionDriver {
         // Insert the toViewController's view into the transition container view
         let topView: UIView
         var topViewTargetAlpha: CGFloat = 0.0
-        if operation == .push {
-            topView = toView
-            topViewTargetAlpha = 1.0
-            toView.alpha = 0.0
-            containerView.addSubview(toView)
-        } else {
-            topView = fromView
-            topViewTargetAlpha = 0.0
-            containerView.insertSubview(toView, at: 0)
-        }
+
+        topView = fromView
+        topViewTargetAlpha = 0.0
+        containerView.insertSubview(toView, at: 0)
 
         // Ensure the toView has the correct size and position
         toView.frame = context.finalFrame(for: toViewController)
@@ -124,15 +111,6 @@ class AssetTransitionDriver {
             topView.alpha = topViewTargetAlpha
             self.visualEffectView.effect = targetEffect
         }
-
-        if context.isInteractive {
-            // If the transition is initially interactive, ensure we know what item is being manipulated
-//            self.updateInteractiveItemFor(panGestureRecognizer.location(in: containerView))
-            self.interactiveItem = self.item
-        } else {
-            // Begin the animation phase immediately if the transition is not initially interactive
-            animate(.end)
-        }
     }
 
     // MARK: Gesture Callbacks
@@ -142,23 +120,7 @@ class AssetTransitionDriver {
     /// UIKit calls startInteractiveTransition(_ transitionContext: UIViewControllerContextTransitioning)
     /// on our interaction controller (AssetTransitionController). The AssetTransitionDriver (self) is
     /// then created with the transitionContext to manage the transition. It calls this func from Init().
-    func setupTransitionAnimator(_ transitionAnimations: @escaping ()->(), transitionCompletion: @escaping (UIViewAnimatingPosition)->()) {
-
-
-
-//        transitionAnimator.addCompletion { [unowned self] (position) in
-//            print("transitionAnimator completed!")
-//            print("current thread: \(Thread.current)")
-//            // Call the supplied completion
-//            transitionCompletion(position)
-//
-//            // Inform the transition context that the transition has completed
-//            let completed = (position == .end)
-//            self.transitionContext.completeTransition(completed)
-//        }
-    }
-
-
+    func setupTransitionAnimator(_ transitionAnimations: @escaping ()->(), transitionCompletion: @escaping (UIViewAnimatingPosition)->()) {}
 
     // MARK: Interesting Interruptible Transitioning Stuff
 
@@ -224,16 +186,8 @@ class AssetTransitionDriver {
         let itemFrameAnimator = UIViewPropertyAnimator(duration: completionDuration, dampingRatio: completionDamping) {
             self.transitionImageView.transform = CGAffineTransform.identity
             if toPosition == .end {
-                if self.operation == .push {
-                    if let referencedImage = self.fromAssetTransitioning?.referenceImage(),
-                        let toView = self.toView {
-                        let toReferenceFrame = AssetTransitionDriver.calculateZoomInImageFrame(image: referencedImage, forView: toView)
-                        self.transitionImageView.frame = toReferenceFrame
-                    }
-                } else {
-                    if let imageFrame = self.toAssetTransitioning?.imageFrame() {
-                        self.transitionImageView.frame = imageFrame
-                    }
+                if let imageFrame = self.toAssetTransitioning?.imageFrame() {
+                    self.transitionImageView.frame = imageFrame
                 }
             } else { // cancel
                 if let imageFrame = self.fromAssetTransitioning?.imageFrame() {
@@ -281,14 +235,14 @@ class AssetTransitionDriver {
     // MARK: Interesting Property Animator Stuff
 
     class func animationDuration() -> TimeInterval {
-        return AssetTransitionDriver.propertyAnimator().duration
+        return PhotoInteractiveDismissTransitionDriver.propertyAnimator().duration
     }
 
 
     // MARK: Private Helpers
 
         func competionFor(translation: CGPoint) -> CGFloat {
-            return (operation == .push ? -1.0 : 1.0) * translation.y / transitionContext.containerView.bounds.midY
+            return translation.y / transitionContext.containerView.bounds.midY
         }
 
         private func transitionImageScaleFor(percentageComplete: CGFloat) -> CGFloat {
@@ -310,9 +264,9 @@ class AssetTransitionDriver {
             let isFlickDown = isFlick && (velocity.dy > 0.0)
             let isFlickUp = isFlick && (velocity.dy < 0.0)
 
-            if (operation == .push && isFlickUp) || (operation == .pop && isFlickDown) {
+            if isFlickDown {
                 return .end
-            } else if (operation == .push && isFlickDown) || (operation == .pop && isFlickUp) {
+            } else if isFlickUp {
                 return .start
             } else if transitionAnimator.fractionComplete > completionThreshold {
                 return .end
@@ -334,7 +288,7 @@ class AssetTransitionDriver {
 
     /// If no location is provided by the fromDelegate, we'll use an offscreen-bottom position for the image.
     private static func defaultOffscreenFrameForPresentation(image: UIImage, forView view: UIView) -> CGRect {
-        var result = AssetTransitionDriver.calculateZoomInImageFrame(image: image, forView: view)
+        var result = PhotoInteractiveDismissTransitionDriver.calculateZoomInImageFrame(image: image, forView: view)
         result.origin.y = view.bounds.height
         return result
     }

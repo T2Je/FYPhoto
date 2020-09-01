@@ -108,10 +108,10 @@ class ViewController: UIViewController {
                         case .authorized:
                             let addPhotoVC = AddPhotoBlogViewController()
                             addPhotoVC.selectedImageArray = []
-                            let navi = CustomTransitionNavigationController(rootViewController: addPhotoVC)
-                            navi.modalPresentationStyle = .fullScreen
-                            
-                            self.present(navi, animated: true, completion: nil)
+                            self.navigationController?.pushViewController(addPhotoVC, animated: true)
+//                            let navi = CustomTransitionNavigationController(rootViewController: addPhotoVC)
+//                            navi.modalPresentationStyle = .fullScreen
+//                            self.present(navi, animated: true, completion: nil)
                         case .denied, .restricted, .notDetermined:
                             print("⚠️ without authorization! ⚠️")
                         @unknown default:

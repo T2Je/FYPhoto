@@ -1,14 +1,15 @@
 //
-//  PhotoDetailTransitionAnimatorDelegate.swift
-//  FYPhotoPicker
+//  AssetTransitioning.swift
+//  FYPhoto
 //
-//  Created by xiaoyang on 2020/7/24.
+//  Created by xiaoyang on 2020/8/27.
 //
 
 import Foundation
+import UIKit
+import Photos
 
-public protocol PhotoDetailTransitionAnimatorDelegate: class {
-
+public protocol PhotoTransitioning {
     /// Called just-before the transition animation begins.
     /// Use this to prepare for the transition.
     func transitionWillStart()
@@ -24,9 +25,15 @@ public protocol PhotoDetailTransitionAnimatorDelegate: class {
 
     /// The location onscreen for the imageView provided in `referenceImageView(for:)`
     func imageFrame() -> CGRect?
+    
+    /// if true, self is pushed by navigation controller using Photo transition.
+    func enablePhotoTransitionPush() -> Bool
 }
 
-protocol PhotoDetailInteractivelyProtocol {
-    /// Pan to dismiss
-    var isInteractivelyDismissing: Bool { get set }
+extension PhotoTransitioning {
+    public func enablePhotoTransitionPush() -> Bool {
+        true
+    }
 }
+
+

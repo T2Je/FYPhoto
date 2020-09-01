@@ -23,10 +23,7 @@ public protocol PhotoDetailCollectionViewControllerDelegate: class {
     func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, didCompleteSelected photos: [PhotoProtocol])
 }
 
-public class PhotoDetailCollectionViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, PhotoDetailInteractiveDismissTransitionProtocol, PhotoDetailInteractivelyProtocol {
-    public var isInteractivelyDismissing: Bool = false
-
-    public weak var transitionController: PhotoDetailInteractiveDismissTransition? = nil
+public class PhotoDetailCollectionViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
 
     public weak var delegate: PhotoDetailCollectionViewControllerDelegate?
 
@@ -108,7 +105,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         view.addSubview(captionView)
 
         setupCollectionView()
-//        setupPanGesture()
 
         setupNavigationBar()
         setupNavigationToolBar()
@@ -117,13 +113,10 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         makeConstraints()
     }
 
-//    override func viewWillAppear(_ animated: Bool) {
-//        super.viewWillAppear(animated)
-//        hideNavigationViews(false, animated: false)
-//        // FIXME: ToolBar comes up strangely. Maybe custom setToolIsHidden in CustomNavigationController is the way
-//    }
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationController?.hidesBarsOnTap = true
+
         if let showNavigationBar = delegate?.showNavigationBar(in: self) {
             self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: animated)
             if showNavigationBar {
@@ -141,17 +134,20 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         } else {
             self.navigationController?.setToolbarHidden(true, animated: animated)
         }
-
+        self.navigationController?.navigationBar.setNeedsLayout()
         originCaptionTransform = captionView.transform
     }
 
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        navigationController?.hidesBarsOnTap = false
         if let originalIsNavigationBarHidden = originalNavigationBarHidden {
             navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: animated)
+//            navigationController?.isNavigationBarHidden = originalIsNavigationBarHidden
         }
         if let originalToolBarHidden = originalToolBarHidden {
-            navigationController?.setToolbarHidden(originalToolBarHidden, animated: animated)
+//            navigationController?.setToolbarHidden(originalToolBarHidden, animated: animated)
+            navigationController?.isToolbarHidden = originalToolBarHidden
         }
     }
 
@@ -171,6 +167,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 //    }
 
     func setupNavigationBar() {
+        edgesForExtendedLayout = .all
         self.navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
             addPhotoBarItem = UIBarButtonItem(title: "", style: .plain, target: self, action: #selector(PhotoDetailCollectionViewController.addPhotoBarItemClicked(_:)))
@@ -215,20 +212,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
                 captionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -10),
                 captionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -10),
             ])
-        }
-    }
-
-    func hideOrShowTopBottom() {
-        if let showNavigationBar = delegate?.showNavigationBar(in: self), showNavigationBar {
-            self.navigationController?.setNavigationBarHidden(!(self.navigationController?.isNavigationBarHidden ?? true), animated: true)
-        }
-
-        if let showToolBar = delegate?.showNavigationToolBar(in: self), showToolBar {
-            self.navigationController?.setToolbarHidden(!(self.navigationController?.isToolbarHidden ?? true), animated: false)
-        }
-
-        if let canDisplay = delegate?.canDisplayCaption(in: self), canDisplay {
-            hideCaptionView(!captionView.isHidden)
         }
     }
 
@@ -392,7 +375,9 @@ extension PhotoDetailCollectionViewController {
         if let tap = ImageViewTap(rawValue: name) {
             switch tap {
             case .singleTap:
-                hideOrShowTopBottom()
+//                hideOrShowTopBottom()
+//                use navigationController?.hidesBarsOnTap instead
+                break
             case .doubleTap:
                 guard let userInfo = userInfo, let touchPoint = userInfo["touchPoint"] as? CGPoint  else { return }
                 guard let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) as? PhotoDetailCell else { return }
@@ -426,7 +411,7 @@ extension PhotoDetailCollectionViewController {
 }
 
 // MARK: - PhotoDetailTransitionAnimatorDelegate
-extension PhotoDetailCollectionViewController: AssetTransitioning {
+extension PhotoDetailCollectionViewController: PhotoTransitioning {
     
     public func transitionWillStart() {
         guard let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) else { return }

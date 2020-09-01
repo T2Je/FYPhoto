@@ -153,9 +153,9 @@ class ZoomingScrollView: UIScrollView {
 }
 
 extension ZoomingScrollView: FYDetectingImageViewDelegate {
-    func handleImageViewSingleTap(_ touchPoint: CGPoint) {
-        routerEvent(name: ImageViewTap.singleTap.rawValue, userInfo: nil)
-    }
+//    func handleImageViewSingleTap(_ touchPoint: CGPoint) {
+//        routerEvent(name: ImageViewTap.singleTap.rawValue, userInfo: nil)
+//    }
 
     func handleImageViewDoubleTap(_ touchPoint: CGPoint) {
         routerEvent(name: ImageViewTap.doubleTap.rawValue, userInfo: ["touchPoint": touchPoint])

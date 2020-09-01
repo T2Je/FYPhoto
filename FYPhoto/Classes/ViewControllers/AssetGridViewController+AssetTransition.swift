@@ -8,7 +8,7 @@
 import Foundation
 import Photos
 
-extension AssetGridViewController: AssetTransitioning {
+extension AssetGridViewController: PhotoTransitioning {
 
     public func transitionWillStart() {
         guard let indexPath = lastSelectedIndexPath else { return }

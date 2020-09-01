@@ -44,6 +44,7 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
     let cancelButton = UIButton()
     let doneButton = UIButton()
 
+    var transitionController: PhotoTransitionController?
 
     fileprivate let maxCharLength = 100
     fileprivate let maxWidthImage = 612
@@ -66,7 +67,7 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = .white
-
+        edgesForExtendedLayout = .all
         setupTextView()
         setupTextRemainLabel()
         setupCollectionView()
@@ -75,13 +76,22 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         addViews()
         addGestures()
 
+        setupTransitionController()
 //        setupNavigation()
         // Do any additional setup after loading the view.
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.navigationController?.isNavigationBarHidden = true
+//        self.navigationController?.isNavigationBarHidden = true
+        self.navigationController?.setNavigationBarHidden(true, animated: animated)
+
+    }
+
+    func setupTransitionController() {
+        guard let navigationController = self.navigationController else { return }
+        transitionController = PhotoTransitionController(navigationController: navigationController)
+        navigationController.delegate = transitionController
     }
 
     func setupTextView() {
@@ -257,7 +267,8 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
             message: NSLocalizedString("DoQuitFromAddPhotoBlog", comment: ""),
             preferredStyle: .alert)
         let doneAction = UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .default, handler: { _ in
-            self.dismiss(animated: true, completion: nil)
+//            self.dismiss(animated: true, completion: nil)
+            self.back()
         })
         alert.addAction(doneAction)
 
@@ -266,6 +277,14 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         alert.popoverPresentationController?.sourceView = view
         alert.popoverPresentationController?.sourceRect = CGRect(x: view.width / 2, y: view.height / 2, width: 0, height: 0)
         present(alert, animated: true)
+    }
+
+    func back() {
+        if self.presentingViewController != nil {
+            self.dismiss(animated: true, completion: nil)
+        } else {
+            self.navigationController?.popViewController(animated: true)
+        }
     }
 
     @objc func doneBarButtonItem(_ barButton: UIButton) {
@@ -278,6 +297,7 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         self.view.endEditing(true)
         showHUD()
         let text = textView.text ?? ""
+        back()
 //        uploadText(text, images: selectedImageArray, userID: UserManager.shared.user?.uid ?? "", userTrueName: UserManager.shared.user?.trueName ?? "")
     }
 
@@ -400,8 +420,9 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
                 print("selected \(images.count) photos: \(images)")
                 self?.selectedImageArray += images
             }
-            let navi = CustomTransitionNavigationController(rootViewController: gridVC)
+            let navi = UINavigationController(rootViewController: gridVC)
             navi.modalPresentationStyle = .fullScreen
+            
             self.present(navi, animated: true, completion: nil)
         } else {
             var photos = [Photo]()
@@ -471,7 +492,7 @@ extension AddPhotoBlogViewController: PhotoDetailCollectionViewControllerDelegat
 
 }
 
-extension AddPhotoBlogViewController: PhotoDetailTransitionAnimatorDelegate {
+extension AddPhotoBlogViewController: PhotoTransitioning {
     public func transitionWillStart() {
         print(#file, #function)
         guard let indexPath = lastSelectedIndexPath else { return }
@@ -502,4 +523,3 @@ extension AddPhotoBlogViewController: PhotoDetailTransitionAnimatorDelegate {
         return collectionView.convert(cell.frame, to: self.view)
     }
 }
-
