@@ -88,6 +88,8 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         topViewTargetAlpha = 0.0
         containerView.insertSubview(toView, at: 0)
 
+        containerView.addSubview(transitionImageView)
+
         // Ensure the toView has the correct size and position
         toView.frame = context.finalFrame(for: toViewController)
         
@@ -98,8 +100,6 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         if let frame = fromAssetTransitioning.imageFrame() {
             transitionImageView.frame = frame
         }
-
-        containerView.addSubview(transitionImageView)
 
         // Inform the view controller's the transition is about to start
         fromAssetTransitioning.transitionWillStart()
@@ -126,7 +126,6 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
 
     @objc func updateInteraction(_ fromGesture: UIPanGestureRecognizer) {
         switch fromGesture.state {
-
             case .began, .changed:
                 // Ask the gesture recognizer for it's translation
                 let translation = fromGesture.translation(in: transitionContext.containerView)
@@ -157,11 +156,6 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
 
         // Inform the transition context of whether we are finishing or cancelling the transition
         let completionPosition = self.completionPosition()
-//        if completionPosition == .end {
-//            transitionContext.finishInteractiveTransition()
-//        } else {
-//            transitionContext.cancelInteractiveTransition()
-//        }
 
         // Begin the animation phase of the transition to either the start or finsh position
         animate(completionPosition)
@@ -231,13 +225,6 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
             transitionAnimator.continueAnimation(withTimingParameters: nil, durationFactor: durationFactor)
         }
     }
-
-    // MARK: Interesting Property Animator Stuff
-
-    class func animationDuration() -> TimeInterval {
-        return PhotoInteractiveDismissTransitionDriver.propertyAnimator().duration
-    }
-
 
     // MARK: Private Helpers
 

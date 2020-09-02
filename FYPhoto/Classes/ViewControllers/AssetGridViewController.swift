@@ -92,10 +92,11 @@ public class AssetGridViewController: UICollectionViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
+        self.edgesForExtendedLayout = .all
         self.view.backgroundColor = .white
         collectionView.backgroundColor = .clear
         collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: String(describing: GridViewCell.self))
-        self.automaticallyAdjustsScrollViewInsets = false
+//        self.automaticallyAdjustsScrollViewInsets = false
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         if #available(iOS 11.0, *) {
             NSLayoutConstraint.activate([
@@ -153,11 +154,20 @@ public class AssetGridViewController: UICollectionViewController {
         let cellSize = (collectionViewLayout as! UICollectionViewFlowLayout).itemSize
         thumbnailSize = CGSize(width: cellSize.width * scale, height: cellSize.height * scale)
 
-
-        self.navigationController?.setNavigationBarHidden(false, animated: animated)        
+//        self.navigationController?.setNavigationBarHidden(false, animated: false)
+        self.navigationController?.setNavigationBarHidden(false, animated: animated)
         if self.navigationController?.navigationBar.alpha == 0 {
             self.navigationController?.navigationBar.alpha = 1
         }
+    }
+
+    public override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+//        self.navigationController?.setNavigationBarHidden(false, animated: false)
+//        if self.navigationController?.navigationBar.alpha == 0 {
+//            self.navigationController?.navigationBar.alpha = 1
+//        }
     }
 
     // MARK: -NavigationBar
@@ -196,6 +206,7 @@ public class AssetGridViewController: UICollectionViewController {
             navigationController.delegate = transitionController
         }
     }
+    
     @objc func backBarButton(_ sender: UIBarButtonItem) {
         back()
     }

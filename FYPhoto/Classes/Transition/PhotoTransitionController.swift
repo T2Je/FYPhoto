@@ -108,12 +108,12 @@ extension PhotoTransitionController: UINavigationControllerDelegate {
 extension PhotoTransitionController: UIViewControllerAnimatedTransitioning {
     public func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         print(#function)
-//        if operation == .push {
-//            return 0.4
-//        } else {
-//            return 0.38
-//        }
-        return 1
+        if operation == .push {
+            return 0.4
+        } else {
+            return 0.38
+        }
+//        return 1
     }
 
     public func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
@@ -122,9 +122,9 @@ extension PhotoTransitionController: UIViewControllerAnimatedTransitioning {
 
     public func animationEnded(_ transitionCompleted: Bool) {
         // Clean up our helper object and any additional state
-        if operation == .pop {
-            navigationController?.setToolbarHidden(true, animated: false)
-        }
+//        if operation == .pop {
+//            navigationController?.setToolbarHidden(true, animated: false)
+//        }
         transitionDriver = nil
         initiallyInteractive = false
         operation = .none

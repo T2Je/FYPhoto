@@ -113,28 +113,46 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         makeConstraints()
     }
 
-    public override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+//    public override func viewWillAppear(_ animated: Bool) {
+//        super.viewWillAppear(animated)
+//        navigationController?.hidesBarsOnTap = true
+//
+//        if let showNavigationBar = delegate?.showNavigationBar(in: self) {
+//            self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: animated)
+//            if showNavigationBar {
+//                self.navigationController?.navigationBar.alpha = 1
+//            }
+//        } else {
+//            self.navigationController?.setNavigationBarHidden(true, animated: animated)
+//        }
+//
+//        if let showToolBar = delegate?.showNavigationToolBar(in: self) {
+//            self.navigationController?.setToolbarHidden(!showToolBar, animated: animated)
+//            if showToolBar {
+//                self.navigationController?.toolbar.alpha = 1
+//            }
+//        } else {
+//            self.navigationController?.setToolbarHidden(true, animated: animated)
+//        }
+//        self.navigationController?.navigationBar.setNeedsLayout()
+//        originCaptionTransform = captionView.transform
+//    }
+
+    public override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
         navigationController?.hidesBarsOnTap = true
-
         if let showNavigationBar = delegate?.showNavigationBar(in: self) {
-            self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: animated)
-            if showNavigationBar {
-                self.navigationController?.navigationBar.alpha = 1
-            }
+            self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: true)
         } else {
-            self.navigationController?.setNavigationBarHidden(true, animated: animated)
+            self.navigationController?.setNavigationBarHidden(true, animated: false)
         }
-
+        
         if let showToolBar = delegate?.showNavigationToolBar(in: self) {
-            self.navigationController?.setToolbarHidden(!showToolBar, animated: animated)
-            if showToolBar {
-                self.navigationController?.toolbar.alpha = 1
-            }
+            self.navigationController?.setToolbarHidden(!showToolBar, animated: false)
         } else {
-            self.navigationController?.setToolbarHidden(true, animated: animated)
+            self.navigationController?.setToolbarHidden(true, animated: false)
         }
-        self.navigationController?.navigationBar.setNeedsLayout()
+        
         originCaptionTransform = captionView.transform
     }
 
@@ -142,7 +160,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         super.viewWillDisappear(animated)
         navigationController?.hidesBarsOnTap = false
         if let originalIsNavigationBarHidden = originalNavigationBarHidden {
-            navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: animated)
+            navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: false)
 //            navigationController?.isNavigationBarHidden = originalIsNavigationBarHidden
         }
         if let originalToolBarHidden = originalToolBarHidden {
