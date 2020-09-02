@@ -16,7 +16,7 @@ public class PhotoTransitionController: NSObject {
     var initiallyInteractive = false
     var panGestureRecognizer: UIPanGestureRecognizer = UIPanGestureRecognizer()
 
-    public init(navigationController nc: UINavigationController) {
+    @objc public init(navigationController nc: UINavigationController) {
         navigationController = nc
         super.init()
 
