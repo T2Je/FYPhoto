@@ -146,13 +146,13 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         } else {
             self.navigationController?.setNavigationBarHidden(true, animated: false)
         }
-        
+
         if let showToolBar = delegate?.showNavigationToolBar(in: self) {
             self.navigationController?.setToolbarHidden(!showToolBar, animated: false)
         } else {
             self.navigationController?.setToolbarHidden(true, animated: false)
         }
-        
+
         originCaptionTransform = captionView.transform
     }
 
@@ -160,7 +160,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         super.viewWillDisappear(animated)
         navigationController?.hidesBarsOnTap = false
         if let originalIsNavigationBarHidden = originalNavigationBarHidden {
-            navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: false)
+            navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: animated)
 //            navigationController?.isNavigationBarHidden = originalIsNavigationBarHidden
         }
         if let originalToolBarHidden = originalToolBarHidden {
@@ -302,7 +302,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         }) { (context) in
 
             print("after")
-
         }
         // FIXME: - fix A warining here ⚠️
     }
@@ -408,6 +407,8 @@ extension PhotoDetailCollectionViewController {
     }
 
     func handleDoubleTap(_ touchPoint: CGPoint, on cell: PhotoDetailCell) {
+        self.navigationController?.popViewController(animated: true)
+        return
         let scale = min(cell.zoomingView.zoomScale * 2, cell.zoomingView.maximumZoomScale)
         if cell.zoomingView.zoomScale == 1 {
             let zoomRect = zoomRectForScale(scale: scale, center: touchPoint, for: cell.zoomingView)

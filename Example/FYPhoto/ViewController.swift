@@ -84,12 +84,12 @@ class ViewController: UIViewController {
                     gridVC.selectedPhotos = { [weak self] images in
                         print("selected \(images.count) photos: \(images)")
                     }
-//                    let navi = CustomTransitionNavigationController(rootViewController: gridVC)
-//                    let navi = UINavigationController(rootViewController: gridVC)
-//                    navi.modalPresentationStyle = .fullScreen
-//                    self.present(navi, animated: true, completion: nil)
-                    self.navigationController?.navigationBar.tintColor = .white
-                    self.navigationController?.pushViewController(gridVC, animated: true)
+//                    let navi = CustomNavigationController(rootViewController: gridVC)
+                    let navi = UINavigationController(rootViewController: gridVC)
+                    navi.modalPresentationStyle = .fullScreen
+                    self.present(navi, animated: true, completion: nil)
+//                    self.navigationController?.navigationBar.tintColor = .white
+//                    self.navigationController?.pushViewController(gridVC, animated: true)
 
                 case .denied, .restricted, .notDetermined:
                     print("⚠️ without authorization! ⚠️")

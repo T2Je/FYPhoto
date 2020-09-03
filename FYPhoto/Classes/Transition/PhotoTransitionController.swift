@@ -7,14 +7,16 @@
 
 import Foundation
 
-let assetTransitionDuration = 0.8
-
 public class PhotoTransitionController: NSObject {
     weak var navigationController: UINavigationController?
-    var operation: UINavigationController.Operation = .none
-    var transitionDriver: TransitionDriver?
+
     var initiallyInteractive = false
     var panGestureRecognizer: UIPanGestureRecognizer = UIPanGestureRecognizer()
+
+    var pushPopTransitioning: PushPopTransitioning?
+    var interactiveTransitioning: InteractiveTransitioning?
+
+    fileprivate var currentAnimationTransition: UIViewControllerAnimatedTransitioning? = nil
 
     @objc public init(navigationController nc: UINavigationController) {
         navigationController = nc
@@ -35,9 +37,11 @@ public class PhotoTransitionController: NSObject {
     }
 
     @objc func initiateTransitionInteractively(_ panGesture: UIPanGestureRecognizer) {
-        if panGesture.state == .began && transitionDriver == nil {
+        if panGesture.state == .began && currentAnimationTransition == nil {
             initiallyInteractive = true
             let _ = navigationController?.popViewController(animated: true)
+        } else {
+            initiallyInteractive = false
         }
     }
 }
@@ -46,114 +50,113 @@ public class PhotoTransitionController: NSObject {
 extension PhotoTransitionController: UIGestureRecognizerDelegate {
 
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        print(#function)
         return false
     }
 
     public func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-        guard let transitionDriver = self.transitionDriver else {
+        guard let interactiveTransitioning = self.interactiveTransitioning else {
             let translation = panGestureRecognizer.translation(in: panGestureRecognizer.view)
             let translationIsVertical = (translation.y > 0) && (abs(translation.y) > abs(translation.x))
-            print(#function, translationIsVertical && (navigationController?.viewControllers.count ?? 0 > 1))
             return translationIsVertical && (navigationController?.viewControllers.count ?? 0 > 1)
         }
-
-        print("transitionDriver.isInteractive = \(transitionDriver.isInteractive)")
-        return transitionDriver.isInteractive
+        return interactiveTransitioning.transitionDriver?.isInteractive ?? false
     }
 }
 
 extension PhotoTransitionController: UINavigationControllerDelegate {
-
-    public func navigationController(_ navigationController: UINavigationController, animationControllerFor operation: UINavigationController.Operation, from fromVC: UIViewController, to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        // Remember the direction of the transition (.push or .pop)
-        print(#function)
-
-
-        self.operation = operation
+    public func navigationController(_ navigationController: UINavigationController,
+                                     animationControllerFor operation: UINavigationController.Operation,
+                                     from fromVC: UIViewController,
+                                     to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        var result: UIViewControllerAnimatedTransitioning? = nil
         if fromVC is PhotoTransitioning, operation == .push {
             if let transitionToVC = toVC as? PhotoTransitioning {
                 if transitionToVC.enablePhotoTransitionPush() {
-                    return self
-                } else {
-                    return nil
+                    result = PushPopTransitioning(operation: operation)
                 }
-            } else {
-                return nil
             }
         } else if toVC is PhotoTransitioning, operation == .pop {
             if let transitionFromVC = fromVC as? PhotoTransitioning {
                 if transitionFromVC.enablePhotoTransitionPush() {
-                    return self
-                } else {
-                    return nil
+                    if initiallyInteractive {
+                        result = InteractiveTransitioning(panGestureRecognizer: panGestureRecognizer)
+                    } else {
+                        result = PushPopTransitioning(operation: operation)
+                    }
                 }
-            } else {
-                return nil
             }
-        } else {
-            return nil
         }
-        // Return ourselves as the animation controller for the pending transition
+        self.currentAnimationTransition = result
+        return result
+        // Return ourselves as the animation controller for the pending transition it's not the best idea.
+        // There is problem if we return self as the animation controller. A shows navigationBar, then it pushes to B,
+        // if B hide the navigationBar, it will cause navigationBar to disappear(A, B are viewcontrollers).
+        // Everytime you set navigationBar hidden or not, it's alpha will becomes 0. It's weired 🤔.
 //        return self
     }
 
-    public func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
-        print(#function)
-        // Return ourselves as the interaction controller for the pending transition
-        return self
+    public func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {                
+        return currentAnimationTransition as? UIViewControllerInteractiveTransitioning
     }
 }
 
+// MARK: - InteractiveTransitioning
+class InteractiveTransitioning: NSObject, UIViewControllerInteractiveTransitioning {
+    var transitionDriver: TransitionDriver?
+    let panGestureRecognizer: UIPanGestureRecognizer
+    init(panGestureRecognizer: UIPanGestureRecognizer) {
+        self.panGestureRecognizer = panGestureRecognizer
+        super.init()
+    }
 
-extension PhotoTransitionController: UIViewControllerAnimatedTransitioning {
-    public func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+    func startInteractiveTransition(_ transitionContext: UIViewControllerContextTransitioning) {
+        // Create our helper object to manage the transition for the given transitionContext.
+        if transitionContext.isInteractive {
+            transitionDriver = PhotoInteractiveDismissTransitionDriver(context: transitionContext,
+                                                                       panGestureRecognizer: panGestureRecognizer,
+                                                                       duration: transitionDuration(using: transitionContext))
+        }
+    }
+
+}
+
+extension InteractiveTransitioning: UIViewControllerAnimatedTransitioning {
+    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        fatalError("never called")
+    }
+
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
+        0.38
+    }
+}
+// MARK: - PushPopTransitioning
+class PushPopTransitioning: NSObject, UIViewControllerAnimatedTransitioning {
+    var transitionDriver: TransitionDriver?
+
+    let operation: UINavigationController.Operation
+
+    init(operation: UINavigationController.Operation) {
+        self.operation = operation
+        super.init()
+    }
+
+    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         print(#function)
         if operation == .push {
             return 0.4
         } else {
             return 0.38
         }
-//        return 1
     }
 
-    public func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        print(#function)
+    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
+        transitionDriver = PhotoPushPopTransitionDriver(operation: operation,
+                                                        context: transitionContext,
+                                                        duration: transitionDuration(using: transitionContext))
     }
 
-    public func animationEnded(_ transitionCompleted: Bool) {
-        // Clean up our helper object and any additional state
-//        if operation == .pop {
-//            navigationController?.setToolbarHidden(true, animated: false)
-//        }
+    func animationEnded(_ transitionCompleted: Bool) {
         transitionDriver = nil
-        initiallyInteractive = false
-        operation = .none
-
-        print(#function)
-    }
-
-    public func interruptibleAnimator(using transitionContext: UIViewControllerContextTransitioning) -> UIViewImplicitlyAnimating {
-        // The transition driver (helper object), creates the UIViewPropertyAnimator (transitionAnimator)
-        // to be used for this transition. It must live the lifetime of the transitionContext.
-        print(#function)
-        return (transitionDriver?.transitionAnimator)!
-    }
-}
-
-extension PhotoTransitionController: UIViewControllerInteractiveTransitioning {
-    public func startInteractiveTransition(_ transitionContext: UIViewControllerContextTransitioning) {
-        print(#function)
-        // Create our helper object to manage the transition for the given transitionContext.
-        if transitionContext.isInteractive {
-            transitionDriver = PhotoInteractiveDismissTransitionDriver(context: transitionContext, panGestureRecognizer: panGestureRecognizer, duration: transitionDuration(using: transitionContext))
-        } else {
-            transitionDriver = PhotoPushPopTransitionDriver(operation: operation, context: transitionContext, duration: transitionDuration(using: transitionContext))
-        }
-    }
-
-    public var wantsInteractiveStart: Bool {
-        // Determines whether the transition begins in an interactive state
-        print(#function)
-        return initiallyInteractive
     }
 }

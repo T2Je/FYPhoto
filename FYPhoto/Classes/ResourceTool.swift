@@ -7,10 +7,10 @@
 
 import Foundation
 
-class FYPickerResource { }
+class FYPhotoResource { }
 
 extension Bundle {
-    @objc public class func ppBundle() -> Bundle {
+    @objc public class func photoBundle() -> Bundle {
         if let url = bundleURL() {
             return Bundle.init(url: url) ?? Bundle.main
         } else {
@@ -19,19 +19,19 @@ extension Bundle {
     }
 
     private class func bundleURL() -> URL? {
-        let bundle = Bundle(for: FYPickerResource.self)
+        let bundle = Bundle(for: FYPhotoResource.self)
         return bundle.url(forResource: "FYPhoto", withExtension: "bundle")
     }
 }
 
 extension String {
     var photoTablelocalized: String {
-        let string = NSLocalizedString(self, tableName: "FYPhoto", bundle: Bundle.ppBundle(), value: "", comment: "")
+        let string = NSLocalizedString(self, tableName: "FYPhoto", bundle: Bundle.photoBundle(), value: "", comment: "")
         return string
     }
 
     var photoImage: UIImage? {
-        let image = UIImage(named: self, in: Bundle.ppBundle(), compatibleWith: nil)
+        let image = UIImage(named: self, in: Bundle.photoBundle(), compatibleWith: nil)
         return image
     }
 }

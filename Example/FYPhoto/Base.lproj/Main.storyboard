@@ -26,10 +26,10 @@
             </objects>
             <point key="canvasLocation" x="1079.2" y="132.68365817091455"/>
         </scene>
-        <!--Navigation Controller-->
+        <!--Custom Navigation Controller-->
         <scene sceneID="a8d-li-HjL">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="xix-ai-Q5q" sceneMemberID="viewController">
+                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="xix-ai-Q5q" customClass="CustomNavigationController" customModule="FYPhoto_Example" customModuleProvider="target" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="WSf-Lo-JTh">
                         <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>

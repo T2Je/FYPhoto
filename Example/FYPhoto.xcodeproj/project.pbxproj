@@ -15,6 +15,7 @@
 		607FACE01AFB9204008FA782 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 607FACDE1AFB9204008FA782 /* LaunchScreen.xib */; };
 		607FACEC1AFB9204008FA782 /* Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACEB1AFB9204008FA782 /* Tests.swift */; };
 		A44FC3F6B130791A524B5C13 /* Pods_FYPhoto_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44B9530E860271DD96AFAFEC /* Pods_FYPhoto_Example.framework */; };
+		E33E1BF1250094CD000212BB /* CustomNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E33E1BF0250094CD000212BB /* CustomNavigationController.swift */; };
 		E343E62E24F7BBA8003341DE /* AddPhotoBlogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */; };
 		E343E62F24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */; };
 /* End PBXBuildFile section */
@@ -48,6 +49,7 @@
 		86DFA831ADE684A3BB4DA5BE /* Pods-FYPhoto_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FYPhoto_Tests.release.xcconfig"; path = "Target Support Files/Pods-FYPhoto_Tests/Pods-FYPhoto_Tests.release.xcconfig"; sourceTree = "<group>"; };
 		BC454A71FC88B7EADD169E24 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		CC84A622A1CD7C7373A2DFE1 /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		E33E1BF0250094CD000212BB /* CustomNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavigationController.swift; sourceTree = "<group>"; };
 		E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPhotoBlogViewController.swift; sourceTree = "<group>"; };
 		E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPhotoCollectionViewCell.swift; sourceTree = "<group>"; };
 		E7C7EF7C709122010F360A5D /* Pods-FYPhoto_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FYPhoto_Example.debug.xcconfig"; path = "Target Support Files/Pods-FYPhoto_Example/Pods-FYPhoto_Example.debug.xcconfig"; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 		607FACD21AFB9204008FA782 /* Example for FYPhoto */ = {
 			isa = PBXGroup;
 			children = (
+				E33E1BF0250094CD000212BB /* CustomNavigationController.swift */,
 				E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */,
 				E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */,
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
@@ -352,6 +355,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E343E62E24F7BBA8003341DE /* AddPhotoBlogViewController.swift in Sources */,
+				E33E1BF1250094CD000212BB /* CustomNavigationController.swift in Sources */,
 				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
 				E343E62F24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift in Sources */,
 				607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */,

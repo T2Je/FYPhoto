@@ -92,28 +92,12 @@ public class AssetGridViewController: UICollectionViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-        self.edgesForExtendedLayout = .all
-        self.view.backgroundColor = .white
-        collectionView.backgroundColor = .clear
+//        self.edgesForExtendedLayout = .all
+
+        collectionView.backgroundColor = .white
+
         collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: String(describing: GridViewCell.self))
-//        self.automaticallyAdjustsScrollViewInsets = false
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        if #available(iOS 11.0, *) {
-            NSLayoutConstraint.activate([
-                collectionView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor),
-                collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
-                collectionView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor),
-                collectionView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
-            ])
-        } else {
-            // Fallback on earlier versions
-            NSLayoutConstraint.activate([
-                collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-                collectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
-                collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-                collectionView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            ])
-        }
+
         requestAlbumsData()
 
         initalFetchResult()
@@ -155,19 +139,13 @@ public class AssetGridViewController: UICollectionViewController {
         thumbnailSize = CGSize(width: cellSize.width * scale, height: cellSize.height * scale)
 
 //        self.navigationController?.setNavigationBarHidden(false, animated: false)
-        self.navigationController?.setNavigationBarHidden(false, animated: animated)
-        if self.navigationController?.navigationBar.alpha == 0 {
-            self.navigationController?.navigationBar.alpha = 1
-        }
-    }
+//        self.navigationController?.setNavigationBarHidden(false, animated: animated)
 
-    public override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        
-//        self.navigationController?.setNavigationBarHidden(false, animated: false)
-//        if self.navigationController?.navigationBar.alpha == 0 {
+        print("navigationBar in GRID VC : \(self.navigationController?.navigationBar)")
+        if self.navigationController?.navigationBar.alpha == 0 {
 //            self.navigationController?.navigationBar.alpha = 1
-//        }
+            print("alpha == 0")
+        }
     }
 
     // MARK: -NavigationBar
@@ -201,10 +179,7 @@ public class AssetGridViewController: UICollectionViewController {
 
     func setupTransitionController() {
         guard let navigationController = self.navigationController else { return }
-        if transitionController == nil {
-            transitionController = PhotoTransitionController(navigationController: navigationController)
-            navigationController.delegate = transitionController
-        }
+        transitionController = PhotoTransitionController(navigationController: navigationController)
     }
     
     @objc func backBarButton(_ sender: UIBarButtonItem) {

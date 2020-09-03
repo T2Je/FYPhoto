@@ -117,11 +117,6 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
 
     // MARK: Interesting UIViewPropertyAnimator Setup
 
-    /// UIKit calls startInteractiveTransition(_ transitionContext: UIViewControllerContextTransitioning)
-    /// on our interaction controller (AssetTransitionController). The AssetTransitionDriver (self) is
-    /// then created with the transitionContext to manage the transition. It calls this func from Init().
-    func setupTransitionAnimator(_ transitionAnimations: @escaping ()->(), transitionCompletion: @escaping (UIViewAnimatingPosition)->()) {}
-
     // MARK: Interesting Interruptible Transitioning Stuff
 
     @objc func updateInteraction(_ fromGesture: UIPanGestureRecognizer) {
@@ -163,7 +158,7 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
 
     func animate(_ toPosition: UIViewAnimatingPosition) {
         // Create a property animator to animate each image's frame change
-//        let itemFrameAnimator = AssetTransitionDriver.propertyAnimator(initialVelocity: timingCurveVelocity())
+
         // The cancel and complete animations have different timing values.
         // I dialed these in on-device using SwiftTweaks.
         let completionDuration: Double
@@ -190,16 +185,14 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
             }
         }
 
-        itemFrameAnimator.addCompletion { [weak self] _ in
-            guard let self = self else { return }
-            // Finish the protocol handshake
-            self.fromAssetTransitioning?.transitionDidEnd()
-            self.toAssetTransitioning?.transitionDidEnd()
+        itemFrameAnimator.addCompletion { _ in
             // Remove transition views
             self.transitionImageView.image = nil
             self.transitionImageView.removeFromSuperview()
             self.visualEffectView.removeFromSuperview()
-
+            // Finish the protocol handshake
+            self.fromAssetTransitioning?.transitionDidEnd()
+            self.toAssetTransitioning?.transitionDidEnd()
             if toPosition == .end {
                 self.transitionContext.finishInteractiveTransition()
                 self.transitionContext.completeTransition(true)
@@ -266,11 +259,6 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
     private func percentageComplete(forVerticalDrag verticalDrag: CGFloat) -> CGFloat {
         let maximumDelta = CGFloat(200)
         return CGFloat.scaleAndShift(value: verticalDrag, inRange: (min: CGFloat(0), max: maximumDelta))
-    }
-
-    class func propertyAnimator(initialVelocity: CGVector = .zero) -> UIViewPropertyAnimator {
-        let timingParameters = UISpringTimingParameters(mass: 4.5, stiffness: 1300, damping: 95, initialVelocity: initialVelocity)
-        return UIViewPropertyAnimator(duration: assetTransitionDuration, timingParameters:timingParameters)
     }
 
     /// If no location is provided by the fromDelegate, we'll use an offscreen-bottom position for the image.
