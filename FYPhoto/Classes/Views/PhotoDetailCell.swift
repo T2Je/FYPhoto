@@ -17,7 +17,7 @@ class PhotoDetailCell: UICollectionViewCell {
     }
 
     var image: UIImage? {
-        return zoomingView.imageView.image
+        return zoomingView.imageView.image ?? "cover_placeholder".photoImage
     }
 
     var maximumZoomScale: CGFloat = 1 {

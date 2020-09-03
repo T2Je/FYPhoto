@@ -70,8 +70,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     fileprivate let addLocalizedString = "add".photoTablelocalized
 
-    fileprivate var originalNavigationBarHidden: Bool?
-    fileprivate var originalToolBarHidden: Bool?
+    fileprivate var previousNavigationBarHidden: Bool?
+    fileprivate var previousToolBarHidden: Bool?
 
     fileprivate var originCaptionTransform: CGAffineTransform!
 
@@ -81,10 +81,13 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         self.lastDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
         let flowLayout = UICollectionViewFlowLayout()
         flowLayout.itemSize = frame.size
-        flowLayout.minimumInteritemSpacing = 30
-        flowLayout.minimumLineSpacing = 0
+//        flowLayout.minimumInteritemSpacing = 30
+//        flowLayout.minimumLineSpacing = 0
+        flowLayout.minimumInteritemSpacing = 0
+        flowLayout.minimumLineSpacing = 40
+        flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
         flowLayout.scrollDirection = .horizontal
-        collectionView = UICollectionView(frame: frame, collectionViewLayout: flowLayout)
+        collectionView = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -98,8 +101,11 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-        originalToolBarHidden = self.navigationController?.toolbar.isHidden
-        originalNavigationBarHidden = self.navigationController?.navigationBar.isHidden
+        view.clipsToBounds = true
+        view.backgroundColor = UIColor.white
+
+        previousToolBarHidden = self.navigationController?.toolbar.isHidden
+        previousNavigationBarHidden = self.navigationController?.navigationBar.isHidden
 
         view.addSubview(collectionView)
         view.addSubview(captionView)
@@ -113,33 +119,10 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         makeConstraints()
     }
 
-//    public override func viewWillAppear(_ animated: Bool) {
-//        super.viewWillAppear(animated)
-//        navigationController?.hidesBarsOnTap = true
-//
-//        if let showNavigationBar = delegate?.showNavigationBar(in: self) {
-//            self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: animated)
-//            if showNavigationBar {
-//                self.navigationController?.navigationBar.alpha = 1
-//            }
-//        } else {
-//            self.navigationController?.setNavigationBarHidden(true, animated: animated)
-//        }
-//
-//        if let showToolBar = delegate?.showNavigationToolBar(in: self) {
-//            self.navigationController?.setToolbarHidden(!showToolBar, animated: animated)
-//            if showToolBar {
-//                self.navigationController?.toolbar.alpha = 1
-//            }
-//        } else {
-//            self.navigationController?.setToolbarHidden(true, animated: animated)
-//        }
-//        self.navigationController?.navigationBar.setNeedsLayout()
-//        originCaptionTransform = captionView.transform
-//    }
+    public override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+//        self.collectionView.frame = view.frame.insetBy(dx: -20.0, dy: 0.0)
 
-    public override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
         navigationController?.hidesBarsOnTap = true
         if let showNavigationBar = delegate?.showNavigationBar(in: self) {
             self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: true)
@@ -159,13 +142,11 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         navigationController?.hidesBarsOnTap = false
-        if let originalIsNavigationBarHidden = originalNavigationBarHidden {
+        if let originalIsNavigationBarHidden = previousNavigationBarHidden {
             navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: animated)
-//            navigationController?.isNavigationBarHidden = originalIsNavigationBarHidden
         }
-        if let originalToolBarHidden = originalToolBarHidden {
-//            navigationController?.setToolbarHidden(originalToolBarHidden, animated: animated)
-            navigationController?.isToolbarHidden = originalToolBarHidden
+        if let originalToolBarHidden = previousToolBarHidden {
+            navigationController?.setToolbarHidden(originalToolBarHidden, animated: animated)
         }
     }
 
@@ -174,15 +155,13 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         collectionView.isPagingEnabled = true
         collectionView.delegate = self
         collectionView.dataSource = self
-        collectionView.backgroundColor = .white
+//        collectionView.backgroundColor = .white
+        if #available(iOS 11.0, *) {
+            collectionView.contentInsetAdjustmentBehavior = .never
+        } else {
+            // Fallback on earlier versions
+        }
     }
-
-//    func setupPanGesture() {
-//        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(PhotoDetailCollectionViewController.dismissPanGestureDidChange(_:)))
-//        panGesture.minimumNumberOfTouches = 1
-//        panGesture.maximumNumberOfTouches = 1
-//        view.addGestureRecognizer(panGesture)
-//    }
 
     func setupNavigationBar() {
         edgesForExtendedLayout = .all
@@ -205,11 +184,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     func makeConstraints() {
-        if #available(iOS 11.0, *) {
-            collectionView.contentInsetAdjustmentBehavior = .never
-        } else {
-            // Fallback on earlier versions
-        }
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: self.view.topAnchor),
@@ -281,6 +255,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         let photoCell = cell as! PhotoDetailCell
+//        let photo = photos[indexPath.row]
         photoCell.setPhoto(photos[indexPath.row])
     }
 
@@ -306,10 +281,21 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         // FIXME: - fix A warining here ⚠️
     }
 
+//    public func collectionView(_ collectionView: UICollectionView, targetContentOffsetForProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
+//        guard
+//            let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout,
+//            let indexPath = collectionView.indexPathsForVisibleItems.last,
+//            let layoutAttributes = flowLayout.layoutAttributesForItem(at: indexPath)
+//            else {
+//             return proposedContentOffset
+//        }
+//        print("content offset: \(CGPoint(x: layoutAttributes.center.x - (layoutAttributes.size.width / 2.0) - (flowLayout.minimumLineSpacing / 2.0), y: 0))")
+//        return CGPoint(x: layoutAttributes.center.x - (layoutAttributes.size.width / 2.0) - (flowLayout.minimumLineSpacing / 2.0), y: 0)
+//    }
 
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-
+        self.collectionView.frame = view.frame.insetBy(dx: -20.0, dy: 0.0)
         if (!self.initialScrollDone) {
             self.initialScrollDone = true
             self.collectionView.scrollToItem(at: lastDisplayedIndexPath, at: .centeredHorizontally, animated: false)
@@ -326,7 +312,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     // MARK: -Bar item actions
     @objc func doneBarButtonClicked(_ sender: UIBarButtonItem) {
         assert(!selectedPhotos.isEmpty, "photos shouldn't be empty")
-
         delegate?.photoDetail(self, didCompleteSelected: selectedPhotos)
     }
 
@@ -407,8 +392,6 @@ extension PhotoDetailCollectionViewController {
     }
 
     func handleDoubleTap(_ touchPoint: CGPoint, on cell: PhotoDetailCell) {
-        self.navigationController?.popViewController(animated: true)
-        return
         let scale = min(cell.zoomingView.zoomScale * 2, cell.zoomingView.maximumZoomScale)
         if cell.zoomingView.zoomScale == 1 {
             let zoomRect = zoomRectForScale(scale: scale, center: touchPoint, for: cell.zoomingView)

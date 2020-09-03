@@ -18,7 +18,7 @@ class ZoomingScrollView: UIScrollView {
 
     var photo: PhotoProtocol! {
         didSet {
-            imageView.image = "cover_placeholder".photoImage
+//            imageView.image = "cover_placeholder".photoImage
             circularProgressView.isHidden = true
             if photo != nil {
                 if let image = photo.underlyingImage {

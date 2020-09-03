@@ -137,16 +137,9 @@ public class AssetGridViewController: UICollectionViewController {
         let scale = UIScreen.main.scale
         let cellSize = (collectionViewLayout as! UICollectionViewFlowLayout).itemSize
         thumbnailSize = CGSize(width: cellSize.width * scale, height: cellSize.height * scale)
-
-//        self.navigationController?.setNavigationBarHidden(false, animated: false)
-//        self.navigationController?.setNavigationBarHidden(false, animated: animated)
-
-        print("navigationBar in GRID VC : \(self.navigationController?.navigationBar)")
-        if self.navigationController?.navigationBar.alpha == 0 {
-//            self.navigationController?.navigationBar.alpha = 1
-            print("alpha == 0")
-        }
     }
+
+
 
     // MARK: -NavigationBar
     func setupNavigationBar() {

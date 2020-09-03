@@ -37,7 +37,7 @@ public class PhotoTransitionController: NSObject {
     }
 
     @objc func initiateTransitionInteractively(_ panGesture: UIPanGestureRecognizer) {
-        if panGesture.state == .began && currentAnimationTransition == nil {
+        if panGesture.state == .began && interactiveTransitioning?.transitionDriver == nil {
             initiallyInteractive = true
             let _ = navigationController?.popViewController(animated: true)
         } else {
@@ -49,8 +49,7 @@ public class PhotoTransitionController: NSObject {
 
 extension PhotoTransitionController: UIGestureRecognizerDelegate {
 
-    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
-        print(#function)
+    public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {        
         return false
     }
 
@@ -58,9 +57,10 @@ extension PhotoTransitionController: UIGestureRecognizerDelegate {
         guard let interactiveTransitioning = self.interactiveTransitioning else {
             let translation = panGestureRecognizer.translation(in: panGestureRecognizer.view)
             let translationIsVertical = (translation.y > 0) && (abs(translation.y) > abs(translation.x))
+            print(#function, translationIsVertical && (navigationController?.viewControllers.count ?? 0 > 1))
             return translationIsVertical && (navigationController?.viewControllers.count ?? 0 > 1)
         }
-        return interactiveTransitioning.transitionDriver?.isInteractive ?? false
+        return interactiveTransitioning.transitionDriver?.isInteractive ?? true
     }
 }
 
@@ -128,6 +128,10 @@ extension InteractiveTransitioning: UIViewControllerAnimatedTransitioning {
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         0.38
+    }
+
+    func animationEnded(_ transitionCompleted: Bool) {
+        transitionDriver = nil
     }
 }
 // MARK: - PushPopTransitioning
