@@ -458,7 +458,7 @@ extension AddPhotoBlogViewController: PhotoDetailCollectionViewControllerDelegat
         true
     }
 
-    func showNavigationToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+    func showBottomToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
         false
     }
 

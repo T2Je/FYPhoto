@@ -12,15 +12,43 @@ private let reuseIdentifier = "PhotoDetailCell"
 
 public protocol PhotoDetailCollectionViewControllerDelegate: class {
     func showNavigationBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool
-    func showNavigationToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool
+    func showBottomToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool
     func canSelectPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool
     func canEditPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool
     func canDisplayCaption(in photoDetail: PhotoDetailCollectionViewController) -> Bool
 
-//    func canShowSelectionButton(in photoDetail: PhotoDetailCollectionViewController) -> Bool
     func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, scrollAt indexPath: IndexPath)
     func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedPhotos indexPaths: [IndexPath])
     func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, didCompleteSelected photos: [PhotoProtocol])
+}
+
+public extension PhotoDetailCollectionViewControllerDelegate {
+    func showNavigationBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+        false
+    }
+    func showBottomToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+        false
+    }
+
+    func canSelectPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+        false
+    }
+    func canEditPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+        false
+    }
+    func canDisplayCaption(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+        false
+    }
+
+    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, scrollAt indexPath: IndexPath) {
+
+    }
+    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedPhotos indexPaths: [IndexPath]) {
+
+    }
+    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, didCompleteSelected photos: [PhotoProtocol]) {
+
+    }
 }
 
 public class PhotoDetailCollectionViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
@@ -134,7 +162,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             self.navigationController?.setNavigationBarHidden(true, animated: false)
         }
 
-        if let showToolBar = delegate?.showNavigationToolBar(in: self) {
+        if let showToolBar = delegate?.showBottomToolBar(in: self) {
             self.navigationController?.setToolbarHidden(!showToolBar, animated: true)
         } else {
             self.navigationController?.setToolbarHidden(true, animated: false)
@@ -420,7 +448,7 @@ extension PhotoDetailCollectionViewController {
             self.navigationController?.setNavigationBarHidden(!(self.navigationController?.isNavigationBarHidden ?? true), animated: true)
         }
 
-        if let showToolBar = delegate?.showNavigationToolBar(in: self), showToolBar {
+        if let showToolBar = delegate?.showBottomToolBar(in: self), showToolBar {
             self.navigationController?.setToolbarHidden(!(self.navigationController?.isToolbarHidden ?? true), animated: true)
         }
 

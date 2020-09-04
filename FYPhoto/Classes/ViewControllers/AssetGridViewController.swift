@@ -346,7 +346,7 @@ extension AssetGridViewController: PhotoDetailCollectionViewControllerDelegate {
         true
     }
 
-    public func showNavigationToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+    public func showBottomToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
         true
     }
 
