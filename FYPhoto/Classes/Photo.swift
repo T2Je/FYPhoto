@@ -8,16 +8,19 @@
 import Foundation
 import Photos
 
-public protocol PhotoProtocol {
+public protocol Asset {
+    var asset: PHAsset? { get set }
+    var assetSize: CGSize? { get set }
+}
+
+public protocol PhotoProtocol: Asset {
     var underlyingImage: UIImage? { get set }
     var url: URL? { get set }
-    var asset: PHAsset? { get set }
 
     var index: Int { get set }
 
     var captionContent: String? { get set }
     var captionSignature: String? { get set }
-
 }
 
 public class Photo: PhotoProtocol, Equatable {
@@ -40,6 +43,8 @@ public class Photo: PhotoProtocol, Equatable {
     public var url: URL?
 
     public var asset: PHAsset?
+
+    public var assetSize: CGSize?
 
     public var index: Int = 0
     

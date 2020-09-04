@@ -24,7 +24,7 @@ class ZoomingScrollView: UIScrollView {
                 if let image = photo.underlyingImage {
                     displayImage(image)
                 } else if let asset = photo.asset {
-                    displayAsset(asset)
+                    displayAsset(asset, targetSize: photo.assetSize ?? bounds.size)
                 } else if let url = photo.url {
                     display(url)
                 } else {
@@ -99,7 +99,7 @@ class ZoomingScrollView: UIScrollView {
         setNeedsDisplay()
     }
 
-    func displayAsset(_ asset: PHAsset) {
+    func displayAsset(_ asset: PHAsset, targetSize: CGSize) {
         let _imageManager: PHImageManager
         if self.imageManager != nil {
             _imageManager = self.imageManager!
@@ -110,7 +110,7 @@ class ZoomingScrollView: UIScrollView {
         options.deliveryMode = .highQualityFormat
         options.resizeMode = .fast
 
-        _imageManager.requestImage(for: asset, targetSize: bounds.size, contentMode: PHImageContentMode.aspectFit, options: options) { [weak self] (image, info) in
+        _imageManager.requestImage(for: asset, targetSize: targetSize, contentMode: PHImageContentMode.aspectFit, options: options) { [weak self] (image, info) in
             if let image = image {
                 self?.photo.underlyingImage = image
             } else {
@@ -153,9 +153,9 @@ class ZoomingScrollView: UIScrollView {
 }
 
 extension ZoomingScrollView: FYDetectingImageViewDelegate {
-//    func handleImageViewSingleTap(_ touchPoint: CGPoint) {
-//        routerEvent(name: ImageViewTap.singleTap.rawValue, userInfo: nil)
-//    }
+    func handleImageViewSingleTap(_ touchPoint: CGPoint) {
+        routerEvent(name: ImageViewTap.singleTap.rawValue, userInfo: nil)
+    }
 
     func handleImageViewDoubleTap(_ touchPoint: CGPoint) {
         routerEvent(name: ImageViewTap.doubleTap.rawValue, userInfo: ["touchPoint": touchPoint])

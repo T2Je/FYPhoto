@@ -75,18 +75,22 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     fileprivate var originCaptionTransform: CGAffineTransform!
 
+    fileprivate var flowLayout: UICollectionViewFlowLayout? {
+        return collectionView.collectionViewLayout as? UICollectionViewFlowLayout
+    }
+
+    fileprivate var assetSize: CGSize?
+
     // MARK: - LifeCycle
     public init(frame: CGRect, photos: [PhotoProtocol], initialIndex: Int) {
         self.photos = photos
         self.lastDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
         let flowLayout = UICollectionViewFlowLayout()
-        flowLayout.itemSize = frame.size
-//        flowLayout.minimumInteritemSpacing = 30
-//        flowLayout.minimumLineSpacing = 0
         flowLayout.minimumInteritemSpacing = 0
-        flowLayout.minimumLineSpacing = 40
-        flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 20, bottom: 0, right: 20)
+        flowLayout.minimumLineSpacing = 20
+        flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
         flowLayout.scrollDirection = .horizontal
+        flowLayout.itemSize = frame.size
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
         super.init(nibName: nil, bundle: nil)
     }
@@ -96,7 +100,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     deinit {
-        print(#file, #function, "☠☠☠☠☠☠☠☠☠☠")
+        print(#file, #function, "☠️☠️☠️☠️☠️☠️")
     }
 
     public override func viewDidLoad() {
@@ -120,10 +124,10 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     public override func viewWillAppear(_ animated: Bool) {
+        print(#function)
         super.viewWillAppear(animated)
-//        self.collectionView.frame = view.frame.insetBy(dx: -20.0, dy: 0.0)
 
-        navigationController?.hidesBarsOnTap = true
+//        navigationController?.hidesBarsOnTap = true
         if let showNavigationBar = delegate?.showNavigationBar(in: self) {
             self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: true)
         } else {
@@ -131,7 +135,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         }
 
         if let showToolBar = delegate?.showNavigationToolBar(in: self) {
-            self.navigationController?.setToolbarHidden(!showToolBar, animated: false)
+            self.navigationController?.setToolbarHidden(!showToolBar, animated: true)
         } else {
             self.navigationController?.setToolbarHidden(true, animated: false)
         }
@@ -141,12 +145,15 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        navigationController?.hidesBarsOnTap = false
+//        navigationController?.hidesBarsOnTap = false
+
         if let originalIsNavigationBarHidden = previousNavigationBarHidden {
-            navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: animated)
+            navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: false)
         }
+        // Drag to dismiss quickly canceled, may result in a navigation hide animation bug
         if let originalToolBarHidden = previousToolBarHidden {
-            navigationController?.setToolbarHidden(originalToolBarHidden, animated: animated)
+//            navigationController?.setToolbarHidden(originalToolBarHidden, animated: false)
+            navigationController?.isToolbarHidden = originalToolBarHidden
         }
     }
 
@@ -161,6 +168,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         } else {
             // Fallback on earlier versions
         }
+        self.automaticallyAdjustsScrollViewInsets = false
     }
 
     func setupNavigationBar() {
@@ -191,6 +199,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             collectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
             collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
         ])
+
         captionView.translatesAutoresizingMaskIntoConstraints = false
         if #available(iOS 11.0, *) {
             NSLayoutConstraint.activate([
@@ -204,7 +213,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
                 captionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -10),
                 captionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -10),
             ])
-        }
+        }        
     }
 
     func hideCaptionView(_ flag: Bool, animated: Bool = true) {
@@ -255,47 +264,47 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         let photoCell = cell as! PhotoDetailCell
-//        let photo = photos[indexPath.row]
-        photoCell.setPhoto(photos[indexPath.row])
+        var photo = photos[indexPath.row]
+        photo.assetSize = assetSize
+        photoCell.setPhoto(photo)
     }
 
     public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        // instruct collection view how to handle changes in page size
-        // print("before")
-        let visiblePage = self.collectionView.contentOffset.x / self.collectionView.bounds.size.width
-        coordinator.animate(alongsideTransition: { (context) in
-//            print("during")
+        // Device rotating
+        // Instruct collection view how to handle changes in page size
 
-            let newOffset = CGPoint(x: visiblePage * self.collectionView.bounds.size.width, y: self.collectionView.contentOffset.y)
+        recalculateItemSize(inBoundingSize: size)
+        if view.window == nil {
+            view.frame = CGRect(origin: view.frame.origin, size: size)
+            view.layoutIfNeeded()
+        } else {
+            let indexPath = self.collectionView.indexPathsForVisibleItems.last
+            coordinator.animate(alongsideTransition: { ctx in
+                self.collectionView.layoutIfNeeded()
+                if let indexPath = indexPath {
+                    self.collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
+                }
+            }, completion: { _ in
 
-            self.collectionView.contentOffset = newOffset
-
-            guard let flowLayout = self.collectionView.collectionViewLayout as? UICollectionViewFlowLayout else { return }
-            flowLayout.itemSize = self.view.bounds.size
-            flowLayout.invalidateLayout()
-        }) { (context) in
-
-            print("after")
+            })
         }
-        // FIXME: - fix A warining here ⚠️
+
+        super.viewWillTransition(to: size, with: coordinator)
     }
 
-//    public func collectionView(_ collectionView: UICollectionView, targetContentOffsetForProposedContentOffset proposedContentOffset: CGPoint) -> CGPoint {
-//        guard
-//            let flowLayout = collectionView.collectionViewLayout as? UICollectionViewFlowLayout,
-//            let indexPath = collectionView.indexPathsForVisibleItems.last,
-//            let layoutAttributes = flowLayout.layoutAttributesForItem(at: indexPath)
-//            else {
-//             return proposedContentOffset
-//        }
-//        print("content offset: \(CGPoint(x: layoutAttributes.center.x - (layoutAttributes.size.width / 2.0) - (flowLayout.minimumLineSpacing / 2.0), y: 0))")
-//        return CGPoint(x: layoutAttributes.center.x - (layoutAttributes.size.width / 2.0) - (flowLayout.minimumLineSpacing / 2.0), y: 0)
-//    }
+    var resized = false
 
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        self.collectionView.frame = view.frame.insetBy(dx: -20.0, dy: 0.0)
+        if self.collectionView.frame != view.frame.insetBy(dx: -10.0, dy: 0.0) {
+            self.collectionView.frame = view.frame.insetBy(dx: -10.0, dy: 0.0)
+        }
+//        if !resized && view.bounds.size != .zero {
+//            resized = true
+//
+//            recalculateItemSize(inBoundingSize: view.bounds.size)
+//        }
+
         if (!self.initialScrollDone) {
             self.initialScrollDone = true
             self.collectionView.scrollToItem(at: lastDisplayedIndexPath, at: .centeredHorizontally, animated: false)
@@ -306,7 +315,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
                 updateCaption(at: lastDisplayedIndexPath)
             }
         }
-
     }
 
     // MARK: -Bar item actions
@@ -361,11 +369,28 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         let photo = photos[indexPath.row]
         captionView.setup(content: photo.captionContent, signature: photo.captionSignature)
     }
+
+    func recalculateItemSize(inBoundingSize size: CGSize) {
+        guard let flowLayout = flowLayout else { return }
+        let itemSize = recalculateLayout(flowLayout, inBoundingSize: size)
+        let scale = UIScreen.main.scale
+        assetSize = CGSize(width: itemSize.width * scale, height: itemSize.height * scale)
+    }
+
+    @discardableResult
+    func recalculateLayout(_ layout: UICollectionViewFlowLayout, inBoundingSize size: CGSize) -> CGSize {
+        layout.minimumInteritemSpacing = 0
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        layout.scrollDirection = .horizontal;
+        layout.minimumLineSpacing = 20
+        layout.itemSize = size
+        return size
+    }
 }
 
 extension PhotoDetailCollectionViewController: UIScrollViewDelegate {
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        let pageWidth = scrollView.frame.size.width
+        let pageWidth = view.bounds.size.width
         let currentPage = Int((scrollView.contentOffset.x + pageWidth / 2) / pageWidth)
         lastDisplayedIndexPath = IndexPath(row: currentPage, section: 0)
     }
@@ -377,9 +402,9 @@ extension PhotoDetailCollectionViewController {
         if let tap = ImageViewTap(rawValue: name) {
             switch tap {
             case .singleTap:
-//                hideOrShowTopBottom()
+                hideOrShowTopBottom()
 //                use navigationController?.hidesBarsOnTap instead
-                break
+//                break
             case .doubleTap:
                 guard let userInfo = userInfo, let touchPoint = userInfo["touchPoint"] as? CGPoint  else { return }
                 guard let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) as? PhotoDetailCell else { return }
@@ -388,6 +413,19 @@ extension PhotoDetailCollectionViewController {
         } else {
             // pass the event
             next?.routerEvent(name: name, userInfo: userInfo)
+        }
+    }
+    func hideOrShowTopBottom() {
+        if let showNavigationBar = delegate?.showNavigationBar(in: self), showNavigationBar {
+            self.navigationController?.setNavigationBarHidden(!(self.navigationController?.isNavigationBarHidden ?? true), animated: true)
+        }
+
+        if let showToolBar = delegate?.showNavigationToolBar(in: self), showToolBar {
+            self.navigationController?.setToolbarHidden(!(self.navigationController?.isToolbarHidden ?? true), animated: true)
+        }
+
+        if let canDisplay = delegate?.canDisplayCaption(in: self), canDisplay {
+            hideCaptionView(!captionView.isHidden)
         }
     }
 

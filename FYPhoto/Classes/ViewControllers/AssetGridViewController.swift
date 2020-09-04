@@ -139,7 +139,10 @@ public class AssetGridViewController: UICollectionViewController {
         thumbnailSize = CGSize(width: cellSize.width * scale, height: cellSize.height * scale)
     }
 
-
+    public override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        navigationController?.isToolbarHidden = true
+    }
 
     // MARK: -NavigationBar
     func setupNavigationBar() {

@@ -8,7 +8,7 @@
 import UIKit
 
 protocol FYDetectingImageViewDelegate: class {
-//    func handleImageViewSingleTap(_ touchPoint: CGPoint)
+    func handleImageViewSingleTap(_ touchPoint: CGPoint)
     func handleImageViewDoubleTap(_ touchPoint: CGPoint)
 }
 
@@ -24,10 +24,10 @@ class FYDetectingImageView: UIImageView {
         doubleTap.numberOfTapsRequired = 2
         addGestureRecognizer(doubleTap)
 
-        // use navigationcontroller.hideBarsOnTap instead
-//        let singleTap = UITapGestureRecognizer(target: self, action: #selector(FYDetectingImageView.singleTap(_:)))
-//        singleTap.require(toFail: doubleTap)
-//        addGestureRecognizer(singleTap)
+//         use navigationcontroller.hideBarsOnTap instead
+        let singleTap = UITapGestureRecognizer(target: self, action: #selector(FYDetectingImageView.singleTap(_:)))
+        singleTap.require(toFail: doubleTap)
+        addGestureRecognizer(singleTap)
 
 
     }
@@ -36,9 +36,9 @@ class FYDetectingImageView: UIImageView {
         fatalError("init(coder:) has not been implemented")
     }
 
-//    @objc func singleTap(_ tap: UITapGestureRecognizer) {
-//        delegate?.handleImageViewSingleTap(tap.location(in: self))
-//    }
+    @objc func singleTap(_ tap: UITapGestureRecognizer) {
+        delegate?.handleImageViewSingleTap(tap.location(in: self))
+    }
 
     @objc func doubleTap(_ tap: UITapGestureRecognizer) {
         delegate?.handleImageViewDoubleTap(tap.location(in: self))
