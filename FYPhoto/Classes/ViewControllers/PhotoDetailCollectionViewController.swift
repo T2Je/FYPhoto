@@ -91,6 +91,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             if let canDisplay = delegate?.canDisplayCaption(in: self), canDisplay {
                 updateCaption(at: newValue)
             }
+
+            updateNavigationTitle(at: newValue)
         }
     }
 
@@ -135,6 +137,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         super.viewDidLoad()
         view.clipsToBounds = true
         view.backgroundColor = UIColor.white
+        edgesForExtendedLayout = .all
 
         previousToolBarHidden = self.navigationController?.toolbar.isHidden
         previousNavigationBarHidden = self.navigationController?.navigationBar.isHidden
@@ -200,7 +203,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     func setupNavigationBar() {
-        edgesForExtendedLayout = .all
         self.navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
             addPhotoBarItem = UIBarButtonItem(title: "", style: .plain, target: self, action: #selector(PhotoDetailCollectionViewController.addPhotoBarItemClicked(_:)))
@@ -208,6 +210,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             addPhotoBarItem.tintColor = .black
             self.navigationItem.rightBarButtonItem = addPhotoBarItem
         }
+        updateNavigationTitle(at: lastDisplayedIndexPath)
     }
 
     func setupNavigationToolBar() {
@@ -397,9 +400,20 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         captionView.setup(content: photo.captionContent, signature: photo.captionSignature)
     }
 
+    func updateNavigationTitle(at indexPath: IndexPath) {
+        if let showNavigationBar = delegate?.showNavigationBar(in: self), showNavigationBar {
+            if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
+                navigationItem.title = ""
+            } else {
+                navigationItem.title = "\(indexPath.item + 1) /\(photos.count)"
+            }
+        }
+    }
+
     func recalculateItemSize(inBoundingSize size: CGSize) {
         guard let flowLayout = flowLayout else { return }
-        let itemSize = recalculateLayout(flowLayout, inBoundingSize: size)
+        let itemSize = recalculateLayout(flowLayout,
+                                         inBoundingSize: size)
         let scale = UIScreen.main.scale
         assetSize = CGSize(width: itemSize.width * scale, height: itemSize.height * scale)
     }

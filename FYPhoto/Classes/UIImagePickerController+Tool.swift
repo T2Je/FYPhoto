@@ -10,7 +10,7 @@ import MobileCoreServices
 import Photos
 
 public extension UIImagePickerController {
-    @objc func fg_pickerFinishedWithInfo(_ info: [UIImagePickerController.InfoKey : Any]) -> UIImage? {
+    @objc func fg_pickerFinished(withInfo info: [UIImagePickerController.InfoKey : Any]) -> UIImage? {
         guard let type = info[.mediaType] as? String else { return nil }
         guard type == (kUTTypeImage as String) else { return nil }
 

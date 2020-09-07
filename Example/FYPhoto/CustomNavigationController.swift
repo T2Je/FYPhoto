@@ -12,7 +12,7 @@ class CustomNavigationController: UINavigationController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationBar.tintColor = .white
+//        navigationBar.tintColor = .white
         navigationItem.backBarButtonItem = UIBarButtonItem(title: nil, style: .plain, target: nil, action: nil)
         // Do any additional setup after loading the view.
     }
