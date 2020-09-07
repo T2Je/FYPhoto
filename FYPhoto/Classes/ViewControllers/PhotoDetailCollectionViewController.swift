@@ -24,7 +24,7 @@ public protocol PhotoDetailCollectionViewControllerDelegate: class {
 
 public extension PhotoDetailCollectionViewControllerDelegate {
     func showNavigationBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        false
+        true
     }
     func showBottomToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
         false
@@ -110,7 +110,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     fileprivate var assetSize: CGSize?
 
     // MARK: - LifeCycle
-    public init(frame: CGRect, photos: [PhotoProtocol], initialIndex: Int) {
+    public init(photos: [PhotoProtocol], initialIndex: Int) {
         self.photos = photos
         self.lastDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
         let flowLayout = UICollectionViewFlowLayout()
@@ -118,7 +118,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         flowLayout.minimumLineSpacing = 20
         flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
         flowLayout.scrollDirection = .horizontal
-        flowLayout.itemSize = frame.size
+//        flowLayout.itemSize = frame.size
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
         super.init(nibName: nil, bundle: nil)
     }
@@ -327,11 +327,10 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         if self.collectionView.frame != view.frame.insetBy(dx: -10.0, dy: 0.0) {
             self.collectionView.frame = view.frame.insetBy(dx: -10.0, dy: 0.0)
         }
-//        if !resized && view.bounds.size != .zero {
-//            resized = true
-//
-//            recalculateItemSize(inBoundingSize: view.bounds.size)
-//        }
+        if !resized && view.bounds.size != .zero {
+            resized = true
+            recalculateItemSize(inBoundingSize: view.bounds.size)
+        }
 
         if (!self.initialScrollDone) {
             self.initialScrollDone = true

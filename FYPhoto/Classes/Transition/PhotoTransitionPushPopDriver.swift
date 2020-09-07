@@ -112,19 +112,34 @@ class PhotoPushPopTransitionDriver: TransitionDriver {
         // Create a UIViewPropertyAnimator that lives the lifetime of the transition
         let spring = CGFloat(0.95)
         transitionAnimator = UIViewPropertyAnimator(duration: duration, dampingRatio: spring) {
-            if self.operation == .push {
+            topView.alpha = topViewTargetAlpha
+            self.visualEffectView.effect = targetEffect
+        }
+
+        if transitionAnimator.state == .inactive {
+            transitionAnimator.startAnimation()
+        }
+
+        if operation == .pop {
+            // HACK: By delaying 0.005s, I get a layout-refresh on the toViewController,
+            // which means its collectionview has updated its layout,
+            // and our toAssetTransitioning?.imageFrame() is accurate, even if
+            // the device has rotated.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.005) {
+                self.transitionAnimator.addAnimations {
+                    if let imageFrame = self.toAssetTransitioning?.imageFrame() {
+                        self.transitionImageView.frame = imageFrame
+                    }
+                }
+            }
+        } else {
+            transitionAnimator.addAnimations {
                 if let referencedImage = self.fromAssetTransitioning?.referenceImage(),
                     let toView = self.toView {
                     let toReferenceFrame = Self.calculateZoomInImageFrame(image: referencedImage, forView: toView)
                     self.transitionImageView.frame = toReferenceFrame
                 }
-            } else {
-                if let imageFrame = self.toAssetTransitioning?.imageFrame() {
-                    self.transitionImageView.frame = imageFrame
-                }
             }
-            topView.alpha = topViewTargetAlpha
-            self.visualEffectView.effect = targetEffect
         }
 
         transitionAnimator.addCompletion { _ in
@@ -138,10 +153,6 @@ class PhotoPushPopTransitionDriver: TransitionDriver {
 
             self.transitionContext.finishInteractiveTransition()
             self.transitionContext.completeTransition(true)
-        }
-
-        if transitionAnimator.state == .inactive {
-            transitionAnimator.startAnimation()
         }
     }
 }

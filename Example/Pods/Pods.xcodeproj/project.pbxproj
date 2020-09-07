@@ -1461,9 +1461,9 @@
 		B281A1FA331F9CF19B7BFF488E791F9A /* Transition */ = {
 			isa = PBXGroup;
 			children = (
-				FF39889797A5288AA39B7206FD7F7592 /* PhotoInteractiveDismissTransitionDriver.swift */,
 				F0CC4404C91DBC8F9826E01F564DD0F5 /* PhotoTransitionController.swift */,
 				D78BE987F753F1C38B68911422F6ECC2 /* PhotoTransitioning.swift */,
+				FF39889797A5288AA39B7206FD7F7592 /* PhotoInteractiveDismissTransitionDriver.swift */,
 				32CFA2472D40EA732847441D5CB600D5 /* PhotoTransitionPushPopDriver.swift */,
 				7FF333CDED63C6B0C46D69D678258FFE /* TransitionDriver.swift */,
 			);

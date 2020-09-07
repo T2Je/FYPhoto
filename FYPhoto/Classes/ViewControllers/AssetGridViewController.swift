@@ -289,7 +289,7 @@ public class AssetGridViewController: UICollectionViewController {
         let selectedPhotos = selectedAssets.map { Photo(asset: $0) }
 
         // collectionview
-        let detailVC = PhotoDetailCollectionViewController(frame: view.bounds, photos: photos, initialIndex: indexPath.row)
+        let detailVC = PhotoDetailCollectionViewController(photos: photos, initialIndex: indexPath.row)
         detailVC.selectedPhotos = selectedPhotos
         detailVC.selectedPhotoIndexPaths = assetSelctionIndexPaths
         detailVC.maximumNumber = maximumNumber

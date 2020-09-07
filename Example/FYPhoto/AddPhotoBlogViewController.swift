@@ -429,7 +429,7 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
             for index in 0..<selectedImageArray.count {
                 photos.append(Photo(image: selectedImageArray[index], index: index))
             }
-            let detailVC = PhotoDetailCollectionViewController(frame: view.bounds, photos: photos, initialIndex: indexPath.row)
+            let detailVC = PhotoDetailCollectionViewController(photos: photos, initialIndex: indexPath.row)
             detailVC.delegate = self
             self.navigationController?.pushViewController(detailVC, animated: true)
 //            let navi = CustomTransitionNavigationController(rootViewController: detailVC)
