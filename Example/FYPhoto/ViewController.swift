@@ -36,17 +36,23 @@ class ViewController: UIViewController {
         let photosViewBtn = UIButton()
         let suishoupaiBtn = UIButton()
 
+        let cameraPhotoBtn = UIButton()
+
         photosViewBtn.setTitle("浏览全部照片", for: .normal)
         suishoupaiBtn.setTitle("随手拍", for: .normal)
+        cameraPhotoBtn.setTitle("照片or相机", for: .normal)
 
         photosViewBtn.setTitleColor(.systemBlue, for: .normal)
         suishoupaiBtn.setTitleColor(.systemBlue, for: .normal)
+        cameraPhotoBtn.setTitleColor(.systemBlue, for: .normal)
 
         photosViewBtn.addTarget(self, action: #selector(photosViewButtonClicked(_:)), for: .touchUpInside)
         suishoupaiBtn.addTarget(self, action: #selector(suiShouPaiButtonClicked(_:)), for: .touchUpInside)
+        cameraPhotoBtn.addTarget(self, action: #selector(cameraPhotoButtonClicked(_:)), for: .touchUpInside)
 
         stackView.addArrangedSubview(photosViewBtn)
         stackView.addArrangedSubview(suishoupaiBtn)
+        stackView.addArrangedSubview(cameraPhotoBtn)
 
         self.view.addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -103,23 +109,29 @@ class ViewController: UIViewController {
 
     @objc func suiShouPaiButtonClicked(_ sender: UIButton) {
         PHPhotoLibrary.requestAuthorization { (status) in
-                    DispatchQueue.main.async {
-                        switch status {
-                        case .authorized:
-                            let addPhotoVC = AddPhotoBlogViewController()
-                            addPhotoVC.selectedImageArray = []
-                            self.navigationController?.pushViewController(addPhotoVC, animated: true)
-//                            let navi = CustomTransitionNavigationController(rootViewController: addPhotoVC)
-//                            navi.modalPresentationStyle = .fullScreen
-//                            self.present(navi, animated: true, completion: nil)
-                        case .denied, .restricted, .notDetermined:
-                            print("⚠️ without authorization! ⚠️")
-                        @unknown default:
-                            fatalError()
-                        }
-                    }
-
+            DispatchQueue.main.async {
+                switch status {
+                case .authorized:
+                    let addPhotoVC = AddPhotoBlogViewController()
+                    addPhotoVC.selectedImageArray = []
+                    self.navigationController?.pushViewController(addPhotoVC, animated: true)
+                    //                            let navi = CustomTransitionNavigationController(rootViewController: addPhotoVC)
+                    //                            navi.modalPresentationStyle = .fullScreen
+                //                            self.present(navi, animated: true, completion: nil)
+                case .denied, .restricted, .notDetermined:
+                    print("⚠️ without authorization! ⚠️")
+                @unknown default:
+                    fatalError()
                 }
+            }
+
+        }
+    }
+
+    @objc func cameraPhotoButtonClicked(_ sender: UIButton) {
+        let photoLanucher = PhotoLauncher()
+        photoLanucher.delegate = self
+        photoLanucher.showImagePickerAlertSheet(in: self, sourceRect: sender.frame, 6, isOnlyImages: false)
     }
 
     @objc func screenshotTaken(_ noti: Notification) {
@@ -129,3 +141,12 @@ class ViewController: UIViewController {
     }
 }
 
+extension ViewController: PhotoLauncherDelegate {
+    func selectedPhotosInPhotoLauncher(_ photos: [UIImage]) {
+        print("selected \(photos.count) images")
+    }
+}
+
+extension ViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+
+}

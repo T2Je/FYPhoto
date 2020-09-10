@@ -47,34 +47,34 @@ public class PhotoPickerResource {
     public func filteredSmartAlbums(_ onlyImage: Bool = false) -> [PHAssetCollection] {
         var albums = [PHAssetCollection]()
 
-        if let favorites = favorites(), !onlyImage {
+        if let favorites = favorites(), !onlyImage, favorites.estimatedAssetCount > 0 {
             albums.append(favorites)
         }
-        if let selfies = selfies() {
+        if let selfies = selfies(), selfies.estimatedAssetCount > 0 {
             albums.append(selfies)
         }
         if #available(iOS 10.3, *) {
-            if let live = live(), !onlyImage {
+            if let live = live(), !onlyImage, live.estimatedAssetCount > 0 {
                 albums.append(live)
             }
         }
-        if let panoramas = panoramas() {
+        if let panoramas = panoramas(), panoramas.estimatedAssetCount > 0 {
             albums.append(panoramas)
         }
-        if let slomos = slomos() {
+        if let slomos = slomos(), slomos.estimatedAssetCount > 0 {
             albums.append(slomos)
         }
-        if let videos = videos(), !onlyImage {
+        if let videos = videos(), !onlyImage, videos.estimatedAssetCount > 0 {
             albums.append(videos)
         }
-        if let screenShots = screenShots() {
+        if let screenShots = screenShots(), screenShots.estimatedAssetCount > 0 {
             albums.append(screenShots)
         }
         if #available(iOS 11, *) {
-            if let animated = animated() {
+            if let animated = animated(), animated.estimatedAssetCount > 0 {
                 albums.append(animated)
             }
-            if let longExposure = longExposure() {
+            if let longExposure = longExposure(), longExposure.estimatedAssetCount > 0 {
                 albums.append(longExposure)
             }
         }

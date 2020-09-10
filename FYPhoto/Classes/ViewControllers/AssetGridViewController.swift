@@ -127,6 +127,7 @@ public class AssetGridViewController: UICollectionViewController {
     }
 
     deinit {
+        imageManager.stopCachingImagesForAllAssets()
         PHPhotoLibrary.shared().unregisterChangeObserver(self)
     }
 
@@ -160,17 +161,15 @@ public class AssetGridViewController: UICollectionViewController {
 
         navigationItem.rightBarButtonItems = [doneBarItem, selectedPhotoCountBarItem]
 
-        if isOnlyImages {
-            // custom titleview
-            customTitleView.tapped = { [weak self] in
-                guard let self = self else { return }
-                let albumsVC = AlbumsTableViewController(allPhotos: self.allPhotos, smartAlbums: self.smartAlbums, userCollections: self.userCollections, selectedIndexPath: self.selectedAlbumIndexPath)
-                albumsVC.delegate = self
-                self.present(albumsVC, animated: true, completion: nil)
-            }
-            customTitleView.title = "All photos".photoTablelocalized
-            self.navigationItem.titleView = customTitleView
+        // custom titleview
+        customTitleView.tapped = { [weak self] in
+            guard let self = self else { return }
+            let albumsVC = AlbumsTableViewController(allPhotos: self.allPhotos, smartAlbums: self.smartAlbums, userCollections: self.userCollections, selectedIndexPath: self.selectedAlbumIndexPath)
+            albumsVC.delegate = self
+            self.present(albumsVC, animated: true, completion: nil)
         }
+        customTitleView.title = "All photos".photoTablelocalized
+        self.navigationItem.titleView = customTitleView
     }
 
     func setupTransitionController() {

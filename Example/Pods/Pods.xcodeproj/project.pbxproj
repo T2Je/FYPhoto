@@ -301,7 +301,7 @@
 		DB981C0BC1F7B978D1133543322BE16C /* SDImageLoadersManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 4A109D70A74F0DA418960EAC25297950 /* SDImageLoadersManager.m */; };
 		DCDD4107A86894A92B5EFEFCBC1300A5 /* SDWebImageDownloaderConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 66052BCA2D72E00B124872BABE9B1F85 /* SDWebImageDownloaderConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		DD181959481A783378D1253347623836 /* CG+extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93B41677675410608AC4018737B9439D /* CG+extensions.swift */; };
-		DE3B5C77E7BFAA8AE55B6B9814F16495 /* PhotoPickerHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE15139921D64EBEA8FE3FC58F904CEA /* PhotoPickerHelper.swift */; };
+		DE3B5C77E7BFAA8AE55B6B9814F16495 /* PhotoLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE15139921D64EBEA8FE3FC58F904CEA /* PhotoLauncher.swift */; };
 		DE5D2F90BF5BAD5017BE026DED100C03 /* SDWebImage-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = CEA44CD738B5BEA5A75BAEBD085A08C1 /* SDWebImage-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E06145DE89C6C487FEBE221301457006 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21CE4FCD9E12CA27575A66A258F44014 /* Foundation.framework */; };
 		E0C0BDDB02A2F1A4A5038F5AE5B3CA03 /* SDImageAPNGCoder.m in Sources */ = {isa = PBXBuildFile; fileRef = 3606BA747741D4F542875339E45A8C3E /* SDImageAPNGCoder.m */; };
@@ -801,7 +801,7 @@
 		ED58C36CF47B0E8DA5DD8A0C1D750E28 /* ZoomingScrollView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ZoomingScrollView.swift; sourceTree = "<group>"; };
 		ED6C4004FF941CE79B426F0F7DD9A44F /* SDWebImageTransitionInternal.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = SDWebImageTransitionInternal.h; path = SDWebImage/Private/SDWebImageTransitionInternal.h; sourceTree = "<group>"; };
 		EDE72EAF968F70BD033043F609879ADA /* SDWebImageCacheSerializer.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = SDWebImageCacheSerializer.m; path = SDWebImage/Core/SDWebImageCacheSerializer.m; sourceTree = "<group>"; };
-		EE15139921D64EBEA8FE3FC58F904CEA /* PhotoPickerHelper.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PhotoPickerHelper.swift; path = FYPhoto/Classes/PhotoPickerHelper.swift; sourceTree = "<group>"; };
+		EE15139921D64EBEA8FE3FC58F904CEA /* PhotoLauncher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PhotoLauncher.swift; path = FYPhoto/Classes/PhotoLauncher.swift; sourceTree = "<group>"; };
 		EE3B9F14BD7CDFC9F127246B920BBF66 /* UIImageView+WebCache.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "UIImageView+WebCache.m"; path = "SDWebImage/Core/UIImageView+WebCache.m"; sourceTree = "<group>"; };
 		EF24466E1BDC70F12A0EBD1421C157D1 /* UICircularProgressRing.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UICircularProgressRing.swift; path = Legacy/UICircularProgressRing.swift; sourceTree = "<group>"; };
 		F0BF3AF6CDFDF6E29CA1B3D6E2EA0791 /* NSBezierPath+SDRoundedCorners.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "NSBezierPath+SDRoundedCorners.m"; path = "SDWebImage/Private/NSBezierPath+SDRoundedCorners.m"; sourceTree = "<group>"; };
@@ -1107,7 +1107,7 @@
 			children = (
 				844927D1E796E56B061CFCCCE8003239 /* AssetTransitioningMath.swift */,
 				160F3308DD10503A42F942879F4934BE /* Photo.swift */,
-				EE15139921D64EBEA8FE3FC58F904CEA /* PhotoPickerHelper.swift */,
+				EE15139921D64EBEA8FE3FC58F904CEA /* PhotoLauncher.swift */,
 				E1743CA25252C7309FC51FA655F06B34 /* PhotoPickerResource.swift */,
 				A2BD88D9C04E0174A94648FB7087AC49 /* PhotoPickerSettingsOptions.swift */,
 				E3FB7EC333EE8E500F1CD24D357162FA /* ResourceTool.swift */,
@@ -2410,7 +2410,7 @@
 				5082DFE034F0494429EB263A06C70DDF /* PhotoDetailCell.swift in Sources */,
 				B12C63B7BE0D4CCC708185D961628F3A /* PhotoDetailCollectionViewController.swift in Sources */,
 				BA7266E277D7A7E95547B9029F71CD26 /* PhotoInteractiveDismissTransitionDriver.swift in Sources */,
-				DE3B5C77E7BFAA8AE55B6B9814F16495 /* PhotoPickerHelper.swift in Sources */,
+				DE3B5C77E7BFAA8AE55B6B9814F16495 /* PhotoLauncher.swift in Sources */,
 				F275B0B376D9EC80169E397F66CA1152 /* PhotoPickerResource.swift in Sources */,
 				AAA5BFF6C825D39CF228F9C044180E92 /* PhotoPickerSettingsOptions.swift in Sources */,
 				F7DADDE7699BA3519431A4AA91CACE82 /* PhotoTransitionController.swift in Sources */,

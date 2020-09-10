@@ -57,6 +57,9 @@ class AlbumsTableViewController: UITableViewController {
         fatalError("init(coder:) has not been implemented")
     }
 
+    deinit {
+        print(#function, #file)
+    }
     override func viewDidLoad() {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: CellIdentifier.allPhotos.rawValue)
         tableView.register(AlbumCell.self, forCellReuseIdentifier: CellIdentifier.collection.rawValue)

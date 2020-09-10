@@ -23,7 +23,8 @@ public protocol PhotoTransitioning {
     /// and a collectionView should do the same for its image views.
     func referenceImage() -> UIImage?
 
-    /// The location onscreen for the imageView provided in `referenceImageView(for:)`
+    /// The location onscreen for the imageView provided in `referenceImageView(for:)`.
+    /// If image frame is right, but image shows in wrong origin, consider set edgesForExtendedLayout to .all.
     func imageFrame() -> CGRect?
     
     /// if true, self is pushed by navigation controller using Photo transition.

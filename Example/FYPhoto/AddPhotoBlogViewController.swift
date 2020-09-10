@@ -91,7 +91,6 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
     func setupTransitionController() {
         guard let navigationController = self.navigationController else { return }
         transitionController = PhotoTransitionController(navigationController: navigationController)
-        navigationController.delegate = transitionController
     }
 
     func setupTextView() {
