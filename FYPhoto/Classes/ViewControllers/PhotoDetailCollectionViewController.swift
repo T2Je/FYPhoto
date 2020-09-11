@@ -102,6 +102,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     fileprivate var previousNavigationBarHidden: Bool?
     fileprivate var previousToolBarHidden: Bool?
+    fileprivate var previousInteractivePop: Bool?
 
     fileprivate var originCaptionTransform: CGAffineTransform!
 
@@ -141,6 +142,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
         previousToolBarHidden = self.navigationController?.toolbar.isHidden
         previousNavigationBarHidden = self.navigationController?.navigationBar.isHidden
+        previousInteractivePop = self.navigationController?.interactivePopGestureRecognizer?.isEnabled
 
         view.addSubview(collectionView)
         view.addSubview(captionView)
@@ -155,10 +157,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     public override func viewWillAppear(_ animated: Bool) {
-        print(#function)
         super.viewWillAppear(animated)
-
-//        navigationController?.hidesBarsOnTap = true
+        self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
         if let showNavigationBar = delegate?.showNavigationBar(in: self) {
             self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: true)
         } else {
@@ -176,7 +176,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-//        navigationController?.hidesBarsOnTap = false
+        self.navigationController?.interactivePopGestureRecognizer?.isEnabled = previousInteractivePop ?? true
 
         if let originalIsNavigationBarHidden = previousNavigationBarHidden {
             navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: false)

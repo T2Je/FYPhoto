@@ -71,7 +71,7 @@ public protocol PhotoLauncherDelegate: class {
     }
 
     func launchPhotoLibrary(in container: ImagePickerContainer, _ maximumNumberCanChoose: Int, isOnlyImages: Bool) {
-        let gridVC = AssetGridViewController(maximumToSelect: 6, isOnlyImages: isOnlyImages)
+        let gridVC = AssetGridViewController(maximumToSelect: maximumNumberCanChoose, isOnlyImages: isOnlyImages)
         gridVC.selectedPhotos = { [weak self] images in
             print("selected \(images.count) photos: \(images)")
             self?.delegate?.selectedPhotosInPhotoLauncher(images)
