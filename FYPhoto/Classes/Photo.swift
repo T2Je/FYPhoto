@@ -52,7 +52,7 @@ public class Photo: PhotoProtocol, Equatable {
 
     }
 
-    convenience public init(image: UIImage, index: Int) {
+    convenience public init(image: UIImage, index: Int = 0) {
         self.init()
         self.underlyingImage = image
         self.index = index

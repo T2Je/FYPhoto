@@ -103,6 +103,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     fileprivate var previousNavigationBarHidden: Bool?
     fileprivate var previousToolBarHidden: Bool?
     fileprivate var previousInteractivePop: Bool?
+    fileprivate var previousNavigationTitle: String?
 
     fileprivate var originCaptionTransform: CGAffineTransform!
 
@@ -143,6 +144,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         previousToolBarHidden = self.navigationController?.toolbar.isHidden
         previousNavigationBarHidden = self.navigationController?.navigationBar.isHidden
         previousInteractivePop = self.navigationController?.interactivePopGestureRecognizer?.isEnabled
+        previousNavigationTitle = self.navigationController?.navigationItem.title
 
         view.addSubview(collectionView)
         view.addSubview(captionView)
@@ -176,16 +178,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        self.navigationController?.interactivePopGestureRecognizer?.isEnabled = previousInteractivePop ?? true
-
-        if let originalIsNavigationBarHidden = previousNavigationBarHidden {
-            navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: false)
-        }
-        // Drag to dismiss quickly canceled, may result in a navigation hide animation bug
-        if let originalToolBarHidden = previousToolBarHidden {
-//            navigationController?.setToolbarHidden(originalToolBarHidden, animated: false)
-            navigationController?.isToolbarHidden = originalToolBarHidden
-        }
+        restoreNavigationControllerData()
     }
 
     func setupCollectionView() {
@@ -222,6 +215,23 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         }
     }
 
+    fileprivate func restoreNavigationControllerData() {
+        if let title = previousNavigationTitle {
+            navigationItem.title = title
+        }
+
+        self.navigationController?.interactivePopGestureRecognizer?.isEnabled = previousInteractivePop ?? true
+
+        if let originalIsNavigationBarHidden = previousNavigationBarHidden {
+            navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: false)
+        }
+        // Drag to dismiss quickly canceled, may result in a navigation hide animation bug
+        if let originalToolBarHidden = previousToolBarHidden {
+            //            navigationController?.setToolbarHidden(originalToolBarHidden, animated: false)
+            navigationController?.isToolbarHidden = originalToolBarHidden
+        }
+    }
+
     func makeConstraints() {
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -244,7 +254,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
                 captionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -10),
                 captionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -10),
             ])
-        }        
+        }
     }
 
     func hideCaptionView(_ flag: Bool, animated: Bool = true) {
@@ -493,7 +503,7 @@ extension PhotoDetailCollectionViewController {
 
 // MARK: - PhotoDetailTransitionAnimatorDelegate
 extension PhotoDetailCollectionViewController: PhotoTransitioning {
-    
+
     public func transitionWillStart() {
         guard let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) else { return }
         cell.isHidden = true
