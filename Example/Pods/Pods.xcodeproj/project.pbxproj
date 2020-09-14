@@ -305,6 +305,7 @@
 		E06145DE89C6C487FEBE221301457006 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 21CE4FCD9E12CA27575A66A258F44014 /* Foundation.framework */; };
 		E1BCEC6E31EF3A32E98B420F531859B1 /* ConstraintAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F5A3FBCB1D799B6AD9A340F00E4FA1 /* ConstraintAttributes.swift */; };
 		E282277BCBF970C6604CC0C336CDA942 /* fg_ic_view_empty@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = F1A5AAEA060C100E4CA6AFBEABE2E04A /* fg_ic_view_empty@3x.png */; };
+		E3295DBA250F22FD00A55AEA /* PhotosAuthority.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3295DB9250F22FD00A55AEA /* PhotosAuthority.swift */; };
 		E36BFC219FA096D4A2314AE07C9EBF56 /* SDWebImageDownloaderConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 66052BCA2D72E00B124872BABE9B1F85 /* SDWebImageDownloaderConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E41A68C343A153F945CF52ADA5F24FF6 /* SDWebImageCompat.m in Sources */ = {isa = PBXBuildFile; fileRef = E9DAB1F1384FCDD4C4553FE50F7DCA50 /* SDWebImageCompat.m */; };
 		E6325386964BAD188A7E34074596D55F /* SDWebImageTransitionInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = ED6C4004FF941CE79B426F0F7DD9A44F /* SDWebImageTransitionInternal.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -776,6 +777,7 @@
 		E2B31059F158F37CAE78F4C4C70EAD14 /* FGBase.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FGBase.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2C9BE06A94A0217538B1EE5A18A7882 /* PullToRefreshDefine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PullToRefreshDefine.swift; path = FGBase/Classes/FGPullToRefresh/PullToRefreshDefine.swift; sourceTree = "<group>"; };
 		E2E76BA8DB89E800593F59A0BCD9FF49 /* DGRunkeeperSwitch.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DGRunkeeperSwitch.swift; path = FGBase/Classes/Switch/DGRunkeeperSwitch.swift; sourceTree = "<group>"; };
+		E3295DB9250F22FD00A55AEA /* PhotosAuthority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhotosAuthority.swift; path = FYPhoto/Classes/PhotosAuthority.swift; sourceTree = "<group>"; };
 		E33F2CEAF5940389EE4DF651356D8626 /* FGBaseLocalizable.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = FGBaseLocalizable.strings; path = "zh-Hant.lproj/FGBaseLocalizable.strings"; sourceTree = "<group>"; };
 		E4F25C295E6419659CBB36D29AF1607F /* UICircularProgressRing-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "UICircularProgressRing-umbrella.h"; sourceTree = "<group>"; };
 		E53DE7CABE4B2A0AD6BC3A4C204F2A2E /* FGBase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = FGBase.release.xcconfig; sourceTree = "<group>"; };
@@ -1428,6 +1430,7 @@
 				BAD557CFB711668315108741C2F84F3B /* Transition */,
 				456C1414E977EBAB169CD99BB8403B2C /* ViewControllers */,
 				0645A22B2A0F41CC6E3A4BCFD0A2851E /* Views */,
+				E3295DB9250F22FD00A55AEA /* PhotosAuthority.swift */,
 			);
 			name = FYPhoto;
 			path = ../..;
@@ -2225,6 +2228,7 @@
 				9F863D224705240D814159BBEAAA72E5 /* AssetTransitioningMath.swift in Sources */,
 				EF190BD525FE517EBFE95536E8493AF0 /* CaptionView.swift in Sources */,
 				3084B4B53BD8BA415D2F354137961284 /* CG+extensions.swift in Sources */,
+				E3295DBA250F22FD00A55AEA /* PhotosAuthority.swift in Sources */,
 				1AEC0659E0E93CB8B65D6ADE82BC69EB /* CustomNavigationTitleView.swift in Sources */,
 				2F08FEB46671B2F1977E8854294C4EF5 /* FYDetectingImageView.swift in Sources */,
 				B156D54C7D94D917B58DCA2990F6C300 /* FYPhoto-dummy.m in Sources */,

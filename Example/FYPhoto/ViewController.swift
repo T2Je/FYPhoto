@@ -19,6 +19,10 @@ class ViewController: UIViewController {
         setupUI()
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
+
+        print("PhotosAuthority.isCameraAvailable: \(PhotosAuthority.isCameraAvailable())")
+        print("PhotosAuthority.isPhotoLibraryAvailable: \(PhotosAuthority.isPhotoLibraryAvailable())")
+        print("PhotosAuthority.doesCameraSupportTakingPhotos: \(PhotosAuthority.doesCameraSupportTakingPhotos())")
         // Do any additional setup after loading the view.
     }
 

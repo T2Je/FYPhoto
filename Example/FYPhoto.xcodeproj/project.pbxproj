@@ -15,6 +15,7 @@
 		607FACE01AFB9204008FA782 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 607FACDE1AFB9204008FA782 /* LaunchScreen.xib */; };
 		607FACEC1AFB9204008FA782 /* Tests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 607FACEB1AFB9204008FA782 /* Tests.swift */; };
 		A44FC3F6B130791A524B5C13 /* Pods_FYPhoto_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44B9530E860271DD96AFAFEC /* Pods_FYPhoto_Example.framework */; };
+		E3295DB8250F22BC00A55AEA /* TestAuthority.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3295DB7250F22BC00A55AEA /* TestAuthority.swift */; };
 		E33E1BF1250094CD000212BB /* CustomNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E33E1BF0250094CD000212BB /* CustomNavigationController.swift */; };
 		E343E62E24F7BBA8003341DE /* AddPhotoBlogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */; };
 		E343E62F24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */; };
@@ -49,6 +50,7 @@
 		86DFA831ADE684A3BB4DA5BE /* Pods-FYPhoto_Tests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FYPhoto_Tests.release.xcconfig"; path = "Target Support Files/Pods-FYPhoto_Tests/Pods-FYPhoto_Tests.release.xcconfig"; sourceTree = "<group>"; };
 		BC454A71FC88B7EADD169E24 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; name = LICENSE; path = ../LICENSE; sourceTree = "<group>"; };
 		CC84A622A1CD7C7373A2DFE1 /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
+		E3295DB7250F22BC00A55AEA /* TestAuthority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestAuthority.swift; sourceTree = "<group>"; };
 		E33E1BF0250094CD000212BB /* CustomNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavigationController.swift; sourceTree = "<group>"; };
 		E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPhotoBlogViewController.swift; sourceTree = "<group>"; };
 		E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPhotoCollectionViewCell.swift; sourceTree = "<group>"; };
@@ -135,6 +137,7 @@
 		607FACE81AFB9204008FA782 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				E3295DB7250F22BC00A55AEA /* TestAuthority.swift */,
 				607FACEB1AFB9204008FA782 /* Tests.swift */,
 				607FACE91AFB9204008FA782 /* Supporting Files */,
 			);
@@ -367,6 +370,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				607FACEC1AFB9204008FA782 /* Tests.swift in Sources */,
+				E3295DB8250F22BC00A55AEA /* TestAuthority.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
