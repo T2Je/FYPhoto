@@ -306,7 +306,9 @@
 		E1BCEC6E31EF3A32E98B420F531859B1 /* ConstraintAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2F5A3FBCB1D799B6AD9A340F00E4FA1 /* ConstraintAttributes.swift */; };
 		E282277BCBF970C6604CC0C336CDA942 /* fg_ic_view_empty@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = F1A5AAEA060C100E4CA6AFBEABE2E04A /* fg_ic_view_empty@3x.png */; };
 		E3295DBA250F22FD00A55AEA /* PhotosAuthority.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3295DB9250F22FD00A55AEA /* PhotosAuthority.swift */; };
+		E3295DBC250F699D00A55AEA /* VideoCountDownOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3295DBB250F699D00A55AEA /* VideoCountDownOverlay.swift */; };
 		E36BFC219FA096D4A2314AE07C9EBF56 /* SDWebImageDownloaderConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 66052BCA2D72E00B124872BABE9B1F85 /* SDWebImageDownloaderConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		E3F694A625104CCC0070903E /* VideoCaptureOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F694A525104CCC0070903E /* VideoCaptureOverlay.swift */; };
 		E41A68C343A153F945CF52ADA5F24FF6 /* SDWebImageCompat.m in Sources */ = {isa = PBXBuildFile; fileRef = E9DAB1F1384FCDD4C4553FE50F7DCA50 /* SDWebImageCompat.m */; };
 		E6325386964BAD188A7E34074596D55F /* SDWebImageTransitionInternal.h in Headers */ = {isa = PBXBuildFile; fileRef = ED6C4004FF941CE79B426F0F7DD9A44F /* SDWebImageTransitionInternal.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E84DE3BD1616B73F73F96B8389537524 /* MBProgressHUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 2D05F169295A316260E737C18C573985 /* MBProgressHUD.m */; };
@@ -778,7 +780,9 @@
 		E2C9BE06A94A0217538B1EE5A18A7882 /* PullToRefreshDefine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PullToRefreshDefine.swift; path = FGBase/Classes/FGPullToRefresh/PullToRefreshDefine.swift; sourceTree = "<group>"; };
 		E2E76BA8DB89E800593F59A0BCD9FF49 /* DGRunkeeperSwitch.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DGRunkeeperSwitch.swift; path = FGBase/Classes/Switch/DGRunkeeperSwitch.swift; sourceTree = "<group>"; };
 		E3295DB9250F22FD00A55AEA /* PhotosAuthority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = PhotosAuthority.swift; path = FYPhoto/Classes/PhotosAuthority.swift; sourceTree = "<group>"; };
+		E3295DBB250F699D00A55AEA /* VideoCountDownOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VideoCountDownOverlay.swift; path = FYPhoto/Classes/Views/VideoCountDownOverlay.swift; sourceTree = "<group>"; };
 		E33F2CEAF5940389EE4DF651356D8626 /* FGBaseLocalizable.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = FGBaseLocalizable.strings; path = "zh-Hant.lproj/FGBaseLocalizable.strings"; sourceTree = "<group>"; };
+		E3F694A525104CCC0070903E /* VideoCaptureOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = VideoCaptureOverlay.swift; path = FYPhoto/Classes/Video/VideoCaptureOverlay.swift; sourceTree = "<group>"; };
 		E4F25C295E6419659CBB36D29AF1607F /* UICircularProgressRing-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "UICircularProgressRing-umbrella.h"; sourceTree = "<group>"; };
 		E53DE7CABE4B2A0AD6BC3A4C204F2A2E /* FGBase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = FGBase.release.xcconfig; sourceTree = "<group>"; };
 		E60678C989AC3340E009737CFB76A29C /* UIButton+Border.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "UIButton+Border.swift"; path = "FGBase/Classes/Category/UIKit/UIButton+Border.swift"; sourceTree = "<group>"; };
@@ -1431,6 +1435,8 @@
 				456C1414E977EBAB169CD99BB8403B2C /* ViewControllers */,
 				0645A22B2A0F41CC6E3A4BCFD0A2851E /* Views */,
 				E3295DB9250F22FD00A55AEA /* PhotosAuthority.swift */,
+				E3295DBB250F699D00A55AEA /* VideoCountDownOverlay.swift */,
+				E3F694A525104CCC0070903E /* VideoCaptureOverlay.swift */,
 			);
 			name = FYPhoto;
 			path = ../..;
@@ -2241,6 +2247,7 @@
 				1F265784DD80CE5B28A1CED10495D1D3 /* PhotoPickerResource.swift in Sources */,
 				C8DDADD1D449EF99D992DC882C8C15CF /* PhotoPickerSettingsOptions.swift in Sources */,
 				7A9ED2454D79EF7DABABEE355CDA8FD3 /* PhotoTransitionController.swift in Sources */,
+				E3295DBC250F699D00A55AEA /* VideoCountDownOverlay.swift in Sources */,
 				12F3068347093F4242EF92B2121B5460 /* PhotoTransitioning.swift in Sources */,
 				C5FB75B8494CBBA3CB749B60CF3F2A35 /* PhotoTransitionPushPopDriver.swift in Sources */,
 				5E2C5EC031F7D968B2D1D355752DE5DD /* ResourceTool.swift in Sources */,
@@ -2250,6 +2257,7 @@
 				EA0892B3E1638342A5C1096EB57150D7 /* UIResponder+routerEvent.swift in Sources */,
 				018A583CAB9D04B89A293BB0D5203106 /* ZoomingScrollView+URL.swift in Sources */,
 				5DD7D760A538FDE435EB8D27DC233042 /* ZoomingScrollView.swift in Sources */,
+				E3F694A625104CCC0070903E /* VideoCaptureOverlay.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

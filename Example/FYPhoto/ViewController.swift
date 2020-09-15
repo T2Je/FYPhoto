@@ -13,6 +13,7 @@ import Photos
 class ViewController: UIViewController {
 
     var stackView = UIStackView()
+    let photoLanucher = PhotoLauncher()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -133,9 +134,8 @@ class ViewController: UIViewController {
     }
 
     @objc func cameraPhotoButtonClicked(_ sender: UIButton) {
-        let photoLanucher = PhotoLauncher()
         photoLanucher.delegate = self
-        photoLanucher.showImagePickerAlertSheet(in: self, sourceRect: sender.frame, 6, isOnlyImages: false)
+        photoLanucher.showImagePickerAlertSheet(in: self, sourceRect: sender.frame, maximumNumberCanChoose: 6, isOnlyImages: true)
     }
 
     @objc func screenshotTaken(_ noti: Notification) {
@@ -152,5 +152,73 @@ extension ViewController: PhotoLauncherDelegate {
 }
 
 extension ViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        print(#function)
+        guard let mediaType = info[.mediaType] as? String else { return }
+
+        switch mediaType {
+        case "public.image":
+            guard let image = info[.originalImage] as? UIImage else { return }
+            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
+            picker.dismiss(animated: true, completion: nil)
+        case "public.movie":
+            guard
+                let videoURL = info[.mediaURL] as? URL
+
+                else {
+                    picker.dismiss(animated: true, completion: nil)
+                    return
+            }
+//            UISaveVideoAtPathToSavedPhotosAlbum(videoURL.path, self, #selector(video(_:didFinishSavingWithError:contextInfo:)), nil)
+
+            picker.dismiss(animated: true) {
+//                 Editor controller
+                guard UIVideoEditorController.canEditVideo(atPath: videoURL.absoluteString) else { return }
+                let videoEditorController = UIVideoEditorController()
+                videoEditorController.videoPath = videoURL.path
+                videoEditorController.delegate = self
+                videoEditorController.videoMaximumDuration = 15
+                videoEditorController.modalPresentationStyle = .fullScreen
+                self.present(videoEditorController, animated: true, completion: nil)
+            }
+        default:
+            break
+        }
+
+
+    }
+
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
+    }
+
+    //MARK: - Add image to Library
+    @objc func image(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
+        if let error = error {
+            // we got back an error!
+            print("🤢\(error)🤮")
+        } else {
+            print("image saved")
+        }
+    }
+
+    @objc func video(_ videoPath: String, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
+        if let error = error {
+            // we got back an error!
+            print("🤢\(error)🤮")
+        } else {
+            print("video saved")
+        }
+    }
+
+}
+
+extension ViewController: UIVideoEditorControllerDelegate {
+    func videoEditorController(_ editor: UIVideoEditorController, didSaveEditedVideoToPath editedVideoPath: String) {
+        print(#function)
+        editor.delegate = nil
+        UISaveVideoAtPathToSavedPhotosAlbum(editedVideoPath, self, #selector(video(_:didFinishSavingWithError:contextInfo:)), nil)
+        editor.dismiss(animated: true, completion: nil)
+    }
 
 }
