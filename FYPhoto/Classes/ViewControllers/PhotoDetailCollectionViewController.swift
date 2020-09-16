@@ -8,7 +8,9 @@
 import UIKit
 import Photos
 
-private let reuseIdentifier = "PhotoDetailCell"
+private let photoCellReuseIdentifier = "PhotoDetailCell"
+private let videoCellReuseIdentifier = "VideoDetailCell"
+
 
 public protocol PhotoDetailCollectionViewControllerDelegate: class {
     func showNavigationBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool
@@ -93,6 +95,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             }
 
             updateNavigationTitle(at: newValue)
+
+            stopPlayingVideoIfNeeded(at: lastDisplayedIndexPath)
         }
     }
 
@@ -182,7 +186,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     func setupCollectionView() {
-        collectionView.register(PhotoDetailCell.self, forCellWithReuseIdentifier: reuseIdentifier)
+        collectionView.register(PhotoDetailCell.self, forCellWithReuseIdentifier: photoCellReuseIdentifier)
+        collectionView.register(VideoDetailCell.self, forCellWithReuseIdentifier: videoCellReuseIdentifier)
         collectionView.isPagingEnabled = true
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -295,19 +300,36 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! PhotoDetailCell
-        cell.imageManager = imageManager
-        cell.maximumZoomScale = 2
-//        cell.setPhoto(photos[indexPath.row])
-        return cell
+//        let collectionCell: UICollectionViewCell
+        let photo = photos[indexPath.row]
+        if photo.isVideo {
+            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: videoCellReuseIdentifier, for: indexPath) as? VideoDetailCell {                
+                return cell
+            }
+        } else {
+            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: photoCellReuseIdentifier, for: indexPath) as? PhotoDetailCell {
+                cell.maximumZoomScale = 2
+                return cell
+            }
+        }
+
+        return UICollectionViewCell()
     }
 
-
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        let photoCell = cell as! PhotoDetailCell
+        stopPlayingVideoIfNeeded(at: lastDisplayedIndexPath)
+
         var photo = photos[indexPath.row]
         photo.assetSize = assetSize
-        photoCell.setPhoto(photo)
+        if photo.isVideo {
+            if let videoCell = cell as? VideoDetailCell {
+                videoCell.photo = photo
+            }
+        } else {
+            if let photoCell = cell as? PhotoDetailCell {
+                photoCell.setPhoto(photo)
+            }
+        }
     }
 
     public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -403,6 +425,11 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         addPhotoBarItem.isEnabled = true
         addPhotoBarItem.title = "\(firstIndex + 1)"
         addPhotoBarItem.tintColor = .systemBlue
+    }
+
+    func stopPlayingVideoIfNeeded(at oldIndexPath: IndexPath) {
+        guard let cell = collectionView.cellForItem(at: oldIndexPath) as? VideoDetailCell else { return }
+        cell.stopPlayingIfNeeded()
     }
 
     func updateCaption(at indexPath: IndexPath) {
@@ -515,14 +542,23 @@ extension PhotoDetailCollectionViewController: PhotoTransitioning {
     }
 
     public func referenceImage() -> UIImage? {
-        guard let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) as? PhotoDetailCell else { return nil }
-        return cell.image
+        if let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) as? PhotoDetailCell {
+            return cell.image
+        }
+        if let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) as? VideoDetailCell {
+            return cell.image
+        }
+        return nil
     }
 
     public func imageFrame() -> CGRect? {
-        guard let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) as? PhotoDetailCell else { return nil }
-        let rect = CGRect.makeRect(aspectRatio: cell.image?.size ?? .zero, insideRect: cell.bounds)
-        return rect
+        if let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) as? PhotoDetailCell {
+            return CGRect.makeRect(aspectRatio: cell.image?.size ?? .zero, insideRect: cell.bounds)
+        }
+        if let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) as? VideoDetailCell {
+            return CGRect.makeRect(aspectRatio: cell.image?.size ?? .zero, insideRect: cell.bounds)
+        }
+        return nil
     }
 }
 

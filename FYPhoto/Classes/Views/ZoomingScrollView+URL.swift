@@ -1,6 +1,6 @@
 //
 //  ZoomingScrollView+URL.swift
-//  FYPhotoPicker
+//  FYPhoto
 //
 //  Created by xiaoyang on 2020/8/3.
 //
@@ -16,7 +16,7 @@ extension ZoomingScrollView {
     func loadWebImage(_ url: URL, progress: @escaping ((_ progress: Float) -> Void), completion: @escaping ((UIImage?, Error?) -> Void)) {
         SDWebImageManager.shared.loadImage(with: url, options: .continueInBackground, progress: { (recieved, expected, url) in
             let _progress = Float(recieved) / Float(expected)
-            print("recieved: \(recieved), expected: \(expected)")
+//            print("recieved: \(recieved), expected: \(expected)")
             if expected > 0 {
                 progress(_progress)
             }

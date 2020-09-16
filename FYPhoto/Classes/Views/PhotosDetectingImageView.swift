@@ -7,25 +7,25 @@
 
 import UIKit
 
-protocol FYDetectingImageViewDelegate: class {
+protocol PhotosDetectingImageViewDelegate: class {
     func handleImageViewSingleTap(_ touchPoint: CGPoint)
     func handleImageViewDoubleTap(_ touchPoint: CGPoint)
 }
 
-class FYDetectingImageView: UIImageView {
+class PhotosDetectingImageView: UIImageView {
 
-    weak var delegate: FYDetectingImageViewDelegate?
+    weak var delegate: PhotosDetectingImageViewDelegate?
 
     override init(frame: CGRect = .zero) {
         super.init(frame: frame)
         isUserInteractionEnabled = true
 
-        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(FYDetectingImageView.doubleTap(_:)))
+        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(PhotosDetectingImageView.doubleTap(_:)))
         doubleTap.numberOfTapsRequired = 2
         addGestureRecognizer(doubleTap)
 
 //         use navigationcontroller.hideBarsOnTap instead
-        let singleTap = UITapGestureRecognizer(target: self, action: #selector(FYDetectingImageView.singleTap(_:)))
+        let singleTap = UITapGestureRecognizer(target: self, action: #selector(PhotosDetectingImageView.singleTap(_:)))
         singleTap.require(toFail: doubleTap)
         addGestureRecognizer(singleTap)
 

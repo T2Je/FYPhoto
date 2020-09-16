@@ -51,7 +51,7 @@ PODS:
     - FGBase/NavigationBar
     - FGBase/Tips
     - SnapKit
-  - FYPhoto (0.1.3):
+  - FYPhoto (0.1.7):
     - SDWebImage/Core
     - UICircularProgressRing
   - MBProgressHUD (1.2.0)
@@ -80,7 +80,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   FGBase: c36d0311b2f6ea29eb662634f4d8fcf39305dd3c
-  FYPhoto: 3a9f16e99e2f68eb4ec351df5437d2ec07a43ea6
+  FYPhoto: 8cb69927f69445b314ba5ee4d6ed9c891dc15773
   MBProgressHUD: 3ee5efcc380f6a79a7cc9b363dd669c5e1ae7406
   SDWebImage: cf6922231e95550934da2ada0f20f2becf2ceba9
   SnapKit: 97b92857e3df3a0c71833cce143274bf6ef8e5eb

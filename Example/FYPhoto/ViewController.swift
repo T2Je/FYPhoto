@@ -143,6 +143,10 @@ class ViewController: UIViewController {
         print(noti)
 
     }
+
+    func playRemoteVideo(_ url: URL) {
+
+    }
 }
 
 extension ViewController: PhotoLauncherDelegate {

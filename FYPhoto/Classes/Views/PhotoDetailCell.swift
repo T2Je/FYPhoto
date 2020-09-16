@@ -9,12 +9,7 @@ import UIKit
 import Photos
 
 class PhotoDetailCell: UICollectionViewCell {
-    let zoomingView = ZoomingScrollView(frame: .zero, settingOptions: PhotoPickerSettingsOptions.default)
-    var imageManager: PHCachingImageManager? {
-        didSet {
-            zoomingView.imageManager = imageManager
-        }
-    }
+    let zoomingView = ZoomingScrollView(frame: .zero, settingOptions: PhotoPickerSettingsOptions.default)    
 
     var image: UIImage? {
         return zoomingView.imageView.image ?? "cover_placeholder".photoImage

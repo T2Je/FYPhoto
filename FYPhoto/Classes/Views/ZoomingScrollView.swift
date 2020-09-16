@@ -18,7 +18,6 @@ class ZoomingScrollView: UIScrollView {
 
     var photo: PhotoProtocol! {
         didSet {
-//            imageView.image = "cover_placeholder".photoImage
             circularProgressView.isHidden = true
             if photo != nil {
                 if let image = photo.underlyingImage {
@@ -34,20 +33,16 @@ class ZoomingScrollView: UIScrollView {
         }
     }
 
-    var imageView = FYDetectingImageView()
+    var imageView = PhotosDetectingImageView()
 
     var circularProgressView = UICircularProgressRing()
 
     let settingOptions: PhotoPickerSettingsOptions
 
-    var imageManager: PHCachingImageManager?
-
-    init(frame: CGRect, settingOptions: PhotoPickerSettingsOptions = .default, imageManager: PHCachingImageManager? = nil) {
+    init(frame: CGRect, settingOptions: PhotoPickerSettingsOptions = .default) {
         self.settingOptions = settingOptions
-        self.imageManager = imageManager
         super.init(frame: frame)
         setup()
-
     }
 
     func setup() {
@@ -56,8 +51,9 @@ class ZoomingScrollView: UIScrollView {
         imageView.contentMode = .scaleAspectFit
 
         circularProgressView.outerRingColor = .gray
-        circularProgressView.innerRingColor = .systemBlue
+        circularProgressView.innerRingColor = .orange
         circularProgressView.style = .ontop
+        circularProgressView.startAngle = 270
         circularProgressView.isHidden = true
         circularProgressView.minValue = 0
         circularProgressView.maxValue = 1
@@ -100,17 +96,11 @@ class ZoomingScrollView: UIScrollView {
     }
 
     func displayAsset(_ asset: PHAsset, targetSize: CGSize) {
-        let _imageManager: PHImageManager
-        if self.imageManager != nil {
-            _imageManager = self.imageManager!
-        } else {
-            _imageManager = PHImageManager.default()
-        }
         let options = PHImageRequestOptions()
         options.deliveryMode = .highQualityFormat
         options.resizeMode = .fast
 
-        _imageManager.requestImage(for: asset, targetSize: targetSize, contentMode: PHImageContentMode.aspectFit, options: options) { [weak self] (image, info) in
+        PHImageManager.default().requestImage(for: asset, targetSize: targetSize, contentMode: PHImageContentMode.aspectFit, options: options) { [weak self] (image, info) in
             if let image = image {
                 self?.photo.underlyingImage = image
             } else {
@@ -152,7 +142,7 @@ class ZoomingScrollView: UIScrollView {
     }
 }
 
-extension ZoomingScrollView: FYDetectingImageViewDelegate {
+extension ZoomingScrollView: PhotosDetectingImageViewDelegate {
     func handleImageViewSingleTap(_ touchPoint: CGPoint) {
         routerEvent(name: ImageViewTap.singleTap.rawValue, userInfo: nil)
     }
@@ -162,27 +152,3 @@ extension ZoomingScrollView: FYDetectingImageViewDelegate {
     }
 
 }
-
-//extension ZoomingScrollView: UICircularProgressRingDelegate {
-//    func didFinishProgress(for ring: UICircularProgressRing) {
-//        <#code#>
-//    }
-//
-//    func didPauseProgress(for ring: UICircularProgressRing) {
-//        <#code#>
-//    }
-//
-//    func didContinueProgress(for ring: UICircularProgressRing) {
-//        <#code#>
-//    }
-//
-//    func didUpdateProgressValue(for ring: UICircularProgressRing, to newValue: CGFloat) {
-//        <#code#>
-//    }
-//
-//    func willDisplayLabel(for ring: UICircularProgressRing, _ label: UILabel) {
-//        <#code#>
-//    }
-//
-//
-//}

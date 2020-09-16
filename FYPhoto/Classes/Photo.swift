@@ -19,6 +19,8 @@ public protocol PhotoProtocol: Asset {
 
     var index: Int { get set }
 
+    var isVideo: Bool { get }
+
     var captionContent: String? { get set }
     var captionSignature: String? { get set }
 }
@@ -47,7 +49,15 @@ public class Photo: PhotoProtocol, Equatable {
     public var assetSize: CGSize?
 
     public var index: Int = 0
-    
+
+    public var isVideo: Bool {
+        if let asset = asset {
+            return asset.mediaType == .video
+        } else {
+            return false
+        }
+    }
+
     init() {
 
     }
