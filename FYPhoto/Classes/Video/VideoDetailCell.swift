@@ -45,7 +45,6 @@ class VideoDetailCell: UICollectionViewCell {
                     display(image: image)
                 } else if let asset = photo.asset {
                     display(asset: asset, targetSize: photo.assetSize ?? bounds.size)
-
                 } else if let url = photo.url {
                     display(url: url)
                 } else {
@@ -66,18 +65,20 @@ class VideoDetailCell: UICollectionViewCell {
 
     var timeObserverToken: Any?
 
-    var image: UIImage? {
-        // TODO: TODO Use true image 😴zZ
+    var image: UIImage? {        
         return imageView.image ?? "cover_placeholder".photoImage
     }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+//        contentView.backgroundColor = .white
 
         contentView.addSubview(imageView)
         contentView.addSubview(playButton)
         contentView.addSubview(activityIndicator)
 
+        imageView.backgroundColor = .white
+        
         imageView.delegate = self
         imageView.contentMode = .scaleAspectFit
 
@@ -140,22 +141,10 @@ class VideoDetailCell: UICollectionViewCell {
     }
 
     func display(url: URL) {
-        if url.isFileURL {
-            self.photo.underlyingImage = UIImage(contentsOfFile: url.path)
-        } else {
-            activityIndicator.isHidden = false
-            contentView.bringSubviewToFront(activityIndicator)
-            activityIndicator.startAnimating()
-            SDWebImageManager.shared.loadImage(with: url, options: [], progress: nil) { (image, _, error, _, _, _) in
-                DispatchQueue.main.async {
-                    self.activityIndicator.stopAnimating()
-                    self.activityIndicator.isHidden = true
-                    if let image = image {
-                        self.photo.underlyingImage = image
-                    } else if error != nil {
-                        self.displayImageFailure()
-                    }
-                }
+        url.thumbnail { (image) in
+            if let image = image {
+                print("url thumbnail : \(image)")
+                self.photo.underlyingImage = image
             }
         }
     }
@@ -209,8 +198,13 @@ class VideoDetailCell: UICollectionViewCell {
     }
 
     func setupPlayer(url: URL) {
-        player = AVPlayer(url: url)
-
+        let playerItem = AVPlayerItem(url: url)
+        if let player = self.player {
+            player.pause()
+            player.replaceCurrentItem(with: playerItem)
+        } else {
+            player = AVPlayer(playerItem: playerItem)
+        }
     }
 
     func addBoundaryTimeObserverForPlayer(_ player: AVPlayer, at currentTime: CMTime) {

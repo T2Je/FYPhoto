@@ -53,6 +53,14 @@ public class Photo: PhotoProtocol, Equatable {
     public var isVideo: Bool {
         if let asset = asset {
             return asset.mediaType == .video
+        } else if let url = url {
+            if url.isImage() {
+                return false
+            }
+            if url.isVideo() {
+                return true
+            }
+            return false
         } else {
             return false
         }

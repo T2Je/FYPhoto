@@ -42,22 +42,27 @@ class ViewController: UIViewController {
         let suishoupaiBtn = UIButton()
 
         let cameraPhotoBtn = UIButton()
+        let playRemoteVideoBtn = UIButton()
 
         photosViewBtn.setTitle("浏览全部照片", for: .normal)
         suishoupaiBtn.setTitle("随手拍", for: .normal)
         cameraPhotoBtn.setTitle("照片or相机", for: .normal)
+        playRemoteVideoBtn.setTitle("Play remote video", for: .normal)
 
         photosViewBtn.setTitleColor(.systemBlue, for: .normal)
         suishoupaiBtn.setTitleColor(.systemBlue, for: .normal)
         cameraPhotoBtn.setTitleColor(.systemBlue, for: .normal)
+        playRemoteVideoBtn.setTitleColor(.systemBlue, for: .normal)
 
         photosViewBtn.addTarget(self, action: #selector(photosViewButtonClicked(_:)), for: .touchUpInside)
         suishoupaiBtn.addTarget(self, action: #selector(suiShouPaiButtonClicked(_:)), for: .touchUpInside)
         cameraPhotoBtn.addTarget(self, action: #selector(cameraPhotoButtonClicked(_:)), for: .touchUpInside)
+        playRemoteVideoBtn.addTarget(self, action: #selector(playRemoteVideo(_:)), for: .touchUpInside)
 
         stackView.addArrangedSubview(photosViewBtn)
         stackView.addArrangedSubview(suishoupaiBtn)
         stackView.addArrangedSubview(cameraPhotoBtn)
+        stackView.addArrangedSubview(playRemoteVideoBtn)
 
         self.view.addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -138,14 +143,12 @@ class ViewController: UIViewController {
         photoLanucher.showImagePickerAlertSheet(in: self, sourceRect: sender.frame, maximumNumberCanChoose: 6, isOnlyImages: true)
     }
 
-    @objc func screenshotTaken(_ noti: Notification) {
-        print("screenshot taken!")
-        print(noti)
-
-    }
-
-    func playRemoteVideo(_ url: URL) {
-
+    @objc func playRemoteVideo(_ sender: UIButton) {
+        guard let url = URL(string: "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4") else { return }
+        let photo = Photo(url: url)
+        let photosDetailVC = PhotoDetailCollectionViewController(photos: [photo], initialIndex: 0)
+        photosDetailVC.delegate = self
+        navigationController?.pushViewController(photosDetailVC, animated: true)
     }
 }
 
@@ -224,5 +227,9 @@ extension ViewController: UIVideoEditorControllerDelegate {
         UISaveVideoAtPathToSavedPhotosAlbum(editedVideoPath, self, #selector(video(_:didFinishSavingWithError:contextInfo:)), nil)
         editor.dismiss(animated: true, completion: nil)
     }
+
+}
+
+extension ViewController: PhotoDetailCollectionViewControllerDelegate {
 
 }
