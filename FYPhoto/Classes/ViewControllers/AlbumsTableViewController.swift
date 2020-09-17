@@ -113,6 +113,8 @@ class AlbumsTableViewController: UITableViewController {
         }
         if selectedIndexPath == indexPath {
             cell.accessoryType = .checkmark
+        } else {
+            cell.accessoryType = .none
         }
         return cell
     }

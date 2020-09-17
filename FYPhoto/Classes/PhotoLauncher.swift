@@ -8,6 +8,7 @@
 import Foundation
 import AVFoundation
 import Photos
+import PhotosUI
 
 public protocol PhotoLauncherDelegate: class {
     func selectedPhotosInPhotoLauncher(_ photos: [UIImage])
@@ -17,6 +18,8 @@ public protocol PhotoLauncherDelegate: class {
 @objc public class PhotoLauncher: NSObject {
     public typealias ImagePickerContainer = UIViewController & UINavigationControllerDelegate & UIImagePickerControllerDelegate
 
+    @available(iOS 14, *)
+    public typealias PhotosPickerContainer = UIViewController & PHPickerViewControllerDelegate
 //    @objc public static var shared: PhotoLauncher = PhotoLauncher()
     public weak var delegate: PhotoLauncherDelegate?
 
@@ -115,7 +118,7 @@ public protocol PhotoLauncherDelegate: class {
     ///    this flag determines whether camera can capture video.
     public func showImagePickerAlertSheet(in container: ImagePickerContainer,
                                           sourceRect: CGRect,
-                                          _ maximumNumberCanChoose: Int = 6,
+                                          maximumNumberCanChoose: Int = 6,
                                           isOnlyImages: Bool = true) {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let photo = UIAlertAction(title: "photo".photoTablelocalized, style: .default) { (_) in
@@ -137,5 +140,50 @@ public protocol PhotoLauncherDelegate: class {
         alert.popoverPresentationController?.sourceView = container.view
         alert.popoverPresentationController?.sourceRect = sourceRect
         container.present(alert, animated: true, completion: nil)
+    }
+
+    @available(iOS 14, *)
+    public func showSystemPhotoPickerAletSheet(in systemPickerContainer: PhotosPickerContainer & ImagePickerContainer,
+                                               sourceRect: CGRect,
+                                               maximumNumberCanChoose: Int = 6,
+                                               isOnlyImages: Bool = true) {
+        let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let photo = UIAlertAction(title: "photo".photoTablelocalized, style: .default) { (_) in
+            self.launchSystemPhotoPicker(in: systemPickerContainer, maximumNumberCanChoose: maximumNumberCanChoose, isOnlyImages: isOnlyImages)
+        }
+        let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
+            if isOnlyImages {
+                self.verifyAndLaunchForCapture(in: systemPickerContainer)
+            } else {
+                self.verifyAndLaunchForCapture(in: systemPickerContainer, mediaTypes: ["public.image", "public.movie"])
+            }
+        }
+
+        let cancel = UIAlertAction(title: "cancel", style: .cancel, handler: nil)
+
+        alert.addAction(photo)
+        alert.addAction(camera)
+        alert.addAction(cancel)
+        alert.popoverPresentationController?.sourceView = systemPickerContainer.view
+        alert.popoverPresentationController?.sourceRect = sourceRect
+        systemPickerContainer.present(alert, animated: true, completion: nil)
+    }
+}
+
+@available(iOS 14, *)
+extension PhotoLauncher {
+    public func launchSystemPhotoPicker(in container: PhotosPickerContainer, maximumNumberCanChoose: Int = 6, isOnlyImages: Bool = true) {
+        var configuration = PHPickerConfiguration()
+        let filter: PHPickerFilter
+        if isOnlyImages {
+            filter = PHPickerFilter.images
+        } else {
+            filter = PHPickerFilter.any(of: [.images, .videos])
+        }
+        configuration.filter = filter
+        configuration.selectionLimit = maximumNumberCanChoose
+        let pickerController = PHPickerViewController(configuration: configuration)
+        pickerController.delegate = container
+        container.present(pickerController, animated: true, completion: nil)
     }
 }

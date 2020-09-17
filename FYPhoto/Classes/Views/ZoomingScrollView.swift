@@ -108,7 +108,7 @@ class ZoomingScrollView: UIScrollView {
         }
         let options = PHImageRequestOptions()
         options.deliveryMode = .highQualityFormat
-        options.resizeMode = .fast
+        options.resizeMode = .exact
 
         _imageManager.requestImage(for: asset, targetSize: targetSize, contentMode: PHImageContentMode.aspectFit, options: options) { [weak self] (image, info) in
             if let image = image {
