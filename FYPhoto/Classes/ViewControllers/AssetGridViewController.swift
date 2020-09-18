@@ -114,15 +114,15 @@ public class AssetGridViewController: UICollectionViewController {
     func requestAlbumsData() {
         if isOnlyImages {
             allPhotos = PhotoPickerResource.shared.allImages()
-            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums(isOnlyImage: true)
+//            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums(isOnlyImage: true)
 //            userCollections = PhotoPickerResource.shared.userImageCollection()
         } else {
             allPhotos = PhotoPickerResource.shared.allAssets(ascending: false)
-            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums()
+//            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums()
 //            userCollections = PhotoPickerResource.shared.userCollection()
         }
 
-        userCollections = PhotoPickerResource.shared.userCollection()
+//        userCollections = PhotoPickerResource.shared.userCollection()
     }
 
     func initalFetchResult() {
@@ -164,15 +164,15 @@ public class AssetGridViewController: UICollectionViewController {
 
         navigationItem.rightBarButtonItems = [doneBarItem, selectedPhotoCountBarItem]
 
-        // custom titleview
-        customTitleView.tapped = { [weak self] in
-            guard let self = self else { return }
-            let albumsVC = AlbumsTableViewController(allPhotos: self.allPhotos, smartAlbums: self.smartAlbums, userCollections: self.userCollections, selectedIndexPath: self.selectedAlbumIndexPath)
-            albumsVC.delegate = self
-            self.present(albumsVC, animated: true, completion: nil)
-        }
-        customTitleView.title = "All photos".photoTablelocalized
-        self.navigationItem.titleView = customTitleView
+//        // custom titleview
+//        customTitleView.tapped = { [weak self] in
+//            guard let self = self else { return }
+//            let albumsVC = AlbumsTableViewController(allPhotos: self.allPhotos, smartAlbums: self.smartAlbums, userCollections: self.userCollections, selectedIndexPath: self.selectedAlbumIndexPath)
+//            albumsVC.delegate = self
+//            self.present(albumsVC, animated: true, completion: nil)
+//        }
+//        customTitleView.title = "All photos".photoTablelocalized
+//        self.navigationItem.titleView = customTitleView
     }
 
     func setupTransitionController() {

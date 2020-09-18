@@ -35,7 +35,7 @@ class PhotoDetailCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.addSubview(zoomingView)
-        contentView.backgroundColor = .white
+        contentView.backgroundColor = .black
         zoomingView.delegate = self
         zoomingView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
