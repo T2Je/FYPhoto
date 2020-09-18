@@ -9,6 +9,7 @@
 import UIKit
 import FYPhoto
 import Photos
+import PhotosUI
 
 class ViewController: UIViewController {
 
@@ -96,7 +97,7 @@ class ViewController: UIViewController {
             DispatchQueue.main.async {
                 switch status {
                 case .authorized:
-                    let gridVC = AssetGridViewController(maximumToSelect: 6, isOnlyImages: false)
+                    let gridVC = AssetGridViewController(maximumToSelect: 6, isOnlyImages: true)
                     gridVC.selectedPhotos = { [weak self] images in
                         print("selected \(images.count) photos: \(images)")
                     }
@@ -109,6 +110,8 @@ class ViewController: UIViewController {
 
                 case .denied, .restricted, .notDetermined:
                     print("⚠️ without authorization! ⚠️")
+                case .limited:
+                    print("limited")
                 @unknown default:
                     fatalError()
                 }
@@ -118,29 +121,41 @@ class ViewController: UIViewController {
     }
 
     @objc func suiShouPaiButtonClicked(_ sender: UIButton) {
-        PHPhotoLibrary.requestAuthorization { (status) in
-            DispatchQueue.main.async {
-                switch status {
-                case .authorized:
-                    let addPhotoVC = AddPhotoBlogViewController()
-                    addPhotoVC.selectedImageArray = []
-                    self.navigationController?.pushViewController(addPhotoVC, animated: true)
-                    //                            let navi = CustomTransitionNavigationController(rootViewController: addPhotoVC)
-                    //                            navi.modalPresentationStyle = .fullScreen
-                //                            self.present(navi, animated: true, completion: nil)
-                case .denied, .restricted, .notDetermined:
-                    print("⚠️ without authorization! ⚠️")
-                @unknown default:
-                    fatalError()
+        if #available(iOS 14, *) {
+            let addPhotoVC = AddPhotoBlogViewController()
+            addPhotoVC.selectedImageArray = []
+            self.navigationController?.pushViewController(addPhotoVC, animated: true)
+        } else {
+            PHPhotoLibrary.requestAuthorization { (status) in
+                DispatchQueue.main.async {
+                    switch status {
+                    case .authorized:
+                        let addPhotoVC = AddPhotoBlogViewController()
+                        addPhotoVC.selectedImageArray = []
+                        self.navigationController?.pushViewController(addPhotoVC, animated: true)
+                        //                            let navi = CustomTransitionNavigationController(rootViewController: addPhotoVC)
+                        //                            navi.modalPresentationStyle = .fullScreen
+                    //                            self.present(navi, animated: true, completion: nil)
+                    case .denied, .restricted, .notDetermined:
+                        print("⚠️ without authorization! ⚠️")
+                    @unknown default:
+                        fatalError()
+                    }
                 }
+
             }
 
         }
+
     }
 
     @objc func cameraPhotoButtonClicked(_ sender: UIButton) {
         photoLanucher.delegate = self
-        photoLanucher.showImagePickerAlertSheet(in: self, sourceRect: sender.frame, maximumNumberCanChoose: 6, isOnlyImages: true)
+        if #available(iOS 14, *) {
+            photoLanucher.showSystemPhotoPickerAletSheet(in: self, sourceRect: sender.frame, maximumNumberCanChoose: 6, isOnlyImages: false)
+        } else {
+            photoLanucher.showImagePickerAlertSheet(in: self, sourceRect: sender.frame, maximumNumberCanChoose: 6, isOnlyImages: false)
+        }
     }
 
     @objc func playRemoteVideo(_ sender: UIButton) {
@@ -233,3 +248,35 @@ extension ViewController: UIVideoEditorControllerDelegate {
 extension ViewController: PhotoDetailCollectionViewControllerDelegate {
 
 }
+
+//@available(iOS 14, *)
+//extension ViewController: PHPickerViewControllerDelegate {
+//    public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+//        print("selected totol \(results.count) photos")
+//        parsePickerFetchResults(results)
+//        picker.dismiss(animated: true, completion: nil)
+//    }
+//
+//    func parsePickerFetchResults(_ results: [PHPickerResult]) {
+//        guard !results.isEmpty else {
+//            return
+//        }
+//        var images: [UIImage] = []
+//
+//        results.forEach { result in
+//            if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
+//                result.itemProvider.loadObject(ofClass: UIImage.self) { image, error in
+//                    DispatchQueue.main.async {
+////                        guard let self = self else { return }
+//                        if let image = image as? UIImage {
+//                            images.append(image)
+//                        } else {
+//                            images.append(UIImage(named: "add_photo")!)
+//                            print("Couldn't load image with error: \(error?.localizedDescription ?? "unknown error")")
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}

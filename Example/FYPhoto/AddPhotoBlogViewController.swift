@@ -9,6 +9,7 @@
 import UIKit
 import FYPhoto
 import FGBase
+import PhotosUI
 
 private let cellIdentifier = "AddPhotoCollectionViewCell"
 
@@ -46,6 +47,8 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
 
     var transitionController: PhotoTransitionController?
 
+    let photoLauncher = PhotoLauncher()
+
     fileprivate let maxCharLength = 100
     fileprivate let maxWidthImage = 612
     fileprivate let photosLimited = 6
@@ -76,6 +79,7 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         addViews()
         addGestures()
 
+        photoLauncher.delegate = self
         setupTransitionController()
 //        setupNavigation()
         // Do any additional setup after loading the view.
@@ -258,7 +262,7 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
     @objc func backBarButton(_ sender: UIButton) {
         self.view.endEditing(true)
         guard !textView.text.isEmpty || !selectedImageArray.isEmpty else {
-            self.dismiss(animated: true, completion: nil)
+            back()
             return
         }
         let alert = UIAlertController(
@@ -414,15 +418,20 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
         guard let cell = collectionView.cellForItem(at: indexPath) as? AddPhotoCollectionViewCell else { return }
         if cell.isAdd {
             // go to grid vc
-            let gridVC = AssetGridViewController(maximumToSelect: photosLimited - selectedImageArray.count, isOnlyImages: true)
-            gridVC.selectedPhotos = { [weak self] images in
-                print("selected \(images.count) photos: \(images)")
-                self?.selectedImageArray += images
+            if #available(iOS 14, *) {
+                photoLauncher.launchSystemPhotoPicker(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
+            } else {
+                photoLauncher.verifyAndLaunchForPhotoLibrary(in: self, photosLimited - selectedImageArray.count)
+//                let gridVC = AssetGridViewController(maximumToSelect: photosLimited - selectedImageArray.count, isOnlyImages: true)
+//                gridVC.selectedPhotos = { [weak self] images in
+//                    print("selected \(images.count) photos: \(images)")
+//                    self?.selectedImageArray += images
+//                }
+//                let navi = UINavigationController(rootViewController: gridVC)
+//                navi.modalPresentationStyle = .fullScreen
+//
+//                self.present(navi, animated: true, completion: nil)
             }
-            let navi = UINavigationController(rootViewController: gridVC)
-            navi.modalPresentationStyle = .fullScreen
-            
-            self.present(navi, animated: true, completion: nil)
         } else {
             var photos = [Photo]()
             for index in 0..<selectedImageArray.count {
@@ -449,6 +458,12 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
     func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         let data = dataSource.remove(at: sourceIndexPath.row)
         dataSource.insert(data, at: destinationIndexPath.row)
+    }
+}
+extension AddPhotoBlogViewController: PhotoLauncherDelegate {
+    func selectedPhotosInPhotoLauncher(_ photos: [UIImage]) {
+        print("selected \(photos.count) photos")
+        self.selectedImageArray += photos
     }
 }
 
@@ -522,3 +537,35 @@ extension AddPhotoBlogViewController: PhotoTransitioning {
         return collectionView.convert(cell.frame, to: self.view)
     }
 }
+
+//@available(iOS 14, *)
+//extension AddPhotoBlogViewController: PHPickerViewControllerDelegate {
+//    public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+//        parsePickerFetchResults(results)
+//        picker.dismiss(animated: true, completion: nil)
+//    }
+//
+//    func parsePickerFetchResults(_ results: [PHPickerResult]) {
+//        guard !results.isEmpty else {
+//            return
+//        }
+////        var images: [UIImage] = []
+//
+//        results.forEach { result in
+//            if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
+//                result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] image, error in
+//                    DispatchQueue.main.async {
+//                        guard let self = self else { return }
+//                        if let image = image as? UIImage {
+////                            images.append(image)
+//                            self.selectedImageArray.append(image)
+//                        } else {
+//                            self.selectedImageArray.append(UIImage(named: "add_photo")!)
+//                            print("Couldn't load image with error: \(error?.localizedDescription ?? "unknown error")")
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}

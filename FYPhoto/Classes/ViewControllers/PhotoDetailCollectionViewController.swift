@@ -201,6 +201,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     func setupNavigationBar() {
+        self.navigationController?.navigationBar.tintColor = .white
         self.navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
             addPhotoBarItem = UIBarButtonItem(title: "", style: .plain, target: self, action: #selector(PhotoDetailCollectionViewController.addPhotoBarItemClicked(_:)))

@@ -15,7 +15,7 @@ public class PhotoPickerResource {
     private init() { }
 
     // image & video
-    public func allAssets(_ ascending: Bool = true) -> PHFetchResult<PHAsset> {
+    public func allAssets(ascending: Bool = true) -> PHFetchResult<PHAsset> {
         let allPhotosOptions = PHFetchOptions()
         allPhotosOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: ascending)]
         return PHAsset.fetchAssets(with: allPhotosOptions)
@@ -34,27 +34,21 @@ public class PhotoPickerResource {
     }
 
     public func userCollection() -> PHFetchResult<PHCollection> {
-        if #available(iOS 13, *) {
-            let options = PHFetchOptions()
-            options.predicate = NSPredicate(format: "estimatedAssetCount != 0")
-            return PHCollectionList.fetchTopLevelUserCollections(with: options)
-        } else {
-            return PHCollectionList.fetchTopLevelUserCollections(with: nil)
-        }
+        return PHCollectionList.fetchTopLevelUserCollections(with: nil)
     }
 
     /// favorites, selfies, live(>=iOS10.3), panoramas, slomos, videos, screenshots, animated(>= iOS11), longExposure(>= iOS11)
-    public func filteredSmartAlbums(_ onlyImage: Bool = false) -> [PHAssetCollection] {
+    public func filteredSmartAlbums(isOnlyImage: Bool = false) -> [PHAssetCollection] {
         var albums = [PHAssetCollection]()
 
-        if let favorites = favorites(), !onlyImage, favorites.estimatedAssetCount > 0 {
+        if let favorites = favorites(), !isOnlyImage, favorites.estimatedAssetCount > 0 {
             albums.append(favorites)
         }
         if let selfies = selfies(), selfies.estimatedAssetCount > 0 {
             albums.append(selfies)
         }
         if #available(iOS 10.3, *) {
-            if let live = live(), !onlyImage, live.estimatedAssetCount > 0 {
+            if let live = live(), !isOnlyImage, live.estimatedAssetCount > 0 {
                 albums.append(live)
             }
         }
@@ -64,7 +58,7 @@ public class PhotoPickerResource {
         if let slomos = slomos(), slomos.estimatedAssetCount > 0 {
             albums.append(slomos)
         }
-        if let videos = videos(), !onlyImage, videos.estimatedAssetCount > 0 {
+        if let videos = videos(), !isOnlyImage, videos.estimatedAssetCount > 0 {
             albums.append(videos)
         }
         if let screenShots = screenShots(), screenShots.estimatedAssetCount > 0 {

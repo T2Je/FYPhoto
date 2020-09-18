@@ -114,12 +114,15 @@ public class AssetGridViewController: UICollectionViewController {
     func requestAlbumsData() {
         if isOnlyImages {
             allPhotos = PhotoPickerResource.shared.allImages()
-            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums(isOnlyImages)
+//            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums(isOnlyImage: true)
+//            userCollections = PhotoPickerResource.shared.userImageCollection()
         } else {
-            allPhotos = PhotoPickerResource.shared.allAssets(false)
-            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums()
+            allPhotos = PhotoPickerResource.shared.allAssets(ascending: false)
+//            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums()
+//            userCollections = PhotoPickerResource.shared.userCollection()
         }
-        userCollections = PhotoPickerResource.shared.userCollection()
+
+//        userCollections = PhotoPickerResource.shared.userCollection()
     }
 
     func initalFetchResult() {
@@ -161,15 +164,15 @@ public class AssetGridViewController: UICollectionViewController {
 
         navigationItem.rightBarButtonItems = [doneBarItem, selectedPhotoCountBarItem]
 
-        // custom titleview
-        customTitleView.tapped = { [weak self] in
-            guard let self = self else { return }
-            let albumsVC = AlbumsTableViewController(allPhotos: self.allPhotos, smartAlbums: self.smartAlbums, userCollections: self.userCollections, selectedIndexPath: self.selectedAlbumIndexPath)
-            albumsVC.delegate = self
-            self.present(albumsVC, animated: true, completion: nil)
-        }
-        customTitleView.title = "All photos".photoTablelocalized
-        self.navigationItem.titleView = customTitleView
+//        // custom titleview
+//        customTitleView.tapped = { [weak self] in
+//            guard let self = self else { return }
+//            let albumsVC = AlbumsTableViewController(allPhotos: self.allPhotos, smartAlbums: self.smartAlbums, userCollections: self.userCollections, selectedIndexPath: self.selectedAlbumIndexPath)
+//            albumsVC.delegate = self
+//            self.present(albumsVC, animated: true, completion: nil)
+//        }
+//        customTitleView.title = "All photos".photoTablelocalized
+//        self.navigationItem.titleView = customTitleView
     }
 
     func setupTransitionController() {
@@ -395,7 +398,14 @@ extension AssetGridViewController: AlbumsTableViewControllerDelegate {
                 return
             }
             customTitleView.title = collection.localizedTitle ?? ""
-            fetchResult = PHAsset.fetchAssets(in: assetCollection, options: nil)
+            if isOnlyImages {
+                let fetchOptions = PHFetchOptions()
+                fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue)
+                fetchResult = PHAsset.fetchAssets(in: assetCollection, options: fetchOptions)
+            } else {
+                fetchResult = PHAsset.fetchAssets(in: assetCollection, options: nil)
+            }
+
         }
     }
 }
@@ -505,39 +515,3 @@ extension AssetGridViewController: PHPhotoLibraryChangeObserver {
         }
     }
 }
-
-extension AssetGridViewController {
-    public override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        print(#function)
-    }
-}
-
-//extension AssetGridViewController: PhotoDetailTransitionAnimatorDelegate {
-//    public func transitionWillStart() {
-//        guard let indexPath = lastSelectedIndexPath else { return }
-//        collectionView.cellForItem(at: indexPath)?.isHidden = true
-//    }
-//
-//    public func transitionDidEnd() {
-//        guard let indexPath = lastSelectedIndexPath else { return }
-//        collectionView.cellForItem(at: indexPath)?.isHidden = false
-//    }
-//
-//    public func referenceImage() -> UIImage? {
-//        guard let indexPath = lastSelectedIndexPath else { return nil }
-//        guard let cell = collectionView.cellForItem(at: indexPath) as? GridViewCell else {
-//            return nil
-//        }
-//        return cell.imageView.image
-//    }
-//
-//    public func imageFrame() -> CGRect? {
-//        guard
-//            let lastSelected = lastSelectedIndexPath,
-//            let cell = self.collectionView.cellForItem(at: lastSelected)
-//        else {
-//            return nil
-//        }
-//        return collectionView.convert(cell.frame, to: self.view)
-//    }
-//}
