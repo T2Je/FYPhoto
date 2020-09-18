@@ -18,9 +18,6 @@ public protocol PhotoLauncherDelegate: class {
 @objc public class PhotoLauncher: NSObject {
     public typealias ImagePickerContainer = UIViewController & UINavigationControllerDelegate & UIImagePickerControllerDelegate
 
-    @available(iOS 14, *)
-    public typealias PhotosPickerContainer = UIViewController & PHPickerViewControllerDelegate
-//    @objc public static var shared: PhotoLauncher = PhotoLauncher()
     public weak var delegate: PhotoLauncherDelegate?
 
     deinit {
@@ -55,16 +52,16 @@ public protocol PhotoLauncherDelegate: class {
         }
     }
 
-    func verifyAndLaunchForPhotoLibrary(in container: ImagePickerContainer,_ maximumNumberCanChoose: Int, isOnlyImages: Bool = true) {
+    @objc public func verifyAndLaunchForPhotoLibrary(in viewController: UIViewController,_ maximumNumberCanChoose: Int, isOnlyImages: Bool = true) {
         switch PHPhotoLibrary.authorizationStatus() {
         case .authorized:
-            launchPhotoLibrary(in: container, maximumNumberCanChoose, isOnlyImages: isOnlyImages)
+            launchPhotoLibrary(in: viewController, maximumNumberCanChoose, isOnlyImages: isOnlyImages)
         case .notDetermined:
             PHPhotoLibrary.requestAuthorization { (status) in
                 switch status {
                 case .authorized:
                     DispatchQueue.main.async {
-                        self.launchPhotoLibrary(in: container, maximumNumberCanChoose, isOnlyImages: isOnlyImages)
+                        self.launchPhotoLibrary(in: viewController, maximumNumberCanChoose, isOnlyImages: isOnlyImages)
                     }
                 default: break
                 }
@@ -73,7 +70,7 @@ public protocol PhotoLauncherDelegate: class {
         }
     }
 
-    func launchPhotoLibrary(in container: ImagePickerContainer, _ maximumNumberCanChoose: Int, isOnlyImages: Bool) {
+    func launchPhotoLibrary(in viewController: UIViewController, _ maximumNumberCanChoose: Int, isOnlyImages: Bool) {
         let gridVC = AssetGridViewController(maximumToSelect: maximumNumberCanChoose, isOnlyImages: isOnlyImages)
         gridVC.selectedPhotos = { [weak self] images in
             print("selected \(images.count) photos: \(images)")
@@ -82,7 +79,7 @@ public protocol PhotoLauncherDelegate: class {
 
         let navi = UINavigationController(rootViewController: gridVC)
         navi.modalPresentationStyle = .fullScreen
-        container.present(navi, animated: true, completion: nil)
+        viewController.present(navi, animated: true, completion: nil)
     }
 
     @objc public func previousDeniedCaptureAuthorization() -> Bool {
@@ -141,21 +138,24 @@ public protocol PhotoLauncherDelegate: class {
         alert.popoverPresentationController?.sourceRect = sourceRect
         container.present(alert, animated: true, completion: nil)
     }
+}
 
-    @available(iOS 14, *)
-    public func showSystemPhotoPickerAletSheet(in systemPickerContainer: PhotosPickerContainer & ImagePickerContainer,
+@available(iOS 14, *)
+extension PhotoLauncher: PHPickerViewControllerDelegate {
+
+    public func showSystemPhotoPickerAletSheet(in container: ImagePickerContainer,
                                                sourceRect: CGRect,
                                                maximumNumberCanChoose: Int = 6,
                                                isOnlyImages: Bool = true) {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let photo = UIAlertAction(title: "photo".photoTablelocalized, style: .default) { (_) in
-            self.launchSystemPhotoPicker(in: systemPickerContainer, maximumNumberCanChoose: maximumNumberCanChoose, isOnlyImages: isOnlyImages)
+            self.launchSystemPhotoPicker(in: container, maximumNumberCanChoose: maximumNumberCanChoose, isOnlyImages: isOnlyImages)
         }
         let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
             if isOnlyImages {
-                self.verifyAndLaunchForCapture(in: systemPickerContainer)
+                self.verifyAndLaunchForCapture(in: container)
             } else {
-                self.verifyAndLaunchForCapture(in: systemPickerContainer, mediaTypes: ["public.image", "public.movie"])
+                self.verifyAndLaunchForCapture(in: container, mediaTypes: ["public.image", "public.movie"])
             }
         }
 
@@ -164,15 +164,12 @@ public protocol PhotoLauncherDelegate: class {
         alert.addAction(photo)
         alert.addAction(camera)
         alert.addAction(cancel)
-        alert.popoverPresentationController?.sourceView = systemPickerContainer.view
+        alert.popoverPresentationController?.sourceView = container.view
         alert.popoverPresentationController?.sourceRect = sourceRect
-        systemPickerContainer.present(alert, animated: true, completion: nil)
+        container.present(alert, animated: true, completion: nil)
     }
-}
 
-@available(iOS 14, *)
-extension PhotoLauncher {
-    public func launchSystemPhotoPicker(in container: PhotosPickerContainer, maximumNumberCanChoose: Int = 6, isOnlyImages: Bool = true) {
+    public func launchSystemPhotoPicker(in viewController: UIViewController, maximumNumberCanChoose: Int = 6, isOnlyImages: Bool = true) {
         var configuration = PHPickerConfiguration()
         let filter: PHPickerFilter
         if isOnlyImages {
@@ -183,7 +180,46 @@ extension PhotoLauncher {
         configuration.filter = filter
         configuration.selectionLimit = maximumNumberCanChoose
         let pickerController = PHPickerViewController(configuration: configuration)
-        pickerController.delegate = container
-        container.present(pickerController, animated: true, completion: nil)
+        pickerController.delegate = self
+        viewController.present(pickerController, animated: true, completion: nil)
     }
+
+    public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        parsePickerFetchResults(results) { (images) in
+            self.delegate?.selectedPhotosInPhotoLauncher(images)
+        }
+        picker.dismiss(animated: true, completion: nil)
+    }
+
+    func parsePickerFetchResults(_ results: [PHPickerResult], completion: @escaping (([UIImage]) -> Void)) {
+        guard !results.isEmpty else {
+            completion([])
+            return
+        }
+
+        var images: [UIImage] = []
+        let group = DispatchGroup()
+
+        results.forEach { result in
+            if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
+                group.enter()
+                result.itemProvider.loadObject(ofClass: UIImage.self) { image, error in
+                    group.leave()
+                    if let image = image as? UIImage {
+                        images.append(image)
+                    } else {
+                        if let placeholder = "cover_placeholder".photoImage {
+                            images.append(placeholder)
+                        }
+                        print("Couldn't load image with error: \(error?.localizedDescription ?? "unknown error")")
+                    }
+                }
+            }
+        }
+
+        group.notify(queue: .main) {
+            completion(images)
+        }
+    }
+
 }

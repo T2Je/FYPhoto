@@ -87,8 +87,6 @@ class ViewController: UIViewController {
 
 // MARK: - Button action
     @objc func photosViewButtonClicked(_ sender: UIButton) {
-        
-
         PHPhotoLibrary.requestAuthorization { (status) in
             DispatchQueue.main.async {
                 switch status {
@@ -173,34 +171,34 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
 
 }
 
-@available(iOS 14, *)
-extension ViewController: PHPickerViewControllerDelegate {
-    public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-        print("selected totol \(results.count) photos")
-        parsePickerFetchResults(results)
-        picker.dismiss(animated: true, completion: nil)
-    }
-
-    func parsePickerFetchResults(_ results: [PHPickerResult]) {
-        guard !results.isEmpty else {
-            return
-        }
-        var images: [UIImage] = []
-
-        results.forEach { result in
-            if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
-                result.itemProvider.loadObject(ofClass: UIImage.self) { image, error in
-                    DispatchQueue.main.async {
-//                        guard let self = self else { return }
-                        if let image = image as? UIImage {
-                            images.append(image)
-                        } else {
-                            images.append(UIImage(named: "add_photo")!)
-                            print("Couldn't load image with error: \(error?.localizedDescription ?? "unknown error")")
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+//@available(iOS 14, *)
+//extension ViewController: PHPickerViewControllerDelegate {
+//    public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+//        print("selected totol \(results.count) photos")
+//        parsePickerFetchResults(results)
+//        picker.dismiss(animated: true, completion: nil)
+//    }
+//
+//    func parsePickerFetchResults(_ results: [PHPickerResult]) {
+//        guard !results.isEmpty else {
+//            return
+//        }
+//        var images: [UIImage] = []
+//
+//        results.forEach { result in
+//            if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
+//                result.itemProvider.loadObject(ofClass: UIImage.self) { image, error in
+//                    DispatchQueue.main.async {
+////                        guard let self = self else { return }
+//                        if let image = image as? UIImage {
+//                            images.append(image)
+//                        } else {
+//                            images.append(UIImage(named: "add_photo")!)
+//                            print("Couldn't load image with error: \(error?.localizedDescription ?? "unknown error")")
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}

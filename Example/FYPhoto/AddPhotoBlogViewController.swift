@@ -79,6 +79,7 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         addViews()
         addGestures()
 
+        photoLauncher.delegate = self
         setupTransitionController()
 //        setupNavigation()
         // Do any additional setup after loading the view.
@@ -420,15 +421,16 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
             if #available(iOS 14, *) {
                 photoLauncher.launchSystemPhotoPicker(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
             } else {
-                let gridVC = AssetGridViewController(maximumToSelect: photosLimited - selectedImageArray.count, isOnlyImages: true)
-                gridVC.selectedPhotos = { [weak self] images in
-                    print("selected \(images.count) photos: \(images)")
-                    self?.selectedImageArray += images
-                }
-                let navi = UINavigationController(rootViewController: gridVC)
-                navi.modalPresentationStyle = .fullScreen
-
-                self.present(navi, animated: true, completion: nil)
+                photoLauncher.verifyAndLaunchForPhotoLibrary(in: self, photosLimited - selectedImageArray.count)
+//                let gridVC = AssetGridViewController(maximumToSelect: photosLimited - selectedImageArray.count, isOnlyImages: true)
+//                gridVC.selectedPhotos = { [weak self] images in
+//                    print("selected \(images.count) photos: \(images)")
+//                    self?.selectedImageArray += images
+//                }
+//                let navi = UINavigationController(rootViewController: gridVC)
+//                navi.modalPresentationStyle = .fullScreen
+//
+//                self.present(navi, animated: true, completion: nil)
             }
         } else {
             var photos = [Photo]()
@@ -456,6 +458,12 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
     func collectionView(_ collectionView: UICollectionView, moveItemAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         let data = dataSource.remove(at: sourceIndexPath.row)
         dataSource.insert(data, at: destinationIndexPath.row)
+    }
+}
+extension AddPhotoBlogViewController: PhotoLauncherDelegate {
+    func selectedPhotosInPhotoLauncher(_ photos: [UIImage]) {
+        print("selected \(photos.count) photos")
+        self.selectedImageArray += photos
     }
 }
 
@@ -530,34 +538,34 @@ extension AddPhotoBlogViewController: PhotoTransitioning {
     }
 }
 
-@available(iOS 14, *)
-extension AddPhotoBlogViewController: PHPickerViewControllerDelegate {
-    public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-        parsePickerFetchResults(results)
-        picker.dismiss(animated: true, completion: nil)
-    }
-
-    func parsePickerFetchResults(_ results: [PHPickerResult]) {
-        guard !results.isEmpty else {
-            return
-        }
-//        var images: [UIImage] = []
-
-        results.forEach { result in
-            if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
-                result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] image, error in
-                    DispatchQueue.main.async {
-                        guard let self = self else { return }
-                        if let image = image as? UIImage {
-//                            images.append(image)
-                            self.selectedImageArray.append(image)
-                        } else {
-                            self.selectedImageArray.append(UIImage(named: "add_photo")!)
-                            print("Couldn't load image with error: \(error?.localizedDescription ?? "unknown error")")
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+//@available(iOS 14, *)
+//extension AddPhotoBlogViewController: PHPickerViewControllerDelegate {
+//    public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+//        parsePickerFetchResults(results)
+//        picker.dismiss(animated: true, completion: nil)
+//    }
+//
+//    func parsePickerFetchResults(_ results: [PHPickerResult]) {
+//        guard !results.isEmpty else {
+//            return
+//        }
+////        var images: [UIImage] = []
+//
+//        results.forEach { result in
+//            if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
+//                result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] image, error in
+//                    DispatchQueue.main.async {
+//                        guard let self = self else { return }
+//                        if let image = image as? UIImage {
+////                            images.append(image)
+//                            self.selectedImageArray.append(image)
+//                        } else {
+//                            self.selectedImageArray.append(UIImage(named: "add_photo")!)
+//                            print("Couldn't load image with error: \(error?.localizedDescription ?? "unknown error")")
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//    }
+//}
