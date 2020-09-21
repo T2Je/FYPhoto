@@ -216,7 +216,7 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
             }
         }
 
-        let cancel = UIAlertAction(title: "cancel", style: .cancel, handler: nil)
+        let cancel = UIAlertAction(title: "cancel".photoTablelocalized, style: .cancel, handler: nil)
 
         alert.addAction(photo)
         alert.addAction(camera)

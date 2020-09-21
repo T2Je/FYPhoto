@@ -567,7 +567,6 @@ extension PhotoDetailCollectionViewController {
     func firstIndexOfPhoto(_ photo: PhotoProtocol, in photos: [PhotoProtocol]) -> Int? {
         if let equals = selectedPhotos as? [Photo], let photo = photo as? Photo {
             let index = equals.firstIndex(of: photo)
-
             return index
         } else {
             let index = selectedPhotos.firstIndex { (photoPro) -> Bool in
@@ -577,7 +576,7 @@ extension PhotoDetailCollectionViewController {
                 if let proURL = photoPro.url, let photoURL = photo.url {
                     return proURL == photoURL
                 }
-                return photoPro.index == photo.index
+                return photo.underlyingImage == photoPro.underlyingImage
             }
             return index
         }

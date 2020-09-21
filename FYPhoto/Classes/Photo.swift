@@ -8,6 +8,13 @@
 import Foundation
 import Photos
 
+public enum PhotoResourceType {
+    case justImage
+    case asset
+    case url
+    case none
+}
+
 public protocol Asset {
     var asset: PHAsset? { get set }
     var assetSize: CGSize? { get set }
@@ -17,28 +24,15 @@ public protocol PhotoProtocol: Asset {
     var underlyingImage: UIImage? { get set }
     var url: URL? { get set }
 
-    var index: Int { get set }
-
     var isVideo: Bool { get }
 
     var captionContent: String? { get set }
     var captionSignature: String? { get set }
+
+    var resourceType: PhotoResourceType { get }
 }
 
-public class Photo: PhotoProtocol, Equatable {
-    public var captionContent: String?
-
-    public var captionSignature: String?
-
-    public static func == (lhs: Photo, rhs: Photo) -> Bool {
-        if let lhsAsset = lhs.asset, let rhsAsset = rhs.asset {
-            return lhsAsset.localIdentifier == rhsAsset.localIdentifier
-        }
-        if let lhsURL = lhs.url, let rhsURL = rhs.url {
-            return lhsURL == rhsURL
-        }
-        return lhs.index == rhs.index
-    }
+public class Photo: PhotoProtocol {
 
     public var underlyingImage: UIImage?
 
@@ -48,7 +42,10 @@ public class Photo: PhotoProtocol, Equatable {
 
     public var assetSize: CGSize?
 
-    public var index: Int = 0
+    public var captionContent: String?
+    public var captionSignature: String?
+
+    public private(set) var resourceType: PhotoResourceType
 
     public var isVideo: Bool {
         if let asset = asset {
@@ -66,23 +63,39 @@ public class Photo: PhotoProtocol, Equatable {
         }
     }
 
-    init() {
-
+    private init() {
+        resourceType = .none
     }
 
-    convenience public init(image: UIImage, index: Int = 0) {
+    convenience public init(image: UIImage) {
         self.init()
         self.underlyingImage = image
-        self.index = index
+        resourceType = .justImage
     }
 
     convenience public init(url: URL) {
         self.init()
         self.url = url
+        resourceType = .url
     }
 
     convenience public init(asset: PHAsset) {
         self.init()
         self.asset = asset
+        resourceType = .asset
+    }
+
+}
+
+
+extension Photo: Equatable {
+    public static func == (lhs: Photo, rhs: Photo) -> Bool {
+        if let lhsAsset = lhs.asset, let rhsAsset = rhs.asset {
+            return lhsAsset.localIdentifier == rhsAsset.localIdentifier
+        }
+        if let lhsURL = lhs.url, let rhsURL = rhs.url {
+            return lhsURL == rhsURL
+        }
+        return lhs.underlyingImage == rhs.underlyingImage
     }
 }

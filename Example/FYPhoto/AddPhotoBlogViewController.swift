@@ -9,7 +9,6 @@
 import UIKit
 import FYPhoto
 import FGBase
-import PhotosUI
 
 private let cellIdentifier = "AddPhotoCollectionViewCell"
 
@@ -41,10 +40,16 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         }
     }
 
-    var collectionView: UICollectionView!
-    let cancelButton = UIButton()
-    let doneButton = UIButton()
+    fileprivate lazy var detailFlowLayout: UICollectionViewFlowLayout = {
+        let flowLayout = UICollectionViewFlowLayout()
+        flowLayout.itemSize = self.view.bounds.size
+        flowLayout.minimumInteritemSpacing = 30
+        flowLayout.minimumLineSpacing = 0
+        flowLayout.scrollDirection = .horizontal
+        return flowLayout
+    }()
 
+    var collectionView: UICollectionView!
     var transitionController: PhotoTransitionController?
 
     let photoLauncher = PhotoLauncher()
@@ -74,27 +79,23 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         setupTextView()
         setupTextRemainLabel()
         setupCollectionView()
-        actionButtons()
-
         addViews()
         addGestures()
-
-        photoLauncher.delegate = self
+        setupNavigation()
         setupTransitionController()
-//        setupNavigation()
+        photoLauncher.delegate = self
         // Do any additional setup after loading the view.
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-//        self.navigationController?.isNavigationBarHidden = true
-        self.navigationController?.setNavigationBarHidden(true, animated: animated)
-
+        self.navigationController?.setNavigationBarHidden(false, animated: animated)
     }
 
     func setupTransitionController() {
         guard let navigationController = self.navigationController else { return }
         transitionController = PhotoTransitionController(navigationController: navigationController)
+        navigationController.delegate = transitionController
     }
 
     func setupTextView() {
@@ -127,58 +128,20 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         view.addSubview(textView)
         view.addSubview(textCountLabel)
         view.addSubview(collectionView)
-        view.addSubview(cancelButton)
-        view.addSubview(doneButton)
 
-
-        cancelButton.translatesAutoresizingMaskIntoConstraints = false
-        doneButton.translatesAutoresizingMaskIntoConstraints = false
         textView.translatesAutoresizingMaskIntoConstraints = false
         textCountLabel.translatesAutoresizingMaskIntoConstraints = false
         collectionView.translatesAutoresizingMaskIntoConstraints = false
 
         if #available(iOS 11.0, *) {
             NSLayoutConstraint.activate([
-                cancelButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
-                cancelButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 30),
-                cancelButton.widthAnchor.constraint(equalToConstant: 60),
-                cancelButton.heightAnchor.constraint(equalToConstant: 28)
-            ])
-        } else {
-            NSLayoutConstraint.activate([
-                cancelButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-                cancelButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 30),
-                cancelButton.widthAnchor.constraint(equalToConstant: 60),
-                cancelButton.heightAnchor.constraint(equalToConstant: 28)
-            ])
-        }
-
-        if #available(iOS 11.0, *) {
-            NSLayoutConstraint.activate([
-                doneButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
-                doneButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 30),
-                doneButton.widthAnchor.constraint(equalToConstant: 50),
-                doneButton.heightAnchor.constraint(equalToConstant: 28)
-            ])
-        } else {
-            NSLayoutConstraint.activate([
-                doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
-                doneButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 30),
-                doneButton.widthAnchor.constraint(equalToConstant: 50),
-                doneButton.heightAnchor.constraint(equalToConstant: 28)
-            ])
-        }
-
-
-        if #available(iOS 11.0, *) {
-            NSLayoutConstraint.activate([
-                textView.topAnchor.constraint(equalTo: cancelButton.bottomAnchor, constant: 20),
+                textView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
                 textView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
                 textView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -10)
             ])
         } else {
             NSLayoutConstraint.activate([
-                textView.topAnchor.constraint(equalTo: cancelButton.bottomAnchor, constant: 20),
+                textView.topAnchor.constraint(equalTo: view.topAnchor, constant: 10),
                 textView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
                 textView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10)
             ])
@@ -212,28 +175,16 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         collectionView.addGestureRecognizer(longPress)
     }
 
-//    func setupNavigation() {
-//        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-//
-//        navigationItem.title = NSLocalizedString("PhotoBlog", comment: "")
-//        let rightBarItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(AddPhotoBlogViewController.doneBarButtonItem(_:)))
-//        rightBarItem.tintColor = .white
-//        navigationItem.rightBarButtonItem = rightBarItem
-//
-//        navigationItem.leftBarButtonItem = UIBarButtonItem(title: NSLocalizedString("Cancel", comment: ""), style: .plain, target: self, action: #selector(backBarButton(_:)))
-//        navigationItem.leftBarButtonItem?.tintColor = .white
-//    }
-    func actionButtons() {
-        cancelButton.setTitle(NSLocalizedString("Cancel", comment: ""), for: .normal)
-        cancelButton.setTitleColor(.black, for: .normal)
-        cancelButton.addTarget(self, action: #selector(AddPhotoBlogViewController.backBarButton(_:)), for: .touchUpInside)
+    func setupNavigation() {
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
-        doneButton.setTitle(NSLocalizedString("Done", comment: ""), for: .normal)
-        doneButton.setTitleColor(.white, for: .normal)
-        doneButton.backgroundColor = .green
-        doneButton.layer.cornerRadius = 4
-        doneButton.layer.masksToBounds = true
-        doneButton.addTarget(self, action: #selector(AddPhotoBlogViewController.doneBarButtonItem(_:)), for: .touchUpInside)
+        navigationItem.title = NSLocalizedString("PhotoBlog", comment: "")
+        let rightBarItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(AddPhotoBlogViewController.doneBarButtonItem(_:)))
+        rightBarItem.tintColor = .white
+        navigationItem.rightBarButtonItem = rightBarItem
+
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: NSLocalizedString("Cancel", comment: ""), style: .plain, target: self, action: #selector(backBarButton(_:)))
+        navigationItem.leftBarButtonItem?.tintColor = .white
     }
 
     // MARK: Actions
@@ -262,7 +213,7 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
     @objc func backBarButton(_ sender: UIButton) {
         self.view.endEditing(true)
         guard !textView.text.isEmpty || !selectedImageArray.isEmpty else {
-            back()
+            self.dismiss(animated: true, completion: nil)
             return
         }
         let alert = UIAlertController(
@@ -270,8 +221,7 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
             message: NSLocalizedString("DoQuitFromAddPhotoBlog", comment: ""),
             preferredStyle: .alert)
         let doneAction = UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .default, handler: { _ in
-//            self.dismiss(animated: true, completion: nil)
-            self.back()
+            self.dismiss(animated: true, completion: nil)
         })
         alert.addAction(doneAction)
 
@@ -280,14 +230,6 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         alert.popoverPresentationController?.sourceView = view
         alert.popoverPresentationController?.sourceRect = CGRect(x: view.width / 2, y: view.height / 2, width: 0, height: 0)
         present(alert, animated: true)
-    }
-
-    func back() {
-        if self.presentingViewController != nil {
-            self.dismiss(animated: true, completion: nil)
-        } else {
-            self.navigationController?.popViewController(animated: true)
-        }
     }
 
     @objc func doneBarButtonItem(_ barButton: UIButton) {
@@ -300,7 +242,6 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         self.view.endEditing(true)
         showHUD()
         let text = textView.text ?? ""
-        back()
 //        uploadText(text, images: selectedImageArray, userID: UserManager.shared.user?.uid ?? "", userTrueName: UserManager.shared.user?.trueName ?? "")
     }
 
@@ -422,27 +363,15 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
                 photoLauncher.launchSystemPhotoPicker(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
             } else {
                 photoLauncher.verifyAndLaunchForPhotoLibrary(in: self, photosLimited - selectedImageArray.count)
-//                let gridVC = AssetGridViewController(maximumToSelect: photosLimited - selectedImageArray.count, isOnlyImages: true)
-//                gridVC.selectedPhotos = { [weak self] images in
-//                    print("selected \(images.count) photos: \(images)")
-//                    self?.selectedImageArray += images
-//                }
-//                let navi = UINavigationController(rootViewController: gridVC)
-//                navi.modalPresentationStyle = .fullScreen
-//
-//                self.present(navi, animated: true, completion: nil)
             }
         } else {
             var photos = [Photo]()
             for index in 0..<selectedImageArray.count {
-                photos.append(Photo(image: selectedImageArray[index], index: index))
+                photos.append(Photo(image: selectedImageArray[index]))
             }
             let detailVC = PhotoDetailCollectionViewController(photos: photos, initialIndex: indexPath.row)
             detailVC.delegate = self
             self.navigationController?.pushViewController(detailVC, animated: true)
-//            let navi = CustomTransitionNavigationController(rootViewController: detailVC)
-//            navi.modalPresentationStyle = .fullScreen
-//            self.present(navi, animated: true, completion: nil)
         }
     }
 
@@ -460,6 +389,7 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
         dataSource.insert(data, at: destinationIndexPath.row)
     }
 }
+
 extension AddPhotoBlogViewController: PhotoLauncherDelegate {
     func selectedPhotosInPhotoLauncher(_ photos: [UIImage]) {
         print("selected \(photos.count) photos")
@@ -481,15 +411,15 @@ extension AddPhotoBlogViewController: PhotoDetailCollectionViewControllerDelegat
     }
 
     public func showNavigationBarToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        false
+        return false
     }
 
     func canSelectPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        false
+        return false
     }
 
     func canEditPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        false
+        return false
     }
 
     func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, scrollAt indexPath: IndexPath) {
@@ -537,35 +467,3 @@ extension AddPhotoBlogViewController: PhotoTransitioning {
         return collectionView.convert(cell.frame, to: self.view)
     }
 }
-
-//@available(iOS 14, *)
-//extension AddPhotoBlogViewController: PHPickerViewControllerDelegate {
-//    public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-//        parsePickerFetchResults(results)
-//        picker.dismiss(animated: true, completion: nil)
-//    }
-//
-//    func parsePickerFetchResults(_ results: [PHPickerResult]) {
-//        guard !results.isEmpty else {
-//            return
-//        }
-////        var images: [UIImage] = []
-//
-//        results.forEach { result in
-//            if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
-//                result.itemProvider.loadObject(ofClass: UIImage.self) { [weak self] image, error in
-//                    DispatchQueue.main.async {
-//                        guard let self = self else { return }
-//                        if let image = image as? UIImage {
-////                            images.append(image)
-//                            self.selectedImageArray.append(image)
-//                        } else {
-//                            self.selectedImageArray.append(UIImage(named: "add_photo")!)
-//                            print("Couldn't load image with error: \(error?.localizedDescription ?? "unknown error")")
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
