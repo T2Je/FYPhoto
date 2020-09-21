@@ -11,48 +11,6 @@ import Photos
 private let photoCellReuseIdentifier = "PhotoDetailCell"
 private let videoCellReuseIdentifier = "VideoDetailCell"
 
-
-public protocol PhotoDetailCollectionViewControllerDelegate: class {
-    func showNavigationBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool
-    func showBottomToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool
-    func canSelectPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool
-    func canEditPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool
-    func canDisplayCaption(in photoDetail: PhotoDetailCollectionViewController) -> Bool
-
-    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, scrollAt indexPath: IndexPath)
-    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedPhotos indexPaths: [IndexPath])
-    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, didCompleteSelected photos: [PhotoProtocol])
-}
-
-public extension PhotoDetailCollectionViewControllerDelegate {
-    func showNavigationBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        true
-    }
-    func showBottomToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        false
-    }
-
-    func canSelectPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        false
-    }
-    func canEditPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        false
-    }
-    func canDisplayCaption(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        false
-    }
-
-    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, scrollAt indexPath: IndexPath) {
-
-    }
-    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedPhotos indexPaths: [IndexPath]) {
-
-    }
-    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, didCompleteSelected photos: [PhotoProtocol]) {
-
-    }
-}
-
 public class PhotoDetailCollectionViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
 
     public weak var delegate: PhotoDetailCollectionViewControllerDelegate?
@@ -71,6 +29,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     // bar item
     fileprivate var doneBarItem: UIBarButtonItem!
     fileprivate var addPhotoBarItem: UIBarButtonItem!
+    fileprivate var playVideoBarItem: UIBarButtonItem!
+    fileprivate var pauseVideoBarItem: UIBarButtonItem!
 
     fileprivate let photos: [PhotoProtocol]
 
@@ -80,9 +40,11 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     fileprivate let captionView = CaptionView()
 
-    fileprivate var lastDisplayedIndexPath: IndexPath {
+    fileprivate var currentDisplayedIndexPath: IndexPath {
         willSet {
-            if lastDisplayedIndexPath != newValue {
+            currentPhoto = photos[newValue.item]
+
+            if currentDisplayedIndexPath != newValue {
                 delegate?.photoDetail(self, scrollAt: newValue)
             }
 
@@ -96,9 +58,30 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
             updateNavigationTitle(at: newValue)
 
-            stopPlayingVideoIfNeeded(at: lastDisplayedIndexPath)
+            stopPlayingVideoIfNeeded(at: currentDisplayedIndexPath)
         }
     }
+
+    fileprivate var currentPhoto: PhotoProtocol {
+        willSet {
+            var showDone = false
+            if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
+                showDone = canSelect
+            }
+            if newValue.isVideo {
+                if !playBarItemsIsShowed {
+                    updateToolBar(shouldShowDone: showDone, shouldShowPlay: true)
+                    playBarItemsIsShowed = true
+                }
+            } else {
+                updateToolBar(shouldShowDone: showDone, shouldShowPlay: false)
+                playBarItemsIsShowed = false
+            }
+        }
+    }
+
+    var playBarItemsIsShowed = false
+
 
     fileprivate var initialScrollDone = false
 
@@ -120,7 +103,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     // MARK: - LifeCycle
     public init(photos: [PhotoProtocol], initialIndex: Int) {
         self.photos = photos
-        self.lastDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
+        self.currentDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
+        self.currentPhoto = photos[currentDisplayedIndexPath.item]
         let flowLayout = UICollectionViewFlowLayout()
         flowLayout.minimumInteritemSpacing = 0
         flowLayout.minimumLineSpacing = 20
@@ -180,6 +164,11 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         originCaptionTransform = captionView.transform
     }
 
+    public override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        print(collectionView.contentOffset)
+    }
+    
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         restoreNavigationControllerData()
@@ -209,15 +198,28 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             addPhotoBarItem.tintColor = .black
             self.navigationItem.rightBarButtonItem = addPhotoBarItem
         }
-        updateNavigationTitle(at: lastDisplayedIndexPath)
+        updateNavigationTitle(at: currentDisplayedIndexPath)
     }
 
     func setupNavigationToolBar() {
-        if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
-            doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(PhotoDetailCollectionViewController.doneBarButtonClicked(_:)))
-            doneBarItem.isEnabled = !selectedPhotos.isEmpty
-            let spaceItem = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
-            self.setToolbarItems([spaceItem, doneBarItem], animated: false)
+        if let showToolBar = delegate?.showBottomToolBar(in: self), showToolBar {
+            playVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.play, target: self, action: #selector(PhotoDetailCollectionViewController.playVideoBarItemClicked(_:)))
+            pauseVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.pause, target: self, action: #selector(PhotoDetailCollectionViewController.playVideoBarItemClicked(_:)))
+
+            var showVideoPlay = false
+            if currentPhoto.isVideo {
+                showVideoPlay = true
+            }
+            var showDone = false
+
+            if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
+                doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(PhotoDetailCollectionViewController.doneBarButtonClicked(_:)))
+                doneBarItem.isEnabled = !selectedPhotos.isEmpty
+                showDone = canSelect
+            }
+
+            updateToolBar(shouldShowDone: showDone, shouldShowPlay: showVideoPlay)
+
         }
     }
 
@@ -318,7 +320,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        stopPlayingVideoIfNeeded(at: lastDisplayedIndexPath)
+        stopPlayingVideoIfNeeded(at: currentDisplayedIndexPath)
 
         var photo = photos[indexPath.row]
         photo.assetSize = assetSize
@@ -370,12 +372,12 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
         if (!self.initialScrollDone) {
             self.initialScrollDone = true
-            self.collectionView.scrollToItem(at: lastDisplayedIndexPath, at: .centeredHorizontally, animated: false)
+            self.collectionView.scrollToItem(at: currentDisplayedIndexPath, at: .centeredHorizontally, animated: false)
             if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
-                updateAddBarItem(at: lastDisplayedIndexPath)
+                updateAddBarItem(at: currentDisplayedIndexPath)
             }
             if let canDisplay = delegate?.canDisplayCaption(in: self), canDisplay {
-                updateCaption(at: lastDisplayedIndexPath)
+                updateCaption(at: currentDisplayedIndexPath)
             }
         }
     }
@@ -391,7 +393,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             doneBarItem.isEnabled = !selectedPhotos.isEmpty
         }
 
-        let photo = photos[lastDisplayedIndexPath.row]
+        let photo = photos[currentDisplayedIndexPath.row]
 
         // already added, remove it from selections
         if let exsit = firstIndexOfPhoto(photo, in: selectedPhotos) {
@@ -404,7 +406,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
         // add photo
         selectedPhotos.append(photo)
-        selectedPhotoIndexPaths.append(lastDisplayedIndexPath)
+        selectedPhotoIndexPaths.append(currentDisplayedIndexPath)
 
         // update bar item: add, done
         if let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) {
@@ -413,6 +415,52 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         }
 
         // filter different media type
+    }
+
+    @objc func playVideoBarItemClicked(_ sender: UIBarButtonItem) {
+        guard currentPhoto.isVideo else { return }
+        guard let videoCell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell else { return }
+        updateToolBarItems(isPlaying: videoCell.isPlaying)
+        if videoCell.isPlaying {
+            videoCell.pause()
+        } else {
+            videoCell.play()
+        }
+
+
+    }
+
+    func updateToolBar(shouldShowDone: Bool, shouldShowPlay: Bool) {
+        var items = [UIBarButtonItem]()
+        let spaceItem = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
+        if shouldShowPlay {
+            items.append(spaceItem)
+            items.append(playVideoBarItem)
+            items.append(spaceItem)
+        } else {
+            items.append(spaceItem)
+        }
+
+        if shouldShowDone {
+            items.append(doneBarItem)
+        }
+        self.setToolbarItems(items, animated: true)
+    }
+
+    func updateToolBarItems(isPlaying: Bool) {
+        var toolbarItems = self.toolbarItems
+        if isPlaying {
+            if let index = toolbarItems?.firstIndex(of: pauseVideoBarItem) {
+                toolbarItems?.remove(at: index)
+                toolbarItems?.insert(playVideoBarItem, at: index)
+            }
+        } else {
+            if let index = toolbarItems?.firstIndex(of: playVideoBarItem) {
+                toolbarItems?.remove(at: index)
+                toolbarItems?.insert(pauseVideoBarItem, at: index)
+            }
+        }
+        self.setToolbarItems(toolbarItems, animated: true)
     }
 
     func updateAddBarItem(at indexPath: IndexPath) {
@@ -469,9 +517,16 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
 extension PhotoDetailCollectionViewController: UIScrollViewDelegate {
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        let pageWidth = view.bounds.size.width
-        let currentPage = Int((scrollView.contentOffset.x + pageWidth / 2) / pageWidth)
-        lastDisplayedIndexPath = IndexPath(row: currentPage, section: 0)
+//        let pageWidth = view.bounds.size.width
+//        let currentPage = Int((scrollView.contentOffset.x + pageWidth / 2) / pageWidth)
+
+
+        if let currentIndexPath = self.collectionView.indexPathsForVisibleItems.last {
+            currentDisplayedIndexPath = currentIndexPath
+        } else {
+            currentDisplayedIndexPath = IndexPath(row: 0, section: 0)
+        }
+
     }
 }
 
@@ -486,7 +541,7 @@ extension PhotoDetailCollectionViewController {
 //                break
             case .doubleTap:
                 guard let userInfo = userInfo, let touchPoint = userInfo["touchPoint"] as? CGPoint  else { return }
-                guard let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) as? PhotoDetailCell else { return }
+                guard let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell else { return }
                 handleDoubleTap(touchPoint, on: cell)
             }
         } else {
@@ -533,30 +588,30 @@ extension PhotoDetailCollectionViewController {
 extension PhotoDetailCollectionViewController: PhotoTransitioning {
 
     public func transitionWillStart() {
-        guard let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) else { return }
+        guard let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) else { return }
         cell.isHidden = true
     }
 
     public func transitionDidEnd() {
-        guard let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) else { return }
+        guard let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) else { return }
         cell.isHidden = false
     }
 
     public func referenceImage() -> UIImage? {
-        if let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) as? PhotoDetailCell {
+        if let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell {
             return cell.image
         }
-        if let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) as? VideoDetailCell {
+        if let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell {
             return cell.image
         }
         return nil
     }
 
     public func imageFrame() -> CGRect? {
-        if let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) as? PhotoDetailCell {
+        if let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell {
             return CGRect.makeRect(aspectRatio: cell.image?.size ?? .zero, insideRect: cell.bounds)
         }
-        if let cell = collectionView.cellForItem(at: lastDisplayedIndexPath) as? VideoDetailCell {
+        if let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell {
             return CGRect.makeRect(aspectRatio: cell.image?.size ?? .zero, insideRect: cell.bounds)
         }
         return nil

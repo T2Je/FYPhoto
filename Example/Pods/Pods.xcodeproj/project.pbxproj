@@ -307,6 +307,7 @@
 		E2572F7ABE1FFF99A14235018CAC1399 /* UIImage+Metadata.m in Sources */ = {isa = PBXBuildFile; fileRef = 8D4FBB55F704DEC28C8EBA04FE4E4186 /* UIImage+Metadata.m */; };
 		E282277BCBF970C6604CC0C336CDA942 /* fg_ic_view_empty@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = F1A5AAEA060C100E4CA6AFBEABE2E04A /* fg_ic_view_empty@3x.png */; };
 		E368C9A325120F5000BCFE4E /* URL+ImageVideoChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E368C9A225120F5000BCFE4E /* URL+ImageVideoChecker.swift */; };
+		E3A7913F25188FF900EF2042 /* PhotoDetailCollectionViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A7913E25188FF900EF2042 /* PhotoDetailCollectionViewControllerDelegate.swift */; };
 		E3BBE640BB4A9C683015798DB06D00BD /* SDAnimatedImage.h in Headers */ = {isa = PBXBuildFile; fileRef = C9064EAFAB3C53A2705C235B372D6168 /* SDAnimatedImage.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E3CF27B125183E4100CCF5D5 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3CF27B025183E4100CCF5D5 /* PlayerView.swift */; };
 		E3F694AA2510C6E60070903E /* VideoDetailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F694A92510C6E60070903E /* VideoDetailCell.swift */; };
@@ -791,6 +792,7 @@
 		E2E76BA8DB89E800593F59A0BCD9FF49 /* DGRunkeeperSwitch.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DGRunkeeperSwitch.swift; path = FGBase/Classes/Switch/DGRunkeeperSwitch.swift; sourceTree = "<group>"; };
 		E33F2CEAF5940389EE4DF651356D8626 /* FGBaseLocalizable.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = FGBaseLocalizable.strings; path = "zh-Hant.lproj/FGBaseLocalizable.strings"; sourceTree = "<group>"; };
 		E368C9A225120F5000BCFE4E /* URL+ImageVideoChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+ImageVideoChecker.swift"; sourceTree = "<group>"; };
+		E3A7913E25188FF900EF2042 /* PhotoDetailCollectionViewControllerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoDetailCollectionViewControllerDelegate.swift; sourceTree = "<group>"; };
 		E3CF27B025183E4100CCF5D5 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		E3F694A92510C6E60070903E /* VideoDetailCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoDetailCell.swift; sourceTree = "<group>"; };
 		E4F25C295E6419659CBB36D29AF1607F /* UICircularProgressRing-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "UICircularProgressRing-umbrella.h"; sourceTree = "<group>"; };
@@ -1425,6 +1427,7 @@
 				3416C6D7D246C24AC84C1951DF54359F /* AssetGridViewController.swift */,
 				983D5F9ABCEF1F1C1C38423A14F83D94 /* AssetGridViewController+AssetTransition.swift */,
 				179DDF9B16D03EB0BADE0319F12EC523 /* PhotoDetailCollectionViewController.swift */,
+				E3A7913E25188FF900EF2042 /* PhotoDetailCollectionViewControllerDelegate.swift */,
 			);
 			name = ViewControllers;
 			path = FYPhoto/Classes/ViewControllers;
@@ -2458,6 +2461,7 @@
 				07A09144C9373C62075ACD5705BC50D5 /* TransitionDriver.swift in Sources */,
 				CAEBECF697C4C003133A90B483F9A686 /* UICollectionView+IndexPathsInRect.swift in Sources */,
 				1784E8F4B8EDC04D35E13A970B2406EB /* UIImagePickerController+Tool.swift in Sources */,
+				E3A7913F25188FF900EF2042 /* PhotoDetailCollectionViewControllerDelegate.swift in Sources */,
 				2CE57CEC33122ECA6B34CC41EADDE22C /* UIResponder+routerEvent.swift in Sources */,
 				B547DB4CB98936A35F1255C3EB99578A /* VideoCaptureOverlay.swift in Sources */,
 				F4CE3677B26A05F0702784718944AD3D /* VideoCountDownOverlay.swift in Sources */,

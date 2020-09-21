@@ -19,6 +19,8 @@ class VideoDetailCell: UICollectionViewCell {
     var playButton = UIButton()
     var imageView = PhotosDetectingImageView()
 
+    var isPlaying = false
+
     var photo: PhotoProtocol! {
         didSet {
             activityIndicator.isHidden = true
@@ -77,6 +79,11 @@ class VideoDetailCell: UICollectionViewCell {
         fatalError("init(coder:) has not been implemented")
     }
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        isPlaying = false
+    }
+
     deinit {
         print("video cell deinit ☠️☠️☠️")
         player?.pause()
@@ -90,7 +97,7 @@ class VideoDetailCell: UICollectionViewCell {
         super.layoutSubviews()
     }
 
-    func setupPlayButton() {
+    fileprivate func setupPlayButton() {
         //        Icons made by <a href="https://www.flaticon.com/authors/those-icons" title="Those Icons">Those Icons</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
         playButton.setImage("play_button".photoImage, for: .normal)
         playButton.addTarget(self, action: #selector(playVideo(_:)), for: .touchUpInside)
@@ -98,21 +105,28 @@ class VideoDetailCell: UICollectionViewCell {
         playButton.center = contentView.center
     }
 
-    func setupActivityIndicator() {
+    fileprivate func setupActivityIndicator() {
         activityIndicator.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
         activityIndicator.center = contentView.center
         activityIndicator.isHidden = true
     }
 
-    @objc func playVideo(_ sender: UIButton) {
+    @objc fileprivate func playVideo(_ sender: UIButton) {
         print(#function)
+        play()
+    }
 
+    func play() {
         guard let player = player else { return }
         player.play()
+        isPlaying = true
         addBoundaryTimeObserverForPlayer(player, at: player.currentTime())
         playButton.isHidden = true
-//        imageView.isHidden = true
-        contentView.bringSubviewToFront(playerView)
+    }
+
+    func pause() {
+        player?.pause()
+        isPlaying = false
     }
 
     func stopPlayingIfNeeded() {
@@ -122,9 +136,10 @@ class VideoDetailCell: UICollectionViewCell {
         player.pause()
         player.seek(to: .zero)
         playButton.isHidden = false
+        isPlaying = false
     }
 
-    func display(url: URL) {
+    fileprivate func display(url: URL) {
         photo.generateThumbnail(url, size: .zero) { (image) in
             if let image = image {
                 self.display(image: image)
@@ -134,13 +149,13 @@ class VideoDetailCell: UICollectionViewCell {
         }
     }
 
-    func display(image: UIImage) {
+    fileprivate func display(image: UIImage) {
         imageView.image = image
         imageView.contentMode = .scaleAspectFit
         setNeedsDisplay()
     }
 
-    func display(asset: PHAsset, targetSize: CGSize) {
+    fileprivate func display(asset: PHAsset, targetSize: CGSize) {
         let options = PHImageRequestOptions()
         options.deliveryMode = .highQualityFormat
         options.resizeMode = .fast
@@ -156,20 +171,20 @@ class VideoDetailCell: UICollectionViewCell {
         }
     }
 
-    func displayImageFailure() {
+    fileprivate func displayImageFailure() {
         imageView.image = "ImageError".photoImage
         imageView.contentMode = .center
         setNeedsDisplay()
     }
 
 
-    func displayErrorThumbnail() {
+    fileprivate func displayErrorThumbnail() {
         imageView.image = "Browser-ErrorLoading".photoImage
         imageView.contentMode = .center
         setNeedsDisplay()
     }
 
-    func setupPlayer(asset: PHAsset) {
+    fileprivate func setupPlayer(asset: PHAsset) {
         let options = PHVideoRequestOptions()
         options.deliveryMode = .highQualityFormat
         options.isNetworkAccessAllowed = true
@@ -191,7 +206,7 @@ class VideoDetailCell: UICollectionViewCell {
         }
     }
 
-    func setupPlayer(url: URL) {
+    fileprivate func setupPlayer(url: URL) {
         let playerItem = AVPlayerItem(url: url)
         if let player = self.player {
             player.pause()
@@ -204,7 +219,7 @@ class VideoDetailCell: UICollectionViewCell {
 //        player?.seek(to: .zero)
     }
 
-    func addBoundaryTimeObserverForPlayer(_ player: AVPlayer, at currentTime: CMTime) {
+    fileprivate func addBoundaryTimeObserverForPlayer(_ player: AVPlayer, at currentTime: CMTime) {
         guard let item = player.currentItem else { return }
         var times = [NSValue]()
         // Set initial time to zero
@@ -231,7 +246,7 @@ class VideoDetailCell: UICollectionViewCell {
         }
     }
 
-    func makeConstraints() {
+    fileprivate func makeConstraints() {
         playerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             playerView.topAnchor.constraint(equalTo: contentView.topAnchor),
