@@ -159,7 +159,10 @@ class ViewController: UIViewController {
     }
 
     @objc func playRemoteVideo(_ sender: UIButton) {
-        guard let url = URL(string: "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4") else { return }
+//        guard let url = URL(string: "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4") else { return }
+
+        guard let url = URL(string: "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4") else { return }
+
         let photo = Photo(url: url)
         let photosDetailVC = PhotoDetailCollectionViewController(photos: [photo], initialIndex: 0)
         photosDetailVC.delegate = self

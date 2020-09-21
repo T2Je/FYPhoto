@@ -11,27 +11,9 @@ import Photos
 import SDWebImage
 
 class VideoDetailCell: UICollectionViewCell {
-    var player: AVPlayer? {
-        willSet {
-            if newValue == nil {
-                playerLayer?.removeFromSuperlayer()
-                playerLayer = nil
-                return
-            } else {
-                if let layer = playerLayer {
-                    layer.removeFromSuperlayer()
-                }
-                playerLayer = nil
-                let playerLayer = AVPlayerLayer(player: newValue)
-                playerLayer.frame = contentView.bounds
-                contentView.layer.addSublayer(playerLayer)
-                self.playerLayer = playerLayer
+    var playerView = PlayerView()
 
-                contentView.bringSubviewToFront(playButton)
-            }
-        }
-    }
-    var playerLayer: AVPlayerLayer?
+    var player: AVPlayer?
 
     var activityIndicator = UIActivityIndicatorView(style: .white)
     var playButton = UIButton()
@@ -72,8 +54,10 @@ class VideoDetailCell: UICollectionViewCell {
     override init(frame: CGRect) {
         super.init(frame: frame)
 //        contentView.backgroundColor = .white
-
         contentView.addSubview(imageView)
+        imageView.isHidden = true
+        contentView.addSubview(playerView)
+
         contentView.addSubview(playButton)
         contentView.addSubview(activityIndicator)
 
@@ -104,8 +88,6 @@ class VideoDetailCell: UICollectionViewCell {
 
     override func layoutSubviews() {
         super.layoutSubviews()
-        playerLayer?.frame = contentView.bounds
-
     }
 
     func setupPlayButton() {
@@ -129,6 +111,8 @@ class VideoDetailCell: UICollectionViewCell {
         player.play()
         addBoundaryTimeObserverForPlayer(player, at: player.currentTime())
         playButton.isHidden = true
+//        imageView.isHidden = true
+        contentView.bringSubviewToFront(playerView)
     }
 
     func stopPlayingIfNeeded() {
@@ -141,10 +125,11 @@ class VideoDetailCell: UICollectionViewCell {
     }
 
     func display(url: URL) {
-        url.thumbnail { (image) in
+        photo.generateThumbnail(url, size: .zero) { (image) in
             if let image = image {
-                print("url thumbnail : \(image)")
-                self.photo.underlyingImage = image
+                self.display(image: image)
+            } else {
+                self.displayErrorThumbnail()
             }
         }
     }
@@ -177,6 +162,13 @@ class VideoDetailCell: UICollectionViewCell {
         setNeedsDisplay()
     }
 
+
+    func displayErrorThumbnail() {
+        imageView.image = "Browser-ErrorLoading".photoImage
+        imageView.contentMode = .center
+        setNeedsDisplay()
+    }
+
     func setupPlayer(asset: PHAsset) {
         let options = PHVideoRequestOptions()
         options.deliveryMode = .highQualityFormat
@@ -190,7 +182,9 @@ class VideoDetailCell: UICollectionViewCell {
                     player.pause()
                     player.replaceCurrentItem(with: item)
                 } else {
-                    self.player = AVPlayer(playerItem: item)
+                    let player = AVPlayer(playerItem: item)
+                    self.playerView.player = player
+                    self.player = player
                 }
             }
 //            print("video info: \(info)")
@@ -203,8 +197,11 @@ class VideoDetailCell: UICollectionViewCell {
             player.pause()
             player.replaceCurrentItem(with: playerItem)
         } else {
-            player = AVPlayer(playerItem: playerItem)
+            let player = AVPlayer(playerItem: playerItem)
+            self.playerView.player = player
+            self.player = player
         }
+//        player?.seek(to: .zero)
     }
 
     func addBoundaryTimeObserverForPlayer(_ player: AVPlayer, at currentTime: CMTime) {
@@ -235,6 +232,14 @@ class VideoDetailCell: UICollectionViewCell {
     }
 
     func makeConstraints() {
+        playerView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            playerView.topAnchor.constraint(equalTo: contentView.topAnchor),
+            playerView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
+            playerView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+            playerView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
+        ])
+
         imageView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             imageView.topAnchor.constraint(equalTo: contentView.topAnchor),

@@ -308,7 +308,7 @@
 		E282277BCBF970C6604CC0C336CDA942 /* fg_ic_view_empty@3x.png in Resources */ = {isa = PBXBuildFile; fileRef = F1A5AAEA060C100E4CA6AFBEABE2E04A /* fg_ic_view_empty@3x.png */; };
 		E368C9A325120F5000BCFE4E /* URL+ImageVideoChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E368C9A225120F5000BCFE4E /* URL+ImageVideoChecker.swift */; };
 		E3BBE640BB4A9C683015798DB06D00BD /* SDAnimatedImage.h in Headers */ = {isa = PBXBuildFile; fileRef = C9064EAFAB3C53A2705C235B372D6168 /* SDAnimatedImage.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		E3F694A82510C6410070903E /* VideoPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F694A72510C6410070903E /* VideoPlayerViewController.swift */; };
+		E3CF27B125183E4100CCF5D5 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3CF27B025183E4100CCF5D5 /* PlayerView.swift */; };
 		E3F694AA2510C6E60070903E /* VideoDetailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F694A92510C6E60070903E /* VideoDetailCell.swift */; };
 		E4E58AA6433CE8FEC9DF32BC520CFD56 /* ZoomingScrollView+URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DAE58052260859E5B7CB7ADBC811DF /* ZoomingScrollView+URL.swift */; };
 		E637970205932C0EE0DC8650D8E36327 /* SDImageIOCoder.h in Headers */ = {isa = PBXBuildFile; fileRef = 852445387B31ECCBA048EED4212CFAF0 /* SDImageIOCoder.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -791,7 +791,7 @@
 		E2E76BA8DB89E800593F59A0BCD9FF49 /* DGRunkeeperSwitch.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DGRunkeeperSwitch.swift; path = FGBase/Classes/Switch/DGRunkeeperSwitch.swift; sourceTree = "<group>"; };
 		E33F2CEAF5940389EE4DF651356D8626 /* FGBaseLocalizable.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = FGBaseLocalizable.strings; path = "zh-Hant.lproj/FGBaseLocalizable.strings"; sourceTree = "<group>"; };
 		E368C9A225120F5000BCFE4E /* URL+ImageVideoChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+ImageVideoChecker.swift"; sourceTree = "<group>"; };
-		E3F694A72510C6410070903E /* VideoPlayerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayerViewController.swift; sourceTree = "<group>"; };
+		E3CF27B025183E4100CCF5D5 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		E3F694A92510C6E60070903E /* VideoDetailCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoDetailCell.swift; sourceTree = "<group>"; };
 		E4F25C295E6419659CBB36D29AF1607F /* UICircularProgressRing-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "UICircularProgressRing-umbrella.h"; sourceTree = "<group>"; };
 		E53DE7CABE4B2A0AD6BC3A4C204F2A2E /* FGBase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = FGBase.release.xcconfig; sourceTree = "<group>"; };
@@ -1462,8 +1462,8 @@
 			isa = PBXGroup;
 			children = (
 				30800904A0BBC98F9A33D76A47D961DF /* VideoCaptureOverlay.swift */,
-				E3F694A72510C6410070903E /* VideoPlayerViewController.swift */,
 				E3F694A92510C6E60070903E /* VideoDetailCell.swift */,
+				E3CF27B025183E4100CCF5D5 /* PlayerView.swift */,
 			);
 			name = Video;
 			path = FYPhoto/Classes/Video;
@@ -2452,6 +2452,7 @@
 				BBC7B90F4BF8AF2431FB2D5E6121D31B /* PhotosAuthority.swift in Sources */,
 				9BF42F71B67576566381EF0D21055BF0 /* PhotoTransitionController.swift in Sources */,
 				6C0BBE502CF791EECDD1DC4563151834 /* PhotoTransitioning.swift in Sources */,
+				E3CF27B125183E4100CCF5D5 /* PlayerView.swift in Sources */,
 				3CCA127F0476E5E71B2A9DCDC7AA3F91 /* PhotoTransitionPushPopDriver.swift in Sources */,
 				6182049F54A7C8740661381D43CE102B /* ResourceTool.swift in Sources */,
 				07A09144C9373C62075ACD5705BC50D5 /* TransitionDriver.swift in Sources */,
@@ -2460,7 +2461,6 @@
 				2CE57CEC33122ECA6B34CC41EADDE22C /* UIResponder+routerEvent.swift in Sources */,
 				B547DB4CB98936A35F1255C3EB99578A /* VideoCaptureOverlay.swift in Sources */,
 				F4CE3677B26A05F0702784718944AD3D /* VideoCountDownOverlay.swift in Sources */,
-				E3F694A82510C6410070903E /* VideoPlayerViewController.swift in Sources */,
 				E4E58AA6433CE8FEC9DF32BC520CFD56 /* ZoomingScrollView+URL.swift in Sources */,
 				1C4BDE452A70FA3578A1CE977096F127 /* ZoomingScrollView.swift in Sources */,
 			);

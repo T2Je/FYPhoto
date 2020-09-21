@@ -30,6 +30,8 @@ public protocol PhotoProtocol: Asset {
     var captionSignature: String? { get set }
 
     var resourceType: PhotoResourceType { get }
+
+    func generateThumbnail(_ url: URL, size: CGSize, completion: @escaping ((UIImage?) -> Void))
 }
 
 public class Photo: PhotoProtocol {
@@ -46,6 +48,9 @@ public class Photo: PhotoProtocol {
     public var captionSignature: String?
 
     public private(set) var resourceType: PhotoResourceType
+
+    var urlAssetQueue: DispatchQueue!
+
 
     public var isVideo: Bool {
         if let asset = asset {
@@ -77,6 +82,7 @@ public class Photo: PhotoProtocol {
         self.init()
         self.url = url
         resourceType = .url
+        urlAssetQueue = DispatchQueue(label: "url asset queue")
     }
 
     convenience public init(asset: PHAsset) {
@@ -87,6 +93,40 @@ public class Photo: PhotoProtocol {
 
 }
 
+extension Photo {
+    public func generateThumbnail(_ url: URL, size: CGSize = .zero, completion: @escaping ((UIImage?) -> Void)) {
+        urlAssetQueue.async { // 1
+            let asset = AVAsset(url: url) //2
+            let avAssetImageGenerator = AVAssetImageGenerator(asset: asset) //3
+            avAssetImageGenerator.maximumSize = size
+            avAssetImageGenerator.appliesPreferredTrackTransform = true //4
+            let thumnailTime = CMTimeMake(value: 2, timescale: 1) //5
+            do {
+                let cgThumbImage = try avAssetImageGenerator.copyCGImage(at: thumnailTime, actualTime: nil) //6
+                let thumbImage = UIImage(cgImage: cgThumbImage) //7
+                DispatchQueue.main.async { //8
+                    self.underlyingImage = thumbImage
+                    completion(thumbImage) //9
+                }
+            } catch {
+                print(error.localizedDescription) //10
+                DispatchQueue.main.async {
+                    completion(nil) //11
+                }
+            }
+        }
+    }
+
+    func clearThumbnail() {
+        underlyingImage = nil
+    }
+
+    func clearAsset() {
+        urlAssetQueue.async {
+            self.asset = nil
+        }
+    }
+}
 
 extension Photo: Equatable {
     public static func == (lhs: Photo, rhs: Photo) -> Bool {
