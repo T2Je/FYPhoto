@@ -49,6 +49,11 @@ class PhotoDetailCell: UICollectionViewCell {
         zoomingView.photo = photo
     }
 
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        zoomingView.imageView.image = nil
+    }
+
 }
 
 extension PhotoDetailCell: UIScrollViewDelegate {

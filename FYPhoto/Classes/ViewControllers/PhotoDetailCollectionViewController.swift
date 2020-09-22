@@ -40,10 +40,38 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     fileprivate let captionView = CaptionView()
 
+    fileprivate var playBarItemsIsShowed = false
+
+    fileprivate var initialScrollDone = false
+
+    fileprivate let addLocalizedString = "add".photoTablelocalized
+
+    fileprivate var previousNavigationBarHidden: Bool?
+    fileprivate var previousToolBarHidden: Bool?
+    fileprivate var previousInteractivePop: Bool?
+    fileprivate var previousNavigationTitle: String?
+    fileprivate var previousAudioCategory: AVAudioSession.Category?
+
+    fileprivate var originCaptionTransform: CGAffineTransform!
+
+    fileprivate var flowLayout: UICollectionViewFlowLayout? {
+        return collectionView.collectionViewLayout as? UICollectionViewFlowLayout
+    }
+
+    fileprivate var assetSize: CGSize?
+
+    fileprivate var resized = false
+
+    // MARK: Video properties
+    var player: AVPlayer?
+    var playerItem: AVPlayerItem?
+    var playerTimeObserverToken: Any?
+    var isPlaying = false
+
     fileprivate var currentDisplayedIndexPath: IndexPath {
         willSet {
             currentPhoto = photos[newValue.item]
-
+            stopPlayingIfNeeded()
             if currentDisplayedIndexPath != newValue {
                 delegate?.photoDetail(self, scrollAt: newValue)
             }
@@ -69,9 +97,12 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
                 showDone = canSelect
             }
             if newValue.isVideo {
+                // tool bar items
                 if !playBarItemsIsShowed {
                     updateToolBar(shouldShowDone: showDone, shouldShowPlay: true)
                     playBarItemsIsShowed = true
+                } else {
+                    updateToolBarItems(isPlaying: isPlaying)
                 }
             } else {
                 updateToolBar(shouldShowDone: showDone, shouldShowPlay: false)
@@ -79,26 +110,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             }
         }
     }
-
-    var playBarItemsIsShowed = false
-
-
-    fileprivate var initialScrollDone = false
-
-    fileprivate let addLocalizedString = "add".photoTablelocalized
-
-    fileprivate var previousNavigationBarHidden: Bool?
-    fileprivate var previousToolBarHidden: Bool?
-    fileprivate var previousInteractivePop: Bool?
-    fileprivate var previousNavigationTitle: String?
-
-    fileprivate var originCaptionTransform: CGAffineTransform!
-
-    fileprivate var flowLayout: UICollectionViewFlowLayout? {
-        return collectionView.collectionViewLayout as? UICollectionViewFlowLayout
-    }
-
-    fileprivate var assetSize: CGSize?
 
     // MARK: - LifeCycle
     public init(photos: [PhotoProtocol], initialIndex: Int) {
@@ -133,6 +144,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         previousNavigationBarHidden = self.navigationController?.navigationBar.isHidden
         previousInteractivePop = self.navigationController?.interactivePopGestureRecognizer?.isEnabled
         previousNavigationTitle = self.navigationController?.navigationItem.title
+        previousAudioCategory = AVAudioSession.sharedInstance().category
 
         view.addSubview(collectionView)
         view.addSubview(captionView)
@@ -147,6 +159,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     public override func viewWillAppear(_ animated: Bool) {
+        try? AVAudioSession.sharedInstance().setCategory(.playback)
+
         super.viewWillAppear(animated)
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
         if let showNavigationBar = delegate?.showNavigationBar(in: self) {
@@ -171,6 +185,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        stopPlayingIfNeeded()
         restoreNavigationControllerData()
     }
 
@@ -237,6 +252,10 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         if let originalToolBarHidden = previousToolBarHidden {
             //            navigationController?.setToolbarHidden(originalToolBarHidden, animated: false)
             navigationController?.isToolbarHidden = originalToolBarHidden
+        }
+
+        if let audioCategory = previousAudioCategory {
+            try? AVAudioSession.sharedInstance().setCategory(audioCategory)
         }
     }
 
@@ -327,6 +346,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         if photo.isVideo {
             if let videoCell = cell as? VideoDetailCell {
                 videoCell.photo = photo
+                // setup video player
+                setupPlayer(photo: photo, for: videoCell.playerView)
             }
         } else {
             if let photoCell = cell as? PhotoDetailCell {
@@ -357,8 +378,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
         super.viewWillTransition(to: size, with: coordinator)
     }
-
-    var resized = false
 
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -419,17 +438,15 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     @objc func playVideoBarItemClicked(_ sender: UIBarButtonItem) {
         guard currentPhoto.isVideo else { return }
-        guard let videoCell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell else { return }
-        updateToolBarItems(isPlaying: videoCell.isPlaying)
-        if videoCell.isPlaying {
-            videoCell.pause()
+        if isPlaying {
+            pausePlayback()
         } else {
-            videoCell.play()
+            playVideo()
         }
-
-
+        updateToolBarItems(isPlaying: isPlaying)
     }
 
+    // MARK: ToolBar updates
     func updateToolBar(shouldShowDone: Bool, shouldShowPlay: Bool) {
         var items = [UIBarButtonItem]()
         let spaceItem = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
@@ -450,14 +467,14 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     func updateToolBarItems(isPlaying: Bool) {
         var toolbarItems = self.toolbarItems
         if isPlaying {
-            if let index = toolbarItems?.firstIndex(of: pauseVideoBarItem) {
-                toolbarItems?.remove(at: index)
-                toolbarItems?.insert(playVideoBarItem, at: index)
-            }
-        } else {
             if let index = toolbarItems?.firstIndex(of: playVideoBarItem) {
                 toolbarItems?.remove(at: index)
                 toolbarItems?.insert(pauseVideoBarItem, at: index)
+            }
+        } else {
+            if let index = toolbarItems?.firstIndex(of: pauseVideoBarItem) {
+                toolbarItems?.remove(at: index)
+                toolbarItems?.insert(playVideoBarItem, at: index)
             }
         }
         self.setToolbarItems(toolbarItems, animated: true)
@@ -477,8 +494,9 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     func stopPlayingVideoIfNeeded(at oldIndexPath: IndexPath) {
-        guard let cell = collectionView.cellForItem(at: oldIndexPath) as? VideoDetailCell else { return }
-        cell.stopPlayingIfNeeded()
+        if isPlaying {
+            stopPlayingIfNeeded()
+        }
     }
 
     func updateCaption(at indexPath: IndexPath) {
@@ -513,14 +531,18 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         layout.itemSize = size
         return size
     }
+
+    public override func didReceiveMemoryWarning() {
+        super.didReceiveMemoryWarning()
+        stopPlayingIfNeeded()
+        player = nil
+    }
 }
 
 extension PhotoDetailCollectionViewController: UIScrollViewDelegate {
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
 //        let pageWidth = view.bounds.size.width
 //        let currentPage = Int((scrollView.contentOffset.x + pageWidth / 2) / pageWidth)
-
-
         if let currentIndexPath = self.collectionView.indexPathsForVisibleItems.last {
             currentDisplayedIndexPath = currentIndexPath
         } else {
@@ -584,9 +606,107 @@ extension PhotoDetailCollectionViewController {
     }
 }
 
+// MARK: - Video
+extension PhotoDetailCollectionViewController {
+    fileprivate var currentVideoCell: VideoDetailCell? {
+        return collectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell
+    }
+
+    fileprivate func setupPlayer(photo: PhotoProtocol, for playerView: PlayerView) {
+        if let asset = photo.asset {
+            setupPlayer(asset: asset, for: playerView)
+        } else if let url = photo.url {
+            setupPlayer(url: url, for: playerView)
+        }
+        playerTimeObserverToken = nil
+    }
+
+    fileprivate func setupPlayer(asset: PHAsset, for playerView: PlayerView) {
+        let options = PHVideoRequestOptions()
+        options.deliveryMode = .highQualityFormat
+        options.isNetworkAccessAllowed = true
+        options.progressHandler = { progress, error, stop, info in
+            print("request video from icloud progress: \(progress)")
+        }
+        PHImageManager.default().requestPlayerItem(forVideo: asset, options: options) { (item, info) in
+            if let item = item {
+                if let player = self.player {
+                    player.pause()
+                    player.replaceCurrentItem(with: item)
+                    playerView.player = player
+                } else {
+                    let player = AVPlayer(playerItem: item)
+                    playerView.player = player
+                    self.player = player
+                }
+            }
+        }
+    }
+
+    fileprivate func setupPlayer(url: URL, for playerView: PlayerView) {
+        let playerItem = AVPlayerItem(url: url)
+        if let player = self.player {
+            player.pause()
+            player.replaceCurrentItem(with: playerItem)
+        } else {
+            let player = AVPlayer(playerItem: playerItem)
+            playerView.player = player
+            self.player = player
+        }
+    }
+
+    func playVideo() {
+        guard let player = player else { return }
+        player.play()
+        isPlaying = true
+        addBoundaryTimeObserverForPlayer(player, at: player.currentTime())
+    }
+
+    func pausePlayback() {
+        player?.pause()
+        isPlaying = false
+    }
+
+    func stopPlayingIfNeeded() {
+        guard let player = player else {
+            return
+        }
+        player.pause()
+        player.seek(to: .zero)
+        playerTimeObserverToken = nil
+        isPlaying = false
+    }
+
+    fileprivate func addBoundaryTimeObserverForPlayer(_ player: AVPlayer, at currentTime: CMTime) {
+        guard let item = player.currentItem else { return }
+        var times = [NSValue]()
+        // Set initial time to zero
+        var currentTime = currentTime
+        // Divide the asset's duration into quarters.
+        let interval = CMTimeMultiplyByFloat64(item.duration, multiplier: 1)
+
+        // Build boundary times at 25%, 50%, 75%, 100%
+        while currentTime < item.duration {
+            currentTime = currentTime + interval
+            times.append(NSValue(time: currentTime))
+        }
+
+        // Add time observer. Observe boundary time changes on the main queue.
+        playerTimeObserverToken = player.addBoundaryTimeObserver(forTimes: times, queue: .main) { [weak self] in
+            // Update UI
+            guard let self = self else { return }
+            self.isPlaying = false
+            player.seek(to: .zero)
+            if let observer = self.playerTimeObserverToken {
+                player.removeTimeObserver(observer)
+            }
+            self.playerTimeObserverToken = nil
+        }
+    }
+}
+
 // MARK: - PhotoDetailTransitionAnimatorDelegate
 extension PhotoDetailCollectionViewController: PhotoTransitioning {
-
     public func transitionWillStart() {
         guard let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) else { return }
         cell.isHidden = true
@@ -636,5 +756,4 @@ extension PhotoDetailCollectionViewController {
             return index
         }
     }
-
 }
