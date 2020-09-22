@@ -66,12 +66,18 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     var player: AVPlayer?
     var playerItem: AVPlayerItem?
     var playerTimeObserverToken: Any?
-    var isPlaying = false
+    var isPlaying = false {
+        willSet {
+            if currentPhoto.isVideo {
+                updateToolBarItems(isPlaying: newValue)
+            }
+        }
+    }
 
     fileprivate var currentDisplayedIndexPath: IndexPath {
         willSet {
-            currentPhoto = photos[newValue.item]
             stopPlayingIfNeeded()
+            currentPhoto = photos[newValue.item]
             if currentDisplayedIndexPath != newValue {
                 delegate?.photoDetail(self, scrollAt: newValue)
             }
@@ -443,7 +449,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         } else {
             playVideo()
         }
-        updateToolBarItems(isPlaying: isPlaying)
     }
 
     // MARK: ToolBar updates
@@ -668,7 +673,7 @@ extension PhotoDetailCollectionViewController {
     }
 
     func stopPlayingIfNeeded() {
-        guard let player = player else {
+        guard let player = player, isPlaying else {
             return
         }
         player.pause()
