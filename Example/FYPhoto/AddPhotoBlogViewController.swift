@@ -426,7 +426,7 @@ extension AddPhotoBlogViewController: PhotoDetailCollectionViewControllerDelegat
         lastSelectedIndexPath = indexPath
     }
 
-    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedPhotos indexPaths: [IndexPath]) {
+    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedAssets identifiers: [String]) {
 
     }
 

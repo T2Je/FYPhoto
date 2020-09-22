@@ -29,24 +29,17 @@ public class AssetGridViewController: UICollectionViewController {
     fileprivate let customTitleView = CustomNavigationTitleView()
 
     /// identify selected assets
-    fileprivate var assetSelectionIdentifierCache = [String]()
-    /// for quick search selected assets
-    fileprivate var assetSelctionIndexPaths = [IndexPath]() {
+    fileprivate var assetSelectionIdentifierCache = [String]() {
         willSet {
-            let newAssets = newValue.map { fetchResult.object(at: $0.row).localIdentifier }
-            assetSelectionIdentifierCache = newAssets
-            updateNavigationBarItems(newValue)
-            updateSelectedAssetIsVideo(newValue)
+            updateSelectedAssetIsVideo(by: newValue)
+            updateNavigationBarItems(by: newValue)
             isReachedMaximum = newValue.count >= maximumNumber
+            collectionView.reloadData()
         }
     }
 
     /// if true, unable to select more photos
-    fileprivate var isReachedMaximum: Bool = false {
-        willSet {
-            collectionView.reloadData()
-        }
-    }
+    fileprivate var isReachedMaximum: Bool = false
 
     internal let imageManager = PHCachingImageManager()
     fileprivate var thumbnailSize: CGSize!
@@ -92,7 +85,6 @@ public class AssetGridViewController: UICollectionViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-//        self.edgesForExtendedLayout = .all
 
         collectionView.backgroundColor = .white
 
@@ -114,15 +106,12 @@ public class AssetGridViewController: UICollectionViewController {
     func requestAlbumsData() {
         if isOnlyImages {
             allPhotos = PhotoPickerResource.shared.allImages()
-//            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums(isOnlyImage: true)
-//            userCollections = PhotoPickerResource.shared.userImageCollection()
+            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums(isOnlyImage: true)
         } else {
             allPhotos = PhotoPickerResource.shared.allAssets(ascending: false)
-//            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums()
-//            userCollections = PhotoPickerResource.shared.userCollection()
+            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums()
         }
-
-//        userCollections = PhotoPickerResource.shared.userCollection()
+        userCollections = PhotoPickerResource.shared.userCollection()
     }
 
     func initalFetchResult() {
@@ -164,15 +153,15 @@ public class AssetGridViewController: UICollectionViewController {
 
         navigationItem.rightBarButtonItems = [doneBarItem, selectedPhotoCountBarItem]
 
-//        // custom titleview
-//        customTitleView.tapped = { [weak self] in
-//            guard let self = self else { return }
-//            let albumsVC = AlbumsTableViewController(allPhotos: self.allPhotos, smartAlbums: self.smartAlbums, userCollections: self.userCollections, selectedIndexPath: self.selectedAlbumIndexPath)
-//            albumsVC.delegate = self
-//            self.present(albumsVC, animated: true, completion: nil)
-//        }
-//        customTitleView.title = "All photos".photoTablelocalized
-//        self.navigationItem.titleView = customTitleView
+        // custom titleview
+        customTitleView.tapped = { [weak self] in
+            guard let self = self else { return }
+            let albumsVC = AlbumsTableViewController(allPhotos: self.allPhotos, smartAlbums: self.smartAlbums, userCollections: self.userCollections, selectedIndexPath: self.selectedAlbumIndexPath)
+            albumsVC.delegate = self
+            self.present(albumsVC, animated: true, completion: nil)
+        }
+        customTitleView.title = "All photos".photoTablelocalized
+        self.navigationItem.titleView = customTitleView
     }
 
     func setupTransitionController() {
@@ -185,11 +174,14 @@ public class AssetGridViewController: UICollectionViewController {
     }
 
     @objc func doneBarButton(_ sender: UIBarButtonItem) {
-        let selectedAssets = assetSelctionIndexPaths.map {
-            fetchResult.object(at: $0.row)
+        let selectedFetchResult: PHFetchResult<PHAsset> = PHAsset.fetchAssets(withLocalIdentifiers: assetSelectionIdentifierCache, options: nil)
+        var assets = [PHAsset]()
+        selectedFetchResult.enumerateObjects { (asset, _, _) in
+            assets.append(asset)
         }
-        selectionCompleted(assets: selectedAssets, animated: true)
+        selectionCompleted(assets: assets, animated: true)
     }
+    
 
     /// Completion of photo picker
     /// - Parameters:
@@ -246,16 +238,16 @@ public class AssetGridViewController: UICollectionViewController {
                 if asset.mediaType == .video {
                     cell.videoDuration = PhotoPickerResource.shared.time(of: asset.duration)
                     if let isVideo = self.selectedAssetIsVideo {
-                        cell.unableToTouch(!isVideo)
+                        cell.isEnable = isVideo
                     } else {
-                        cell.unableToTouch(false)
+                        cell.isEnable = true
                     }
                 } else {
                     cell.videoDuration = ""
                     if let isVideo = self.selectedAssetIsVideo {
-                        cell.unableToTouch(isVideo)
+                        cell.isEnable = !isVideo
                     } else {
-                        cell.unableToTouch(false)
+                        cell.isEnable = true
                     }
                 }
                 if let exsist = self.assetSelectionIdentifierCache.firstIndex(of: asset.localIdentifier) {
@@ -265,10 +257,10 @@ public class AssetGridViewController: UICollectionViewController {
                 }
                 
                 if self.isReachedMaximum {
-                    if self.assetSelctionIndexPaths.contains(indexPath) {
-                        cell.unableToTouch(false)
+                    if self.assetSelectionIdentifierCache.contains(asset.localIdentifier) {
+                        cell.isEnable = true
                     } else {
-                        cell.unableToTouch(true)
+                        cell.isEnable = false
                     }
                 }
             }
@@ -284,16 +276,17 @@ public class AssetGridViewController: UICollectionViewController {
             let asset = fetchResult[index]
             photos.append(Photo(asset: asset))
         }
-        let selectedAssets = assetSelctionIndexPaths.map {
-            fetchResult.object(at: $0.row)
-        }
 
-        let selectedPhotos = selectedAssets.map { Photo(asset: $0) }
+        var selectedPhotos: [Photo] = []
+        let selectedAssetsResult = PHAsset.fetchAssets(withLocalIdentifiers: assetSelectionIdentifierCache, options: nil)
+        selectedAssetsResult.enumerateObjects { (asset, _, _) in
+            let photo = Photo(asset: asset)
+            selectedPhotos.append(photo)
+        }
 
         // collectionview
         let detailVC = PhotoDetailCollectionViewController(photos: photos, initialIndex: indexPath.row)
         detailVC.selectedPhotos = selectedPhotos
-        detailVC.selectedPhotoIndexPaths = assetSelctionIndexPaths
         detailVC.maximumNumber = maximumNumber
         detailVC.delegate = self
 
@@ -308,14 +301,14 @@ public class AssetGridViewController: UICollectionViewController {
 
 extension AssetGridViewController: GridViewCellDelegate {
     func gridCell(_ cell: GridViewCell, buttonClickedAt indexPath: IndexPath, assetIdentifier: String) {
-        if let exsist = assetSelctionIndexPaths.firstIndex(of: indexPath) {
-            assetSelctionIndexPaths.remove(at: exsist)
+        if let exsist = assetSelectionIdentifierCache.firstIndex(of: assetIdentifier) {
+            assetSelectionIdentifierCache.remove(at: exsist)
         } else {
-            assetSelctionIndexPaths.append(indexPath)
+            assetSelectionIdentifierCache.append(assetIdentifier)
         }
 
         // update cell selection button
-        if let added = assetSelctionIndexPaths.firstIndex(of: indexPath) {
+        if let added = assetSelectionIdentifierCache.firstIndex(of: assetIdentifier) {
             // button display the order number of selected photos
             cell.displayButtonTitle("\(added + 1)")
         } else {
@@ -324,20 +317,22 @@ extension AssetGridViewController: GridViewCellDelegate {
         collectionView.reloadData()
     }
 
-    func updateSelectedAssetIsVideo(_ selectedIndexPaths: [IndexPath]) {
-        guard let index = selectedIndexPaths.first?.item else {
+    func updateSelectedAssetIsVideo(by assetIdentifiers: [String]) {
+        guard let first = assetIdentifiers.first else {
             selectedAssetIsVideo = nil
             return
         }
-        selectedAssetIsVideo = fetchResult.object(at: index).mediaType == .video
+        let result = PHAsset.fetchAssets(withLocalIdentifiers: [first], options: nil)
+        if let firstAsset = result.firstObject {
+            selectedAssetIsVideo = firstAsset.mediaType == .video
+        } else {
+            selectedAssetIsVideo = nil
+        }
     }
 
-    func updateNavigationBarItems(_ selectedIndexPaths: [IndexPath]) {
-        let assets = selectedIndexPaths.map {
-            fetchResult.object(at: $0.row)
-        }
-        selectedPhotoCountBarItem.title = assets.count == 0 ? "" : "\(assets.count)"
-        doneBarItem.isEnabled = assets.count > 0
+    func updateNavigationBarItems(by assetIdentifiers: [String]) {
+        selectedPhotoCountBarItem.title = (assetIdentifiers.count == 0) ? "" : "\(assetIdentifiers.count)"
+        doneBarItem.isEnabled = assetIdentifiers.count > 0
     }
 
 }
@@ -368,9 +363,8 @@ extension AssetGridViewController: PhotoDetailCollectionViewControllerDelegate {
         lastSelectedIndexPath = indexPath
     }
 
-    public func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedPhotos indexPaths: [IndexPath]) {
-        assetSelctionIndexPaths = indexPaths
-        collectionView.reloadData()
+    public func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedAssets identifiers: [String]) {
+        assetSelectionIdentifierCache = identifiers
     }
 
     public func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, didCompleteSelected photos: [PhotoProtocol]) {

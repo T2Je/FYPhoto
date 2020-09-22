@@ -15,11 +15,10 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     public weak var delegate: PhotoDetailCollectionViewControllerDelegate?
 
-    var selectedPhotos: [PhotoProtocol] = []
-
-    var selectedPhotoIndexPaths: [IndexPath] = [] {
+    var selectedPhotos: [PhotoProtocol] = [] {
         willSet {
-            delegate?.photoDetail(self, selectedPhotos: newValue)
+            let assetIdentifiers = newValue.compactMap { $0.asset?.localIdentifier }
+            delegate?.photoDetail(self, selectedAssets: assetIdentifiers)
         }
     }
 
@@ -328,7 +327,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-//        let collectionCell: UICollectionViewCell
         let photo = photos[indexPath.row]
         if photo.isVideo {
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: videoCellReuseIdentifier, for: indexPath) as? VideoDetailCell {                
@@ -425,13 +423,11 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             selectedPhotos.remove(at: exsit)
             addPhotoBarItem.title = addLocalizedString
             addPhotoBarItem.tintColor = .black
-            selectedPhotoIndexPaths.remove(at: exsit)
             return
         }
 
         // add photo
         selectedPhotos.append(photo)
-        selectedPhotoIndexPaths.append(currentDisplayedIndexPath)
 
         // update bar item: add, done
         if let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) {

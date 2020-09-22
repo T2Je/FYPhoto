@@ -15,7 +15,8 @@ public protocol PhotoDetailCollectionViewControllerDelegate: class {
     func canDisplayCaption(in photoDetail: PhotoDetailCollectionViewController) -> Bool
 
     func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, scrollAt indexPath: IndexPath)
-    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedPhotos indexPaths: [IndexPath])
+//    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedPhotos indexPaths: [IndexPath])
+    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedAssets identifiers: [String])
     func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, didCompleteSelected photos: [PhotoProtocol])
 }
 
@@ -40,8 +41,8 @@ public extension PhotoDetailCollectionViewControllerDelegate {
     func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, scrollAt indexPath: IndexPath) {
 
     }
-    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedPhotos indexPaths: [IndexPath]) {
-
+    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedAssets identifiers: [String]) {
+        
     }
     func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, didCompleteSelected photos: [PhotoProtocol]) {
 

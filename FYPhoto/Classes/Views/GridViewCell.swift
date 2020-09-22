@@ -46,6 +46,13 @@ class GridViewCell: UICollectionViewCell {
         }
     }
 
+    var isEnable: Bool = false {
+        willSet {
+            overlayView.isHidden = newValue
+            isUserInteractionEnabled = newValue
+        }
+    }
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
@@ -77,7 +84,7 @@ class GridViewCell: UICollectionViewCell {
         selectionButton.layer.masksToBounds = true
         selectionButton.layer.cornerRadius = 20
 
-        overlayView.backgroundColor = UIColor(white: 0, alpha: 0.4)
+        overlayView.backgroundColor = UIColor(white: 0, alpha: 0.5)
         overlayView.isHidden = true
 
         contentView.addSubview(imageView)
@@ -147,12 +154,5 @@ class GridViewCell: UICollectionViewCell {
             selectionButton.setTitle(title, for: .normal)
             selectionButton.backgroundColor = .green
         }
-    }
-
-    ///
-    /// - Parameter flag: true ==> unable
-    func unableToTouch(_ flag: Bool) {
-        overlayView.isHidden = !flag
-        isUserInteractionEnabled = !flag
     }
 }
