@@ -10,6 +10,7 @@ import UIKit
 import FYPhoto
 import Photos
 import PhotosUI
+import MobileCoreServices
 
 class ViewController: UIViewController {
 
@@ -45,25 +46,31 @@ class ViewController: UIViewController {
         let cameraPhotoBtn = UIButton()
         let playRemoteVideoBtn = UIButton()
 
+        let customCameraBtn = UIButton()
+
         photosViewBtn.setTitle("浏览全部照片", for: .normal)
         suishoupaiBtn.setTitle("随手拍", for: .normal)
         cameraPhotoBtn.setTitle("照片or相机", for: .normal)
         playRemoteVideoBtn.setTitle("Play remote video", for: .normal)
+        customCameraBtn.setTitle("Custom Camera", for: .normal)
 
         photosViewBtn.setTitleColor(.systemBlue, for: .normal)
         suishoupaiBtn.setTitleColor(.systemBlue, for: .normal)
         cameraPhotoBtn.setTitleColor(.systemBlue, for: .normal)
         playRemoteVideoBtn.setTitleColor(.systemBlue, for: .normal)
+        customCameraBtn.setTitleColor(.systemPink, for: .normal)
 
         photosViewBtn.addTarget(self, action: #selector(photosViewButtonClicked(_:)), for: .touchUpInside)
         suishoupaiBtn.addTarget(self, action: #selector(suiShouPaiButtonClicked(_:)), for: .touchUpInside)
         cameraPhotoBtn.addTarget(self, action: #selector(cameraPhotoButtonClicked(_:)), for: .touchUpInside)
         playRemoteVideoBtn.addTarget(self, action: #selector(playRemoteVideo(_:)), for: .touchUpInside)
+        customCameraBtn.addTarget(self, action: #selector(launchCustomCamera(_:)), for: .touchUpInside)
 
         stackView.addArrangedSubview(photosViewBtn)
         stackView.addArrangedSubview(suishoupaiBtn)
         stackView.addArrangedSubview(cameraPhotoBtn)
         stackView.addArrangedSubview(playRemoteVideoBtn)
+        stackView.addArrangedSubview(customCameraBtn)
 
         self.view.addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -71,7 +78,7 @@ class ViewController: UIViewController {
         if #available(iOS 11.0, *) {
             NSLayoutConstraint.activate([
                 stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                stackView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 300),
+                stackView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 100),
                 stackView.widthAnchor.constraint(equalToConstant: 200),
                 stackView.heightAnchor.constraint(equalToConstant: 200)
             ])
@@ -79,7 +86,7 @@ class ViewController: UIViewController {
             // Fallback on earlier versions
             NSLayoutConstraint.activate([
                 stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                stackView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 300),
+                stackView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 100),
                 stackView.widthAnchor.constraint(equalToConstant: 200),
                 stackView.heightAnchor.constraint(equalToConstant: 200)
             ])
@@ -168,6 +175,13 @@ class ViewController: UIViewController {
         photosDetailVC.delegate = self
         navigationController?.pushViewController(photosDetailVC, animated: true)
     }
+
+    @objc func launchCustomCamera(_ sender: UIButton) {
+        let customCamera = CameraViewController()
+        customCamera.delegate = self
+        customCamera.modalPresentationStyle = .fullScreen
+        present(customCamera, animated: true, completion: nil)
+    }
 }
 
 extension ViewController: PhotoLauncherDelegate {
@@ -180,16 +194,21 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         print(#function)
         guard let mediaType = info[.mediaType] as? String else { return }
-
+        
         switch mediaType {
-        case "public.image":
+//        case "public.image":
+        case String(kUTTypeImage):
             guard let image = info[.originalImage] as? UIImage else { return }
             UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
-            picker.dismiss(animated: true, completion: nil)
+            picker.dismiss(animated: true) {
+                let photo = Photo(image: image)
+                let detailVC = PhotoDetailCollectionViewController(photos: [photo], initialIndex: 0)
+                detailVC.delegate = self
+                self.navigationController?.pushViewController(detailVC, animated: true)
+            }
         case "public.movie":
             guard
                 let videoURL = info[.mediaURL] as? URL
-
                 else {
                     picker.dismiss(animated: true, completion: nil)
                     return
@@ -252,34 +271,46 @@ extension ViewController: PhotoDetailCollectionViewControllerDelegate {
 
 }
 
-//@available(iOS 14, *)
-//extension ViewController: PHPickerViewControllerDelegate {
-//    public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-//        print("selected totol \(results.count) photos")
-//        parsePickerFetchResults(results)
-//        picker.dismiss(animated: true, completion: nil)
-//    }
-//
-//    func parsePickerFetchResults(_ results: [PHPickerResult]) {
-//        guard !results.isEmpty else {
-//            return
-//        }
-//        var images: [UIImage] = []
-//
-//        results.forEach { result in
-//            if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
-//                result.itemProvider.loadObject(ofClass: UIImage.self) { image, error in
-//                    DispatchQueue.main.async {
-////                        guard let self = self else { return }
-//                        if let image = image as? UIImage {
-//                            images.append(image)
-//                        } else {
-//                            images.append(UIImage(named: "add_photo")!)
-//                            print("Couldn't load image with error: \(error?.localizedDescription ?? "unknown error")")
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-//}
+extension ViewController: CameraViewControllerDelegate {
+    func cameraDidCancel(_ cameraViewController: CameraViewController) {
+        cameraViewController.dismiss(animated: true, completion: nil)
+    }
+    func camera(_ cameraViewController: CameraViewController, didFinishCapturingMediaInfo info: [CameraViewController.InfoKey : Any]) {
+        print(#function)
+        guard let mediaType = info[.mediaType] as? String else { return }
+
+        switch mediaType {
+//        case "public.image":
+        case String(kUTTypeImage):
+            guard let image = info[.originalImage] as? UIImage else { return }
+            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
+            cameraViewController.dismiss(animated: true) {
+                let photo = Photo(image: image)
+                let detailVC = PhotoDetailCollectionViewController(photos: [photo], initialIndex: 0)
+                detailVC.delegate = self
+                self.navigationController?.pushViewController(detailVC, animated: true)
+            }
+        case "public.movie":
+            guard
+                let videoURL = info[.mediaURL] as? URL
+                else {
+                cameraViewController.dismiss(animated: true, completion: nil)
+                return
+            }
+//            UISaveVideoAtPathToSavedPhotosAlbum(videoURL.path, self, #selector(video(_:didFinishSavingWithError:contextInfo:)), nil)
+
+            cameraViewController.dismiss(animated: true) {
+//                 Editor controller
+                guard UIVideoEditorController.canEditVideo(atPath: videoURL.absoluteString) else { return }
+                let videoEditorController = UIVideoEditorController()
+                videoEditorController.videoPath = videoURL.path
+                videoEditorController.delegate = self
+                videoEditorController.videoMaximumDuration = 15
+                videoEditorController.modalPresentationStyle = .fullScreen
+                self.present(videoEditorController, animated: true, completion: nil)
+            }
+        default:
+            break
+        }
+    }
+}

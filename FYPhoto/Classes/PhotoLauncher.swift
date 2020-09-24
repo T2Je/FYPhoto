@@ -137,13 +137,12 @@ public protocol PhotoLauncherDelegate: class {
         }
         if isOnlyImages {
             imageController.cameraCaptureMode = .photo
-            imageController.allowsEditing = false
+            imageController.allowsEditing = true
             imageController.mediaTypes = [kUTTypeImage] as [String]
         } else {
             imageController.videoMaximumDuration = 15
             imageController.allowsEditing = true
-//            imageController.mediaTypes = ["public.image", "public.movie"]
-            imageController.mediaTypes = [kUTTypeMovie, kUTTypeImage] as [String]
+            imageController.mediaTypes = UIImagePickerController.availableMediaTypes(for: .camera) ?? ([kUTTypeImage, kUTTypeMovie] as [String])
             imageController.cameraCaptureMode = .video
             addVideoCaptureOverlay(on: imageController)
             self.captureVideoImagePicker = imageController
@@ -156,7 +155,8 @@ public protocol PhotoLauncherDelegate: class {
     func addVideoCaptureOverlay(on imagePickerController: UIImagePickerController) {
         let frame = imagePickerController.cameraOverlayView?.frame ?? UIScreen.main.bounds
 
-        let overlay = VideoCaptureOverlay(videoMaximumDuration: imagePickerController.videoMaximumDuration, frame: frame)
+        let overlay = VideoCaptureOverlay(frame: frame)
+        overlay.videoMaximumDuration = imagePickerController.videoMaximumDuration
         overlay.delegate = self
         imagePickerController.showsCameraControls = false
         imagePickerController.cameraOverlayView = overlay
@@ -171,6 +171,13 @@ extension PhotoLauncher: VideoCaptureOverlayDelegate {
     public func takePicture() {
         guard let imagePicker = captureVideoImagePicker else { return }
         imagePicker.cameraCaptureMode = .photo
+//        imagePicker.cameraViewTransform = CGAffineTransform(translationX: 0, y: 100)
+        let screenSize = UIScreen.main.bounds.size
+        let cameraAspectRatio: Float = 4.0 / 4.0 /// Note: 4.0 and 4.0 works
+        let imageWidth = floorf(Float(screenSize.width * CGFloat(cameraAspectRatio)))
+        let scale: CGFloat = CGFloat(ceilf((Float(screenSize.height) / imageWidth) * 10.0) / 10.0)
+//        let scale = ceilf((screenSize.height / CGFloat(imageWidth)) * 10.0) / 10.0        
+        imagePicker.cameraViewTransform = CGAffineTransform(scaleX: scale, y: scale)
         imagePicker.takePicture()
     }
 
@@ -186,7 +193,7 @@ extension PhotoLauncher: VideoCaptureOverlayDelegate {
         imagePicker.stopVideoCapture()
     }
 
-    public func switchCamera() {
+    public func switchCameraDevice(_ cameraButton: UIButton) {
         guard let imagePicker = captureVideoImagePicker else { return }
         print(#function)
         if imagePicker.cameraDevice == .rear {

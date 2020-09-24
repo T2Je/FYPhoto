@@ -31,8 +31,6 @@ extension URL {
         
         return UTTypeConformsTo(uti.takeRetainedValue(), kUTTypeMovie)
     }
-
-
 }
 
 extension URL {

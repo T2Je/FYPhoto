@@ -28,7 +28,7 @@ TODO: Add long description of the pod here.
   s.source           = { :git => 'http://git.feeyo.com/acdm-ios-base/fyphoto.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
-   s.ios.deployment_target = '10'
+   s.ios.deployment_target = '11'
    s.swift_version = '5'
 
    s.source_files = 'FYPhoto/Classes/**/*'

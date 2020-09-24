@@ -16,7 +16,7 @@
     "tag": "0.1.11"
   },
   "platforms": {
-    "ios": "10"
+    "ios": "11"
   },
   "swift_versions": "5",
   "source_files": "FYPhoto/Classes/**/*",

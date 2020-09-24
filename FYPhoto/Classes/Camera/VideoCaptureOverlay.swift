@@ -9,28 +9,50 @@ import UIKit
 import UICircularProgressRing
 
 public protocol VideoCaptureOverlayDelegate: class {
-    func switchCamera()
+    func switchCameraDevice(_ cameraButton: UIButton)
     func takePicture()
     func startVideoCapturing()
     func stopVideoCapturing(_ isCancel: Bool)
     func dismissVideoCapture()
 }
 
-class VideoCaptureOverlay: UIView {
+public class VideoCaptureOverlay: UIView {
     weak var delegate: VideoCaptureOverlayDelegate?
+    /// capture mode. Default is photo.
+    var captureMode: CameraViewController.CaptureMode = .photo
 
     let progressView = UICircularProgressRing()
     let rearFrontCameraButton = UIButton()
     let dismissButton = UIButton()
-
+    let resumeButton = UIButton()
+    let cameraUnavailableLabel = UILabel()
+    
     var cameraTimer: Timer?
 
     var runCount: Double = 0
 
-    let videoMaximumDuration: TimeInterval
+    var videoMaximumDuration: TimeInterval = 15
 
-    init(videoMaximumDuration: TimeInterval, frame: CGRect) {
-        self.videoMaximumDuration = videoMaximumDuration
+    var enableTakePicture = true {
+        willSet {
+            tapGesture.isEnabled = newValue
+        }
+    }
+    var enableTakeVideo = true {
+        willSet {
+            longPressGesture.isEnabled = newValue
+        }
+    }
+    var enableSwitchCamera = true {
+        willSet {
+            rearFrontCameraButton.isEnabled = newValue
+        }
+    }
+
+    let tapGesture = UITapGestureRecognizer()
+    let longPressGesture = UILongPressGestureRecognizer()
+
+    override public init(frame: CGRect) {
         super.init(frame: frame)
 
         addSubview(progressView)
@@ -41,7 +63,7 @@ class VideoCaptureOverlay: UIView {
         makeConstraints()
     }
 
-    required init?(coder: NSCoder) {
+    required public init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
@@ -65,16 +87,15 @@ class VideoCaptureOverlay: UIView {
     }
 
     func addGesturesOnProgressView() {
-        let tap = UITapGestureRecognizer(target: self, action: #selector(tapped(_:)))
-        progressView.addGestureRecognizer(tap)
+        tapGesture.addTarget(self, action: #selector(tapped(_:)))
+        progressView.addGestureRecognizer(tapGesture)
 
-        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPress(_:)))
-        longPress.require(toFail: tap)
-        progressView.addGestureRecognizer(longPress)
+        longPressGesture.require(toFail: tapGesture)
+        progressView.addGestureRecognizer(longPressGesture)
     }
 
     @objc func switchCamera(_ sender: UIButton) {
-        delegate?.switchCamera()
+        delegate?.switchCameraDevice(sender)
     }
 
     @objc func dismiss(_ sender: UIButton) {
@@ -82,6 +103,9 @@ class VideoCaptureOverlay: UIView {
     }
 
     @objc func longPress(_ gesture:UILongPressGestureRecognizer) {
+        guard captureMode == .movie else {
+            return
+        }
         switch gesture.state {
         case .began:
             delegate?.startVideoCapturing()
