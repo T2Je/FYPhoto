@@ -17,7 +17,7 @@ public protocol PhotoLauncherDelegate: class {
 }
 
 @objc public class PhotoLauncher: NSObject {
-    public typealias ImagePickerContainer = UIViewController & UINavigationControllerDelegate & UIImagePickerControllerDelegate
+    public typealias CameraContainer = UIViewController & UINavigationControllerDelegate & CameraViewControllerDelegate
 
     public weak var delegate: PhotoLauncherDelegate?
 
@@ -31,26 +31,30 @@ public protocol PhotoLauncherDelegate: class {
         super.init()
     }
 
-    /// Show imagePicker or camera action sheet
+    /// Show PhotoPicker or Camera action sheet. This is for CUSTOM photo picker, if you want to use SYSTEM photo picker,
+    /// use
+    /// `showSystemPhotoPickerAletSheet(in:, sourceRect:, maximumNumberCanChoose:, isOnlyImages:)`
+    /// instead.
     /// - Parameters:
-    ///   - container: camera container. For capturing video in limited duration by custom overlay, container should comform to VideoCaptureOverlayDelegate
+    ///   - container: camera container.
     ///   - sourceRect: the rectangle in the specified view in which to anchor the popover(for iPad).
     ///   - maximumNumberCanChoose: You can choose the maximum number of photos, default 6.
     ///   - isOnlyImages: true => image, false => image & video. If camera action is choosed,
     ///    this flag determines whether camera can capture video.
-    public func showImagePickerAlertSheet(in container: ImagePickerContainer,
-                                          sourceRect: CGRect,
-                                          maximumNumberCanChoose: Int = 6,
-                                          isOnlyImages: Bool = true) {
+    ///    Default video format is mp4.
+    public func showCustomPhotoPickerCameraAlertSheet(in container: CameraContainer,
+                                                      sourceRect: CGRect,
+                                                      maximumNumberCanChoose: Int = 6,
+                                                      isOnlyImages: Bool = true) {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let photo = UIAlertAction(title: "photo".photoTablelocalized, style: .default) { (_) in
-            self.verifyAndLaunchForPhotoLibrary(in: container, maximumNumberCanChoose, isOnlyImages: isOnlyImages)
+            self.launchCustomPhotoLibrary(in: container, maximumNumberCanChoose: maximumNumberCanChoose, isOnlyImages: isOnlyImages)
         }
         let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
             if isOnlyImages {
-                self.verifyAndLaunchForCapture(in: container)
+                self.launchCamera(in: container, captureModes: [CameraViewController.CaptureMode.image])
             } else {
-                self.verifyAndLaunchForCapture(in: container, isOnlyImages: isOnlyImages)
+                self.launchCamera(in: container, captureModes: [CameraViewController.CaptureMode.image, CameraViewController.CaptureMode.movie])
             }
         }
 
@@ -64,31 +68,25 @@ public protocol PhotoLauncherDelegate: class {
         container.present(alert, animated: true, completion: nil)
     }
 
-    @objc public func verifyAndLaunchForCapture(in viewController: ImagePickerContainer, isOnlyImages: Bool = true) {
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
-        case .authorized: // The user has previously granted access to the camera.
-            // launch picker
-            launchCamera(in: viewController, isOnlyImages: isOnlyImages)
-        case .notDetermined:
-            // requset
-            AVCaptureDevice.requestAccess(for: .video) { (granted) in
-                if granted {
-                    DispatchQueue.main.async {
-                        self.launchCamera(in: viewController, isOnlyImages: isOnlyImages)
-                    }
-                } else {
-                    print("denied capture authorization")
-                }
-            }
-        case .denied, .restricted:
-            // .denied: The user has previously denied access
-            break
-        @unknown default:
-            fatalError()
-        }
+    /// launch camera for capturing media
+    /// - Parameters:
+    ///   - viewController: container comforms to some protocols.
+    ///   - captureModes: image / movie
+    ///   - moviePathExtension: movie extension, default is mp4.
+    public func launchCamera(in viewController: CameraContainer,
+                             captureModes: [CameraViewController.CaptureMode] = [.image],
+                             moviePathExtension: String? = nil) {
+        let cameraVC = CameraViewController()
+        cameraVC.captureModes = captureModes
+        cameraVC.modalPresentationStyle = .fullScreen
+        cameraVC.moviePathExtension = moviePathExtension ?? "mp4"
+        cameraVC.delegate = viewController
+        viewController.present(cameraVC, animated: true, completion: nil)
     }
 
-    @objc public func verifyAndLaunchForPhotoLibrary(in viewController: UIViewController,_ maximumNumberCanChoose: Int, isOnlyImages: Bool = true) {
+    public func launchCustomPhotoLibrary(in viewController: UIViewController,
+                                            maximumNumberCanChoose: Int,
+                                            isOnlyImages: Bool = true) {
         switch PHPhotoLibrary.authorizationStatus() {
         case .authorized:
             launchPhotoLibrary(in: viewController, maximumNumberCanChoose, isOnlyImages: isOnlyImages)
@@ -109,7 +107,6 @@ public protocol PhotoLauncherDelegate: class {
     func launchPhotoLibrary(in viewController: UIViewController, _ maximumNumberCanChoose: Int, isOnlyImages: Bool) {
         let gridVC = AssetGridViewController(maximumToSelect: maximumNumberCanChoose, isOnlyImages: isOnlyImages)
         gridVC.selectedPhotos = { [weak self] images in
-            print("selected \(images.count) photos: \(images)")
             self?.delegate?.selectedPhotosInPhotoLauncher(images)
         }
 
@@ -126,88 +123,23 @@ public protocol PhotoLauncherDelegate: class {
             return false
         }
     }
-
-    func launchCamera(in container: ImagePickerContainer, isOnlyImages: Bool = true) {
-        let imageController = UIImagePickerController()
-        imageController.sourceType = .camera
-        if UIImagePickerController.isCameraDeviceAvailable(.rear) {
-            imageController.cameraDevice = .rear
-        } else {
-            imageController.cameraDevice = .front
-        }
-        if isOnlyImages {
-            imageController.cameraCaptureMode = .photo
-            imageController.allowsEditing = true
-            imageController.mediaTypes = [kUTTypeImage] as [String]
-        } else {
-            imageController.videoMaximumDuration = 15
-            imageController.allowsEditing = true
-            imageController.mediaTypes = UIImagePickerController.availableMediaTypes(for: .camera) ?? ([kUTTypeImage, kUTTypeMovie] as [String])
-            imageController.cameraCaptureMode = .video
-            addVideoCaptureOverlay(on: imageController)
-            self.captureVideoImagePicker = imageController
-        }
-        imageController.delegate = container
-        container.modalPresentationStyle = .overFullScreen
-        container.present(imageController, animated: true, completion: nil)
-    }
-
-    func addVideoCaptureOverlay(on imagePickerController: UIImagePickerController) {
-        let frame = imagePickerController.cameraOverlayView?.frame ?? UIScreen.main.bounds
-
-        let overlay = VideoCaptureOverlay(frame: frame)
-        overlay.videoMaximumDuration = imagePickerController.videoMaximumDuration
-        overlay.delegate = self
-        imagePickerController.showsCameraControls = false
-        imagePickerController.cameraOverlayView = overlay
-    }
-}
-
-extension PhotoLauncher: VideoCaptureOverlayDelegate {
-    public func dismissVideoCapture() {
-        captureVideoImagePicker?.dismiss(animated: true, completion: nil)
-    }
-
-    public func takePicture() {
-        guard let imagePicker = captureVideoImagePicker else { return }
-        imagePicker.cameraCaptureMode = .photo
-//        imagePicker.cameraViewTransform = CGAffineTransform(translationX: 0, y: 100)
-        let screenSize = UIScreen.main.bounds.size
-        let cameraAspectRatio: Float = 4.0 / 4.0 /// Note: 4.0 and 4.0 works
-        let imageWidth = floorf(Float(screenSize.width * CGFloat(cameraAspectRatio)))
-        let scale: CGFloat = CGFloat(ceilf((Float(screenSize.height) / imageWidth) * 10.0) / 10.0)
-//        let scale = ceilf((screenSize.height / CGFloat(imageWidth)) * 10.0) / 10.0        
-        imagePicker.cameraViewTransform = CGAffineTransform(scaleX: scale, y: scale)
-        imagePicker.takePicture()
-    }
-
-    public func startVideoCapturing() {
-        guard let imagePicker = captureVideoImagePicker else { return }
-        imagePicker.cameraCaptureMode = .video
-        imagePicker.startVideoCapture()
-    }
-
-    public func stopVideoCapturing(_ isCancel: Bool) {
-        guard let imagePicker = captureVideoImagePicker else { return }
-        print(#function)
-        imagePicker.stopVideoCapture()
-    }
-
-    public func switchCameraDevice(_ cameraButton: UIButton) {
-        guard let imagePicker = captureVideoImagePicker else { return }
-        print(#function)
-        if imagePicker.cameraDevice == .rear {
-            imagePicker.cameraDevice = .front
-        } else {
-            imagePicker.cameraDevice = .rear
-        }
-    }
 }
 
 @available(iOS 14, *)
 extension PhotoLauncher: PHPickerViewControllerDelegate {
 
-    public func showSystemPhotoPickerAletSheet(in container: ImagePickerContainer,
+    /// Show PhotoPicker or Camera action sheet. This is for SYSTEM photo picker, if you want to use CUSTOM photo picker,
+    /// use
+    /// `showCustomPhotoPickerAletSheet(in:, sourceRect:, maximumNumberCanChoose:, isOnlyImages:)`
+    /// instead.
+    /// - Parameters:
+    ///   - container: camera container.
+    ///   - sourceRect: the rectangle in the specified view in which to anchor the popover(for iPad).
+    ///   - maximumNumberCanChoose: You can choose the maximum number of photos, default 6.
+    ///   - isOnlyImages: true => image, false => image & video. If camera action is choosed,
+    ///    this flag determines whether camera can capture video.
+    ///    Default video format is mp4.
+    public func showSystemPhotoPickerAletSheet(in container: CameraContainer,
                                                sourceRect: CGRect,
                                                maximumNumberCanChoose: Int = 6,
                                                isOnlyImages: Bool = true) {
@@ -217,9 +149,9 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
         }
         let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
             if isOnlyImages {
-                self.verifyAndLaunchForCapture(in: container, isOnlyImages: true)
+                self.launchCamera(in: container, captureModes: [.image])
             } else {
-                self.verifyAndLaunchForCapture(in: container, isOnlyImages: false)
+                self.launchCamera(in: container, captureModes: [.image, .movie])
             }
         }
 

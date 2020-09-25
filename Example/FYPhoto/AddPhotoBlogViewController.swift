@@ -362,7 +362,7 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
             if #available(iOS 14, *) {
                 photoLauncher.launchSystemPhotoPicker(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
             } else {
-                photoLauncher.verifyAndLaunchForPhotoLibrary(in: self, photosLimited - selectedImageArray.count)
+                photoLauncher.launchCustomPhotoLibrary(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
             }
         } else {
             var photos = [Photo]()

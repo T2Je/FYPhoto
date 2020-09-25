@@ -161,7 +161,7 @@ class ViewController: UIViewController {
         if #available(iOS 14, *) {
             photoLanucher.showSystemPhotoPickerAletSheet(in: self, sourceRect: sender.frame, maximumNumberCanChoose: 6, isOnlyImages: false)
         } else {
-            photoLanucher.showImagePickerAlertSheet(in: self, sourceRect: sender.frame, maximumNumberCanChoose: 6, isOnlyImages: false)
+            photoLanucher.showCustomPhotoPickerCameraAlertSheet(in: self, sourceRect: sender.frame, maximumNumberCanChoose: 6, isOnlyImages: false)
         }
     }
 
@@ -177,12 +177,13 @@ class ViewController: UIViewController {
     }
 
     @objc func launchCustomCamera(_ sender: UIButton) {
-        let customCamera = CameraViewController()
-        customCamera.delegate = self
-        customCamera.captureModes = [.image, .movie]
-        customCamera.modalPresentationStyle = .fullScreen
-        customCamera.moviePathExtension = "mp4"
-        present(customCamera, animated: true, completion: nil)
+//        let customCamera = CameraViewController()
+//        customCamera.delegate = self
+//        customCamera.captureModes = [.image, .movie]
+//        customCamera.modalPresentationStyle = .fullScreen
+//        customCamera.moviePathExtension = "mp4"
+//        present(customCamera, animated: true, completion: nil)
+        photoLanucher.launchCamera(in: self)
     }
 }
 

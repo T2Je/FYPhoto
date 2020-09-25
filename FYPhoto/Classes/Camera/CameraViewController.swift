@@ -619,7 +619,7 @@ public class CameraViewController: UIViewController {
 public extension CameraViewController.CaptureMode {
     static let image: CameraViewController.CaptureMode = CameraViewController.CaptureMode(rawValue: 0)
     static let movie: CameraViewController.CaptureMode = CameraViewController.CaptureMode(rawValue: 1)
-    static let live: CameraViewController.CaptureMode = CameraViewController.CaptureMode(rawValue: 3)
+//    static let live: CameraViewController.CaptureMode = CameraViewController.CaptureMode(rawValue: 3)
 }
 
 
