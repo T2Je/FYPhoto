@@ -19,7 +19,7 @@ public protocol VideoCaptureOverlayDelegate: class {
 public class VideoCaptureOverlay: UIView {
     weak var delegate: VideoCaptureOverlayDelegate?
     /// capture mode. Default is photo.
-    var captureMode: CameraViewController.CaptureMode = .photo
+    public var captureModes: [CameraViewController.CaptureMode] = [CameraViewController.CaptureMode.image]
 
     let progressView = UICircularProgressRing()
     let rearFrontCameraButton = UIButton()
@@ -40,12 +40,12 @@ public class VideoCaptureOverlay: UIView {
     }
     var enableTakeVideo = true {
         willSet {
-            longPressGesture.isEnabled = newValue
+            longPressGesture.isEnabled = newValue && captureModes.contains(.image)
         }
     }
     var enableSwitchCamera = true {
         willSet {
-            rearFrontCameraButton.isEnabled = newValue
+            rearFrontCameraButton.isEnabled = newValue && captureModes.contains(.movie)
         }
     }
 
@@ -91,6 +91,7 @@ public class VideoCaptureOverlay: UIView {
         progressView.addGestureRecognizer(tapGesture)
 
         longPressGesture.require(toFail: tapGesture)
+        longPressGesture.addTarget(self, action: #selector(longPress(_:)))
         progressView.addGestureRecognizer(longPressGesture)
     }
 
@@ -103,7 +104,7 @@ public class VideoCaptureOverlay: UIView {
     }
 
     @objc func longPress(_ gesture:UILongPressGestureRecognizer) {
-        guard captureMode == .movie else {
+        guard captureModes.contains(.movie) else {
             return
         }
         switch gesture.state {
@@ -127,6 +128,9 @@ public class VideoCaptureOverlay: UIView {
     }
 
     @objc func tapped(_ gesture: UITapGestureRecognizer) {
+        guard captureModes.contains(.image) else {
+            return
+        }
         delegate?.takePicture()
     }
 

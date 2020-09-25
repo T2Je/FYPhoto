@@ -16,18 +16,14 @@ public protocol CameraViewControllerDelegate: class {
 }
 
 public class CameraViewController: UIViewController {
-    public enum CaptureMode: Int {
-       case photo = 0
-       case movie = 1
-   }
-
     public weak var delegate: CameraViewControllerDelegate?
 
-    /// capture mode. Default is photo.
-    var captureMode: CaptureMode = .photo
+    /// capture mode. Default is image.
+    public var captureModes: [CaptureMode] = [CaptureMode.image]
+    public var cameraOverlayView = VideoCaptureOverlay()
+    public var moviePathExtension = "mov"
 
     var previewView = VideoPreviewView()
-    public var cameraOverlayView = VideoCaptureOverlay()
 
     // Session
     private enum SessionSetupResult {
@@ -75,7 +71,7 @@ public class CameraViewController: UIViewController {
         view.addSubview(cameraOverlayView)
         makeConstraints()
 
-        cameraOverlayView.captureMode = captureMode
+        cameraOverlayView.captureModes = [.image]
         cameraOverlayView.delegate = self
 
         previewView.session = session
@@ -84,7 +80,6 @@ public class CameraViewController: UIViewController {
         case .authorized:
             // The user has previously granted access to the camera.
             break
-
         case .notDetermined:
             /*
              The user has not yet been presented with the option to grant
@@ -170,7 +165,6 @@ public class CameraViewController: UIViewController {
                     alertController.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Alert OK button"),
                                                             style: .cancel,
                                                             handler: nil))
-
                     self.present(alertController, animated: true, completion: nil)
                 }
             }
@@ -178,9 +172,11 @@ public class CameraViewController: UIViewController {
     }
 
     public override func viewWillDisappear(_ animated: Bool) {
+        // FIXME: Crashed when switch camera!
+        //                self.session.commitConfiguration()
         sessionQueue.async {
             if self.setupResult == .success {
-//                self.session.commitConfiguration()
+
                 self.session.stopRunning()
                 self.isSessionRunning = self.session.isRunning
                 self.removeObservers()
@@ -210,41 +206,25 @@ public class CameraViewController: UIViewController {
 
     func makeConstraints() {
         previewView.translatesAutoresizingMaskIntoConstraints = false
-        if #available(iOS 11.0, *) {
-            NSLayoutConstraint.activate([
-                previewView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor),
-                previewView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor),
+        NSLayoutConstraint.activate([
+            previewView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
+            previewView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor),
+            previewView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
+            previewView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor)
 //                previewView.centerXAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor),
 //                previewView.centerYAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerYAnchor)
-                previewView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
-                previewView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor)
-            ])
-        } else {
-            NSLayoutConstraint.activate([
-                previewView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-                previewView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-                previewView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-                previewView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor)
-            ])
-        }
+
+//            previewView.centerYAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerYAnchor),
+
+        ])
 
         cameraOverlayView.translatesAutoresizingMaskIntoConstraints = false
-        if #available(iOS 11.0, *) {
-            NSLayoutConstraint.activate([
-                cameraOverlayView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor),
-                cameraOverlayView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor),
-                cameraOverlayView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
-                cameraOverlayView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor)
-            ])
-        } else {
-            NSLayoutConstraint.activate([
-                cameraOverlayView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-                cameraOverlayView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-                cameraOverlayView.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-                cameraOverlayView.centerYAnchor.constraint(equalTo: self.view.centerYAnchor)
-            ])
-        }
-
+        NSLayoutConstraint.activate([
+            cameraOverlayView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor),
+            cameraOverlayView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor),
+            cameraOverlayView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
+            cameraOverlayView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor)
+        ])
     }
 
     // MARK: Session Management
@@ -255,7 +235,6 @@ public class CameraViewController: UIViewController {
         guard setupResult == .success else {
             return
         }
-
         session.beginConfiguration()
 
         /*
@@ -628,6 +607,19 @@ public class CameraViewController: UIViewController {
             self.rawValue = rawValue
         }
     }
+
+    public struct CaptureMode : Hashable, Equatable, RawRepresentable {
+        public let rawValue: Int8
+        public init(rawValue: Int8) {
+            self.rawValue = rawValue
+        }
+    }
+}
+
+public extension CameraViewController.CaptureMode {
+    static let image: CameraViewController.CaptureMode = CameraViewController.CaptureMode(rawValue: 0)
+    static let movie: CameraViewController.CaptureMode = CameraViewController.CaptureMode(rawValue: 1)
+    static let live: CameraViewController.CaptureMode = CameraViewController.CaptureMode(rawValue: 3)
 }
 
 
@@ -767,6 +759,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                 }
                 var mediaInfo: [InfoKey: Any] = [:]
                 mediaInfo[InfoKey.imageURL] = url
+                mediaInfo[InfoKey.mediaType] = kUTTypeImage as String
                 if let data = data {
                     mediaInfo[InfoKey.originalImage] = UIImage(data: data)
                     mediaInfo[InfoKey.mediaMetadata] = data
@@ -805,7 +798,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
 
                 // Start recording video to a temporary file.
                 let outputFileName = NSUUID().uuidString
-                let outputFilePath = (NSTemporaryDirectory() as NSString).appendingPathComponent((outputFileName as NSString).appendingPathExtension("mov")!)
+                let outputFilePath = (NSTemporaryDirectory() as NSString).appendingPathComponent((outputFileName as NSString).appendingPathExtension(self.moviePathExtension)!)
                 movieFileOutput.startRecording(to: URL(fileURLWithPath: outputFilePath), recordingDelegate: self)
             } else {
                 movieFileOutput.stopRecording()

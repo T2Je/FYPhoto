@@ -179,7 +179,9 @@ class ViewController: UIViewController {
     @objc func launchCustomCamera(_ sender: UIButton) {
         let customCamera = CameraViewController()
         customCamera.delegate = self
+        customCamera.captureModes = [.image, .movie]
         customCamera.modalPresentationStyle = .fullScreen
+        customCamera.moviePathExtension = "mp4"
         present(customCamera, animated: true, completion: nil)
     }
 }
@@ -196,7 +198,6 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
         guard let mediaType = info[.mediaType] as? String else { return }
         
         switch mediaType {
-//        case "public.image":
         case String(kUTTypeImage):
             guard let image = info[.originalImage] as? UIImage else { return }
             UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
@@ -282,15 +283,31 @@ extension ViewController: CameraViewControllerDelegate {
         switch mediaType {
 //        case "public.image":
         case String(kUTTypeImage):
+//            guard let data = info[.mediaMetadata] as? Data else { return }
+//            CameraViewController.saveImageDataToAlbums(data) { (error) in
+//                if let error = error {
+//                    print("🤢\(error)🤮")
+//                } else {
+//                    print("image saved")
+//                }
+//
+//            }
             guard let image = info[.originalImage] as? UIImage else { return }
-            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
+//            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
+            CameraViewController.saveImageToAlbums(image) { (error) in
+                if let error = error {
+                    print("🤢\(error)🤮")
+                } else {
+                    print("image saved")
+                }
+            }
             cameraViewController.dismiss(animated: true) {
                 let photo = Photo(image: image)
                 let detailVC = PhotoDetailCollectionViewController(photos: [photo], initialIndex: 0)
                 detailVC.delegate = self
                 self.navigationController?.pushViewController(detailVC, animated: true)
             }
-        case "public.movie":
+        case String(kUTTypeMovie):
             guard
                 let videoURL = info[.mediaURL] as? URL
                 else {

@@ -9,38 +9,24 @@ import Foundation
 import Photos
 
 public extension CameraViewController {
-    static func saveImageDataToAlbums(_ photoData: Data, completion: ((Error?) -> Void)) {
+    enum SaveMediaError: Error, CustomStringConvertible {
+        public var description: String {
+            switch self {
+            case .withoutAuthourity:
+                return "没有权限将照片存储到相册中"
+            }
+        }
+
+        case withoutAuthourity
+
+    }
+    static func saveImageDataToAlbums(_ photoData: Data, completion: @escaping ((Error?) -> Void)) {
         PHPhotoLibrary.requestAuthorization { status in
             if status == .authorized {
                 PHPhotoLibrary.shared().performChanges({
                     let options = PHAssetResourceCreationOptions()
                     let creationRequest = PHAssetCreationRequest.forAsset()
-//                    options.uniformTypeIdentifier = self.requestedPhotoSettings.processedFileType.map { $0.rawValue }
                     creationRequest.addResource(with: .photo, data: photoData, options: options)
-
-//                    if let livePhotoCompanionMovieURL = self.livePhotoCompanionMovieURL {
-//                        let livePhotoCompanionMovieFileOptions = PHAssetResourceCreationOptions()
-//                        livePhotoCompanionMovieFileOptions.shouldMoveFile = true
-//                        creationRequest.addResource(with: .pairedVideo,
-//                                                    fileURL: livePhotoCompanionMovieURL,
-//                                                    options: livePhotoCompanionMovieFileOptions)
-//                    }
-//
-//                    // Save Portrait Effects Matte to Photos Library only if it was generated
-//                    if let portraitEffectsMatteData = self.portraitEffectsMatteData {
-//                        let creationRequest = PHAssetCreationRequest.forAsset()
-//                        creationRequest.addResource(with: .photo,
-//                                                    data: portraitEffectsMatteData,
-//                                                    options: nil)
-//                    }
-//                    // Save Portrait Effects Matte to Photos Library only if it was generated
-//                    for semanticSegmentationMatteData in self.semanticSegmentationMatteDataArray {
-//                        let creationRequest = PHAssetCreationRequest.forAsset()
-//                        creationRequest.addResource(with: .photo,
-//                                                    data: semanticSegmentationMatteData,
-//                                                    options: nil)
-//                    }
-
                 }, completionHandler: { _, error in
                     if let error = error {
                         print("Error occurred while saving photo to photo library: \(error)")
@@ -50,11 +36,55 @@ public extension CameraViewController {
 
                 )
             } else {
-                completion()
+                completion(SaveMediaError.withoutAuthourity)
             }
         }
     }
-    static func saveVideoDataToAlbums(_ videoPath: URL, _ completionTarget: Any?, _ completionSelector: Selector?) {
 
+    static func saveImageToAlbums(_ image: UIImage, completion: @escaping ((Error?) -> Void)) {
+        PHPhotoLibrary.requestAuthorization { status in
+            if status == .authorized {
+                PHPhotoLibrary.shared().performChanges({
+                    let options = PHAssetResourceCreationOptions()
+                    let creationRequest = PHAssetCreationRequest.forAsset()
+//                    options.uniformTypeIdentifier = self.requestedPhotoSettings.processedFileType.map { $0.rawValue }
+                    if let data = image.jpegData(compressionQuality: 1) {
+                        creationRequest.addResource(with: .photo, data: data, options: options)
+                    }
+                }, completionHandler: { _, error in
+                    if let error = error {
+                        print("Error occurred while saving photo to photo library: \(error)")
+                    }
+                    completion(error)
+                }
+
+                )
+            } else {
+                completion(SaveMediaError.withoutAuthourity)
+            }
+        }
+    }
+
+    static func saveVideoDataToAlbums(_ videoPath: URL, completion: @escaping ((Error?) -> Void)) {
+        // Check the authorization status.
+        PHPhotoLibrary.requestAuthorization { status in
+            if status == .authorized {
+                // Save the movie file to the photo library and cleanup.
+                PHPhotoLibrary.shared().performChanges({
+                    let options = PHAssetResourceCreationOptions()
+                    options.shouldMoveFile = true
+                    let creationRequest = PHAssetCreationRequest.forAsset()
+                    creationRequest.addResource(with: .video, fileURL: videoPath, options: options)
+                }, completionHandler: { success, error in
+                    if !success {
+                        print("AVCam couldn't save the movie to your photo library: \(String(describing: error))")
+                    }
+                    completion(error)
+                }
+                )
+            } else {
+                completion(SaveMediaError.withoutAuthourity)
+            }
+        }
     }
 }
