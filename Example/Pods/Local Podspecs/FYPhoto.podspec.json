@@ -1,6 +1,6 @@
 {
   "name": "FYPhoto",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "summary": "A short description of FYPhoto.",
   "description": "TODO: Add long description of the pod here.",
   "homepage": "http://git.feeyo.com/",
@@ -13,7 +13,7 @@
   },
   "source": {
     "git": "http://git.feeyo.com/acdm-ios-base/fyphoto.git",
-    "tag": "0.1.11"
+    "tag": "0.1.12"
   },
   "platforms": {
     "ios": "11"

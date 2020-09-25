@@ -80,7 +80,8 @@ public class VideoCaptureOverlay: UIView {
         rearFrontCameraButton.addTarget(self, action: #selector(switchCamera(_:)), for: .touchUpInside)
         // TODO: TODO Use image instead of title 😴zZ
 //        rearFrontCameraButton.setImage(<#T##image: UIImage?##UIImage?#>, for: <#T##UIControl.State#>)
-        rearFrontCameraButton.setTitle("Front/Rear".photoTablelocalized, for: .normal)
+//        rearFrontCameraButton.setTitle("Front/Rear".photoTablelocalized, for: .normal)
+        rearFrontCameraButton.setImage("FlipCamera".photoImage, for: .normal)
 
         dismissButton.setTitle("Cancel".photoTablelocalized, for: .normal)
         dismissButton.addTarget(self, action: #selector(dismiss(_:)), for: .touchUpInside)
@@ -90,9 +91,11 @@ public class VideoCaptureOverlay: UIView {
         tapGesture.addTarget(self, action: #selector(tapped(_:)))
         progressView.addGestureRecognizer(tapGesture)
 
-        longPressGesture.require(toFail: tapGesture)
+//        longPressGesture.require(toFail: tapGesture)
         longPressGesture.addTarget(self, action: #selector(longPress(_:)))
+        longPressGesture.minimumPressDuration = 0.5
         progressView.addGestureRecognizer(longPressGesture)
+
     }
 
     @objc func switchCamera(_ sender: UIButton) {
@@ -104,6 +107,7 @@ public class VideoCaptureOverlay: UIView {
     }
 
     @objc func longPress(_ gesture:UILongPressGestureRecognizer) {
+        print(#function)
         guard captureModes.contains(.movie) else {
             return
         }
@@ -135,7 +139,7 @@ public class VideoCaptureOverlay: UIView {
     }
 
     func initialProgressView() {
-        UIView.animate(withDuration: 0.1, delay: 0, usingSpringWithDamping: 0.1, initialSpringVelocity: 0, options: UIView.AnimationOptions.curveEaseOut, animations: {
+        UIView.animate(withDuration: 0.37, delay: 0, usingSpringWithDamping: 0.1, initialSpringVelocity: 0, options: UIView.AnimationOptions.curveEaseOut, animations: {
 //            self.progressView.value = 0
             self.progressWidthAnchor?.constant = 110
             self.progressHeightAnchor?.constant = 110
@@ -194,7 +198,7 @@ public class VideoCaptureOverlay: UIView {
         NSLayoutConstraint.activate([
             rearFrontCameraButton.centerYAnchor.constraint(equalTo: self.progressView.centerYAnchor),
             rearFrontCameraButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -20),
-            rearFrontCameraButton.widthAnchor.constraint(equalToConstant: 100),
+            rearFrontCameraButton.widthAnchor.constraint(equalToConstant: 50),
             rearFrontCameraButton.heightAnchor.constraint(equalToConstant: 50)
         ])
 
@@ -216,8 +220,6 @@ public class VideoCaptureOverlay: UIView {
 class VideoTimerRingValueFormatter: UICircularRingValueFormatter {
 
     public init() { }
-
-    // MARK: API
 
     /// formats the value of the progress ring using the given properties
     public func string(for value: Any) -> String? {

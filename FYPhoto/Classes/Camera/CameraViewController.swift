@@ -71,7 +71,7 @@ public class CameraViewController: UIViewController {
         view.addSubview(cameraOverlayView)
         makeConstraints()
 
-        cameraOverlayView.captureModes = [.image]
+        cameraOverlayView.captureModes = captureModes
         cameraOverlayView.delegate = self
 
         previewView.session = session
@@ -698,16 +698,22 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                             self.photoOutput.enabledSemanticSegmentationMatteTypes = self.photoOutput.availableSemanticSegmentationMatteTypes
                             self.photoOutput.maxPhotoQualityPrioritization = .quality
                         }
+                        self.session.commitConfiguration()
                     } catch {
                         print("Error occurred while creating video device input: \(error)")
                     }
                 }
+
             } else {
                 print("Capture devices are unavaliable")
                 return
             }
 
-
+            DispatchQueue.main.sync {
+                self.cameraOverlayView.enableTakeVideo = self.movieFileOutput != nil
+                self.cameraOverlayView.enableTakePicture = true
+                self.cameraOverlayView.enableSwitchCamera = true
+            }
         }
     }
 
@@ -783,7 +789,13 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
         sessionQueue.async {
             if !movieFileOutput.isRecording {
                 if UIDevice.current.isMultitaskingSupported {
-                    self.backgroundRecordingID = UIApplication.shared.beginBackgroundTask(expirationHandler: nil)
+                    self.backgroundRecordingID = UIApplication.shared.beginBackgroundTask(withName: "Finish recording movie", expirationHandler: {
+                        // End the task if time expires.
+                        if let id = self.backgroundRecordingID {
+                            UIApplication.shared.endBackgroundTask(id)
+                        }
+                        self.backgroundRecordingID = UIBackgroundTaskIdentifier.invalid
+                    })
                 }
 
                 // Update the orientation on the movie file output video connection before recording.
@@ -829,6 +841,16 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         defer {
             delegate?.cameraDidCancel(self)
         }
+
+        func endBackgroundTask() {
+            if let currentBackgroundRecordingID = backgroundRecordingID {
+                backgroundRecordingID = UIBackgroundTaskIdentifier.invalid
+
+                if currentBackgroundRecordingID != UIBackgroundTaskIdentifier.invalid {
+                    UIApplication.shared.endBackgroundTask(currentBackgroundRecordingID)
+                }
+            }
+        }
         // Note: Because we use a unique file path for each recording, a new recording won't overwrite a recording mid-save.
         func cleanup() {
             let path = outputFileURL.path
@@ -839,14 +861,7 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
                     print("Could not remove file at url: \(outputFileURL)")
                 }
             }
-
-            if let currentBackgroundRecordingID = backgroundRecordingID {
-                backgroundRecordingID = UIBackgroundTaskIdentifier.invalid
-
-                if currentBackgroundRecordingID != UIBackgroundTaskIdentifier.invalid {
-                    UIApplication.shared.endBackgroundTask(currentBackgroundRecordingID)
-                }
-            }
+            endBackgroundTask()
         }
 
         var success = true
@@ -858,10 +873,11 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
 
         if success {
             var mediaInfo: [CameraViewController.InfoKey: Any] = [:]
-
             mediaInfo[CameraViewController.InfoKey.mediaType] = kUTTypeMovie as String
             mediaInfo[CameraViewController.InfoKey.mediaURL] = outputFileURL
             delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
+
+            endBackgroundTask()
         } else {
             cleanup()
         }
