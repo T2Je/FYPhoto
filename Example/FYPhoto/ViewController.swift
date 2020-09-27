@@ -22,7 +22,7 @@ class ViewController: UIViewController {
         setupUI()
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
-
+        photoLanucher.delegate = self
         print("PhotosAuthority.isCameraAvailable: \(PhotosAuthority.isCameraAvailable())")
         print("PhotosAuthority.isPhotoLibraryAvailable: \(PhotosAuthority.isPhotoLibraryAvailable())")
         print("PhotosAuthority.doesCameraSupportTakingPhotos: \(PhotosAuthority.doesCameraSupportTakingPhotos())")
@@ -157,11 +157,16 @@ class ViewController: UIViewController {
     }
 
     @objc func cameraPhotoButtonClicked(_ sender: UIButton) {
-        photoLanucher.delegate = self
+        var config = PhotoLauncher.PhotoLauncherConfig()
+        config.maximumNumberCanChoose = 6
+        config.isOnlyImages = false
+        config.sourceRect = sender.frame
+        config.videoPathExtension = "mp4"
+        config.videoMaximumDuration = 15
         if #available(iOS 14, *) {
-            photoLanucher.showSystemPhotoPickerAletSheet(in: self, sourceRect: sender.frame, maximumNumberCanChoose: 6, isOnlyImages: false)
+            photoLanucher.showSystemPhotoPickerCameraAlertSheet(in: self, config: config)
         } else {
-            photoLanucher.showCustomPhotoPickerCameraAlertSheet(in: self, sourceRect: sender.frame, maximumNumberCanChoose: 6, isOnlyImages: false)
+            photoLanucher.showCustomPhotoPickerCameraAlertSheet(in: self, config: config)            
         }
     }
 

@@ -22,7 +22,8 @@ public class CameraViewController: UIViewController {
     public var captureModes: [CaptureMode] = [CaptureMode.image]
     public var cameraOverlayView = VideoCaptureOverlay()
     public var moviePathExtension = "mov"
-
+    /// maximum video capture duration. Default 15s
+    public var videoMaximumDuration: TimeInterval = 15
     var previewView = VideoPreviewView()
 
     // Session

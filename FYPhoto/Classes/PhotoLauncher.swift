@@ -16,7 +16,27 @@ public protocol PhotoLauncherDelegate: class {
 //    func selectedPhotosInPhotoLauncher(_ photos: [Photo])
 }
 
+/// A helper class to launch photo picker and camera.
 @objc public class PhotoLauncher: NSObject {
+    public struct PhotoLauncherConfig {
+        /// the rectangle in the specified view in which to anchor the popover(for iPad).
+        public var sourceRect: CGRect = .zero
+        /// You can choose the maximum number of photos, default 6.
+        public var maximumNumberCanChoose: Int = 6
+        /// true => image, false => image & video. If camera action is choosed,
+        /// this flag determines whether camera can capture video.
+        /// Default video format is mp4.
+        public var isOnlyImages: Bool = true
+        /// maximum video capture duration. Default 15s
+        public var videoMaximumDuration: TimeInterval = 15
+        /// url extension, e.g., xxx.mp4
+        public var videoPathExtension: String = "mp4"
+
+        public init() {
+
+        }
+    }
+
     public typealias CameraContainer = UIViewController & UINavigationControllerDelegate & CameraViewControllerDelegate
 
     public weak var delegate: PhotoLauncherDelegate?
@@ -35,36 +55,31 @@ public protocol PhotoLauncherDelegate: class {
     /// use
     /// `showSystemPhotoPickerAletSheet(in:, sourceRect:, maximumNumberCanChoose:, isOnlyImages:)`
     /// instead.
+    /// CUSTOM PhotoPicker need Authority.
     /// - Parameters:
     ///   - container: camera container.
-    ///   - sourceRect: the rectangle in the specified view in which to anchor the popover(for iPad).
-    ///   - maximumNumberCanChoose: You can choose the maximum number of photos, default 6.
-    ///   - isOnlyImages: true => image, false => image & video. If camera action is choosed,
-    ///    this flag determines whether camera can capture video.
-    ///    Default video format is mp4.
-    public func showCustomPhotoPickerCameraAlertSheet(in container: CameraContainer,
-                                                      sourceRect: CGRect,
-                                                      maximumNumberCanChoose: Int = 6,
-                                                      isOnlyImages: Bool = true) {
+    ///   - config: launcher config. Default config:
+    ///     sourceRect = .zero, maximumNumberCanChoose = 6, isOnlyImages = true, videoMaximumDuration = 15, videoPathExtension = mp4
+    public func showCustomPhotoPickerCameraAlertSheet(in container: CameraContainer, config: PhotoLauncherConfig = PhotoLauncherConfig()) {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let photo = UIAlertAction(title: "photo".photoTablelocalized, style: .default) { (_) in
-            self.launchCustomPhotoLibrary(in: container, maximumNumberCanChoose: maximumNumberCanChoose, isOnlyImages: isOnlyImages)
+            self.launchCustomPhotoLibrary(in: container, maximumNumberCanChoose: config.maximumNumberCanChoose, isOnlyImages: config.isOnlyImages)
         }
         let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
-            if isOnlyImages {
+            if config.isOnlyImages {
                 self.launchCamera(in: container, captureModes: [CameraViewController.CaptureMode.image])
             } else {
-                self.launchCamera(in: container, captureModes: [CameraViewController.CaptureMode.image, CameraViewController.CaptureMode.movie])
+                self.launchCamera(in: container, captureModes: [CameraViewController.CaptureMode.image, CameraViewController.CaptureMode.movie], moviePathExtension: config.videoPathExtension)
             }
         }
 
-        let cancel = UIAlertAction(title: "cancel", style: .cancel, handler: nil)
+        let cancel = UIAlertAction(title: "Cancel".photoTablelocalized, style: .cancel, handler: nil)
 
         alert.addAction(photo)
         alert.addAction(camera)
         alert.addAction(cancel)
         alert.popoverPresentationController?.sourceView = container.view
-        alert.popoverPresentationController?.sourceRect = sourceRect
+        alert.popoverPresentationController?.sourceRect = config.sourceRect
         container.present(alert, animated: true, completion: nil)
     }
 
@@ -132,26 +147,22 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
     /// use
     /// `showCustomPhotoPickerAletSheet(in:, sourceRect:, maximumNumberCanChoose:, isOnlyImages:)`
     /// instead.
+    /// SYSTEM PhotoPicker do not need Authority.
     /// - Parameters:
     ///   - container: camera container.
-    ///   - sourceRect: the rectangle in the specified view in which to anchor the popover(for iPad).
-    ///   - maximumNumberCanChoose: You can choose the maximum number of photos, default 6.
-    ///   - isOnlyImages: true => image, false => image & video. If camera action is choosed,
-    ///    this flag determines whether camera can capture video.
-    ///    Default video format is mp4.
-    public func showSystemPhotoPickerAletSheet(in container: CameraContainer,
-                                               sourceRect: CGRect,
-                                               maximumNumberCanChoose: Int = 6,
-                                               isOnlyImages: Bool = true) {
+    ///   - config: launcher config. Default config:
+    ///     sourceRect = .zero, maximumNumberCanChoose = 6, isOnlyImages = true, videoMaximumDuration = 15, videoPathExtension = mp4
+    public func showSystemPhotoPickerCameraAlertSheet(in container: CameraContainer,
+                                                      config: PhotoLauncherConfig = PhotoLauncherConfig()) {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let photo = UIAlertAction(title: "photo".photoTablelocalized, style: .default) { (_) in
-            self.launchSystemPhotoPicker(in: container, maximumNumberCanChoose: maximumNumberCanChoose, isOnlyImages: isOnlyImages)
+            self.launchSystemPhotoPicker(in: container, maximumNumberCanChoose: config.maximumNumberCanChoose, isOnlyImages: config.isOnlyImages)
         }
         let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
-            if isOnlyImages {
+            if config.isOnlyImages {
                 self.launchCamera(in: container, captureModes: [.image])
             } else {
-                self.launchCamera(in: container, captureModes: [.image, .movie])
+                self.launchCamera(in: container, captureModes: [.image, .movie], moviePathExtension: config.videoPathExtension)
             }
         }
 
@@ -161,7 +172,7 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
         alert.addAction(camera)
         alert.addAction(cancel)
         alert.popoverPresentationController?.sourceView = container.view
-        alert.popoverPresentationController?.sourceRect = sourceRect
+        alert.popoverPresentationController?.sourceRect = config.sourceRect
         container.present(alert, animated: true, completion: nil)
     }
 
