@@ -8,6 +8,7 @@
 import UIKit
 import Photos
 import UICircularProgressRing
+import MobileCoreServices
 
 enum ImageViewTap: String {
     case singleTap = "single_tap"
@@ -148,7 +149,10 @@ extension ZoomingScrollView: PhotosDetectingImageViewDelegate {
     }
 
     func handleImageViewDoubleTap(_ touchPoint: CGPoint) {
-        routerEvent(name: ImageViewTap.doubleTap.rawValue, userInfo: ["touchPoint": touchPoint])
+        var info = [String: Any]()
+        info["touchPoint"] = touchPoint
+        info["mediaType"] = kUTTypeImage
+        routerEvent(name: ImageViewTap.doubleTap.rawValue, userInfo: info)
     }
 
 }

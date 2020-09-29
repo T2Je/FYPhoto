@@ -7,6 +7,7 @@
 
 import UIKit
 import Photos
+import MobileCoreServices
 
 private let photoCellReuseIdentifier = "PhotoDetailCell"
 private let videoCellReuseIdentifier = "VideoDetailCell"
@@ -64,7 +65,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     // MARK: Video properties
     var player: AVPlayer?
     var playerItem: AVPlayerItem?
-    var playerTimeObserverToken: Any?
     var isPlaying = false {
         willSet {
             if currentPhoto.isVideo {
@@ -72,6 +72,15 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             }
         }
     }
+    let assetKeys = [
+        "playable",
+        "hasProtectedContent"
+    ]
+    // Key-value observing context
+    private var playerItemStatusContext = 0
+    /// After the movie has played to its end time, seek back to time zero
+    /// to play it again.
+    private var seekToZeroBeforePlay: Bool = false
 
     fileprivate var currentDisplayedIndexPath: IndexPath {
         willSet {
@@ -80,17 +89,13 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             if currentDisplayedIndexPath != newValue {
                 delegate?.photoDetail(self, scrollAt: newValue)
             }
-
             if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
                 updateAddBarItem(at: newValue)
             }
-
             if let canDisplay = delegate?.canDisplayCaption(in: self), canDisplay {
                 updateCaption(at: newValue)
             }
-
             updateNavigationTitle(at: newValue)
-
             stopPlayingVideoIfNeeded(at: currentDisplayedIndexPath)
         }
     }
@@ -116,6 +121,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         }
     }
 
+
     // MARK: - LifeCycle
     public init(photos: [PhotoProtocol], initialIndex: Int) {
         self.photos = photos
@@ -137,6 +143,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     deinit {
         print(#file, #function, "☠️☠️☠️☠️☠️☠️")
+        NotificationCenter.default.removeObserver(self)
     }
 
     public override func viewDidLoad() {
@@ -201,12 +208,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         collectionView.delegate = self
         collectionView.dataSource = self
 //        collectionView.backgroundColor = .white
-        if #available(iOS 11.0, *) {
-            collectionView.contentInsetAdjustmentBehavior = .never
-        } else {
-            // Fallback on earlier versions
-        }
-        self.automaticallyAdjustsScrollViewInsets = false
+        collectionView.contentInsetAdjustmentBehavior = .never
     }
 
     func setupNavigationBar() {
@@ -515,6 +517,11 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         }
     }
 
+    @objc func playerItemDidReachEnd(_ notification: Notification) {
+        isPlaying = false
+        seekToZeroBeforePlay = true
+    }
+
     func recalculateItemSize(inBoundingSize size: CGSize) {
         guard let flowLayout = flowLayout else { return }
         let itemSize = recalculateLayout(flowLayout,
@@ -560,12 +567,25 @@ extension PhotoDetailCollectionViewController {
             switch tap {
             case .singleTap:
                 hideOrShowTopBottom()
-//                use navigationController?.hidesBarsOnTap instead
-//                break
             case .doubleTap:
-                guard let userInfo = userInfo, let touchPoint = userInfo["touchPoint"] as? CGPoint  else { return }
-                guard let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell else { return }
-                handleDoubleTap(touchPoint, on: cell)
+                if let userInfo = userInfo, let mediaType = userInfo["mediaType"] as? String {
+                    let cfstring = mediaType as CFString
+                    switch cfstring {
+                    case kUTTypeImage:
+                        if let touchPoint = userInfo["touchPoint"] as? CGPoint,
+                           let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell  {
+                            handleDoubleTap(touchPoint, on: cell)
+                        }
+                    case kUTTypeVideo:
+                        if isPlaying {
+                            pausePlayback()
+                        } else {
+                            playVideo()
+                        }
+                    default: break
+
+                    }
+                }
             }
         } else {
             // pass the event
@@ -619,7 +639,6 @@ extension PhotoDetailCollectionViewController {
         } else if let url = photo.url {
             setupPlayer(url: url, for: playerView)
         }
-        playerTimeObserverToken = nil
     }
 
     fileprivate func setupPlayer(asset: PHAsset, for playerView: PlayerView) {
@@ -631,36 +650,54 @@ extension PhotoDetailCollectionViewController {
         }
         PHImageManager.default().requestPlayerItem(forVideo: asset, options: options) { (item, info) in
             if let item = item {
-                if let player = self.player {
-                    player.pause()
-                    player.replaceCurrentItem(with: item)
-                    playerView.player = player
-                } else {
-                    let player = AVPlayer(playerItem: item)
-                    playerView.player = player
-                    self.player = player
-                }
+                let player = self.preparePlayer(with: item)
+                playerView.player = player
+                self.player = player
+                self.playerItem = item
             }
         }
     }
 
     fileprivate func setupPlayer(url: URL, for playerView: PlayerView) {
-        let playerItem = AVPlayerItem(url: url)
+        // Create asset to be played
+        let asset = AVAsset(url: url)
+        // Create a new AVPlayerItem with the asset and an
+        // array of asset keys to be automatically loaded
+        let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: assetKeys)
+        let player = preparePlayer(with: playerItem)
+        playerView.player = player
+        self.player = player
+    }
+
+    func preparePlayer(with playerItem: AVPlayerItem) -> AVPlayer {
+        // Register as an observer of the player item's status property
+//        playerItem.addObserver(self,
+//                               forKeyPath: #keyPath(AVPlayerItem.status),
+//                               options: [.old, .new],
+//                               context: &playerItemStatusContext)
+        NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidReachEnd(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
+
+        seekToZeroBeforePlay = false
+        // Associate the player item with the player
+
         if let player = self.player {
             player.pause()
             player.replaceCurrentItem(with: playerItem)
+            return player
         } else {
-            let player = AVPlayer(playerItem: playerItem)
-            playerView.player = player
-            self.player = player
+            return AVPlayer(playerItem: playerItem)
         }
     }
 
     func playVideo() {
         guard let player = player else { return }
+        if seekToZeroBeforePlay {
+            seekToZeroBeforePlay = false
+            player.seek(to: .zero)
+        }
+
         player.play()
         isPlaying = true
-        addBoundaryTimeObserverForPlayer(player, at: player.currentTime())
     }
 
     func pausePlayback() {
@@ -674,35 +711,7 @@ extension PhotoDetailCollectionViewController {
         }
         player.pause()
         player.seek(to: .zero)
-        playerTimeObserverToken = nil
         isPlaying = false
-    }
-
-    fileprivate func addBoundaryTimeObserverForPlayer(_ player: AVPlayer, at currentTime: CMTime) {
-        guard let item = player.currentItem else { return }
-        var times = [NSValue]()
-        // Set initial time to zero
-        var currentTime = currentTime
-        // Divide the asset's duration into quarters.
-        let interval = CMTimeMultiplyByFloat64(item.duration, multiplier: 1)
-
-        // Build boundary times at 25%, 50%, 75%, 100%
-        while currentTime < item.duration {
-            currentTime = currentTime + interval
-            times.append(NSValue(time: currentTime))
-        }
-
-        // Add time observer. Observe boundary time changes on the main queue.
-        playerTimeObserverToken = player.addBoundaryTimeObserver(forTimes: times, queue: .main) { [weak self] in
-            // Update UI
-            guard let self = self else { return }
-            self.isPlaying = false
-            player.seek(to: .zero)
-            if let observer = self.playerTimeObserverToken {
-                player.removeTimeObserver(observer)
-            }
-            self.playerTimeObserverToken = nil
-        }
     }
 }
 

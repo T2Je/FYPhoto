@@ -9,6 +9,7 @@ import UIKit
 import AVFoundation
 import Photos
 import SDWebImage
+import MobileCoreServices
 
 class VideoDetailCell: UICollectionViewCell {
     var playerView = PlayerView()
@@ -52,7 +53,13 @@ class VideoDetailCell: UICollectionViewCell {
 
         setupActivityIndicator()
 
+
+        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(doubleTapVideoCell(_:)))
+        doubleTap.numberOfTapsRequired = 2
+        contentView.addGestureRecognizer(doubleTap)
+
         let tap = UITapGestureRecognizer(target: self, action: #selector(tapVideoCell(_:)))
+        tap.require(toFail: doubleTap)
         contentView.addGestureRecognizer(tap)
 
         makeConstraints()
@@ -76,14 +83,6 @@ class VideoDetailCell: UICollectionViewCell {
         super.layoutSubviews()
     }
 
-//    fileprivate func setupPlayButton() {
-//        //        Icons made by <a href="https://www.flaticon.com/authors/those-icons" title="Those Icons">Those Icons</a> from <a href="https://www.flaticon.com/" title="Flaticon"> www.flaticon.com</a>
-//        playButton.setImage("play_button".photoImage, for: .normal)
-//        playButton.addTarget(self, action: #selector(playVideo(_:)), for: .touchUpInside)
-//        playButton.frame = CGRect(x: 0, y: 0, width: 50, height: 50)
-//        playButton.center = contentView.center
-//    }
-
     fileprivate func setupActivityIndicator() {
         activityIndicator.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
         activityIndicator.center = contentView.center
@@ -91,7 +90,9 @@ class VideoDetailCell: UICollectionViewCell {
     }
 
     fileprivate func display(url: URL) {
+        activityIndicator.startAnimating()
         photo.generateThumbnail(url, size: .zero) { (image) in
+            self.activityIndicator.stopAnimating()
             if let image = image {
                 self.photo.underlyingImage = image
             } else {
@@ -136,6 +137,12 @@ class VideoDetailCell: UICollectionViewCell {
 
     @objc func tapVideoCell(_ gesture: UITapGestureRecognizer) {
         routerEvent(name: ImageViewTap.singleTap.rawValue, userInfo: nil)
+    }
+
+    @objc func doubleTapVideoCell(_ gesture: UITapGestureRecognizer) {
+        var info = [String: Any]()
+        info["mediaType"] = kUTTypeVideo
+        routerEvent(name: ImageViewTap.doubleTap.rawValue, userInfo: info)
     }
 
     fileprivate func makeConstraints() {
