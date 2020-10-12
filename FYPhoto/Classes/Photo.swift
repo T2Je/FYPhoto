@@ -102,7 +102,7 @@ extension Photo {
         }
 
         urlAssetQueue.async { // 1
-            let asset = AVAsset(url: url) //2
+            let asset = AVURLAsset(url: url) //2
             let avAssetImageGenerator = AVAssetImageGenerator(asset: asset) //3
             avAssetImageGenerator.maximumSize = size
             avAssetImageGenerator.appliesPreferredTrackTransform = true //4

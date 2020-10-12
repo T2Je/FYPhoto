@@ -864,7 +864,8 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
 
         if error != nil {
             print("Movie file finishing error: \(String(describing: error))")
-            success = (((error! as NSError).userInfo[AVErrorRecordingSuccessfullyFinishedKey] as AnyObject).boolValue)!
+            success = false
+//            success = (((error! as NSError).userInfo[AVErrorRecordingSuccessfullyFinishedKey] as AnyObject).boolValue)!
         }
 
         if success {

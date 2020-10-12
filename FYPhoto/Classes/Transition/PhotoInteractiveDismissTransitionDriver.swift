@@ -56,9 +56,9 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
             let toAssetTransitioning = (toViewController as? PhotoTransitioning),
             let fromView = fromViewController.view,
             let toView = toViewController.view
-            else {
-                assertionFailure("None of them should be nil")
-                return
+        else {
+            assertionFailure("None of them should be nil")
+            return
         }
 
         self.fromAssetTransitioning = fromAssetTransitioning
@@ -121,27 +121,27 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
 
     @objc func updateInteraction(_ fromGesture: UIPanGestureRecognizer) {
         switch fromGesture.state {
-            case .began, .changed:
-                // Ask the gesture recognizer for it's translation
-                let translation = fromGesture.translation(in: transitionContext.containerView)
+        case .began, .changed:
+            // Ask the gesture recognizer for it's translation
+            let translation = fromGesture.translation(in: transitionContext.containerView)
 
-                // Calculate the percent complete
-                let percentComplete = competionFor(translation: translation)
+            // Calculate the percent complete
+            let percentComplete = competionFor(translation: translation)
 
-                let transitionImageScale = transitionImageScaleFor(percentageComplete: percentComplete)
+            let transitionImageScale = transitionImageScaleFor(percentageComplete: percentComplete)
 
-                // Update the transition animator's fractionCompete to scrub it's animations
-                transitionAnimator.fractionComplete = percentComplete
+            // Update the transition animator's fractionCompete to scrub it's animations
+            transitionAnimator.fractionComplete = percentComplete
 
-                // Inform the transition context of the updated percent complete
-                transitionContext.updateInteractiveTransition(percentComplete)
+            // Inform the transition context of the updated percent complete
+            transitionContext.updateInteractiveTransition(percentComplete)
 
-                // Update each transition item for the
-                updateItemForInteractive(translation: translation, scale: transitionImageScale)
-            case .ended, .cancelled:
-                // End the interactive phase of the transition
-                endInteraction()
-            default: break
+            // Update each transition item for the
+            updateItemForInteractive(translation: translation, scale: transitionImageScale)
+        case .ended, .cancelled:
+            // End the interactive phase of the transition
+            endInteraction()
+        default: break
         }
     }
 
@@ -163,7 +163,7 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         // I dialed these in on-device using SwiftTweaks.
         let completionDuration: Double
         let completionDamping: CGFloat
-//        let finalFrame: CGRect
+        //        let finalFrame: CGRect
         if toPosition != .end { // cancel
             completionDuration = 0.45
             completionDamping = 0.75
@@ -221,39 +221,39 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
 
     // MARK: Private Helpers
 
-        func competionFor(translation: CGPoint) -> CGFloat {
-            return translation.y / transitionContext.containerView.bounds.midY
-        }
+    func competionFor(translation: CGPoint) -> CGFloat {
+        return translation.y / transitionContext.containerView.bounds.midY
+    }
 
-        private func transitionImageScaleFor(percentageComplete: CGFloat) -> CGFloat {
-            let minScale = CGFloat(0.68)
-            let result = 1 - (1 - minScale) * percentageComplete
-            return result
-        }
+    private func transitionImageScaleFor(percentageComplete: CGFloat) -> CGFloat {
+        let minScale = CGFloat(0.68)
+        let result = 1 - (1 - minScale) * percentageComplete
+        return result
+    }
 
-        func updateItemForInteractive(translation: CGPoint, scale: CGFloat) {
-            transitionImageView.transform = CGAffineTransform.identity.scaledBy(x: scale, y: scale)
-                .translatedBy(x: translation.x, y: translation.y)
-        }
+    func updateItemForInteractive(translation: CGPoint, scale: CGFloat) {
+        transitionImageView.transform = CGAffineTransform.identity.scaledBy(x: scale, y: scale)
+            .translatedBy(x: translation.x, y: translation.y)
+    }
 
-        private func completionPosition() -> UIViewAnimatingPosition {
-            let completionThreshold: CGFloat = 0.33
-            let flickMagnitude: CGFloat = 1200 //pts/sec
-            let velocity = panGestureRecognizer.velocity(in: transitionContext.containerView).vector
-            let isFlick = (velocity.magnitude > flickMagnitude)
-            let isFlickDown = isFlick && (velocity.dy > 0.0)
-            let isFlickUp = isFlick && (velocity.dy < 0.0)
+    private func completionPosition() -> UIViewAnimatingPosition {
+        let completionThreshold: CGFloat = 0.0 // Dismiss when interaction starting
+        let flickMagnitude: CGFloat = 1200 //pts/sec
+        let velocity = panGestureRecognizer.velocity(in: transitionContext.containerView).vector
+        let isFlick = (velocity.magnitude > flickMagnitude)
+        let isFlickDown = isFlick && (velocity.dy > 0.0)
+        let isFlickUp = isFlick && (velocity.dy < 0.0)
 
-            if isFlickDown {
-                return .end
-            } else if isFlickUp {
-                return .start
-            } else if transitionAnimator.fractionComplete > completionThreshold {
-                return .end
-            } else {
-                return .start
-            }
+        if isFlickDown {
+            return .end
+        } else if isFlickUp {
+            return .start
+        } else if transitionAnimator.fractionComplete > completionThreshold {
+            return .end
+        } else {
+            return .start
         }
+    }
     /// For a given vertical offset, what's the percentage complete for the transition?
     /// e.g. -100pts -> 0%, 0pts -> 0%, 20pts -> 10%, 200pts -> 100%, 400pts -> 100%
     private func percentageComplete(forVerticalDrag verticalDrag: CGFloat) -> CGFloat {
