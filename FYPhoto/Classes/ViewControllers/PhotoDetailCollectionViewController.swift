@@ -171,9 +171,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     public override func viewWillAppear(_ animated: Bool) {
-        try? AVAudioSession.sharedInstance().setCategory(.playback)
-
         super.viewWillAppear(animated)
+        try? AVAudioSession.sharedInstance().setCategory(.playback)
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
         if let showNavigationBar = delegate?.showNavigationBar(in: self) {
             self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: true)
@@ -182,7 +181,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         }
 
         if let showToolBar = delegate?.showBottomToolBar(in: self) {
-            self.navigationController?.setToolbarHidden(!showToolBar, animated: true)
+            self.navigationController?.setToolbarHidden(!showToolBar, animated: false)
         } else {
             self.navigationController?.setToolbarHidden(true, animated: false)
         }
@@ -241,7 +240,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             }
 
             updateToolBar(shouldShowDone: showDone, shouldShowPlay: showVideoPlay)
-
         }
     }
 
