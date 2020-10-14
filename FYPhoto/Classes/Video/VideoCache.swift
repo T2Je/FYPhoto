@@ -11,20 +11,20 @@ import Alamofire
 
 
 /// Cache remote videos, expired in 7 days
-class VideoCache: NSObject {
-    private static let diskConfig = DiskConfig(name: "VideoReourceCache", expiry: .seconds(3600*24*7))
+public class VideoCache: NSObject {
+    private static let diskConfig = DiskConfig(name: "VideoReourceCache", expiry: .seconds(3600*24*3))
     private static let memoryConfig = MemoryConfig(expiry: .never, countLimit: 10, totalCostLimit: 10)
     private static let storage = try? Storage.init(diskConfig: VideoCache.diskConfig, memoryConfig: VideoCache.memoryConfig, transformer: TransformerFactory.forData())
 
-    static func clearAll() {
+    public static func clearAll() {
         try? storage?.removeAll()
     }
 
-    static func save(data: Data, key: URL) {
+    public static func save(data: Data, key: URL) {
         try? storage?.setObject(data, forKey: key.absoluteString)
     }
 
-    static func fetch(key: URL, success: @escaping (_ data: Data) -> Void, failed: @escaping (_ error: Error) -> Void) {
+    public static func fetch(key: URL, success: @escaping (_ data: Data) -> Void, failed: @escaping (_ error: Error) -> Void) {
         if let temp = try? storage?.object(forKey: key.absoluteString) {
             success(temp)
         } else {
@@ -40,7 +40,7 @@ class VideoCache: NSObject {
         }
     }
 
-    static func fetchURL(key: URL, success: @escaping (_ filePath: URL)->Void, failed: @escaping (_ error: Error)->Void) {
+    public static func fetchURL(key: URL, success: @escaping (_ filePath: URL)->Void, failed: @escaping (_ error: Error)->Void) {
         if let temp = try? VideoCache.storage?.transformData().entry(forKey: key.absoluteString),
             let filePath = temp.filePath {
             let url = URL(fileURLWithPath: filePath)
