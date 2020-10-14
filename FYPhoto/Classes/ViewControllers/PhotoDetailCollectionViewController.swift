@@ -658,7 +658,6 @@ extension PhotoDetailCollectionViewController {
 
     fileprivate func setupPlayer(url: URL, for playerView: PlayerView) {
         if url.isFileURL {
-            URL(fileURLWithPath: <#T##String#>)
             // Create asset to be played
             let asset = AVAsset(url: url)
             // Create a new AVPlayerItem with the asset and an
