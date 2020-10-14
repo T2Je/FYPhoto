@@ -50,6 +50,7 @@ public class Photo: PhotoProtocol {
     public private(set) var resourceType: PhotoResourceType
 
     var urlAssetQueue: DispatchQueue!
+    let videoTypes = ["mp4", "m4a", "mov"]
 
     public var isVideo: Bool {
         if let asset = asset {
@@ -61,7 +62,12 @@ public class Photo: PhotoProtocol {
             if url.isVideo() {
                 return true
             }
-            return false
+            // last chance. For example: http://client.gsup.sichuanair.com/file.php?70c1dafd4eaccb9a722ac3fcd8459cfc.jpg
+            if let suffix = url.absoluteString.components(separatedBy: ".").last {
+                return videoTypes.contains(suffix)
+            } else {
+                return false
+            }                        
         } else {
             return false
         }

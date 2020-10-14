@@ -657,14 +657,29 @@ extension PhotoDetailCollectionViewController {
     }
 
     fileprivate func setupPlayer(url: URL, for playerView: PlayerView) {
-        // Create asset to be played
-        let asset = AVAsset(url: url)
-        // Create a new AVPlayerItem with the asset and an
-        // array of asset keys to be automatically loaded
-        let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: assetKeys)
-        let player = preparePlayer(with: playerItem)
-        playerView.player = player
-        self.player = player
+        if url.isFileURL {
+            URL(fileURLWithPath: <#T##String#>)
+            // Create asset to be played
+            let asset = AVAsset(url: url)
+            // Create a new AVPlayerItem with the asset and an
+            // array of asset keys to be automatically loaded
+            let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: assetKeys)
+            let player = preparePlayer(with: playerItem)
+            playerView.player = player
+            self.player = player
+        } else {
+            VideoCache.fetchURL(key: url) { (filePath) in
+                // Create a new AVPlayerItem with the asset and an
+                // array of asset keys to be automatically loaded
+                let asset = AVAsset(url: filePath)
+                let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: self.assetKeys)
+                let player = self.preparePlayer(with: playerItem)
+                playerView.player = player
+                self.player = player
+            } failed: { (error) in
+                print("FYPhoto fetch url error: \(error)")
+            }
+        }
     }
 
     func preparePlayer(with playerItem: AVPlayerItem) -> AVPlayer {
@@ -674,6 +689,8 @@ extension PhotoDetailCollectionViewController {
 //                               options: [.old, .new],
 //                               context: &playerItemStatusContext)
         NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidReachEnd(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
+
+//        playerItem.addObserver(self, forKeyPath: "status", options: [.initial, .new], context: nil)
 
         seekToZeroBeforePlay = false
         // Associate the player item with the player
@@ -710,6 +727,22 @@ extension PhotoDetailCollectionViewController {
         player.pause()
         player.seek(to: .zero)
         isPlaying = false
+    }
+
+    public override class func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == "status" {
+            if let status = change?[.newKey] as? AVPlayerItem.Status {
+                switch status {
+                case .readyToPlay:
+                    print("ready to play")
+                case .failed:
+                    print("Faild to play")
+                case .unknown:
+                    break
+                }
+            }
+        }
+        super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
     }
 }
 
