@@ -55,7 +55,7 @@
 		1DDD940881AC0BAE9B56AA250E425E9C /* SDImageLoadersManager.m in Sources */ = {isa = PBXBuildFile; fileRef = B61C1D17186D9CF49046C7EF427E2B0D /* SDImageLoadersManager.m */; };
 		1E017F66AA80E0483E0B6019FFF173EF /* SDWeakProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = DD7AD2B912AFE695BF4AF13F7F9B96CD /* SDWeakProxy.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		1E5591B0022AB3F952D02FBF25555A64 /* CameraViewController+Tool.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63189FCED2EC592C577ED4E14F4D0902 /* CameraViewController+Tool.swift */; };
-		1E986F4F0AD20F5C5571F7B2FD97C7CF /* URL+ImageVideoChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3B4DFB742C9B9CAE25CB1F975B4C5D /* URL+ImageVideoChecker.swift */; };
+		1E986F4F0AD20F5C5571F7B2FD97C7CF /* URL+mediaType.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F3B4DFB742C9B9CAE25CB1F975B4C5D /* URL+mediaType.swift */; };
 		1F9EBF90C453D11041940E097774C258 /* SDImageFrame.m in Sources */ = {isa = PBXBuildFile; fileRef = B7A8A78D64F740C2DF48335E475BD3A7 /* SDImageFrame.m */; };
 		201A5827D41D803D978158624BCACC44 /* SDAnimatedImagePlayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 31993B05D7F60185EFC651BD33E27AFA /* SDAnimatedImagePlayer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		212EDC48B68107BEA9247F3464CE696E /* StringEncoding+Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99AC1057D919AF9337FF48832676E640 /* StringEncoding+Alamofire.swift */; };
@@ -734,7 +734,7 @@
 		5D50ED21F55CCC15611A55159B1D8B40 /* SDImageAPNGCoder.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = SDImageAPNGCoder.m; path = SDWebImage/Core/SDImageAPNGCoder.m; sourceTree = "<group>"; };
 		5D797E9A5C5782CE845840781FA1CC81 /* Alamofire.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Alamofire.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		5D9D305016D265E0390E2435CDA612FF /* PhotoPickerResource.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PhotoPickerResource.swift; path = FYPhoto/Classes/PhotoPickerResource.swift; sourceTree = "<group>"; };
-		5F3B4DFB742C9B9CAE25CB1F975B4C5D /* URL+ImageVideoChecker.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "URL+ImageVideoChecker.swift"; sourceTree = "<group>"; };
+		5F3B4DFB742C9B9CAE25CB1F975B4C5D /* URL+mediaType.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "URL+mediaType.swift"; sourceTree = "<group>"; };
 		5F401BF305400A45990C09A9A0036B91 /* SDImageCodersManager.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = SDImageCodersManager.h; path = SDWebImage/Core/SDImageCodersManager.h; sourceTree = "<group>"; };
 		5F68BC1DEA160E4D9D6C8B60CFDC1601 /* UIViewController+BarItem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "UIViewController+BarItem.swift"; path = "FGBase/Classes/NavigationBar/UIViewController+BarItem.swift"; sourceTree = "<group>"; };
 		608F1FAF88312B44E41020B4F24F52FA /* UIImageView+WebCache.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "UIImageView+WebCache.m"; path = "SDWebImage/Core/UIImageView+WebCache.m"; sourceTree = "<group>"; };
@@ -1606,7 +1606,7 @@
 				BC1159FF33FE55EAD896EB1FC37899EA /* CG+extensions.swift */,
 				708ED24594C4042B8E4901EE5FEE419D /* UICollectionView+IndexPathsInRect.swift */,
 				10FA7C3F77C45E9174D6EFEC8964DEBE /* UIResponder+routerEvent.swift */,
-				5F3B4DFB742C9B9CAE25CB1F975B4C5D /* URL+ImageVideoChecker.swift */,
+				5F3B4DFB742C9B9CAE25CB1F975B4C5D /* URL+mediaType.swift */,
 			);
 			name = extensions;
 			path = FYPhoto/Classes/extensions;
@@ -2976,7 +2976,7 @@
 				650D151C26345BCC8AE9CDBF8DFCADC6 /* UICollectionView+IndexPathsInRect.swift in Sources */,
 				D7ABF045533E771A308BC6DEE8E38BBF /* UIImagePickerController+Tool.swift in Sources */,
 				76F98958F23D33CABF70A24B845C8A46 /* UIResponder+routerEvent.swift in Sources */,
-				1E986F4F0AD20F5C5571F7B2FD97C7CF /* URL+ImageVideoChecker.swift in Sources */,
+				1E986F4F0AD20F5C5571F7B2FD97C7CF /* URL+mediaType.swift in Sources */,
 				BE197109492F3808F9C23E8E1BAEEFD7 /* VideoCache.swift in Sources */,
 				286D4038126F5CD4C47ADF0D3CDB7AAC /* VideoCaptureOverlay.swift in Sources */,
 				3B5B4DCD6D7D0DA9387A5283784655BC /* VideoCountDownOverlay.swift in Sources */,
