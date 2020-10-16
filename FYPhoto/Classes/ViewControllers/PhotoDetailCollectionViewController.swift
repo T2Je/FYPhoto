@@ -64,7 +64,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     // MARK: Video properties
     var player: AVPlayer?
-    var playerItem: AVPlayerItem?
+    var mPlayerItem: AVPlayerItem?
     var isPlaying = false {
         willSet {
             if currentPhoto.isVideo {
@@ -121,6 +121,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         }
     }
 
+    var playerItemStatusToken: NSKeyValueObservation?
+
 
     // MARK: - LifeCycle
     public init(photos: [PhotoProtocol], initialIndex: Int) {
@@ -144,6 +146,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     deinit {
         print(#file, #function, "☠️☠️☠️☠️☠️☠️")
         NotificationCenter.default.removeObserver(self)
+        playerItemStatusToken?.invalidate()
+        player?.pause()
     }
 
     public override func viewDidLoad() {
@@ -566,31 +570,15 @@ extension PhotoDetailCollectionViewController {
             case .singleTap:
                 hideOrShowTopBottom()
             case .doubleTap:
-                if let userInfo = userInfo, let mediaType = userInfo["mediaType"] as? String {
-                    let cfstring = mediaType as CFString
-                    switch cfstring {
-                    case kUTTypeImage:
-                        if let touchPoint = userInfo["touchPoint"] as? CGPoint,
-                           let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell  {
-                            handleDoubleTap(touchPoint, on: cell)
-                        }
-                    case kUTTypeVideo:
-                        if isPlaying {
-                            pausePlayback()
-                        } else {
-                            playVideo()
-                        }
-                    default: break
-
-                    }
-                }
+                handleDoubleTap(userInfo)
             }
         } else {
             // pass the event
             next?.routerEvent(name: name, userInfo: userInfo)
         }
     }
-    func hideOrShowTopBottom() {
+
+    fileprivate func hideOrShowTopBottom() {
         if let showNavigationBar = delegate?.showNavigationBar(in: self), showNavigationBar {
             self.navigationController?.setNavigationBarHidden(!(self.navigationController?.isNavigationBarHidden ?? true), animated: true)
         }
@@ -604,7 +592,28 @@ extension PhotoDetailCollectionViewController {
         }
     }
 
-    func handleDoubleTap(_ touchPoint: CGPoint, on cell: PhotoDetailCell) {
+    fileprivate func handleDoubleTap(_ userInfo: [AnyHashable : Any]?) {
+        if let userInfo = userInfo, let mediaType = userInfo["mediaType"] as? String {
+            let cfstring = mediaType as CFString
+            switch cfstring {
+            case kUTTypeImage:
+                if let touchPoint = userInfo["touchPoint"] as? CGPoint,
+                   let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell  {
+                    doubleTap(touchPoint, on: cell)
+                }
+            case kUTTypeVideo:
+                if isPlaying {
+                    pausePlayback()
+                } else {
+                    playVideo()
+                }
+            default: break
+
+            }
+        }
+    }
+
+    fileprivate func doubleTap(_ touchPoint: CGPoint, on cell: PhotoDetailCell) {
         let scale = min(cell.zoomingView.zoomScale * 2, cell.zoomingView.maximumZoomScale)
         if cell.zoomingView.zoomScale == 1 {
             let zoomRect = zoomRectForScale(scale: scale, center: touchPoint, for: cell.zoomingView)
@@ -614,7 +623,7 @@ extension PhotoDetailCollectionViewController {
         }
     }
 
-    func zoomRectForScale(scale: CGFloat, center: CGPoint, for scroolView: UIScrollView) -> CGRect {
+    fileprivate func zoomRectForScale(scale: CGFloat, center: CGPoint, for scroolView: UIScrollView) -> CGRect {
         var zoomRect = CGRect.zero
         zoomRect.size.height = scroolView.frame.size.height / scale
         zoomRect.size.width  = scroolView.frame.size.width  / scale
@@ -651,7 +660,6 @@ extension PhotoDetailCollectionViewController {
                 let player = self.preparePlayer(with: item)
                 playerView.player = player
                 self.player = player
-                self.playerItem = item
             }
         }
     }
@@ -681,15 +689,37 @@ extension PhotoDetailCollectionViewController {
         }
     }
 
-    func preparePlayer(with playerItem: AVPlayerItem) -> AVPlayer {
-        // Register as an observer of the player item's status property
-//        playerItem.addObserver(self,
-//                               forKeyPath: #keyPath(AVPlayerItem.status),
-//                               options: [.old, .new],
-//                               context: &playerItemStatusContext)
-        NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidReachEnd(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
+    fileprivate func preparePlayer(with playerItem: AVPlayerItem) -> AVPlayer {
+        if let currentItem = mPlayerItem {
+            playerItemStatusToken?.invalidate()
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: currentItem)
+        }
+        self.mPlayerItem = playerItem
+        // observing the player item's status property
+        playerItemStatusToken = playerItem.observe(\.status, options: .new) { (item, change) in
+            // Switch over status value
+            switch change.newValue {
+            case .readyToPlay:
+                print("Player item is ready to play.")
+            // Player item is ready to play.
+            case .failed:
+                print("Player item failed. See error.")
+            // Player item failed. See error.
+            case .unknown:
+                print("unknown status")
+            // Player item is not yet ready.
+            case .none:
+                break
+            @unknown default:
+                fatalError()
+            }
+        }
 
-//        playerItem.addObserver(self, forKeyPath: "status", options: [.initial, .new], context: nil)
+        playerItem.addObserver(self,
+                               forKeyPath: #keyPath(AVPlayerItem.status),
+                               options: [.old, .new],
+                               context: &playerItemStatusContext)
+        NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidReachEnd(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
 
         seekToZeroBeforePlay = false
         // Associate the player item with the player
@@ -703,7 +733,7 @@ extension PhotoDetailCollectionViewController {
         }
     }
 
-    func playVideo() {
+    fileprivate func playVideo() {
         guard let player = player else { return }
         if seekToZeroBeforePlay {
             seekToZeroBeforePlay = false
@@ -714,34 +744,18 @@ extension PhotoDetailCollectionViewController {
         isPlaying = true
     }
 
-    func pausePlayback() {
+    fileprivate func pausePlayback() {
         player?.pause()
         isPlaying = false
     }
 
-    func stopPlayingIfNeeded() {
+    fileprivate func stopPlayingIfNeeded() {
         guard let player = player, isPlaying else {
             return
         }
         player.pause()
         player.seek(to: .zero)
         isPlaying = false
-    }
-
-    public override class func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == "status" {
-            if let status = change?[.newKey] as? AVPlayerItem.Status {
-                switch status {
-                case .readyToPlay:
-                    print("ready to play")
-                case .failed:
-                    print("Faild to play")
-                case .unknown:
-                    break
-                }
-            }
-        }
-        super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
     }
 }
 
