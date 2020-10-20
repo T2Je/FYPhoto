@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'FYPhoto'
-  s.version          = '0.1.14'
+  s.version          = '0.2.0'
   s.summary          = 'A short description of FYPhoto.'
 
 # This description is used to generate tags and improve search results.
@@ -41,6 +41,6 @@ TODO: Add long description of the pod here.
 
    s.dependency 'SDWebImage/Core'
    s.dependency 'UICircularProgressRing'
-   s.dependency 'Cache'
+   s.dependency 'Cache', '5.3.0'
    s.dependency 'Alamofire'
 end

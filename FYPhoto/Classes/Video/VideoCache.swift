@@ -10,7 +10,7 @@ import Cache
 import Alamofire
 
 
-/// Cache remote videos, expired in 7 days
+/// Cache remote videos, expired in 3 days
 public class VideoCache: NSObject {
     private static let diskConfig = DiskConfig(name: "VideoReourceCache", expiry: .seconds(3600*24*3))
     private static let memoryConfig = MemoryConfig(expiry: .never, countLimit: 10, totalCostLimit: 10)
