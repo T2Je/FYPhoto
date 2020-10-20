@@ -76,8 +76,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         "playable",
         "hasProtectedContent"
     ]
-    // Key-value observing context
-    private var playerItemStatusContext = 0
+
     /// After the movie has played to its end time, seek back to time zero
     /// to play it again.
     private var seekToZeroBeforePlay: Bool = false
@@ -714,11 +713,7 @@ extension PhotoDetailCollectionViewController {
                 fatalError()
             }
         }
-
-        playerItem.addObserver(self,
-                               forKeyPath: #keyPath(AVPlayerItem.status),
-                               options: [.old, .new],
-                               context: &playerItemStatusContext)
+        
         NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidReachEnd(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
 
         seekToZeroBeforePlay = false
