@@ -208,23 +208,18 @@ public class CameraViewController: UIViewController {
     func makeConstraints() {
         previewView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            previewView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
-            previewView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor),
-            previewView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
-            previewView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor)
-//                previewView.centerXAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerXAnchor),
-//                previewView.centerYAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerYAnchor)
-
-//            previewView.centerYAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.centerYAnchor),
-
+            previewView.topAnchor.constraint(equalTo: self.view.topAnchor),
+            previewView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            previewView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+            previewView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
         ])
 
         cameraOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            cameraOverlayView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor),
-            cameraOverlayView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor),
-            cameraOverlayView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor),
-            cameraOverlayView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor)
+            cameraOverlayView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            cameraOverlayView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            cameraOverlayView.topAnchor.constraint(equalTo: self.view.topAnchor),
+            cameraOverlayView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
         ])
     }
 
@@ -869,7 +864,8 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
 
         if error != nil {
             print("Movie file finishing error: \(String(describing: error))")
-            success = (((error! as NSError).userInfo[AVErrorRecordingSuccessfullyFinishedKey] as AnyObject).boolValue)!
+            success = false
+//            success = (((error! as NSError).userInfo[AVErrorRecordingSuccessfullyFinishedKey] as AnyObject).boolValue)!
         }
 
         if success {

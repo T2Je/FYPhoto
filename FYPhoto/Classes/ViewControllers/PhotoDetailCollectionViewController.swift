@@ -7,6 +7,7 @@
 
 import UIKit
 import Photos
+import MobileCoreServices
 
 private let photoCellReuseIdentifier = "PhotoDetailCell"
 private let videoCellReuseIdentifier = "VideoDetailCell"
@@ -63,8 +64,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     // MARK: Video properties
     var player: AVPlayer?
-    var playerItem: AVPlayerItem?
-    var playerTimeObserverToken: Any?
+    var mPlayerItem: AVPlayerItem?
     var isPlaying = false {
         willSet {
             if currentPhoto.isVideo {
@@ -72,6 +72,15 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             }
         }
     }
+    let assetKeys = [
+        "playable",
+        "hasProtectedContent"
+    ]
+    // Key-value observing context
+    private var playerItemStatusContext = 0
+    /// After the movie has played to its end time, seek back to time zero
+    /// to play it again.
+    private var seekToZeroBeforePlay: Bool = false
 
     fileprivate var currentDisplayedIndexPath: IndexPath {
         willSet {
@@ -80,17 +89,13 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             if currentDisplayedIndexPath != newValue {
                 delegate?.photoDetail(self, scrollAt: newValue)
             }
-
             if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
                 updateAddBarItem(at: newValue)
             }
-
             if let canDisplay = delegate?.canDisplayCaption(in: self), canDisplay {
                 updateCaption(at: newValue)
             }
-
             updateNavigationTitle(at: newValue)
-
             stopPlayingVideoIfNeeded(at: currentDisplayedIndexPath)
         }
     }
@@ -116,6 +121,9 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         }
     }
 
+    var playerItemStatusToken: NSKeyValueObservation?
+
+
     // MARK: - LifeCycle
     public init(photos: [PhotoProtocol], initialIndex: Int) {
         self.photos = photos
@@ -137,6 +145,9 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     deinit {
         print(#file, #function, "☠️☠️☠️☠️☠️☠️")
+        NotificationCenter.default.removeObserver(self)
+        playerItemStatusToken?.invalidate()
+        player?.pause()
     }
 
     public override func viewDidLoad() {
@@ -164,9 +175,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 
     public override func viewWillAppear(_ animated: Bool) {
-        try? AVAudioSession.sharedInstance().setCategory(.playback)
-
         super.viewWillAppear(animated)
+        try? AVAudioSession.sharedInstance().setCategory(.playback)
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
         if let showNavigationBar = delegate?.showNavigationBar(in: self) {
             self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: true)
@@ -175,7 +185,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         }
 
         if let showToolBar = delegate?.showBottomToolBar(in: self) {
-            self.navigationController?.setToolbarHidden(!showToolBar, animated: true)
+            self.navigationController?.setToolbarHidden(!showToolBar, animated: false)
         } else {
             self.navigationController?.setToolbarHidden(true, animated: false)
         }
@@ -201,12 +211,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         collectionView.delegate = self
         collectionView.dataSource = self
 //        collectionView.backgroundColor = .white
-        if #available(iOS 11.0, *) {
-            collectionView.contentInsetAdjustmentBehavior = .never
-        } else {
-            // Fallback on earlier versions
-        }
-        self.automaticallyAdjustsScrollViewInsets = false
+        collectionView.contentInsetAdjustmentBehavior = .never
     }
 
     func setupNavigationBar() {
@@ -239,7 +244,6 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             }
 
             updateToolBar(shouldShowDone: showDone, shouldShowPlay: showVideoPlay)
-
         }
     }
 
@@ -515,6 +519,11 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         }
     }
 
+    @objc func playerItemDidReachEnd(_ notification: Notification) {
+        isPlaying = false
+        seekToZeroBeforePlay = true
+    }
+
     func recalculateItemSize(inBoundingSize size: CGSize) {
         guard let flowLayout = flowLayout else { return }
         let itemSize = recalculateLayout(flowLayout,
@@ -560,19 +569,16 @@ extension PhotoDetailCollectionViewController {
             switch tap {
             case .singleTap:
                 hideOrShowTopBottom()
-//                use navigationController?.hidesBarsOnTap instead
-//                break
             case .doubleTap:
-                guard let userInfo = userInfo, let touchPoint = userInfo["touchPoint"] as? CGPoint  else { return }
-                guard let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell else { return }
-                handleDoubleTap(touchPoint, on: cell)
+                handleDoubleTap(userInfo)
             }
         } else {
             // pass the event
             next?.routerEvent(name: name, userInfo: userInfo)
         }
     }
-    func hideOrShowTopBottom() {
+
+    fileprivate func hideOrShowTopBottom() {
         if let showNavigationBar = delegate?.showNavigationBar(in: self), showNavigationBar {
             self.navigationController?.setNavigationBarHidden(!(self.navigationController?.isNavigationBarHidden ?? true), animated: true)
         }
@@ -586,7 +592,28 @@ extension PhotoDetailCollectionViewController {
         }
     }
 
-    func handleDoubleTap(_ touchPoint: CGPoint, on cell: PhotoDetailCell) {
+    fileprivate func handleDoubleTap(_ userInfo: [AnyHashable : Any]?) {
+        if let userInfo = userInfo, let mediaType = userInfo["mediaType"] as? String {
+            let cfstring = mediaType as CFString
+            switch cfstring {
+            case kUTTypeImage:
+                if let touchPoint = userInfo["touchPoint"] as? CGPoint,
+                   let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell  {
+                    doubleTap(touchPoint, on: cell)
+                }
+            case kUTTypeVideo:
+                if isPlaying {
+                    pausePlayback()
+                } else {
+                    playVideo()
+                }
+            default: break
+
+            }
+        }
+    }
+
+    fileprivate func doubleTap(_ touchPoint: CGPoint, on cell: PhotoDetailCell) {
         let scale = min(cell.zoomingView.zoomScale * 2, cell.zoomingView.maximumZoomScale)
         if cell.zoomingView.zoomScale == 1 {
             let zoomRect = zoomRectForScale(scale: scale, center: touchPoint, for: cell.zoomingView)
@@ -596,7 +623,7 @@ extension PhotoDetailCollectionViewController {
         }
     }
 
-    func zoomRectForScale(scale: CGFloat, center: CGPoint, for scroolView: UIScrollView) -> CGRect {
+    fileprivate func zoomRectForScale(scale: CGFloat, center: CGPoint, for scroolView: UIScrollView) -> CGRect {
         var zoomRect = CGRect.zero
         zoomRect.size.height = scroolView.frame.size.height / scale
         zoomRect.size.width  = scroolView.frame.size.width  / scale
@@ -619,7 +646,6 @@ extension PhotoDetailCollectionViewController {
         } else if let url = photo.url {
             setupPlayer(url: url, for: playerView)
         }
-        playerTimeObserverToken = nil
     }
 
     fileprivate func setupPlayer(asset: PHAsset, for playerView: PlayerView) {
@@ -631,78 +657,105 @@ extension PhotoDetailCollectionViewController {
         }
         PHImageManager.default().requestPlayerItem(forVideo: asset, options: options) { (item, info) in
             if let item = item {
-                if let player = self.player {
-                    player.pause()
-                    player.replaceCurrentItem(with: item)
-                    playerView.player = player
-                } else {
-                    let player = AVPlayer(playerItem: item)
-                    playerView.player = player
-                    self.player = player
-                }
+                let player = self.preparePlayer(with: item)
+                playerView.player = player
+                self.player = player
             }
         }
     }
 
     fileprivate func setupPlayer(url: URL, for playerView: PlayerView) {
-        let playerItem = AVPlayerItem(url: url)
-        if let player = self.player {
-            player.pause()
-            player.replaceCurrentItem(with: playerItem)
-        } else {
-            let player = AVPlayer(playerItem: playerItem)
+        if url.isFileURL {
+            // Create asset to be played
+            let asset = AVAsset(url: url)
+            // Create a new AVPlayerItem with the asset and an
+            // array of asset keys to be automatically loaded
+            let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: assetKeys)
+            let player = preparePlayer(with: playerItem)
             playerView.player = player
             self.player = player
+        } else {
+            VideoCache.fetchURL(key: url) { (filePath) in
+                // Create a new AVPlayerItem with the asset and an
+                // array of asset keys to be automatically loaded
+                let asset = AVAsset(url: filePath)
+                let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: self.assetKeys)
+                let player = self.preparePlayer(with: playerItem)
+                playerView.player = player
+                self.player = player
+            } failed: { (error) in
+                print("FYPhoto fetch url error: \(error)")
+            }
         }
     }
 
-    func playVideo() {
-        guard let player = player else { return }
-        player.play()
-        isPlaying = true
-        addBoundaryTimeObserverForPlayer(player, at: player.currentTime())
+    fileprivate func preparePlayer(with playerItem: AVPlayerItem) -> AVPlayer {
+        if let currentItem = mPlayerItem {
+            playerItemStatusToken?.invalidate()
+            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: currentItem)
+        }
+        self.mPlayerItem = playerItem
+        // observing the player item's status property
+        playerItemStatusToken = playerItem.observe(\.status, options: .new) { (item, change) in
+            // Switch over status value
+            switch change.newValue {
+            case .readyToPlay:
+                print("Player item is ready to play.")
+            // Player item is ready to play.
+            case .failed:
+                print("Player item failed. See error.")
+            // Player item failed. See error.
+            case .unknown:
+                print("unknown status")
+            // Player item is not yet ready.
+            case .none:
+                break
+            @unknown default:
+                fatalError()
+            }
+        }
+
+        playerItem.addObserver(self,
+                               forKeyPath: #keyPath(AVPlayerItem.status),
+                               options: [.old, .new],
+                               context: &playerItemStatusContext)
+        NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidReachEnd(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
+
+        seekToZeroBeforePlay = false
+        // Associate the player item with the player
+
+        if let player = self.player {
+            player.pause()
+            player.replaceCurrentItem(with: playerItem)
+            return player
+        } else {
+            return AVPlayer(playerItem: playerItem)
+        }
     }
 
-    func pausePlayback() {
+    fileprivate func playVideo() {
+        guard let player = player else { return }
+        if seekToZeroBeforePlay {
+            seekToZeroBeforePlay = false
+            player.seek(to: .zero)
+        }
+
+        player.play()
+        isPlaying = true
+    }
+
+    fileprivate func pausePlayback() {
         player?.pause()
         isPlaying = false
     }
 
-    func stopPlayingIfNeeded() {
+    fileprivate func stopPlayingIfNeeded() {
         guard let player = player, isPlaying else {
             return
         }
         player.pause()
         player.seek(to: .zero)
-        playerTimeObserverToken = nil
         isPlaying = false
-    }
-
-    fileprivate func addBoundaryTimeObserverForPlayer(_ player: AVPlayer, at currentTime: CMTime) {
-        guard let item = player.currentItem else { return }
-        var times = [NSValue]()
-        // Set initial time to zero
-        var currentTime = currentTime
-        // Divide the asset's duration into quarters.
-        let interval = CMTimeMultiplyByFloat64(item.duration, multiplier: 1)
-
-        // Build boundary times at 25%, 50%, 75%, 100%
-        while currentTime < item.duration {
-            currentTime = currentTime + interval
-            times.append(NSValue(time: currentTime))
-        }
-
-        // Add time observer. Observe boundary time changes on the main queue.
-        playerTimeObserverToken = player.addBoundaryTimeObserver(forTimes: times, queue: .main) { [weak self] in
-            // Update UI
-            guard let self = self else { return }
-            self.isPlaying = false
-            player.seek(to: .zero)
-            if let observer = self.playerTimeObserverToken {
-                player.removeTimeObserver(observer)
-            }
-            self.playerTimeObserverToken = nil
-        }
     }
 }
 

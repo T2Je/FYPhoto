@@ -50,7 +50,7 @@ public class Photo: PhotoProtocol {
     public private(set) var resourceType: PhotoResourceType
 
     var urlAssetQueue: DispatchQueue!
-
+    let videoTypes = ["mp4", "m4a", "mov"]
 
     public var isVideo: Bool {
         if let asset = asset {
@@ -62,7 +62,12 @@ public class Photo: PhotoProtocol {
             if url.isVideo() {
                 return true
             }
-            return false
+            // last chance. For example: http://client.gsup.sichuanair.com/file.php?70c1dafd4eaccb9a722ac3fcd8459cfc.jpg
+            if let suffix = url.absoluteString.components(separatedBy: ".").last {
+                return videoTypes.contains(suffix)
+            } else {
+                return false
+            }                        
         } else {
             return false
         }
@@ -95,15 +100,28 @@ public class Photo: PhotoProtocol {
 
 extension Photo {
     public func generateThumbnail(_ url: URL, size: CGSize = .zero, completion: @escaping ((UIImage?) -> Void)) {
+        let cache = URLCache.shared
+        let urlRequest = URLRequest(url: url)
+        if let response = cache.cachedResponse(for: urlRequest), let image = UIImage(data: response.data) {
+            completion(image)
+            return
+        }
+
         urlAssetQueue.async { // 1
-            let asset = AVAsset(url: url) //2
+            let asset = AVURLAsset(url: url) //2
             let avAssetImageGenerator = AVAssetImageGenerator(asset: asset) //3
             avAssetImageGenerator.maximumSize = size
             avAssetImageGenerator.appliesPreferredTrackTransform = true //4
-            let thumnailTime = CMTimeMake(value: 2, timescale: 1) //5
+            let thumnailTime = CMTimeMake(value: 0, timescale: 1) //5
             do {
                 let cgThumbImage = try avAssetImageGenerator.copyCGImage(at: thumnailTime, actualTime: nil) //6
                 let thumbImage = UIImage(cgImage: cgThumbImage) //7
+                // cache
+                if let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil),
+                   let data = thumbImage.pngData() {
+                    let cachedResponse = CachedURLResponse(response: response, data: data)
+                    cache.storeCachedResponse(cachedResponse, for: urlRequest)
+                }
                 DispatchQueue.main.async { //8
                     self.underlyingImage = thumbImage
                     completion(thumbImage) //9

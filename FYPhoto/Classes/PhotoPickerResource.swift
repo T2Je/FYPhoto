@@ -47,10 +47,8 @@ public class PhotoPickerResource {
         if let selfies = selfies(), selfies.estimatedAssetCount > 0 {
             albums.append(selfies)
         }
-        if #available(iOS 10.3, *) {
-            if let live = live(), !isOnlyImage, live.estimatedAssetCount > 0 {
-                albums.append(live)
-            }
+        if let live = live(), !isOnlyImage, live.estimatedAssetCount > 0 {
+            albums.append(live)
         }
         if let panoramas = panoramas(), panoramas.estimatedAssetCount > 0 {
             albums.append(panoramas)
@@ -64,13 +62,11 @@ public class PhotoPickerResource {
         if let screenShots = screenShots(), screenShots.estimatedAssetCount > 0 {
             albums.append(screenShots)
         }
-        if #available(iOS 11, *) {
-            if let animated = animated(), animated.estimatedAssetCount > 0 {
-                albums.append(animated)
-            }
-            if let longExposure = longExposure(), longExposure.estimatedAssetCount > 0 {
-                albums.append(longExposure)
-            }
+        if let animated = animated(), animated.estimatedAssetCount > 0 {
+            albums.append(animated)
+        }
+        if let longExposure = longExposure(), longExposure.estimatedAssetCount > 0 {
+            albums.append(longExposure)
         }
         //        if let bursts = bursts() {
         //            albums.append(bursts)
@@ -110,13 +106,10 @@ public class PhotoPickerResource {
         return PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumAnimated, options: nil).firstObject
     }
 
-
-    @available(iOS 11, *)
     func longExposure() -> PHAssetCollection? {
         return PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumLongExposures, options: nil).firstObject
     }
 
-    @available(iOS 10.3, *)
     func live() -> PHAssetCollection? {
         return PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumLivePhotos, options: nil).firstObject
     }

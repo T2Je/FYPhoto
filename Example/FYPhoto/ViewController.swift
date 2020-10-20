@@ -172,8 +172,10 @@ class ViewController: UIViewController {
 
     @objc func playRemoteVideo(_ sender: UIButton) {
 //        guard let url = URL(string: "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4") else { return }
-
-        guard let url = URL(string: "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4") else { return }
+        let urlStr = "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4"
+//        let urlStr = "http://client.gsup.sichuanair.com/file.php?9bfc3b16aec233d025c18042e9a2b45a.mp4"
+//        let urlStr = "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4"
+        guard let url = URL(string: urlStr) else { return }
 
         let photo = Photo(url: url)
         let photosDetailVC = PhotoDetailCollectionViewController(photos: [photo], initialIndex: 0)
@@ -182,13 +184,7 @@ class ViewController: UIViewController {
     }
 
     @objc func launchCustomCamera(_ sender: UIButton) {
-//        let customCamera = CameraViewController()
-//        customCamera.delegate = self
-//        customCamera.captureModes = [.image, .movie]
-//        customCamera.modalPresentationStyle = .fullScreen
-//        customCamera.moviePathExtension = "mp4"
-//        present(customCamera, animated: true, completion: nil)
-        photoLanucher.launchCamera(in: self)
+        photoLanucher.launchCamera(in: self, captureModes: [.image, .movie])
     }
 }
 
@@ -258,7 +254,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
             // we got back an error!
             print("🤢\(error)🤮")
         } else {
-            print("video saved")
+            print("video saved at: \(videoPath)")
         }
     }
 
@@ -275,7 +271,9 @@ extension ViewController: UIVideoEditorControllerDelegate {
 }
 
 extension ViewController: PhotoDetailCollectionViewControllerDelegate {
-
+    func showBottomToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+        true
+    }
 }
 
 extension ViewController: CameraViewControllerDelegate {

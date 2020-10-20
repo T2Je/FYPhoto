@@ -35,17 +35,17 @@ public class VideoCaptureOverlay: UIView {
 
     var enableTakePicture = true {
         willSet {
-            tapGesture.isEnabled = newValue
+            tapGesture.isEnabled = newValue && captureModes.contains(.image)
         }
     }
     var enableTakeVideo = true {
         willSet {
-            longPressGesture.isEnabled = newValue && captureModes.contains(.image)
+            longPressGesture.isEnabled = newValue && captureModes.contains(.movie)
         }
     }
     var enableSwitchCamera = true {
         willSet {
-            rearFrontCameraButton.isEnabled = newValue && captureModes.contains(.movie)
+            rearFrontCameraButton.isEnabled = newValue
         }
     }
 

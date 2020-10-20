@@ -57,7 +57,7 @@ extension PhotoTransitionController: UIGestureRecognizerDelegate {
         guard let interactiveTransitioning = self.interactiveTransitioning else {
             let translation = panGestureRecognizer.translation(in: panGestureRecognizer.view)
             let translationIsVertical = (translation.y > 0) && (abs(translation.y) > abs(translation.x))
-            print(#function, translationIsVertical && (navigationController?.viewControllers.count ?? 0 > 1))
+//            print(#function, translationIsVertical && (navigationController?.viewControllers.count ?? 0 > 1))
             return translationIsVertical && (navigationController?.viewControllers.count ?? 0 > 1)
         }
         return interactiveTransitioning.transitionDriver?.isInteractive ?? true
@@ -96,7 +96,8 @@ extension PhotoTransitionController: UINavigationControllerDelegate {
 //        return self
     }
 
-    public func navigationController(_ navigationController: UINavigationController, interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {                
+    public func navigationController(_ navigationController: UINavigationController,
+                                     interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
         return currentAnimationTransition as? UIViewControllerInteractiveTransitioning
     }
 }
@@ -146,9 +147,8 @@ class PushPopTransitioning: NSObject, UIViewControllerAnimatedTransitioning {
     }
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        print(#function)
         if operation == .push {
-            return 0.4
+            return 0.38
         } else {
             return 0.38
         }
