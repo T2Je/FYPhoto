@@ -57,6 +57,10 @@ public class CameraViewController: UIViewController {
         }
     }
 
+    public var captureDeviceIsAvailable: Bool {
+        videoDeviceInput != nil
+    }
+
     public init() {
         super.init(nibName: nil, bundle: nil)
         initVideoDeviceDiscoverySession()
@@ -161,7 +165,7 @@ public class CameraViewController: UIViewController {
                 DispatchQueue.main.async {
                     let alertMsg = "Alert message when something goes wrong during capture session configuration"
                     let message = NSLocalizedString("Unable to capture media", comment: alertMsg)
-                    let alertController = UIAlertController(title: "AVCam", message: message, preferredStyle: .alert)
+                    let alertController = UIAlertController(title: "Camera", message: message, preferredStyle: .alert)
 
                     alertController.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Alert OK button"),
                                                             style: .cancel,
@@ -714,6 +718,10 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
     }
 
     public func takePicture() {
+        guard captureDeviceIsAvailable else {
+            print("Default video device is unavailable.", #file)
+            return
+        }
         /*
          Retrieve the video preview layer's video orientation on the main queue before
          entering the session queue. Do this to ensure that UI elements are accessed on
@@ -753,7 +761,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                     }
                 }
             } livePhotoCaptureHandler: { _ in
-                
+
             } completionHandler: { photoCaptureProcessor, url, data  in
                 // When the capture is complete, remove a reference to the photo capture delegate so it can be deallocated.
                 self.sessionQueue.async {
@@ -776,8 +784,12 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
             self.photoOutput.capturePhoto(with: photoSettings, delegate: photoCaptureProcessor)
         }
     }
-    
+
     public func startVideoCapturing() {
+        guard captureDeviceIsAvailable else {
+            print("Default video device is unavailable.", #file)
+            return
+        }
         guard let movieFileOutput = self.movieFileOutput else {
             return
         }
