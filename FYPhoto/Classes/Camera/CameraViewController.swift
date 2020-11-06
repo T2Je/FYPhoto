@@ -32,6 +32,7 @@ public class CameraViewController: UIViewController {
         case notAuthorized
         case configurationFailed
     }
+
     fileprivate let session = AVCaptureSession()
     private var isSessionRunning = false
     // Communicate with the session and other session objects on this queue.
@@ -72,6 +73,8 @@ public class CameraViewController: UIViewController {
 
     override public func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .black
+        
         view.addSubview(previewView)
         view.addSubview(cameraOverlayView)
         makeConstraints()
@@ -210,20 +213,21 @@ public class CameraViewController: UIViewController {
     }
 
     func makeConstraints() {
+        let safeArea = self.view.safeAreaLayoutGuide
         previewView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            previewView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            previewView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            previewView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
-            previewView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
+            previewView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            previewView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+            previewView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
+            previewView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
         ])
 
         cameraOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            cameraOverlayView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            cameraOverlayView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-            cameraOverlayView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            cameraOverlayView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
+            cameraOverlayView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+            cameraOverlayView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor),
+            cameraOverlayView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            cameraOverlayView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor)
         ])
     }
 

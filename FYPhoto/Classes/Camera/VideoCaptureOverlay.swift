@@ -188,7 +188,7 @@ public class VideoCaptureOverlay: UIView {
         progressView.translatesAutoresizingMaskIntoConstraints = false
 
         progressView.centerXAnchor.constraint(equalTo: self.centerXAnchor).isActive = true
-        progressView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -20).isActive = true
+        progressView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -40).isActive = true
         progressWidthAnchor = progressView.widthAnchor.constraint(equalToConstant: 80)
         progressHeightAnchor = progressView.heightAnchor.constraint(equalToConstant: 80)
         progressWidthAnchor?.isActive = true
