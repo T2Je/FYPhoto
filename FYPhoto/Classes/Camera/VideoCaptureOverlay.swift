@@ -14,6 +14,7 @@ public protocol VideoCaptureOverlayDelegate: class {
     func startVideoCapturing()
     func stopVideoCapturing(_ isCancel: Bool)
     func dismissVideoCapture()
+    func flashSwitch()
 }
 
 public class VideoCaptureOverlay: UIView {
@@ -26,12 +27,17 @@ public class VideoCaptureOverlay: UIView {
     let dismissButton = UIButton()
     let resumeButton = UIButton()
     let cameraUnavailableLabel = UILabel()
+
+    let flashButton = UIButton()
     
     var cameraTimer: Timer?
 
     var runCount: Double = 0
 
     var videoMaximumDuration: TimeInterval = 15
+
+    var progressWidthAnchor: NSLayoutConstraint?
+    var progressHeightAnchor: NSLayoutConstraint?
 
     var enableTakePicture = true {
         willSet {
@@ -49,15 +55,31 @@ public class VideoCaptureOverlay: UIView {
         }
     }
 
+    var enableFlash = true {
+        willSet {
+            flashButton.isEnabled = newValue
+        }
+    }
+
+    var flashOn: Bool = true {
+        willSet {
+            let image = newValue ? "icons8-flash-on".photoImage : "icons8-flash-off".photoImage
+            flashButton.setImage(image, for: .normal)
+        }
+    }
+
     let tapGesture = UITapGestureRecognizer()
     let longPressGesture = UILongPressGestureRecognizer()
 
-    override public init(frame: CGRect) {
+    init(videoMaximumDuration: TimeInterval, frame: CGRect = .zero) {
+        self.videoMaximumDuration = videoMaximumDuration
         super.init(frame: frame)
-
         addSubview(progressView)
         addSubview(rearFrontCameraButton)
         addSubview(dismissButton)
+        addSubview(cameraUnavailableLabel)
+        addSubview(flashButton)
+
         setupViews()
         addGesturesOnProgressView()
         makeConstraints()
@@ -85,6 +107,9 @@ public class VideoCaptureOverlay: UIView {
 
         dismissButton.setTitle("Cancel".photoTablelocalized, for: .normal)
         dismissButton.addTarget(self, action: #selector(dismiss(_:)), for: .touchUpInside)
+
+        flashButton.setImage("icons8-flash-on".photoImage, for: .normal)
+        flashButton.addTarget(self, action: #selector(switchFlash(_:)), for: .touchUpInside)
     }
 
     func addGesturesOnProgressView() {
@@ -138,6 +163,11 @@ public class VideoCaptureOverlay: UIView {
         delegate?.takePicture()
     }
 
+    @objc func switchFlash(_ sender: UIButton) {
+        flashOn = !flashOn
+        delegate?.flashSwitch()
+    }
+
     func initialProgressView() {
         UIView.animate(withDuration: 0.37, delay: 0, usingSpringWithDamping: 0.1, initialSpringVelocity: 0, options: UIView.AnimationOptions.curveEaseOut, animations: {
 //            self.progressView.value = 0
@@ -181,9 +211,6 @@ public class VideoCaptureOverlay: UIView {
         }
     }
 
-    var progressWidthAnchor: NSLayoutConstraint?
-    var progressHeightAnchor: NSLayoutConstraint?
-
     func makeConstraints() {
         progressView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -208,6 +235,15 @@ public class VideoCaptureOverlay: UIView {
             dismissButton.centerYAnchor.constraint(equalTo: self.progressView.centerYAnchor),
             dismissButton.widthAnchor.constraint(equalToConstant: 80),
             dismissButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+
+        flashButton.translatesAutoresizingMaskIntoConstraints = false
+
+        NSLayoutConstraint.activate([
+            flashButton.topAnchor.constraint(equalTo: self.topAnchor, constant: 10),
+            flashButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 20),
+            flashButton.widthAnchor.constraint(equalToConstant: 45),
+            flashButton.heightAnchor.constraint(equalToConstant: 45)
         ])
     }
 

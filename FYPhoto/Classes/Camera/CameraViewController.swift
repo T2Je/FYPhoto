@@ -20,7 +20,7 @@ public class CameraViewController: UIViewController {
 
     /// capture mode. Default is image.
     public var captureModes: [CaptureMode] = [CaptureMode.image]
-    public var cameraOverlayView = VideoCaptureOverlay()
+    public var cameraOverlayView: VideoCaptureOverlay!
     public var moviePathExtension = "mov"
     /// maximum video capture duration. Default 15s
     public var videoMaximumDuration: TimeInterval = 15
@@ -62,6 +62,7 @@ public class CameraViewController: UIViewController {
         videoDeviceInput != nil
     }
 
+
     public init() {
         super.init(nibName: nil, bundle: nil)
         initVideoDeviceDiscoverySession()
@@ -74,7 +75,9 @@ public class CameraViewController: UIViewController {
     override public func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
-        
+
+        cameraOverlayView = VideoCaptureOverlay(videoMaximumDuration: videoMaximumDuration)
+
         view.addSubview(previewView)
         view.addSubview(cameraOverlayView)
         makeConstraints()
@@ -628,6 +631,11 @@ public extension CameraViewController.CaptureMode {
 
 
 extension CameraViewController: VideoCaptureOverlayDelegate {
+    public func flashSwitch() {
+
+        print(#function)
+    }
+
     public func switchCameraDevice(_ cameraButton: UIButton) {
         cameraButton.isEnabled = false
         cameraOverlayView.enableTakeVideo = false
@@ -726,6 +734,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
             print("Default video device is unavailable.", #file)
             return
         }
+        cameraOverlayView.enableFlash = true
         /*
          Retrieve the video preview layer's video orientation on the main queue before
          entering the session queue. Do this to ensure that UI elements are accessed on
@@ -797,6 +806,8 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
         guard let movieFileOutput = self.movieFileOutput else {
             return
         }
+        cameraOverlayView.enableFlash = false
+
         let videoPreviewLayerOrientation = previewView.videoPreviewLayer.connection?.videoOrientation
         sessionQueue.async {
             if !movieFileOutput.isRecording {
@@ -831,6 +842,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
     }
 
     public func stopVideoCapturing(_ isCancel: Bool) {
+        cameraOverlayView.enableFlash = true
         guard let movieFileOutput = self.movieFileOutput else {
             return
         }
