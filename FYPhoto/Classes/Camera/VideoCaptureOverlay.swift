@@ -131,7 +131,7 @@ public class VideoCaptureOverlay: UIView {
         delegate?.dismissVideoCapture()
     }
 
-    @objc func longPress(_ gesture:UILongPressGestureRecognizer) {        
+    @objc func longPress(_ gesture:UILongPressGestureRecognizer) {
         guard captureModes.contains(.movie) else {
             return
         }
@@ -239,8 +239,8 @@ public class VideoCaptureOverlay: UIView {
         flashButton.translatesAutoresizingMaskIntoConstraints = false
 
         NSLayoutConstraint.activate([
-            flashButton.topAnchor.constraint(equalTo: self.topAnchor, constant: 10),
-            flashButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 20),
+            flashButton.topAnchor.constraint(equalTo: self.topAnchor, constant: 30),
+            flashButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 15),
             flashButton.widthAnchor.constraint(equalToConstant: 45),
             flashButton.heightAnchor.constraint(equalToConstant: 45)
         ])
