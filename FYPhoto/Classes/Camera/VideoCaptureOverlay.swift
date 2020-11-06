@@ -131,8 +131,7 @@ public class VideoCaptureOverlay: UIView {
         delegate?.dismissVideoCapture()
     }
 
-    @objc func longPress(_ gesture:UILongPressGestureRecognizer) {
-        print(#function)
+    @objc func longPress(_ gesture:UILongPressGestureRecognizer) {        
         guard captureModes.contains(.movie) else {
             return
         }

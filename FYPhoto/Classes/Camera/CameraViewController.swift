@@ -24,6 +24,7 @@ public class CameraViewController: UIViewController {
     public var moviePathExtension = "mov"
     /// maximum video capture duration. Default 15s
     public var videoMaximumDuration: TimeInterval = 15
+
     var previewView = VideoPreviewView()
 
     // Session
@@ -45,6 +46,8 @@ public class CameraViewController: UIViewController {
     private var inProgressPhotoCaptureDelegates = [Int64: PhotoCaptureProcessor]()
     // Devices
     private var videoDeviceDiscoverySession: AVCaptureDevice.DiscoverySession?
+    /// the current flash mode
+    private var flashMode: AVCaptureDevice.FlashMode = .auto
 
     // Movie
     private var movieFileOutput: AVCaptureMovieFileOutput?
@@ -632,8 +635,11 @@ public extension CameraViewController.CaptureMode {
 
 extension CameraViewController: VideoCaptureOverlayDelegate {
     public func flashSwitch() {
-
-        print(#function)
+        if flashMode == AVCaptureDevice.FlashMode.off {
+            flashMode = AVCaptureDevice.FlashMode.auto
+        } else {
+            flashMode = AVCaptureDevice.FlashMode.off
+        }
     }
 
     public func switchCameraDevice(_ cameraButton: UIButton) {
@@ -734,7 +740,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
             print("Default video device is unavailable.", #file)
             return
         }
-        cameraOverlayView.enableFlash = true
+        cameraOverlayView.enableFlash = false
         /*
          Retrieve the video preview layer's video orientation on the main queue before
          entering the session queue. Do this to ensure that UI elements are accessed on
@@ -754,7 +760,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
             }
 
             if self.videoDeviceInput.device.isFlashAvailable {
-                photoSettings.flashMode = .auto
+                photoSettings.flashMode = self.flashMode
             }
 
             photoSettings.isHighResolutionPhotoEnabled = true
@@ -776,6 +782,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
             } livePhotoCaptureHandler: { _ in
 
             } completionHandler: { photoCaptureProcessor, url, data  in
+                self.cameraOverlayView.enableFlash = false
                 // When the capture is complete, remove a reference to the photo capture delegate so it can be deallocated.
                 self.sessionQueue.async {
                     self.inProgressPhotoCaptureDelegates[photoCaptureProcessor.requestedPhotoSettings.uniqueID] = nil
@@ -864,6 +871,7 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
     public func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
         defer {
             delegate?.cameraDidCancel(self)
+            cameraOverlayView.enableFlash = true
         }
 
         func endBackgroundTask() {
