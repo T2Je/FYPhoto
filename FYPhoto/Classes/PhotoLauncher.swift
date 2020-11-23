@@ -67,9 +67,14 @@ public protocol PhotoLauncherDelegate: class {
         }
         let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
             if config.isOnlyImages {
-                self.launchCamera(in: container, captureModes: [CameraViewController.CaptureMode.image])
+                self.launchCamera(in: container,
+                                  captureModes: [CameraViewController.CaptureMode.image],
+                                  videoMaximumDuration: config.videoMaximumDuration)
             } else {
-                self.launchCamera(in: container, captureModes: [CameraViewController.CaptureMode.image, CameraViewController.CaptureMode.movie], moviePathExtension: config.videoPathExtension)
+                self.launchCamera(in: container,
+                                  captureModes: [.image, .movie],
+                                  moviePathExtension: config.videoPathExtension,
+                                  videoMaximumDuration: config.videoMaximumDuration)
             }
         }
 
@@ -88,14 +93,17 @@ public protocol PhotoLauncherDelegate: class {
     ///   - viewController: container comforms to some protocols.
     ///   - captureModes: image / movie
     ///   - moviePathExtension: movie extension, default is mp4.
+    ///   - videoMaximumDuration: video capture duration. Default 15s
     public func launchCamera(in viewController: CameraContainer,
                              captureModes: [CameraViewController.CaptureMode] = [.image],
-                             moviePathExtension: String? = nil) {
+                             moviePathExtension: String? = nil,
+                             videoMaximumDuration: TimeInterval) {
         let cameraVC = CameraViewController()
         cameraVC.captureModes = captureModes
-        cameraVC.modalPresentationStyle = .fullScreen
+        cameraVC.videoMaximumDuration = videoMaximumDuration
         cameraVC.moviePathExtension = moviePathExtension ?? "mp4"
         cameraVC.delegate = viewController
+        cameraVC.modalPresentationStyle = .fullScreen
         viewController.present(cameraVC, animated: true, completion: nil)
     }
 
@@ -160,9 +168,9 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
         }
         let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
             if config.isOnlyImages {
-                self.launchCamera(in: container, captureModes: [.image])
+                self.launchCamera(in: container, captureModes: [.image], videoMaximumDuration: config.videoMaximumDuration)
             } else {
-                self.launchCamera(in: container, captureModes: [.image, .movie], moviePathExtension: config.videoPathExtension)
+                self.launchCamera(in: container, captureModes: [.image, .movie], moviePathExtension: config.videoPathExtension, videoMaximumDuration: config.videoMaximumDuration)
             }
         }
 
