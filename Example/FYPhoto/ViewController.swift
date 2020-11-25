@@ -210,7 +210,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
                 detailVC.delegate = self
                 self.navigationController?.pushViewController(detailVC, animated: true)
             }
-        case "public.movie":
+        case String(kUTTypeMovie):
             guard
                 let videoURL = info[.mediaURL] as? URL
                 else {
@@ -221,13 +221,13 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
 
             picker.dismiss(animated: true) {
 //                 Editor controller
-                guard UIVideoEditorController.canEditVideo(atPath: videoURL.absoluteString) else { return }
-                let videoEditorController = UIVideoEditorController()
-                videoEditorController.videoPath = videoURL.path
-                videoEditorController.delegate = self
-                videoEditorController.videoMaximumDuration = 15
-                videoEditorController.modalPresentationStyle = .fullScreen
-                self.present(videoEditorController, animated: true, completion: nil)
+//                guard UIVideoEditorController.canEditVideo(atPath: videoURL.absoluteString) else { return }
+//                let videoEditorController = UIVideoEditorController()
+//                videoEditorController.videoPath = videoURL.path
+//                videoEditorController.delegate = self
+//                videoEditorController.videoMaximumDuration = 15
+//                videoEditorController.modalPresentationStyle = .fullScreen
+//                self.present(videoEditorController, animated: true, completion: nil)
             }
         default:
             break
@@ -261,14 +261,24 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
 
 }
 
-extension ViewController: UIVideoEditorControllerDelegate {
-    func videoEditorController(_ editor: UIVideoEditorController, didSaveEditedVideoToPath editedVideoPath: String) {
+extension ViewController: VideoPreviewControllerDelegate {
+//    func videoEditorController(_ editor: UIVideoEditorController, didSaveEditedVideoToPath editedVideoPath: String) {
+//        print(#function)
+//        editor.delegate = nil
+//        UISaveVideoAtPathToSavedPhotosAlbum(editedVideoPath, self, #selector(video(_:didFinishSavingWithError:contextInfo:)), nil)
+//        editor.dismiss(animated: true, completion: nil)
+//    }
+//
+    func videoPreviewController(_ preview: VideoPreviewController, didSaveVideoAt path: URL) {
         print(#function)
-        editor.delegate = nil
-        UISaveVideoAtPathToSavedPhotosAlbum(editedVideoPath, self, #selector(video(_:didFinishSavingWithError:contextInfo:)), nil)
-        editor.dismiss(animated: true, completion: nil)
+        preview.delegate = nil
+        preview.dismiss(animated: true, completion: nil)
+        print("video path: \(path)\npath.path: \(path.path)")
+        UISaveVideoAtPathToSavedPhotosAlbum(path.path, self, #selector(video(_:didFinishSavingWithError:contextInfo:)), nil)
     }
-
+    func videoPreviewControllerDidCancel(_ preview: VideoPreviewController) {
+        preview.dismiss(animated: true, completion: nil)
+    }
 }
 
 extension ViewController: PhotoDetailCollectionViewControllerDelegate {
@@ -278,9 +288,25 @@ extension ViewController: PhotoDetailCollectionViewControllerDelegate {
 }
 
 extension ViewController: CameraViewControllerDelegate {
+    
+    func cameraViewControllerStartAddingWatermark() {
+        print("Processing video......")
+    }
+    
+    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL) {
+        print("End processing.")
+        cameraViewController.dismiss(animated: true) {
+            let previewVC = VideoPreviewController(videoURL: path)
+            previewVC.delegate = self
+            previewVC.modalPresentationStyle = .fullScreen
+            self.present(previewVC, animated: true, completion: nil)
+        }
+    }
+    
     func cameraDidCancel(_ cameraViewController: CameraViewController) {
         cameraViewController.dismiss(animated: true, completion: nil)
     }
+    
     func camera(_ cameraViewController: CameraViewController, didFinishCapturingMediaInfo info: [CameraViewController.InfoKey : Any]) {
         print(#function)
         guard let mediaType = info[.mediaType] as? String else { return }
@@ -319,46 +345,63 @@ extension ViewController: CameraViewControllerDelegate {
                 cameraViewController.dismiss(animated: true, completion: nil)
                 return
             }
-//            UISaveVideoAtPathToSavedPhotosAlbum(videoURL.path, self, #selector(video(_:didFinishSavingWithError:contextInfo:)), nil)
 
             cameraViewController.dismiss(animated: true) {
 //                 Editor controller
-                guard UIVideoEditorController.canEditVideo(atPath: videoURL.absoluteString) else { return }
-                let videoEditorController = UIVideoEditorController()
-                videoEditorController.videoPath = videoURL.path
-                videoEditorController.delegate = self
-                videoEditorController.videoMaximumDuration = 15
-                videoEditorController.modalPresentationStyle = .fullScreen
-                videoEditorController.videoQuality = .typeHigh
-                self.present(videoEditorController, animated: true, completion: nil)
+                let previewVC = VideoPreviewController(videoURL: videoURL)
+                previewVC.delegate = self
+                self.present(previewVC, animated: true, completion: nil)
+                
+//                guard UIVideoEditorController.canEditVideo(atPath: videoURL.absoluteString) else { return }
+//                let videoEditorController = UIVideoEditorController()
+//                videoEditorController.videoPath = videoURL.path
+//                videoEditorController.delegate = self
+//                videoEditorController.videoMaximumDuration = 15
+//                videoEditorController.modalPresentationStyle = .fullScreen
+//                videoEditorController.videoQuality = .typeHigh
+//                self.present(videoEditorController, animated: true, completion: nil)
             }
         default:
             break
         }
     }
     
-    func waterMarkImage() -> WatermarkImage? {
+    func watermarkImage() -> WatermarkImage? {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.alignment = .left
+        paragraphStyle.lineSpacing = 3
         
         let attrs: [NSAttributedString.Key: Any] = [
-            .font: UIFont.systemFont(ofSize: 10),
-            .paragraphStyle: paragraphStyle
+            .font: UIFont.systemFont(ofSize: 12),
+            .paragraphStyle: paragraphStyle,
+            .foregroundColor: UIColor.white
         ]
+    
+        let flightNumber = "航班号： MU5701"
+        let parkingNumber = "机位：154"
+        let nodeName = "节点名称：加清水"
+        let uploadTime = "上传时间：2020-11-25"
+        let shooterName = "拍摄人：小明"
         
-//        let string = "the s@trange thing "
-        let string = "ACDM @feeyo"
+        let string = String(format: "%@\n%@\n%@\n%@\n%@", flightNumber, parkingNumber, nodeName, uploadTime, shooterName)
+        
         let attributedString = NSAttributedString(string: string, attributes: attrs)
+
+//        let feeyoImage = UIImage(named: "variflight")
         
-        let feeyoImage = UIImage(named: "variflight")
-        
-        let waterMarkSize = CGSize(width: 150, height: 60)
+        let waterMarkSize = CGSize(width: 180, height: 95)
         let render = UIGraphicsImageRenderer(size: waterMarkSize)
         let renderedImage = render.image { (ctx) in
-//            label1.draw(CGRect(x: 0, y: 10, width: 100, height: 35))
-            attributedString.draw(in: CGRect(x: 0, y: 0, width: 100, height: 20))
-            feeyoImage?.draw(in: CGRect(x: 0, y: 35, width: 64, height: 15))
+            ctx.cgContext.setFillColor(UIColor(white: 0, alpha: 0.1).cgColor)
+//            ctx.cgContext.setStrokeColor(UIColor.black.cgColor)
+//            ctx.cgContext.setLineWidth(10)
+            ctx.cgContext.addRect(CGRect(origin: .zero, size: waterMarkSize))
+            ctx.cgContext.drawPath(using: .fill)
+
+            attributedString.draw(in: CGRect(x: 10, y: 5, width: waterMarkSize.width, height: waterMarkSize.height - 8))
+//            feeyoImage?.draw(in: CGRect(x: 0, y: 35, width: 64, height: 15))
+            
         }
-        return WatermarkImage(image: renderedImage, frame: CGRect(x: 15, y: view.frame.size.height - 15 - 60, width: waterMarkSize.width, height: waterMarkSize.height))
+        return WatermarkImage(image: renderedImage, frame: CGRect(x: 15, y: view.frame.size.height - 15, width: waterMarkSize.width, height: waterMarkSize.height))
     }
 }

@@ -23,12 +23,13 @@ public struct WatermarkImage {
 public protocol CameraViewControllerDelegate: class {
     func camera(_ cameraViewController: CameraViewController, didFinishCapturingMediaInfo info: [CameraViewController.InfoKey: Any])
     func cameraDidCancel(_ cameraViewController: CameraViewController)
-    func waterMarkImage() -> WatermarkImage?
-    
+    func watermarkImage() -> WatermarkImage?
+    func cameraViewControllerStartAddingWatermark()
+    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL)
 }
 
 extension CameraViewControllerDelegate {
-    func waterMarkImage() -> WatermarkImage? {
+    func watermarkImage() -> WatermarkImage? {
         return nil
     }
 }
@@ -822,7 +823,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                     let image = UIImage(data: data)
                     mediaInfo[InfoKey.originalImage] = image
                     mediaInfo[InfoKey.mediaMetadata] = data
-                    if let image = image, let waterMarkImage = self.delegate?.waterMarkImage() {
+                    if let image = image, let waterMarkImage = self.delegate?.watermarkImage() {
                         mediaInfo[InfoKey.waterMarkImage] = self.addWaterMarkImage(waterMarkImage, on: image)
                     }
                 }
@@ -956,9 +957,25 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
             mediaInfo[CameraViewController.InfoKey.mediaType] = kUTTypeMovie as String
             mediaInfo[CameraViewController.InfoKey.mediaURL] = outputFileURL
             
-            if let waterMark = self.delegate?.waterMarkImage() {
+            if let waterMark = self.delegate?.watermarkImage() {
+//                let videoName = "watermark-" + outputFileURL.lastPathComponent
+//                let exportPath = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(videoName)
+//
+//                if FileManager.default.fileExists(atPath: exportPath.absoluteString) {
+//                    try? FileManager.default.removeItem(at: exportPath)
+//                }
+//
+//                watermark(video: AVAsset(url: outputFileURL), with: waterMark.image, outputURL: exportPath) { (url) in
+//                    DispatchQueue.main.async {
+//                        mediaInfo[CameraViewController.InfoKey.waterMarkVideoURL] = url
+//                        self.delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
+//                    }
+//                }
+                delegate?.cameraViewControllerStartAddingWatermark()
                 createWaterMark(waterMarkImage: waterMark, onVideo: outputFileURL) { (url) in
                     DispatchQueue.main.async {
+                        self.delegate?.camera(self, didFinishAddingWatermarkAt: url)
+                        
                         mediaInfo[CameraViewController.InfoKey.waterMarkVideoURL] = url
                         self.delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
                     }
@@ -1048,71 +1065,120 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
             try compositionVideoTrack.insertTimeRange(timeRange, of: clipVideoTrack, at: CMTime.zero)
             compositionVideoTrack.preferredTransform = clipVideoTrack.preferredTransform
 //            let textLayer = textWaterMark()
-            
-            let videoSize = getVideoSize(with: clipVideoTrack)
-            let videoComp = applyWatermarkToVideoComposition(watermark: waterMarkImage, videoSize: videoSize)
-            
-            let instrutction = AVMutableVideoCompositionInstruction()
-            instrutction.timeRange = CMTimeRange(start: .zero, duration: mixComposition.duration)
-            
-            guard let videoCompositionTrack = mixComposition.tracks(withMediaType: .video).last else {
-                completion(url)
-                return
-            }
-//            videoCompositionTrack.preferredTransform = clipVideoTrack.preferredTransform
-//            let t1 = CGAffineTransform(translationX: videoSize.width, y: 0)
-//            let t2 = t1.rotated(by: CGFloat(deg2rad(90)))
-//            
-            let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoCompositionTrack)
-            layerInstruction.setTransform(clipVideoTrack.preferredTransform, at: .zero)
-            instrutction.layerInstructions = [layerInstruction]
-                
-            videoComp.instructions = [instrutction]
-            
-            guard let assetExport = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetMediumQuality)
-            else {
-                completion(url)
-                return
-            }
-            assetExport.videoComposition = videoComp
-            let videoName = "watermark-" + url.lastPathComponent
-            let exportPath = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(videoName)
-            
-            if FileManager.default.fileExists(atPath: exportPath.absoluteString) {
-                try? FileManager.default.removeItem(at: exportPath)
-            }
-            assetExport.outputFileType = .mp4
-            assetExport.outputURL = exportPath
-            assetExport.shouldOptimizeForNetworkUse = true
-//            assetExport.progress
-            assetExport.exportAsynchronously(completionHandler: {
-                switch assetExport.status {
-                case .completed:
-                    completion(exportPath)
-                    #if DEBUG
-                    if #available(iOS 13.0, *) {
-                        let endDate = Date()
-                        let distance = startDate.distance(to: endDate)
-                        print("It took \(distance) to create water mark for \(videoAsset.duration.seconds) seconds video")
-                    } else {
-                        
-                    }
-                    #endif
-                case .failed:
-                    print("assetExport.error: \(String(describing: assetExport.error))")
-                    completion(url)
-                default:
-                    completion(url)
-                }
-            })
         } catch {
             print("video water mark error:\(error)")
             completion(url)
         }
+        
+        let videoSize = getVideoSize(with: clipVideoTrack)
+        let videoComp = applyWatermarkToVideoComposition(watermark: waterMarkImage, videoSize: videoSize)
+        
+        let instrutction = AVMutableVideoCompositionInstruction()
+        instrutction.timeRange = CMTimeRange(start: .zero, duration: mixComposition.duration)
+        
+        guard let videoCompositionTrack = mixComposition.tracks(withMediaType: .video).last else {
+            completion(url)
+            return
+        }
+//            videoCompositionTrack.preferredTransform = clipVideoTrack.preferredTransform
+//            let t1 = CGAffineTransform(translationX: videoSize.width, y: 0)
+//            let t2 = t1.rotated(by: CGFloat(deg2rad(90)))
+//
+        let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoCompositionTrack)
+        layerInstruction.setTransform(clipVideoTrack.preferredTransform, at: .zero)
+        instrutction.layerInstructions = [layerInstruction]
+            
+        videoComp.instructions = [instrutction]
+        
+        guard
+            let assetExport = AVAssetExportSession(asset: mixComposition,
+                                                     presetName: AVAssetExportPresetHighestQuality) else {
+            completion(url)
+            return
+        }
+        assetExport.videoComposition = videoComp
+        let videoName = "watermark-" + url.lastPathComponent
+        let exportPath = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(videoName)
+        
+        if FileManager.default.fileExists(atPath: exportPath.absoluteString) {
+            try? FileManager.default.removeItem(at: exportPath)
+        }
+        assetExport.outputFileType = .mp4
+        assetExport.outputURL = exportPath
+        assetExport.shouldOptimizeForNetworkUse = true
+//            assetExport.progress
+        assetExport.exportAsynchronously(completionHandler: {
+            switch assetExport.status {
+            case .completed:
+                completion(exportPath)
+                #if DEBUG
+                if #available(iOS 13.0, *) {
+                    let endDate = Date()
+                    let distance = startDate.distance(to: endDate)
+                    print("It took \(distance) to create water mark for \(videoAsset.duration.seconds) seconds video")
+                } else {
+                    
+                }
+                #endif
+            case .failed:
+                print("assetExport.error: \(String(describing: assetExport.error))")
+                completion(url)
+            default:
+                completion(url)
+            }
+        })
     }
     
-    func deg2rad(_ number: Double) -> Double {
-        return number * .pi / 180
+//    func deg2rad(_ number: Double) -> Double {
+//        return number * .pi / 180
+//    }
+    
+    func watermark(video: AVAsset, with image: UIImage, outputURL: URL, completion: @escaping ((URL) -> Void)) {
+        #if DEBUG
+        let startDate = Date()
+        #endif
+        guard let watermarkImage = CIImage(image: image) else {
+            completion(outputURL)
+            return
+        }
+        let context = CIContext(options: nil)
+        let watermarkFilter = CIFilter(name: "CISourceOverCompositing")
+        let videoComposition = AVVideoComposition(asset: video) { (request) in
+            let source = request.sourceImage.clampedToExtent()
+            watermarkFilter?.setValue(source, forKey: kCIInputBackgroundImageKey)
+            let transform = CGAffineTransform(translationX: request.sourceImage.extent.width - watermarkImage.extent.width - 10, y: 10)
+            watermarkFilter?.setValue(watermarkImage.transformed(by: transform), forKey: kCIInputImageKey)
+            guard let outputImage = watermarkFilter?.outputImage else { return }
+            request.finish(with: outputImage, context: context)
+        }
+        guard let assetExport = AVAssetExportSession(asset: video, presetName: AVAssetExportPresetLowQuality) else {
+            completion(outputURL)
+            return
+        }
+        assetExport.videoComposition = videoComposition
+        assetExport.outputFileType = .mp4
+        assetExport.shouldOptimizeForNetworkUse = true
+        assetExport.outputURL = outputURL
+        assetExport.exportAsynchronously {
+            switch assetExport.status {
+            case .completed:
+                completion(outputURL)
+                #if DEBUG
+                if #available(iOS 13.0, *) {
+                    let endDate = Date()
+                    let distance = startDate.distance(to: endDate)
+                    print("It took \(distance) to create water mark for \(video.duration.seconds) seconds video")
+                } else {
+                    
+                }
+                #endif
+            case .failed:
+                print("assetExport.error: \(String(describing: assetExport.error))")
+                completion(outputURL)
+            default:
+                completion(outputURL)
+            }
+        }
     }
 }
 

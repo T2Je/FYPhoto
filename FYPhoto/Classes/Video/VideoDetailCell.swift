@@ -76,11 +76,9 @@ class VideoDetailCell: UICollectionViewCell {
     }
 
     deinit {
+        #if DEBUG
         print("video cell deinit ☠️☠️☠️")
-    }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
+        #endif
     }
 
     fileprivate func setupActivityIndicator() {
