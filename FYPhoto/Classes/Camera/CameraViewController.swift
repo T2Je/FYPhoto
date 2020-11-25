@@ -10,9 +10,27 @@ import AVFoundation
 import Photos
 import MobileCoreServices
 
+public struct WatermarkImage {
+    let image: UIImage
+    let frame: CGRect
+    
+    public init(image: UIImage, frame: CGRect) {
+        self.image = image
+        self.frame = frame
+    }
+}
+
 public protocol CameraViewControllerDelegate: class {
     func camera(_ cameraViewController: CameraViewController, didFinishCapturingMediaInfo info: [CameraViewController.InfoKey: Any])
     func cameraDidCancel(_ cameraViewController: CameraViewController)
+    func waterMarkImage() -> WatermarkImage?
+    
+}
+
+extension CameraViewControllerDelegate {
+    func waterMarkImage() -> WatermarkImage? {
+        return nil
+    }
 }
 
 public class CameraViewController: UIViewController {
@@ -53,6 +71,11 @@ public class CameraViewController: UIViewController {
     private var movieFileOutput: AVCaptureMovieFileOutput?
     private var backgroundRecordingID: UIBackgroundTaskIdentifier?
 
+    // location
+    private let locationManager = CLLocationManager()
+    private var currentLocation: CLLocation?
+
+    
     var windowOrientation: UIInterfaceOrientation {
         if #available(iOS 13.0, *) {
             return view.window?.windowScene?.interfaceOrientation ?? .unknown
@@ -64,7 +87,11 @@ public class CameraViewController: UIViewController {
     public var captureDeviceIsAvailable: Bool {
         videoDeviceInput != nil
     }
-
+    
+    func setupLocationManager() {
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+    }
 
     public init() {
         super.init(nibName: nil, bundle: nil)
@@ -771,6 +798,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
             if #available(iOS 13.0, *) {
                 photoSettings.photoQualityPrioritization = .balanced
             }
+
             let photoCaptureProcessor = PhotoCaptureProcessor(with: photoSettings) {
                 // Flash the screen to signal that AVCam took a photo.
                 DispatchQueue.main.async {
@@ -791,8 +819,12 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                 mediaInfo[InfoKey.imageURL] = url
                 mediaInfo[InfoKey.mediaType] = kUTTypeImage as String
                 if let data = data {
-                    mediaInfo[InfoKey.originalImage] = UIImage(data: data)
+                    let image = UIImage(data: data)
+                    mediaInfo[InfoKey.originalImage] = image
                     mediaInfo[InfoKey.mediaMetadata] = data
+                    if let image = image, let waterMarkImage = self.delegate?.waterMarkImage() {
+                        mediaInfo[InfoKey.waterMarkImage] = self.addWaterMarkImage(waterMarkImage, on: image)
+                    }
                 }
                 self.delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
             } photoProcessingHandler: { _ in
@@ -805,6 +837,16 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
         }
     }
 
+    func addWaterMarkImage(_ waterMark: WatermarkImage, on image: UIImage) -> UIImage {
+        let imageSize = view.frame.size
+        let render = UIGraphicsImageRenderer(size: imageSize)
+        let renderedImage = render.image { (ctx) in
+            image.draw(in: CGRect(x: 0, y: 0, width: imageSize.width, height: imageSize.height))
+            waterMark.image.draw(in: waterMark.frame)
+        }
+        return renderedImage
+    }
+    
     public func startVideoCapturing() {
         guard captureDeviceIsAvailable else {
             print("Default video device is unavailable.", #file)
@@ -814,7 +856,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
             return
         }
         cameraOverlayView.enableFlash = false
-
+        
         let videoPreviewLayerOrientation = previewView.videoPreviewLayer.connection?.videoOrientation
         sessionQueue.async {
             if !movieFileOutput.isRecording {
@@ -827,7 +869,12 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                         self.backgroundRecordingID = UIBackgroundTaskIdentifier.invalid
                     })
                 }
-
+                
+//                if let location = self.currentLocation {
+//                    let item = self.locationMetaDataItem(location)
+//                    movieFileOutput.metadata?.append(item)
+//                }
+                
                 // Update the orientation on the movie file output video connection before recording.
                 let movieFileOutputConnection = movieFileOutput.connection(with: .video)
                 movieFileOutputConnection?.videoOrientation = videoPreviewLayerOrientation!
@@ -908,14 +955,189 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
             var mediaInfo: [CameraViewController.InfoKey: Any] = [:]
             mediaInfo[CameraViewController.InfoKey.mediaType] = kUTTypeMovie as String
             mediaInfo[CameraViewController.InfoKey.mediaURL] = outputFileURL
-            delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
-
+            
+            if let waterMark = self.delegate?.waterMarkImage() {
+                createWaterMark(waterMarkImage: waterMark, onVideo: outputFileURL) { (url) in
+                    DispatchQueue.main.async {
+                        mediaInfo[CameraViewController.InfoKey.waterMarkVideoURL] = url
+                        self.delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
+                    }
+                }
+                
+            } else {
+                delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
+            }
             endBackgroundTask()
         } else {
             cleanup()
         }
     }
+    
+    func getVideoSize(with assetTrack: AVAssetTrack) -> CGSize {
+        var videoAssetOrientation = UIImage.Orientation.up
+        var isVideoAssetPortrait = false
+        let videoTransform = assetTrack.preferredTransform
 
+        if videoTransform.a == 0 && videoTransform.b == 1.0 && videoTransform.c == -1.0 && videoTransform.d == 0 {
+            videoAssetOrientation = .right
+            isVideoAssetPortrait = true
+        }
+        if videoTransform.a == 0 && videoTransform.b == -1.0 && videoTransform.c == 1.0 && videoTransform.d == 0 {
+            videoAssetOrientation = .left
+            isVideoAssetPortrait = true
+        }
+        if videoTransform.a == 1.0 && videoTransform.b == 0 && videoTransform.c == 0 && videoTransform.d == 1.0 {
+            videoAssetOrientation = .up
+        }
+        if videoTransform.a == -1.0 && videoTransform.b == 0 && videoTransform.c == 0 && videoTransform.d == -1.0 {
+            videoAssetOrientation = .down
+        }
+
+        let videoSize: CGSize
+        if isVideoAssetPortrait {
+            videoSize = CGSize(width: assetTrack.naturalSize.height, height: assetTrack.naturalSize.width)
+        } else {
+            videoSize = assetTrack.naturalSize
+        }
+        return videoSize
+    }
+    
+    func applyWatermarkToVideoComposition(watermark: WatermarkImage, videoSize: CGSize) -> AVMutableVideoComposition {
+        let videoSizeScale = videoSize.width / view.frame.size.width
+        let imageLayer = CALayer()
+        imageLayer.contents = watermark.image.cgImage
+        let imageLayerOrigin = CGPoint(x: watermark.frame.origin.x * videoSizeScale,
+                                       y: videoSize.height - watermark.frame.origin.y * videoSizeScale)
+        let imageLayerSize = CGSize(width: watermark.frame.size.width * videoSizeScale, height: watermark.frame.size.height * videoSizeScale)
+        imageLayer.frame = CGRect(origin: imageLayerOrigin, size: imageLayerSize)
+        imageLayer.opacity = 1.0
+        imageLayer.contentsGravity = .resizeAspectFill
+        
+        let parentLayer = CALayer()
+        let videoLayer = CALayer()
+        parentLayer.frame = CGRect(origin: .zero, size: videoSize)
+        videoLayer.frame = CGRect(origin: .zero, size: videoSize)
+        parentLayer.addSublayer(videoLayer)
+        parentLayer.addSublayer(imageLayer)
+//            parentLayer.addSublayer(textLayer)
+        
+        let videoComp = AVMutableVideoComposition()
+        videoComp.renderSize = videoSize
+        videoComp.frameDuration = CMTime(value: 1, timescale: 30)
+        videoComp.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: parentLayer)
+        return videoComp
+    }
+    
+    func createWaterMark(waterMarkImage: WatermarkImage, onVideo url: URL, completion: @escaping ((URL) -> Void)) {
+        #if DEBUG
+        let startDate = Date()
+        #endif
+        
+        let videoAsset = AVURLAsset(url: url)
+        let mixComposition = AVMutableComposition()
+        guard let compositionVideoTrack = mixComposition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid) else {
+            completion(url)
+            return
+        }
+        guard let clipVideoTrack = videoAsset.tracks(withMediaType: .video).last else {
+            completion(url)
+            return
+        }
+        do {
+            let timeRange = CMTimeRange(start: CMTime.zero, duration: videoAsset.duration)
+            try compositionVideoTrack.insertTimeRange(timeRange, of: clipVideoTrack, at: CMTime.zero)
+            compositionVideoTrack.preferredTransform = clipVideoTrack.preferredTransform
+//            let textLayer = textWaterMark()
+            
+            let videoSize = getVideoSize(with: clipVideoTrack)
+            let videoComp = applyWatermarkToVideoComposition(watermark: waterMarkImage, videoSize: videoSize)
+            
+            let instrutction = AVMutableVideoCompositionInstruction()
+            instrutction.timeRange = CMTimeRange(start: .zero, duration: mixComposition.duration)
+            
+            guard let videoCompositionTrack = mixComposition.tracks(withMediaType: .video).last else {
+                completion(url)
+                return
+            }
+//            videoCompositionTrack.preferredTransform = clipVideoTrack.preferredTransform
+//            let t1 = CGAffineTransform(translationX: videoSize.width, y: 0)
+//            let t2 = t1.rotated(by: CGFloat(deg2rad(90)))
+//            
+            let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoCompositionTrack)
+            layerInstruction.setTransform(clipVideoTrack.preferredTransform, at: .zero)
+            instrutction.layerInstructions = [layerInstruction]
+                
+            videoComp.instructions = [instrutction]
+            
+            guard let assetExport = AVAssetExportSession(asset: mixComposition, presetName: AVAssetExportPresetMediumQuality)
+            else {
+                completion(url)
+                return
+            }
+            assetExport.videoComposition = videoComp
+            let videoName = "watermark-" + url.lastPathComponent
+            let exportPath = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(videoName)
+            
+            if FileManager.default.fileExists(atPath: exportPath.absoluteString) {
+                try? FileManager.default.removeItem(at: exportPath)
+            }
+            assetExport.outputFileType = .mp4
+            assetExport.outputURL = exportPath
+            assetExport.shouldOptimizeForNetworkUse = true
+//            assetExport.progress
+            assetExport.exportAsynchronously(completionHandler: {
+                switch assetExport.status {
+                case .completed:
+                    completion(exportPath)
+                    #if DEBUG
+                    if #available(iOS 13.0, *) {
+                        let endDate = Date()
+                        let distance = startDate.distance(to: endDate)
+                        print("It took \(distance) to create water mark for \(videoAsset.duration.seconds) seconds video")
+                    } else {
+                        
+                    }
+                    #endif
+                case .failed:
+                    print("assetExport.error: \(String(describing: assetExport.error))")
+                    completion(url)
+                default:
+                    completion(url)
+                }
+            })
+        } catch {
+            print("video water mark error:\(error)")
+            completion(url)
+        }
+    }
+    
+    func deg2rad(_ number: Double) -> Double {
+        return number * .pi / 180
+    }
+}
+
+extension CameraViewController: CLLocationManagerDelegate {
+    public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        currentLocation = locations.last
+    }
+    
+    public func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
+        switch status {
+        case .authorizedWhenInUse:
+            manager.startUpdatingLocation()
+        default:
+            manager.stopUpdatingLocation()
+        }
+    }
+    
+    func locationMetaDataItem(_ location: CLLocation) -> AVMetadataItem {
+        let metadataItem = AVMutableMetadataItem()
+        metadataItem.keySpace = AVMetadataKeySpace.common
+        metadataItem.key = AVMetadataKey.commonKeyLocation as NSCopying & NSObjectProtocol
+        
+        metadataItem.value = NSString(format: "+08.4lf%+09.4lf/", location.coordinate.latitude, location.coordinate.longitude)
+        return metadataItem
+    }
 }
 
 public extension CameraViewController.InfoKey {
@@ -927,10 +1149,13 @@ public extension CameraViewController.InfoKey {
 
     static let cropRect: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "cropRect")// an NSValue (CGRect)
 
-    static let mediaURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "mediaURL") // an NSURL
+    static let mediaURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "mediaURL") // an URL
 
     static let mediaMetadata: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "mediaMetadata") // an NSDictionary containing metadata from a captured photo
     static let livePhoto: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "livePhoto") // a PHLivePhoto
 
-    static let imageURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "imageURL") // an NSURL
+    static let imageURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "imageURL") // a URL
+    
+    static let waterMarkImage: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "waterMarkImage") // a UIImage
+    static let waterMarkVideoURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "waterMarkVideoURL") // a URL
 }

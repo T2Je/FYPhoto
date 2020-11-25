@@ -47,7 +47,7 @@ class ViewController: UIViewController {
         let playRemoteVideoBtn = UIButton()
 
         let customCameraBtn = UIButton()
-
+        
         photosViewBtn.setTitle("浏览全部照片", for: .normal)
         suishoupaiBtn.setTitle("随手拍", for: .normal)
         cameraPhotoBtn.setTitle("照片or相机", for: .normal)
@@ -65,7 +65,7 @@ class ViewController: UIViewController {
         cameraPhotoBtn.addTarget(self, action: #selector(cameraPhotoButtonClicked(_:)), for: .touchUpInside)
         playRemoteVideoBtn.addTarget(self, action: #selector(playRemoteVideo(_:)), for: .touchUpInside)
         customCameraBtn.addTarget(self, action: #selector(launchCustomCamera(_:)), for: .touchUpInside)
-
+        
         stackView.addArrangedSubview(photosViewBtn)
         stackView.addArrangedSubview(suishoupaiBtn)
         stackView.addArrangedSubview(cameraPhotoBtn)
@@ -186,6 +186,7 @@ class ViewController: UIViewController {
     @objc func launchCustomCamera(_ sender: UIButton) {
         photoLanucher.launchCamera(in: self, captureModes: [.image, .movie])
     }
+
 }
 
 extension ViewController: PhotoLauncherDelegate {
@@ -296,7 +297,7 @@ extension ViewController: CameraViewControllerDelegate {
 //                }
 //
 //            }
-            guard let image = info[.originalImage] as? UIImage else { return }
+            guard let image = info[.waterMarkImage] as? UIImage else { return }
 //            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
             CameraViewController.saveImageToAlbums(image) { (error) in
                 if let error = error {
@@ -313,7 +314,7 @@ extension ViewController: CameraViewControllerDelegate {
             }
         case String(kUTTypeMovie):
             guard
-                let videoURL = info[.mediaURL] as? URL
+                let videoURL = info[.waterMarkVideoURL] as? URL
                 else {
                 cameraViewController.dismiss(animated: true, completion: nil)
                 return
@@ -328,10 +329,36 @@ extension ViewController: CameraViewControllerDelegate {
                 videoEditorController.delegate = self
                 videoEditorController.videoMaximumDuration = 15
                 videoEditorController.modalPresentationStyle = .fullScreen
+                videoEditorController.videoQuality = .typeHigh
                 self.present(videoEditorController, animated: true, completion: nil)
             }
         default:
             break
         }
+    }
+    
+    func waterMarkImage() -> WatermarkImage? {
+        let paragraphStyle = NSMutableParagraphStyle()
+        paragraphStyle.alignment = .left
+        
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: UIFont.systemFont(ofSize: 10),
+            .paragraphStyle: paragraphStyle
+        ]
+        
+//        let string = "the s@trange thing "
+        let string = "ACDM @feeyo"
+        let attributedString = NSAttributedString(string: string, attributes: attrs)
+        
+        let feeyoImage = UIImage(named: "variflight")
+        
+        let waterMarkSize = CGSize(width: 150, height: 60)
+        let render = UIGraphicsImageRenderer(size: waterMarkSize)
+        let renderedImage = render.image { (ctx) in
+//            label1.draw(CGRect(x: 0, y: 10, width: 100, height: 35))
+            attributedString.draw(in: CGRect(x: 0, y: 0, width: 100, height: 20))
+            feeyoImage?.draw(in: CGRect(x: 0, y: 35, width: 64, height: 15))
+        }
+        return WatermarkImage(image: renderedImage, frame: CGRect(x: 15, y: view.frame.size.height - 15 - 60, width: waterMarkSize.width, height: waterMarkSize.height))
     }
 }

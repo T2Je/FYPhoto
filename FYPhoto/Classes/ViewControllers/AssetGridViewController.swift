@@ -274,6 +274,7 @@ public class AssetGridViewController: UICollectionViewController {
         var photos = [PhotoProtocol]()
         for index in 0..<fetchResult.count {
             let asset = fetchResult[index]
+//            print("assert location: \(asset.location)")
             photos.append(Photo(asset: asset))
         }
 

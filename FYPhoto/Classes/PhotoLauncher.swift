@@ -97,7 +97,7 @@ public protocol PhotoLauncherDelegate: class {
     public func launchCamera(in viewController: CameraContainer,
                              captureModes: [CameraViewController.CaptureMode] = [.image],
                              moviePathExtension: String? = nil,
-                             videoMaximumDuration: TimeInterval) {
+                             videoMaximumDuration: TimeInterval = 15) {
         let cameraVC = CameraViewController()
         cameraVC.captureModes = captureModes
         cameraVC.videoMaximumDuration = videoMaximumDuration

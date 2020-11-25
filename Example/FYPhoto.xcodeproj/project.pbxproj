@@ -19,6 +19,7 @@
 		E33E1BF1250094CD000212BB /* CustomNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E33E1BF0250094CD000212BB /* CustomNavigationController.swift */; };
 		E343E62E24F7BBA8003341DE /* AddPhotoBlogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */; };
 		E343E62F24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */; };
+		E3C6A6A0256CAC4200F81A33 /* RenderImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3C6A69F256CAC4200F81A33 /* RenderImageViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,6 +55,7 @@
 		E33E1BF0250094CD000212BB /* CustomNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavigationController.swift; sourceTree = "<group>"; };
 		E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPhotoBlogViewController.swift; sourceTree = "<group>"; };
 		E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPhotoCollectionViewCell.swift; sourceTree = "<group>"; };
+		E3C6A69F256CAC4200F81A33 /* RenderImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderImageViewController.swift; sourceTree = "<group>"; };
 		E7C7EF7C709122010F360A5D /* Pods-FYPhoto_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FYPhoto_Example.debug.xcconfig"; path = "Target Support Files/Pods-FYPhoto_Example/Pods-FYPhoto_Example.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -121,6 +123,7 @@
 				607FACDC1AFB9204008FA782 /* Images.xcassets */,
 				607FACDE1AFB9204008FA782 /* LaunchScreen.xib */,
 				607FACD31AFB9204008FA782 /* Supporting Files */,
+				E3C6A69F256CAC4200F81A33 /* RenderImageViewController.swift */,
 			);
 			name = "Example for FYPhoto";
 			path = FYPhoto;
@@ -224,12 +227,12 @@
 				TargetAttributes = {
 					607FACCF1AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
-						DevelopmentTeam = E7JWRNN695;
+						DevelopmentTeam = PG27Y6D6SG;
 						LastSwiftMigration = 0900;
 					};
 					607FACE41AFB9204008FA782 = {
 						CreatedOnToolsVersion = 6.3.1;
-						DevelopmentTeam = E7JWRNN695;
+						DevelopmentTeam = PG27Y6D6SG;
 						LastSwiftMigration = 0900;
 						TestTargetID = 607FACCF1AFB9204008FA782;
 					};
@@ -361,6 +364,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E3C6A6A0256CAC4200F81A33 /* RenderImageViewController.swift in Sources */,
 				E343E62E24F7BBA8003341DE /* AddPhotoBlogViewController.swift in Sources */,
 				E33E1BF1250094CD000212BB /* CustomNavigationController.swift in Sources */,
 				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
@@ -512,7 +516,7 @@
 			baseConfigurationReference = E7C7EF7C709122010F360A5D /* Pods-FYPhoto_Example.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = E7JWRNN695;
+				DEVELOPMENT_TEAM = PG27Y6D6SG;
 				INFOPLIST_FILE = FYPhoto/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -529,7 +533,7 @@
 			baseConfigurationReference = 6AC7CBD9A988ECB33A7A64B9 /* Pods-FYPhoto_Example.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				DEVELOPMENT_TEAM = E7JWRNN695;
+				DEVELOPMENT_TEAM = PG27Y6D6SG;
 				INFOPLIST_FILE = FYPhoto/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 11.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
@@ -545,7 +549,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 13AAB1125BB986651A95FF75 /* Pods-FYPhoto_Tests.debug.xcconfig */;
 			buildSettings = {
-				DEVELOPMENT_TEAM = E7JWRNN695;
+				DEVELOPMENT_TEAM = PG27Y6D6SG;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -569,7 +573,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 86DFA831ADE684A3BB4DA5BE /* Pods-FYPhoto_Tests.release.xcconfig */;
 			buildSettings = {
-				DEVELOPMENT_TEAM = E7JWRNN695;
+				DEVELOPMENT_TEAM = PG27Y6D6SG;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(PLATFORM_DIR)/Developer/Library/Frameworks",
 					"$(inherited)",
