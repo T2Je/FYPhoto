@@ -28,10 +28,12 @@ public protocol CameraViewControllerDelegate: class {
     func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL)
 }
 
-extension CameraViewControllerDelegate {
+public extension CameraViewControllerDelegate {
     func watermarkImage() -> WatermarkImage? {
         return nil
     }
+    func cameraViewControllerStartAddingWatermark() {}
+    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL) {}
 }
 
 public class CameraViewController: UIViewController {
