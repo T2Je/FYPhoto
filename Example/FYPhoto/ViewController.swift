@@ -323,7 +323,7 @@ extension ViewController: CameraViewControllerDelegate {
 //                }
 //
 //            }
-            guard let image = info[.waterMarkImage] as? UIImage else { return }
+            guard let image = info[.watermarkImage] as? UIImage else { return }
 //            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
             CameraViewController.saveImageToAlbums(image) { (error) in
                 if let error = error {
@@ -340,7 +340,7 @@ extension ViewController: CameraViewControllerDelegate {
             }
         case String(kUTTypeMovie):
             guard
-                let videoURL = info[.waterMarkVideoURL] as? URL
+                let videoURL = info[.watermarkVideoURL] as? URL
                 else {
                 cameraViewController.dismiss(animated: true, completion: nil)
                 return

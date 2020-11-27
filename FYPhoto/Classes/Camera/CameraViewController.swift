@@ -28,12 +28,10 @@ public protocol CameraViewControllerDelegate: class {
     func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL)
 }
 
-public extension CameraViewControllerDelegate {
+extension CameraViewControllerDelegate {
     func watermarkImage() -> WatermarkImage? {
         return nil
     }
-    func cameraViewControllerStartAddingWatermark() {}
-    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL) {}
 }
 
 public class CameraViewController: UIViewController {
@@ -1025,8 +1023,9 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         let videoSizeScale = videoSize.width / view.frame.size.width
         let imageLayer = CALayer()
         imageLayer.contents = watermark.image.cgImage
+        let fixedWatermarkOriginY = watermark.frame.origin.y + watermark.frame.height
         let imageLayerOrigin = CGPoint(x: watermark.frame.origin.x * videoSizeScale,
-                                       y: videoSize.height - watermark.frame.origin.y * videoSizeScale)
+                                       y: videoSize.height - fixedWatermarkOriginY  * videoSizeScale)
         let imageLayerSize = CGSize(width: watermark.frame.size.width * videoSizeScale, height: watermark.frame.size.height * videoSizeScale)
         imageLayer.frame = CGRect(origin: imageLayerOrigin, size: imageLayerSize)
         imageLayer.opacity = 1.0
