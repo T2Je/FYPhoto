@@ -143,7 +143,7 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
         } else {
             photoData = photo.fileDataRepresentation()
         }
-        photo.cgImageRepresentation()
+//        photo.cgImageRepresentation()
         // A portrait effects matte gets generated only if AVFoundation detects a face.
         if #available(iOS 12.0, *) {
             if var portraitEffectsMatte = photo.portraitEffectsMatte {
