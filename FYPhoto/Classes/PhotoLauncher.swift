@@ -219,7 +219,6 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
             if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
                 group.enter()
                 result.itemProvider.loadObject(ofClass: UIImage.self) { image, error in
-                    group.leave()
                     if let image = image as? UIImage {
                         images.append(image)
                     } else {
@@ -228,6 +227,7 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
                         }
                         print("Couldn't load image with error: \(error?.localizedDescription ?? "unknown error")")
                     }
+                    group.leave()
                 }
             }
         }
