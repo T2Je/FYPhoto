@@ -128,7 +128,7 @@ public protocol PhotoLauncherDelegate: class {
     }
 
     func launchPhotoLibrary(in viewController: UIViewController, _ maximumNumberCanChoose: Int, isOnlyImages: Bool) {
-        let gridVC = PhotoPickerViewController(maximumToSelect: maximumNumberCanChoose, isOnlyImages: isOnlyImages)
+        let gridVC = PhotoPickerViewController(maximumCanBeSelected: maximumNumberCanChoose, isOnlyImages: isOnlyImages)
         gridVC.selectedPhotos = { [weak self] images in
             self?.delegate?.selectedPhotosInPhotoLauncher(images)
         }

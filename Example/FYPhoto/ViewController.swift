@@ -104,12 +104,12 @@ class ViewController: UIViewController {
             DispatchQueue.main.async {
                 switch status {
                 case .authorized:
-                    let gridVC = PhotoPickerViewController(maximumToSelect: 6, isOnlyImages: false)
-                    gridVC.selectedPhotos = { [weak self] images in
+                    let photoPickerVC = PhotoPickerViewController(maximumCanBeSelected: 6, isOnlyImages: false)
+                    photoPickerVC.selectedPhotos = { [weak self] images in
                         print("selected \(images.count) photos: \(images)")
                     }
 //                    let navi = CustomNavigationController(rootViewController: gridVC)
-                    let navi = UINavigationController(rootViewController: gridVC)
+                    let navi = UINavigationController(rootViewController: photoPickerVC)
                     navi.modalPresentationStyle = .fullScreen
                     self.present(navi, animated: true, completion: nil)
 //                    self.navigationController?.navigationBar.tintColor = .white
@@ -178,7 +178,7 @@ class ViewController: UIViewController {
         guard let url = URL(string: urlStr) else { return }
 
         let photo = Photo(url: url)
-        let photosDetailVC = PhotoDetailCollectionViewController(photos: [photo], initialIndex: 0)
+        let photosDetailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
         photosDetailVC.delegate = self
         navigationController?.pushViewController(photosDetailVC, animated: true)
     }
@@ -206,7 +206,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
             UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
             picker.dismiss(animated: true) {
                 let photo = Photo(image: image)
-                let detailVC = PhotoDetailCollectionViewController(photos: [photo], initialIndex: 0)
+                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
                 detailVC.delegate = self
                 self.navigationController?.pushViewController(detailVC, animated: true)
             }
@@ -282,7 +282,7 @@ extension ViewController: VideoPreviewControllerDelegate {
 }
 
 extension ViewController: PhotoDetailCollectionViewControllerDelegate {
-    func showBottomToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+    func showBottomToolBar(in photoDetail: PhotoBrowserViewController) -> Bool {
         true
     }
 }
@@ -334,7 +334,7 @@ extension ViewController: CameraViewControllerDelegate {
             }
             cameraViewController.dismiss(animated: true) {
                 let photo = Photo(image: image)
-                let detailVC = PhotoDetailCollectionViewController(photos: [photo], initialIndex: 0)
+                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
                 detailVC.delegate = self
                 self.navigationController?.pushViewController(detailVC, animated: true)
             }

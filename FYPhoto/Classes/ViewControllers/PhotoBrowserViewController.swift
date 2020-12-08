@@ -12,7 +12,7 @@ import MobileCoreServices
 private let photoCellReuseIdentifier = "PhotoDetailCell"
 private let videoCellReuseIdentifier = "VideoDetailCell"
 
-public class PhotoDetailCollectionViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
+public class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
 
     public weak var delegate: PhotoDetailCollectionViewControllerDelegate?
 
@@ -217,7 +217,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
         self.navigationController?.navigationBar.tintColor = .white
         self.navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
-            addPhotoBarItem = UIBarButtonItem(title: "", style: .plain, target: self, action: #selector(PhotoDetailCollectionViewController.addPhotoBarItemClicked(_:)))
+            addPhotoBarItem = UIBarButtonItem(title: "", style: .plain, target: self, action: #selector(PhotoBrowserViewController.addPhotoBarItemClicked(_:)))
             addPhotoBarItem.title = addLocalizedString
             addPhotoBarItem.tintColor = .black
             self.navigationItem.rightBarButtonItem = addPhotoBarItem
@@ -227,8 +227,8 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
 
     func setupNavigationToolBar() {
         if let showToolBar = delegate?.showBottomToolBar(in: self), showToolBar {
-            playVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.play, target: self, action: #selector(PhotoDetailCollectionViewController.playVideoBarItemClicked(_:)))
-            pauseVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.pause, target: self, action: #selector(PhotoDetailCollectionViewController.playVideoBarItemClicked(_:)))
+            playVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.play, target: self, action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
+            pauseVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.pause, target: self, action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
 
             var showVideoPlay = false
             if currentPhoto.isVideo {
@@ -237,7 +237,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
             var showDone = false
 
             if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
-                doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(PhotoDetailCollectionViewController.doneBarButtonClicked(_:)))
+                doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(PhotoBrowserViewController.doneBarButtonClicked(_:)))
                 doneBarItem.isEnabled = !selectedPhotos.isEmpty
                 showDone = canSelect
             }
@@ -548,7 +548,7 @@ public class PhotoDetailCollectionViewController: UIViewController, UICollection
     }
 }
 
-extension PhotoDetailCollectionViewController: UIScrollViewDelegate {
+extension PhotoBrowserViewController: UIScrollViewDelegate {
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
 //        let pageWidth = view.bounds.size.width
 //        let currentPage = Int((scrollView.contentOffset.x + pageWidth / 2) / pageWidth)
@@ -562,7 +562,7 @@ extension PhotoDetailCollectionViewController: UIScrollViewDelegate {
 }
 
 // MARK: - Router event
-extension PhotoDetailCollectionViewController {
+extension PhotoBrowserViewController {
     override func routerEvent(name: String, userInfo: [AnyHashable : Any]?) {
         if let tap = ImageViewTap(rawValue: name) {
             switch tap {
@@ -634,7 +634,7 @@ extension PhotoDetailCollectionViewController {
 }
 
 // MARK: - Video
-extension PhotoDetailCollectionViewController {
+extension PhotoBrowserViewController {
     fileprivate var currentVideoCell: VideoDetailCell? {
         return collectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell
     }
@@ -755,7 +755,7 @@ extension PhotoDetailCollectionViewController {
 }
 
 // MARK: - PhotoDetailTransitionAnimatorDelegate
-extension PhotoDetailCollectionViewController: PhotoTransitioning {
+extension PhotoBrowserViewController: PhotoTransitioning {
     public func transitionWillStart() {
         guard let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) else { return }
         cell.isHidden = true
@@ -787,7 +787,7 @@ extension PhotoDetailCollectionViewController: PhotoTransitioning {
     }
 }
 
-extension PhotoDetailCollectionViewController {
+extension PhotoBrowserViewController {
     func firstIndexOfPhoto(_ photo: PhotoProtocol, in photos: [PhotoProtocol]) -> Int? {
         if let equals = selectedPhotos as? [Photo], let photo = photo as? Photo {
             let index = equals.firstIndex(of: photo)

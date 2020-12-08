@@ -12,7 +12,7 @@ import Photos
 import PhotosUI
 
 public class PhotoPickerViewController: UICollectionViewController {
-
+    
     public var selectedPhotos: (([UIImage]) -> Void)?
 
     var allPhotos: PHFetchResult<PHAsset>!
@@ -33,13 +33,13 @@ public class PhotoPickerViewController: UICollectionViewController {
         willSet {
             updateSelectedAssetIsVideo(by: newValue)
             updateNavigationBarItems(by: newValue)
-            isReachedMaximum = newValue.count >= maximumNumber
+            reachedMaximum = newValue.count >= maximumCanBeSelected
             collectionView.reloadData()
         }
     }
 
     /// if true, unable to select more photos
-    fileprivate var isReachedMaximum: Bool = false
+    fileprivate var reachedMaximum: Bool = false
 
     internal let imageManager = PHCachingImageManager()
     fileprivate var thumbnailSize: CGSize!
@@ -60,19 +60,19 @@ public class PhotoPickerViewController: UICollectionViewController {
 
     var transitionController: PhotoTransitionController?
 
-    fileprivate let maximumNumber: Int
+    fileprivate let maximumCanBeSelected: Int
     fileprivate let isOnlyImages: Bool
     // MARK: - Init
     /// Initial of GridVC
-    /// - Parameter photosLimit: You can choose the maximum number of photos
-    /// - Parameter isOnlyImages: If TRUE, only display images, elsewise, display all media types on device
-    public init(maximumToSelect: Int, isOnlyImages: Bool) {
+    /// - Parameter maximumCanBeSelected: You can selected the maximum number of photos
+    /// - Parameter isOnlyImages: If TRUE, only display images, otherwise, display all media types on device
+    public init(maximumCanBeSelected: Int, isOnlyImages: Bool) {
         let flowLayout = UICollectionViewFlowLayout()
         flowLayout.itemSize = CGSize(width: 120, height: 120)
         flowLayout.minimumInteritemSpacing = 1
         flowLayout.minimumLineSpacing = 1
         flowLayout.scrollDirection = .vertical
-        self.maximumNumber = maximumToSelect
+        self.maximumCanBeSelected = maximumCanBeSelected
         self.isOnlyImages = isOnlyImages
         super.init(collectionViewLayout: flowLayout)
     }
@@ -253,7 +253,7 @@ public class PhotoPickerViewController: UICollectionViewController {
                     cell.displayButtonTitle("")
                 }
                 
-                if self.isReachedMaximum {
+                if self.reachedMaximum {
                     if self.assetSelectionIdentifierCache.contains(asset.localIdentifier) {
                         cell.isEnable = true
                     } else {
@@ -298,9 +298,9 @@ public class PhotoPickerViewController: UICollectionViewController {
             }
 
             // collectionview
-            let detailVC = PhotoDetailCollectionViewController(photos: photos, initialIndex: indexPath.row)
+            let detailVC = PhotoBrowserViewController(photos: photos, initialIndex: indexPath.row)
             detailVC.selectedPhotos = selectedPhotos
-            detailVC.maximumNumber = maximumNumber
+            detailVC.maximumNumber = maximumCanBeSelected
             detailVC.delegate = self
 
             self.navigationController?.pushViewController(detailVC, animated: true)
@@ -353,35 +353,35 @@ extension PhotoPickerViewController: GridViewCellDelegate {
 
 // MARK: - PhotoDetailCollectionViewControllerDelegate
 extension PhotoPickerViewController: PhotoDetailCollectionViewControllerDelegate {
-    public func showNavigationBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+    public func showNavigationBar(in photoDetail: PhotoBrowserViewController) -> Bool {
         true
     }
 
-    public func showBottomToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+    public func showBottomToolBar(in photoDetail: PhotoBrowserViewController) -> Bool {
         true
     }
 
-    public func canDisplayCaption(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+    public func canDisplayCaption(in photoDetail: PhotoBrowserViewController) -> Bool {
         true
     }
 
-    public func canSelectPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+    public func canSelectPhoto(in photoDetail: PhotoBrowserViewController) -> Bool {
         return true
     }
 
-    public func canEditPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
+    public func canEditPhoto(in photoDetail: PhotoBrowserViewController) -> Bool {
         return false
     }
 
-    public func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, scrollAt indexPath: IndexPath) {
+    public func photoDetail(_ photoDetail: PhotoBrowserViewController, scrollAt indexPath: IndexPath) {
         lastSelectedIndexPath = indexPath
     }
 
-    public func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedAssets identifiers: [String]) {
+    public func photoDetail(_ photoDetail: PhotoBrowserViewController, selectedAssets identifiers: [String]) {
         assetSelectionIdentifierCache = identifiers
     }
 
-    public func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, didCompleteSelected photos: [PhotoProtocol]) {
+    public func photoDetail(_ photoDetail: PhotoBrowserViewController, didCompleteSelected photos: [PhotoProtocol]) {
         let assets = photos.compactMap { $0.asset }
         selectionCompleted(assets: assets, animated: true)
     }
