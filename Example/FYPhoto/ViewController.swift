@@ -48,7 +48,7 @@ class ViewController: UIViewController {
 
         let customCameraBtn = UIButton()
         
-        photosViewBtn.setTitle("浏览全部照片", for: .normal)
+        photosViewBtn.setTitle("浏览全部照片（Custom）", for: .normal)
         suishoupaiBtn.setTitle("随手拍", for: .normal)
         cameraPhotoBtn.setTitle("照片or相机", for: .normal)
         playRemoteVideoBtn.setTitle("Play remote video", for: .normal)
@@ -104,7 +104,7 @@ class ViewController: UIViewController {
             DispatchQueue.main.async {
                 switch status {
                 case .authorized:
-                    let photoPickerVC = PhotoPickerViewController(maximumCanBeSelected: 6, isOnlyImages: false)
+                    let photoPickerVC = PhotoPickerViewController(maximumCanBeSelected: 6, isOnlyImages: true)
                     photoPickerVC.selectedPhotos = { [weak self] images in
                         print("selected \(images.count) photos: \(images)")
                     }
@@ -323,6 +323,7 @@ extension ViewController: CameraViewControllerDelegate {
 //                }
 //
 //            }
+            // watermark
             guard let image = info[.watermarkImage] as? UIImage else { return }
 //            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
             CameraViewController.saveImageToAlbums(image) { (error) in

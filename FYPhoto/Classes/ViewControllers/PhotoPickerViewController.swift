@@ -14,7 +14,7 @@ import PhotosUI
 public class PhotoPickerViewController: UICollectionViewController {
     
     public var selectedPhotos: (([UIImage]) -> Void)?
-
+    
     var allPhotos: PHFetchResult<PHAsset>!
 //    var smartAlbums: PHFetchResult<PHAssetCollection>!
     var smartAlbums: [PHAssetCollection]!
@@ -62,6 +62,10 @@ public class PhotoPickerViewController: UICollectionViewController {
 
     fileprivate let maximumCanBeSelected: Int
     fileprivate let isOnlyImages: Bool
+    
+    // video
+    fileprivate var videoMaximumDuration: TimeInterval = 15
+    fileprivate var moviePathExtension = "mp4"
     // MARK: - Init
     /// Initial of GridVC
     /// - Parameter maximumCanBeSelected: You can selected the maximum number of photos
@@ -281,7 +285,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     public override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         lastSelectedIndexPath = indexPath
         if indexPath.item == 0 { // camera
-            
+            launchCamera()
         } else {
             var photos = [PhotoProtocol]()
             for index in 0..<fetchResult.count {
@@ -310,6 +314,17 @@ public class PhotoPickerViewController: UICollectionViewController {
     // MARK: UIScrollView
     public override func scrollViewDidScroll(_ scrollView: UIScrollView) {
          updateCachedAssets()
+    }
+    
+    func launchCamera() {
+        let cameraVC = CameraViewController()
+        let captureModes = isOnlyImages ? [CameraViewController.CaptureMode.image] : [CameraViewController.CaptureMode.movie, CameraViewController.CaptureMode.image]
+        cameraVC.captureModes = captureModes
+        cameraVC.videoMaximumDuration = videoMaximumDuration
+        cameraVC.moviePathExtension = moviePathExtension
+        cameraVC.delegate = self
+        cameraVC.modalPresentationStyle = .fullScreen
+        self.present(cameraVC, animated: true, completion: nil)
     }
 }
 
@@ -428,7 +443,7 @@ extension PhotoPickerViewController {
     fileprivate func updateCachedAssets() {
         // Update only if the view is visible.
         guard isViewLoaded && view.window != nil else { return }
-
+        
         // The preheat window is twice the height of the visible rect.
         let visibleRect = CGRect(origin: collectionView!.contentOffset, size: collectionView!.bounds.size)
         let preheatRect = visibleRect.insetBy(dx: 0, dy: -0.5 * visibleRect.height)
@@ -437,15 +452,28 @@ extension PhotoPickerViewController {
         let delta = abs(preheatRect.midY - previousPreheatRect.midY)
         guard delta > view.bounds.height / 3 else { return }
 
+        
         // Compute the assets to start caching and to stop caching.
         let (addedRects, removedRects) = differencesBetweenRects(previousPreheatRect, preheatRect)
         let addedAssets = addedRects
-            .flatMap { rect in collectionView!.indexPathsForElements(in: rect) }
-            .map { indexPath in fetchResult.object(at: indexPath.item) }
+            .flatMap { rect in collectionView!.indexPathsForElements(in: rect)}
+            .compactMap { indexPath -> PHAsset? in
+            if indexPath.item == 0 {
+                return nil
+            } else {
+                return fetchResult.object(at: indexPath.item)
+            }
+        }
+                
         let removedAssets = removedRects
             .flatMap { rect in collectionView!.indexPathsForElements(in: rect) }
-            .map { indexPath in fetchResult.object(at: indexPath.item) }
-
+            .compactMap { indexPath -> PHAsset? in
+                if indexPath.item == 0 {
+                    return nil
+                } else {
+                    return fetchResult.object(at: indexPath.item)
+                }
+            }
         // Update the assets the PHCachingImageManager is caching.
         imageManager.startCachingImages(for: addedAssets,
             targetSize: thumbnailSize, contentMode: .aspectFill, options: nil)
