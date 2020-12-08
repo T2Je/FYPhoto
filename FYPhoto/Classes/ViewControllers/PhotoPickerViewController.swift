@@ -11,7 +11,7 @@ import UIKit
 import Photos
 import PhotosUI
 
-public class AssetGridViewController: UICollectionViewController {
+public class PhotoPickerViewController: UICollectionViewController {
 
     public var selectedPhotos: (([UIImage]) -> Void)?
 
@@ -89,7 +89,8 @@ public class AssetGridViewController: UICollectionViewController {
         collectionView.backgroundColor = .white
 
         collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: String(describing: GridViewCell.self))
-
+        collectionView.register(GridCameraCell.self, forCellWithReuseIdentifier: String(describing: GridCameraCell.self))
+        
         requestAlbumsData()
 
         initalFetchResult()
@@ -209,27 +210,23 @@ public class AssetGridViewController: UICollectionViewController {
     // MARK: UICollectionView
 
     public override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return fetchResult.count
+        return fetchResult.count + 1 // one cell for taking picture or video
     }
 
-    public override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    fileprivate func configureCell(_ cell: GridViewCell, at indexPath: IndexPath) {
         let asset = fetchResult.object(at: indexPath.item)
-
-        // Dequeue a GridViewCell.
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridViewCell.self), for: indexPath) as? GridViewCell
-            else { fatalError("unexpected cell in collection view") }
-
+        
         cell.delegate = self
-
+        
         // Add a badge to the cell if the PHAsset represents a Live Photo.
         if asset.mediaSubtypes.contains(.photoLive) {
             cell.livePhotoBadgeImage = PHLivePhotoView.livePhotoBadgeImage(options: .overContent)
         }
         cell.indexPath = indexPath
-
+        
         // Request an image for the asset from the PHCachingImageManager.
         cell.representedAssetIdentifier = asset.localIdentifier
-
+        
         imageManager.requestImage(for: asset, targetSize: thumbnailSize, contentMode: .aspectFill, options: nil, resultHandler: { image, info in
             // The cell may have been recycled by the time this handler gets called;
             // set the cell's thumbnail image only if it's still showing the same asset.
@@ -265,33 +262,49 @@ public class AssetGridViewController: UICollectionViewController {
                 }
             }
         })
-        return cell
+    }
+    
+    public override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if indexPath.item == 0 {// camera
+            return collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridCameraCell.self), for: indexPath)
+        } else {
+            // Dequeue a GridViewCell.
+            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridViewCell.self), for: indexPath) as? GridViewCell {
+                configureCell(cell, at: indexPath)
+                return cell
+            }
+        }
+        
+        return UICollectionViewCell()
     }
 
     public override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         lastSelectedIndexPath = indexPath
+        if indexPath.item == 0 { // camera
+            
+        } else {
+            var photos = [PhotoProtocol]()
+            for index in 0..<fetchResult.count {
+                let asset = fetchResult[index]
+    //            print("assert location: \(asset.location)")
+                photos.append(Photo(asset: asset))
+            }
 
-        var photos = [PhotoProtocol]()
-        for index in 0..<fetchResult.count {
-            let asset = fetchResult[index]
-//            print("assert location: \(asset.location)")
-            photos.append(Photo(asset: asset))
+            var selectedPhotos: [Photo] = []
+            let selectedAssetsResult = PHAsset.fetchAssets(withLocalIdentifiers: assetSelectionIdentifierCache, options: nil)
+            selectedAssetsResult.enumerateObjects { (asset, _, _) in
+                let photo = Photo(asset: asset)
+                selectedPhotos.append(photo)
+            }
+
+            // collectionview
+            let detailVC = PhotoDetailCollectionViewController(photos: photos, initialIndex: indexPath.row)
+            detailVC.selectedPhotos = selectedPhotos
+            detailVC.maximumNumber = maximumNumber
+            detailVC.delegate = self
+
+            self.navigationController?.pushViewController(detailVC, animated: true)
         }
-
-        var selectedPhotos: [Photo] = []
-        let selectedAssetsResult = PHAsset.fetchAssets(withLocalIdentifiers: assetSelectionIdentifierCache, options: nil)
-        selectedAssetsResult.enumerateObjects { (asset, _, _) in
-            let photo = Photo(asset: asset)
-            selectedPhotos.append(photo)
-        }
-
-        // collectionview
-        let detailVC = PhotoDetailCollectionViewController(photos: photos, initialIndex: indexPath.row)
-        detailVC.selectedPhotos = selectedPhotos
-        detailVC.maximumNumber = maximumNumber
-        detailVC.delegate = self
-
-        self.navigationController?.pushViewController(detailVC, animated: true)
     }
 
     // MARK: UIScrollView
@@ -300,7 +313,7 @@ public class AssetGridViewController: UICollectionViewController {
     }
 }
 
-extension AssetGridViewController: GridViewCellDelegate {
+extension PhotoPickerViewController: GridViewCellDelegate {
     func gridCell(_ cell: GridViewCell, buttonClickedAt indexPath: IndexPath, assetIdentifier: String) {
         if let exsist = assetSelectionIdentifierCache.firstIndex(of: assetIdentifier) {
             assetSelectionIdentifierCache.remove(at: exsist)
@@ -339,7 +352,7 @@ extension AssetGridViewController: GridViewCellDelegate {
 }
 
 // MARK: - PhotoDetailCollectionViewControllerDelegate
-extension AssetGridViewController: PhotoDetailCollectionViewControllerDelegate {
+extension PhotoPickerViewController: PhotoDetailCollectionViewControllerDelegate {
     public func showNavigationBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
         true
     }
@@ -375,7 +388,7 @@ extension AssetGridViewController: PhotoDetailCollectionViewControllerDelegate {
 }
 
 // MARK: - AlbumsTableViewControllerDelegate
-extension AssetGridViewController: AlbumsTableViewControllerDelegate {
+extension PhotoPickerViewController: AlbumsTableViewControllerDelegate {
     func albumsTableViewController(_ albums: AlbumsTableViewController, didSelectPhassetAt indexPath: IndexPath) {
         self.selectedAlbumIndexPath = indexPath
         switch AlbumsTableViewController.Section(rawValue: indexPath.section)! {
@@ -406,7 +419,7 @@ extension AssetGridViewController: AlbumsTableViewControllerDelegate {
 }
 
 // MARK: - Asset Caching
-extension AssetGridViewController {
+extension PhotoPickerViewController {
     fileprivate func resetCachedAssets() {
         imageManager.stopCachingImagesForAllAssets()
         previousPreheatRect = .zero
@@ -471,7 +484,7 @@ extension AssetGridViewController {
 }
 
 // MARK: - PHPhotoLibraryChangeObserver
-extension AssetGridViewController: PHPhotoLibraryChangeObserver {
+extension PhotoPickerViewController: PHPhotoLibraryChangeObserver {
     public func photoLibraryDidChange(_ changeInstance: PHChange) {
 
         guard let changes = changeInstance.changeDetails(for: fetchResult)

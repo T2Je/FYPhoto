@@ -104,7 +104,7 @@ class ViewController: UIViewController {
             DispatchQueue.main.async {
                 switch status {
                 case .authorized:
-                    let gridVC = AssetGridViewController(maximumToSelect: 6, isOnlyImages: false)
+                    let gridVC = PhotoPickerViewController(maximumToSelect: 6, isOnlyImages: false)
                     gridVC.selectedPhotos = { [weak self] images in
                         print("selected \(images.count) photos: \(images)")
                     }
