@@ -20,6 +20,7 @@ public protocol Asset {
     var assetSize: CGSize? { get set }
 }
 
+
 public protocol PhotoProtocol: Asset {
     var underlyingImage: UIImage? { get set }
     var url: URL? { get set }
@@ -34,6 +35,7 @@ public protocol PhotoProtocol: Asset {
     func generateThumbnail(_ url: URL, size: CGSize, completion: @escaping ((UIImage?) -> Void))
 }
 
+/// Photo can be image, assert, or a media url.
 public class Photo: PhotoProtocol {
 
     public var underlyingImage: UIImage?
@@ -49,7 +51,10 @@ public class Photo: PhotoProtocol {
 
     public private(set) var resourceType: PhotoResourceType
 
-    var urlAssetQueue: DispatchQueue!
+    lazy var urlAssetQueue: DispatchQueue = {
+        DispatchQueue(label: "com.variflight.urlAssetQueue")
+    }()
+    
     let videoTypes = ["mp4", "m4a", "mov"]
 
     public var isVideo: Bool {
@@ -62,7 +67,7 @@ public class Photo: PhotoProtocol {
             if url.isVideo() {
                 return true
             }
-            // last chance. For example: http://client.gsup.sichuanair.com/file.php?70c1dafd4eaccb9a722ac3fcd8459cfc.jpg
+            // last chance to set the value. For example: http://client.gsup.sichuanair.com/file.php?70c1dafd4eaccb9a722ac3fcd8459cfc.jpg
             if let suffix = url.absoluteString.components(separatedBy: ".").last {
                 return videoTypes.contains(suffix)
             } else {
@@ -87,7 +92,6 @@ public class Photo: PhotoProtocol {
         self.init()
         self.url = url
         resourceType = .url
-        urlAssetQueue = DispatchQueue(label: "url asset queue")
     }
 
     convenience public init(asset: PHAsset) {
@@ -127,7 +131,7 @@ extension Photo {
                     completion(thumbImage) //9
                 }
             } catch {
-                print(error.localizedDescription) //10
+                print("video thumbnail generated error: \(error.localizedDescription)") //10
                 DispatchQueue.main.async {
                     completion(nil) //11
                 }

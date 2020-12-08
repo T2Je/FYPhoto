@@ -20,7 +20,7 @@ public class AssetGridViewController: UICollectionViewController {
     var smartAlbums: [PHAssetCollection]!
     var userCollections: PHFetchResult<PHCollection>!
 
-    /// select all photos default, use in AlbumsTableViewController
+    /// select all photos default, used in AlbumsTableViewController
     fileprivate var selectedAlbumIndexPath = IndexPath(row: 0, section: 0)
 
     /// Grid cell indexPath
