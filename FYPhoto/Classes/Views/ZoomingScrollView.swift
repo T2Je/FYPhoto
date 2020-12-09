@@ -16,7 +16,6 @@ enum ImageViewTap: String {
 }
 
 class ZoomingScrollView: UIScrollView {
-
     var photo: PhotoProtocol! {
         didSet {
             circularProgressView.isHidden = true
@@ -34,7 +33,7 @@ class ZoomingScrollView: UIScrollView {
         }
     }
 
-    var imageView = PhotosDetectingImageView()
+    var imageView = PhotoAnimatedImageView()
 
     var circularProgressView = UICircularProgressRing()
 
@@ -48,7 +47,7 @@ class ZoomingScrollView: UIScrollView {
 
     func setup() {
 //        backgroundColor = .clear
-        imageView.delegate = self
+        imageView.tapGestureDelegate = self
         imageView.contentMode = .scaleAspectFit
 
         circularProgressView.outerRingColor = .gray
@@ -97,11 +96,7 @@ class ZoomingScrollView: UIScrollView {
     }
 
     func displayAsset(_ asset: PHAsset, targetSize: CGSize) {
-        let options = PHImageRequestOptions()
-        options.deliveryMode = .highQualityFormat
-        options.resizeMode = .exact
-
-        PHImageManager.default().requestImage(for: asset, targetSize: targetSize, contentMode: PHImageContentMode.aspectFit, options: options) { [weak self] (image, info) in
+        imageView.setAsset(asset, targeSize: targetSize) { [weak self] (image) in
             if let image = image {
                 self?.photo.underlyingImage = image
             } else {
@@ -110,28 +105,25 @@ class ZoomingScrollView: UIScrollView {
         }
     }
 
-    func display(_ url: URL) {
-        if url.isFileURL {
-            self.photo.underlyingImage = loadLocalImage(url)
-        } else {
-            circularProgressView.value = 0
-            loadWebImage(url, progress: { (progress) in
-                DispatchQueue.main.async {
-                    if self.circularProgressView.isHidden == true {
-                        self.circularProgressView.isHidden = false
-                    }
-                    self.circularProgressView.value = CGFloat(progress)
+    func display(_ url: URL, placeholder: UIImage? = nil) {
+        circularProgressView.value = 0
+        imageView.setImage(url: url, placeholder: placeholder) { (recieved, expected, _) in
+            let progress = recieved / expected
+            DispatchQueue.main.async {
+                if self.circularProgressView.isHidden == true {
+                    self.circularProgressView.isHidden = false
                 }
-
-            }) { (image, error) in
-                DispatchQueue.main.async {
-                    self.circularProgressView.isHidden = true
-                    if let image = image {
-                        self.photo.underlyingImage = image
-                    } else if error != nil {
-                        self.displayImageFailure()
-                    }
-                }
+                self.circularProgressView.value = CGFloat(progress)
+            }
+        } completed: { [weak self] (result) in
+            switch result {
+            case .failure(let error):
+                #if DEBUG
+                print("❌ \(error) in ",  #file)
+                #endif
+                self?.displayImageFailure()
+            case .success(let image):
+                self?.photo.underlyingImage = image
             }
         }
     }
@@ -143,16 +135,15 @@ class ZoomingScrollView: UIScrollView {
     }
 }
 
-extension ZoomingScrollView: PhotosDetectingImageViewDelegate {
-    func handleImageViewSingleTap(_ touchPoint: CGPoint) {
+extension ZoomingScrollView: DetectingTapViewDelegate {
+    func handleSingleTap(_ touchPoint: CGPoint) {
         routerEvent(name: ImageViewTap.singleTap.rawValue, userInfo: nil)
     }
-
-    func handleImageViewDoubleTap(_ touchPoint: CGPoint) {
+    
+    func handleDoubleTap(_ touchPoint: CGPoint) {
         var info = [String: Any]()
         info["touchPoint"] = touchPoint
         info["mediaType"] = kUTTypeImage
         routerEvent(name: ImageViewTap.doubleTap.rawValue, userInfo: info)
     }
-
 }

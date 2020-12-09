@@ -97,7 +97,7 @@ public class Photo: PhotoProtocol {
     convenience public init(asset: PHAsset) {
         self.init()
         self.asset = asset
-        resourceType = .asset
+        resourceType = .asset        
     }
 
 }

@@ -19,7 +19,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     var selectedPhotos: [PhotoProtocol] = [] {
         willSet {
             let assetIdentifiers = newValue.compactMap { $0.asset?.localIdentifier }
-            delegate?.photoDetail(self, selectedAssets: assetIdentifiers)
+            delegate?.photoBrowser(self, selectedAssets: assetIdentifiers)
         }
     }
 
@@ -86,7 +86,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             stopPlayingIfNeeded()
             currentPhoto = photos[newValue.item]
             if currentDisplayedIndexPath != newValue {
-                delegate?.photoDetail(self, scrollAt: newValue)
+                delegate?.photoBrowser(self, scrollAt: newValue)
             }
             if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
                 updateAddBarItem(at: newValue)
@@ -411,7 +411,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     // MARK: -Bar item actions
     @objc func doneBarButtonClicked(_ sender: UIBarButtonItem) {
         assert(!selectedPhotos.isEmpty, "photos shouldn't be empty")
-        delegate?.photoDetail(self, didCompleteSelected: selectedPhotos)
+        delegate?.photoBrowser(self, didCompleteSelected: selectedPhotos)
     }
 
     @objc func addPhotoBarItemClicked(_ sender: UIBarButtonItem) {
