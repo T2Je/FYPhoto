@@ -359,7 +359,7 @@
 		D1F44AEA9CA979B9EEFD86AE6F71502C /* Cache-umbrella.h in Headers */ = {isa = PBXBuildFile; fileRef = 9DD38DFEF281635AEC3DE0F42D23C584 /* Cache-umbrella.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		D31FC7FDD450C4CDD633ECBAD27C6221 /* URLEncodedFormEncoder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6AD5EFE5DB68F9E61344776C8E7DDA24 /* URLEncodedFormEncoder.swift */; };
 		D383D738A22DA68C0B0F993DEA536F71 /* SDImageCacheConfig.h in Headers */ = {isa = PBXBuildFile; fileRef = 5D2DA087FD19E20B83D8AEAF2792371E /* SDImageCacheConfig.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		D4239B14EF5BCCFF4A814CFDE0180CC2 /* PhotoDetailCollectionViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D58D2E4B0414D0B233218DB084B451 /* PhotoDetailCollectionViewControllerDelegate.swift */; };
+		D4239B14EF5BCCFF4A814CFDE0180CC2 /* PhotoBrowserViewControllerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30D58D2E4B0414D0B233218DB084B451 /* PhotoBrowserViewControllerDelegate.swift */; };
 		D49B4C9A532FBF5F5FED7D109A23CBA5 /* ConstraintLayoutGuideDSL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1FE9B46268C08C5BACA8441F4C848942 /* ConstraintLayoutGuideDSL.swift */; };
 		D4ADCDC82747C12AB56C7AF45212B61C /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C738875680C4B0AE96AF75B253F66808 /* Foundation.framework */; };
 		D5EAAFB6FAD77A8F0699345149BA3CBB /* URLRequest+Alamofire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9323C03FF2919E3A3BCFCDCB1C3E20C7 /* URLRequest+Alamofire.swift */; };
@@ -659,7 +659,7 @@
 		2F882E9FA92602BA7495EC40B57EE2A7 /* ConstraintView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ConstraintView.swift; path = Source/ConstraintView.swift; sourceTree = "<group>"; };
 		302A641AC1ECB0757FF03DAE6C0CFD2C /* NSImage+Compatibility.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "NSImage+Compatibility.h"; path = "SDWebImage/Core/NSImage+Compatibility.h"; sourceTree = "<group>"; };
 		3055D4864D2C7A8B624F3F6FB7590EE7 /* SDImageHEICCoder.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = SDImageHEICCoder.h; path = SDWebImage/Core/SDImageHEICCoder.h; sourceTree = "<group>"; };
-		30D58D2E4B0414D0B233218DB084B451 /* PhotoDetailCollectionViewControllerDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhotoDetailCollectionViewControllerDelegate.swift; sourceTree = "<group>"; };
+		30D58D2E4B0414D0B233218DB084B451 /* PhotoBrowserViewControllerDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhotoBrowserViewControllerDelegate.swift; sourceTree = "<group>"; };
 		30EE827BBB86919E3EE9B7B58870BA31 /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		31993B05D7F60185EFC651BD33E27AFA /* SDAnimatedImagePlayer.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = SDAnimatedImagePlayer.h; path = SDWebImage/Core/SDAnimatedImagePlayer.h; sourceTree = "<group>"; };
 		31A41016057D1822B28DCBDA464EC034 /* SDImageAssetManager.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = SDImageAssetManager.h; path = SDWebImage/Private/SDImageAssetManager.h; sourceTree = "<group>"; };
@@ -1742,7 +1742,7 @@
 				2A2B2D73F1212EB5259932434A3CCC5A /* PhotoPickerViewController.swift */,
 				E565F8BC944F300ED3E882E433662F61 /* PhotoPickerViewController+AssetTransition.swift */,
 				CAB8777806C294FD7DD98FD2674CFAC0 /* PhotoBrowserViewController.swift */,
-				30D58D2E4B0414D0B233218DB084B451 /* PhotoDetailCollectionViewControllerDelegate.swift */,
+				30D58D2E4B0414D0B233218DB084B451 /* PhotoBrowserViewControllerDelegate.swift */,
 				F0F6F6449C4944D80BC5F2AA6E259BF2 /* VideoPreviewController.swift */,
 				E3DEB53C257F6AC60091E208 /* PhotoPickerViewController+CameraDelegate.swift */,
 			);
@@ -2896,7 +2896,7 @@
 				5C667C85C0CDF6B01D2EF0D328E0261F /* PhotoCaptureDelegate.swift in Sources */,
 				9A2C5E69D18C5A8C72C5AC150CBC9113 /* PhotoDetailCell.swift in Sources */,
 				185C7525083A8922179611CE49D032F1 /* PhotoBrowserViewController.swift in Sources */,
-				D4239B14EF5BCCFF4A814CFDE0180CC2 /* PhotoDetailCollectionViewControllerDelegate.swift in Sources */,
+				D4239B14EF5BCCFF4A814CFDE0180CC2 /* PhotoBrowserViewControllerDelegate.swift in Sources */,
 				26BB346F739A672FF1AA17BB3ACDF71B /* PhotoInteractiveDismissTransitionDriver.swift in Sources */,
 				E3DEB53D257F6AC60091E208 /* PhotoPickerViewController+CameraDelegate.swift in Sources */,
 				4761F115D40949F76FE98F3CD9293100 /* PhotoLauncher.swift in Sources */,

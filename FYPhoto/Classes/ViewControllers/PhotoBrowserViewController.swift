@@ -14,7 +14,7 @@ private let videoCellReuseIdentifier = "VideoDetailCell"
 
 public class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
 
-    public weak var delegate: PhotoDetailCollectionViewControllerDelegate?
+    public weak var delegate: PhotoBrowserViewControllerDelegate?
 
     var selectedPhotos: [PhotoProtocol] = [] {
         willSet {

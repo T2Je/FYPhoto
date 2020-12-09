@@ -281,7 +281,7 @@ extension ViewController: VideoPreviewControllerDelegate {
     }
 }
 
-extension ViewController: PhotoDetailCollectionViewControllerDelegate {
+extension ViewController: PhotoBrowserViewControllerDelegate {
     func showBottomToolBar(in photoDetail: PhotoBrowserViewController) -> Bool {
         true
     }

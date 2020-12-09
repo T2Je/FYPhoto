@@ -77,7 +77,7 @@ public class Photo: PhotoProtocol {
             return false
         }
     }
-
+    
     private init() {
         resourceType = .none
     }

@@ -367,7 +367,7 @@ extension PhotoPickerViewController: GridViewCellDelegate {
 }
 
 // MARK: - PhotoDetailCollectionViewControllerDelegate
-extension PhotoPickerViewController: PhotoDetailCollectionViewControllerDelegate {
+extension PhotoPickerViewController: PhotoBrowserViewControllerDelegate {
     public func showNavigationBar(in photoDetail: PhotoBrowserViewController) -> Bool {
         true
     }

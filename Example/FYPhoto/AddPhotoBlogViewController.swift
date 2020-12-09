@@ -397,7 +397,7 @@ extension AddPhotoBlogViewController: PhotoLauncherDelegate {
     }
 }
 
-extension AddPhotoBlogViewController: PhotoDetailCollectionViewControllerDelegate {
+extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
     func showNavigationBar(in photoDetail: PhotoBrowserViewController) -> Bool {
         true
     }
