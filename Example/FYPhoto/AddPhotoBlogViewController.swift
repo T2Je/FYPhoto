@@ -365,9 +365,10 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
                 photoLauncher.launchCustomPhotoLibrary(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
             }
         } else {
-            var photos = [Photo]()
+            var photos = [PhotoProtocol]()
             for index in 0..<selectedImageArray.count {
-                photos.append(Photo(image: selectedImageArray[index]))
+                let photo = Photo.photoWithUIImage(selectedImageArray[index])
+                photos.append(photo)                
             }
             let detailVC = PhotoBrowserViewController(photos: photos, initialIndex: indexPath.row)
             detailVC.delegate = self
@@ -398,39 +399,39 @@ extension AddPhotoBlogViewController: PhotoLauncherDelegate {
 }
 
 extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
-    func showNavigationBar(in photoDetail: PhotoBrowserViewController) -> Bool {
+    func showNavigationBar(in photoBrowser: PhotoBrowserViewController) -> Bool {
         true
     }
 
-    func showBottomToolBar(in photoDetail: PhotoBrowserViewController) -> Bool {
+    func showBottomToolBar(in photoBrowser: PhotoBrowserViewController) -> Bool {
         false
     }
 
-    func canDisplayCaption(in photoDetail: PhotoBrowserViewController) -> Bool {
+    func canDisplayCaption(in photoBrowser: PhotoBrowserViewController) -> Bool {
         false
     }
 
-    public func showNavigationBarToolBar(in photoDetail: PhotoBrowserViewController) -> Bool {
+    public func showNavigationBarToolBar(in photoBrowser: PhotoBrowserViewController) -> Bool {
         return false
     }
 
-    func canSelectPhoto(in photoDetail: PhotoBrowserViewController) -> Bool {
+    func canSelectPhoto(in photoBrowser: PhotoBrowserViewController) -> Bool {
         return false
     }
 
-    func canEditPhoto(in photoDetail: PhotoBrowserViewController) -> Bool {
+    func canEditPhoto(in photoBrowser: PhotoBrowserViewController) -> Bool {
         return false
     }
 
-    func photoDetail(_ photoDetail: PhotoBrowserViewController, scrollAt indexPath: IndexPath) {
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt indexPath: IndexPath) {
         lastSelectedIndexPath = indexPath
     }
 
-    func photoDetail(_ photoDetail: PhotoBrowserViewController, selectedAssets identifiers: [String]) {
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, selectedAssets identifiers: [String]) {
 
     }
 
-    func photoDetail(_ photoDetail: PhotoBrowserViewController, didCompleteSelected photos: [PhotoProtocol]) {
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, didCompleteSelected photos: [PhotoProtocol]) {
 
     }
 

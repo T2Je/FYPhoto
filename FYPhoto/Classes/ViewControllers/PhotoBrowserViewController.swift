@@ -143,7 +143,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     deinit {
-        print(#file, #function, "☠️☠️☠️☠️☠️☠️")
         NotificationCenter.default.removeObserver(self)
         playerItemStatusToken?.invalidate()
         player?.pause()
@@ -349,7 +348,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         stopPlayingVideoIfNeeded(at: currentDisplayedIndexPath)
 
         var photo = photos[indexPath.row]
-        photo.assetSize = assetSize
+        photo.targetSize = assetSize
         if photo.isVideo {
             if let videoCell = cell as? VideoDetailCell {
                 videoCell.photo = photo
@@ -789,20 +788,11 @@ extension PhotoBrowserViewController: PhotoTransitioning {
 
 extension PhotoBrowserViewController {
     func firstIndexOfPhoto(_ photo: PhotoProtocol, in photos: [PhotoProtocol]) -> Int? {
-        if let equals = selectedPhotos as? [Photo], let photo = photo as? Photo {
-            let index = equals.firstIndex(of: photo)
-            return index
-        } else {
-            let index = selectedPhotos.firstIndex { (photoPro) -> Bool in
-                if let proAsset = photoPro.asset, let photoAsset = photo.asset {
-                    return proAsset.localIdentifier == photoAsset.localIdentifier
-                }
-                if let proURL = photoPro.url, let photoURL = photo.url {
-                    return proURL == photoURL
-                }
-                return photo.underlyingImage == photoPro.underlyingImage
+        for (idx, selected) in selectedPhotos.enumerated() {
+            if selected.isEqualTo(photo) {
+                return idx
             }
-            return index
         }
+        return nil
     }
 }

@@ -20,10 +20,10 @@ class ZoomingScrollView: UIScrollView {
         didSet {
             circularProgressView.isHidden = true
             if photo != nil {
-                if let image = photo.underlyingImage {
+                if let image = photo.image {
                     displayImage(image)
                 } else if let asset = photo.asset {
-                    displayAsset(asset, targetSize: photo.assetSize ?? bounds.size)
+                    displayAsset(asset, targetSize: photo.targetSize ?? bounds.size)
                 } else if let url = photo.url {
                     display(url)
                 } else {
@@ -98,7 +98,7 @@ class ZoomingScrollView: UIScrollView {
     func displayAsset(_ asset: PHAsset, targetSize: CGSize) {
         imageView.setAsset(asset, targeSize: targetSize) { [weak self] (image) in
             if let image = image {
-                self?.photo.underlyingImage = image
+                self?.photo.storeImage(image)
             } else {
                 self?.displayImageFailure()
             }
@@ -123,7 +123,7 @@ class ZoomingScrollView: UIScrollView {
                 #endif
                 self?.displayImageFailure()
             case .success(let image):
-                self?.photo.underlyingImage = image
+                self?.photo.storeImage(image)
             }
         }
     }

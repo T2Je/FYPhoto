@@ -305,13 +305,14 @@ public class PhotoPickerViewController: UICollectionViewController {
             for index in 0..<fetchResult.count {
                 let asset = fetchResult[index]
     //            print("assert location: \(asset.location)")
-                photos.append(Photo(asset: asset))
+//                photos.append(Photo(asset: asset))
+                photos.append(Photo.photoWithPHAsset(asset))
             }
 
-            var selectedPhotos: [Photo] = []
+            var selectedPhotos: [PhotoProtocol] = []
             let selectedAssetsResult = PHAsset.fetchAssets(withLocalIdentifiers: assetSelectionIdentifierCache, options: nil)
             selectedAssetsResult.enumerateObjects { (asset, _, _) in
-                let photo = Photo(asset: asset)
+                let photo = Photo.photoWithPHAsset(asset)
                 selectedPhotos.append(photo)
             }
 
@@ -459,7 +460,7 @@ extension PhotoPickerViewController {
         guard isViewLoaded && view.window != nil else { return }
         guard fetchResult.count > 0 else {
             #if DEBUG
-            print("❌ can't fetch any photo")
+            print("❌ could't fetch any photo")
             #endif
             return
         }

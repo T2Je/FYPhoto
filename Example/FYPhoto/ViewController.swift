@@ -79,7 +79,7 @@ class ViewController: UIViewController {
             NSLayoutConstraint.activate([
                 stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 stackView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 100),
-                stackView.widthAnchor.constraint(equalToConstant: 200),
+                stackView.widthAnchor.constraint(equalToConstant: 300),
                 stackView.heightAnchor.constraint(equalToConstant: 200)
             ])
         } else {
@@ -87,7 +87,7 @@ class ViewController: UIViewController {
             NSLayoutConstraint.activate([
                 stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 stackView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 100),
-                stackView.widthAnchor.constraint(equalToConstant: 200),
+                stackView.widthAnchor.constraint(equalToConstant: 300),
                 stackView.heightAnchor.constraint(equalToConstant: 200)
             ])
         }
@@ -104,7 +104,7 @@ class ViewController: UIViewController {
             DispatchQueue.main.async {
                 switch status {
                 case .authorized:
-                    let photoPickerVC = PhotoPickerViewController(maximumCanBeSelected: 6, isOnlyImages: true)
+                    let photoPickerVC = PhotoPickerViewController(maximumCanBeSelected: 6, isOnlyImages: false)
                     photoPickerVC.selectedPhotos = { [weak self] images in
                         print("selected \(images.count) photos: \(images)")
                     }
@@ -177,7 +177,7 @@ class ViewController: UIViewController {
 //        let urlStr = "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4"
         guard let url = URL(string: urlStr) else { return }
 
-        let photo = Photo(url: url)
+        let photo = Photo.photoWithURL(url)
         let photosDetailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
         photosDetailVC.delegate = self
         navigationController?.pushViewController(photosDetailVC, animated: true)
@@ -205,7 +205,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
             guard let image = info[.originalImage] as? UIImage else { return }
             UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
             picker.dismiss(animated: true) {
-                let photo = Photo(image: image)
+                let photo = Photo.photoWithUIImage(image)
                 let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
                 detailVC.delegate = self
                 self.navigationController?.pushViewController(detailVC, animated: true)
@@ -334,7 +334,7 @@ extension ViewController: CameraViewControllerDelegate {
                 }
             }
             cameraViewController.dismiss(animated: true) {
-                let photo = Photo(image: image)
+                let photo = Photo.photoWithUIImage(image)
                 let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
                 detailVC.delegate = self
                 self.navigationController?.pushViewController(detailVC, animated: true)
