@@ -14,12 +14,12 @@ private let videoCellReuseIdentifier = "VideoDetailCell"
 
 public class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
 
-    public weak var delegate: PhotoDetailCollectionViewControllerDelegate?
+    public weak var delegate: PhotoBrowserViewControllerDelegate?
 
     var selectedPhotos: [PhotoProtocol] = [] {
         willSet {
             let assetIdentifiers = newValue.compactMap { $0.asset?.localIdentifier }
-            delegate?.photoDetail(self, selectedAssets: assetIdentifiers)
+            delegate?.photoBrowser(self, selectedAssets: assetIdentifiers)
         }
     }
 
@@ -86,7 +86,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             stopPlayingIfNeeded()
             currentPhoto = photos[newValue.item]
             if currentDisplayedIndexPath != newValue {
-                delegate?.photoDetail(self, scrollAt: newValue)
+                delegate?.photoBrowser(self, scrollAt: newValue)
             }
             if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
                 updateAddBarItem(at: newValue)
@@ -143,7 +143,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     deinit {
-        print(#file, #function, "☠️☠️☠️☠️☠️☠️")
         NotificationCenter.default.removeObserver(self)
         playerItemStatusToken?.invalidate()
         player?.pause()
@@ -349,7 +348,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         stopPlayingVideoIfNeeded(at: currentDisplayedIndexPath)
 
         var photo = photos[indexPath.row]
-        photo.assetSize = assetSize
+        photo.targetSize = assetSize
         if photo.isVideo {
             if let videoCell = cell as? VideoDetailCell {
                 videoCell.photo = photo
@@ -411,7 +410,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     // MARK: -Bar item actions
     @objc func doneBarButtonClicked(_ sender: UIBarButtonItem) {
         assert(!selectedPhotos.isEmpty, "photos shouldn't be empty")
-        delegate?.photoDetail(self, didCompleteSelected: selectedPhotos)
+        delegate?.photoBrowser(self, didCompleteSelected: selectedPhotos)
     }
 
     @objc func addPhotoBarItemClicked(_ sender: UIBarButtonItem) {
@@ -789,20 +788,11 @@ extension PhotoBrowserViewController: PhotoTransitioning {
 
 extension PhotoBrowserViewController {
     func firstIndexOfPhoto(_ photo: PhotoProtocol, in photos: [PhotoProtocol]) -> Int? {
-        if let equals = selectedPhotos as? [Photo], let photo = photo as? Photo {
-            let index = equals.firstIndex(of: photo)
-            return index
-        } else {
-            let index = selectedPhotos.firstIndex { (photoPro) -> Bool in
-                if let proAsset = photoPro.asset, let photoAsset = photo.asset {
-                    return proAsset.localIdentifier == photoAsset.localIdentifier
-                }
-                if let proURL = photoPro.url, let photoURL = photo.url {
-                    return proURL == photoURL
-                }
-                return photo.underlyingImage == photoPro.underlyingImage
+        for (idx, selected) in selectedPhotos.enumerated() {
+            if selected.isEqualTo(photo) {
+                return idx
             }
-            return index
         }
+        return nil
     }
 }

@@ -85,6 +85,11 @@ public class PhotoPickerViewController: UICollectionViewController {
         fatalError("init(coder:) has not been implemented")
     }    
 
+    deinit {
+        resetCachedAssets()
+        PHPhotoLibrary.shared().unregisterChangeObserver(self)
+    }
+    
     // MARK: UIViewController / Lifecycle
     
     public override func viewDidLoad() {
@@ -121,11 +126,6 @@ public class PhotoPickerViewController: UICollectionViewController {
 
     func initalFetchResult() {
         fetchResult = allPhotos
-    }
-
-    deinit {
-        imageManager.stopCachingImagesForAllAssets()
-        PHPhotoLibrary.shared().unregisterChangeObserver(self)
     }
 
     public override func viewWillAppear(_ animated: Bool) {
@@ -216,9 +216,23 @@ public class PhotoPickerViewController: UICollectionViewController {
     public override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return fetchResult.count + 1 // one cell for taking picture or video
     }
-
+    
+    
+    /// Regenerate IndexPath whether the indexPath is for pure photos or not.
+    ///
+    /// CollectionView dataSource contains: photos fetchResult and a photo capture placeholder. Therefore, when calculating pure photo indexPath with fetchResult, we should
+    /// set purePhotos true to minus one from the indexPath.
+    /// - Parameters:
+    ///   - indexPath: origin indexPath
+    ///   - purePhotos: is this indexPath for pure photos. If true, indexPath item minus one, else indexPath item plus one.
+    /// - Returns: regenerated indexPath
+    func regenerate(indexPath: IndexPath, for purePhotos: Bool) -> IndexPath {
+        let para = purePhotos ? -1 : 1
+        return IndexPath(item: indexPath.item + para, section: indexPath.section)
+    }
+    
     fileprivate func configureCell(_ cell: GridViewCell, at indexPath: IndexPath) {
-        let asset = fetchResult.object(at: indexPath.item)
+        let asset = fetchResult.object(at: regenerate(indexPath: indexPath, for: true).item)
         
         cell.delegate = self
         
@@ -291,18 +305,19 @@ public class PhotoPickerViewController: UICollectionViewController {
             for index in 0..<fetchResult.count {
                 let asset = fetchResult[index]
     //            print("assert location: \(asset.location)")
-                photos.append(Photo(asset: asset))
+//                photos.append(Photo(asset: asset))
+                photos.append(Photo.photoWithPHAsset(asset))
             }
 
-            var selectedPhotos: [Photo] = []
+            var selectedPhotos: [PhotoProtocol] = []
             let selectedAssetsResult = PHAsset.fetchAssets(withLocalIdentifiers: assetSelectionIdentifierCache, options: nil)
             selectedAssetsResult.enumerateObjects { (asset, _, _) in
-                let photo = Photo(asset: asset)
+                let photo = Photo.photoWithPHAsset(asset)
                 selectedPhotos.append(photo)
             }
 
             // collectionview
-            let detailVC = PhotoBrowserViewController(photos: photos, initialIndex: indexPath.row)
+            let detailVC = PhotoBrowserViewController(photos: photos, initialIndex: regenerate(indexPath: indexPath, for: true).item)
             detailVC.selectedPhotos = selectedPhotos
             detailVC.maximumNumber = maximumCanBeSelected
             detailVC.delegate = self
@@ -367,36 +382,36 @@ extension PhotoPickerViewController: GridViewCellDelegate {
 }
 
 // MARK: - PhotoDetailCollectionViewControllerDelegate
-extension PhotoPickerViewController: PhotoDetailCollectionViewControllerDelegate {
-    public func showNavigationBar(in photoDetail: PhotoBrowserViewController) -> Bool {
+extension PhotoPickerViewController: PhotoBrowserViewControllerDelegate {
+    public func showNavigationBar(in photoBrowser: PhotoBrowserViewController) -> Bool {
         true
     }
 
-    public func showBottomToolBar(in photoDetail: PhotoBrowserViewController) -> Bool {
+    public func showBottomToolBar(in photoBrowser: PhotoBrowserViewController) -> Bool {
         true
     }
 
-    public func canDisplayCaption(in photoDetail: PhotoBrowserViewController) -> Bool {
+    public func canDisplayCaption(in photoBrowser: PhotoBrowserViewController) -> Bool {
         true
     }
 
-    public func canSelectPhoto(in photoDetail: PhotoBrowserViewController) -> Bool {
+    public func canSelectPhoto(in photoBrowser: PhotoBrowserViewController) -> Bool {
         return true
     }
 
-    public func canEditPhoto(in photoDetail: PhotoBrowserViewController) -> Bool {
+    public func canEditPhoto(in photoBrowser: PhotoBrowserViewController) -> Bool {
         return false
     }
 
-    public func photoDetail(_ photoDetail: PhotoBrowserViewController, scrollAt indexPath: IndexPath) {
-        lastSelectedIndexPath = indexPath
+    public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt indexPath: IndexPath) {
+        lastSelectedIndexPath = regenerate(indexPath: indexPath, for: false)
     }
 
-    public func photoDetail(_ photoDetail: PhotoBrowserViewController, selectedAssets identifiers: [String]) {
+    public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, selectedAssets identifiers: [String]) {
         assetSelectionIdentifierCache = identifiers
     }
 
-    public func photoDetail(_ photoDetail: PhotoBrowserViewController, didCompleteSelected photos: [PhotoProtocol]) {
+    public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, didCompleteSelected photos: [PhotoProtocol]) {
         let assets = photos.compactMap { $0.asset }
         selectionCompleted(assets: assets, animated: true)
     }
@@ -443,7 +458,12 @@ extension PhotoPickerViewController {
     fileprivate func updateCachedAssets() {
         // Update only if the view is visible.
         guard isViewLoaded && view.window != nil else { return }
-        
+        guard fetchResult.count > 0 else {
+            #if DEBUG
+            print("❌ could't fetch any photo")
+            #endif
+            return
+        }
         // The preheat window is twice the height of the visible rect.
         let visibleRect = CGRect(origin: collectionView!.contentOffset, size: collectionView!.bounds.size)
         let preheatRect = visibleRect.insetBy(dx: 0, dy: -0.5 * visibleRect.height)
@@ -461,7 +481,8 @@ extension PhotoPickerViewController {
             if indexPath.item == 0 {
                 return nil
             } else {
-                return fetchResult.object(at: indexPath.item)
+                let index = indexPath.item - 1
+                return fetchResult.object(at: index)
             }
         }
                 
@@ -471,7 +492,8 @@ extension PhotoPickerViewController {
                 if indexPath.item == 0 {
                     return nil
                 } else {
-                    return fetchResult.object(at: indexPath.item)
+                    let index = indexPath.item - 1
+                    return fetchResult.object(at: index)
                 }
             }
         // Update the assets the PHCachingImageManager is caching.

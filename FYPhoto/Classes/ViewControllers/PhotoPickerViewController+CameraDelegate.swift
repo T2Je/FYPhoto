@@ -25,7 +25,7 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
             }
             cameraViewController.dismiss(animated: true) {
                 guard let image = info[.originalImage] as? UIImage else { return }
-                let photo = Photo(image: image)
+                let photo = Photo.photoWithUIImage(image)
                 let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
                 detailVC.delegate = self
                 self.navigationController?.pushViewController(detailVC, animated: true)

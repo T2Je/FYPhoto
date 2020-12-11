@@ -22,10 +22,10 @@ class VideoDetailCell: UICollectionViewCell {
         didSet {
             activityIndicator.isHidden = true
             if photo != nil {
-                if let image = photo.underlyingImage {
+                if let image = photo.image {
                     display(image: image)
                 } else if let asset = photo.asset {
-                    display(asset: asset, targetSize: photo.assetSize ?? bounds.size)
+                    display(asset: asset, targetSize: photo.targetSize ?? bounds.size)
                 } else if let url = photo.url {
                     display(url: url)
                 } else {
@@ -89,11 +89,13 @@ class VideoDetailCell: UICollectionViewCell {
 
     fileprivate func display(url: URL) {
         activityIndicator.startAnimating()
-        photo.generateThumbnail(url, size: .zero) { (image) in
+        photo.generateThumbnail(url, size: .zero) { (result) in
             self.activityIndicator.stopAnimating()
-            if let image = image {
-                self.photo.underlyingImage = image
-            } else {
+            switch result {
+            case .success(let image):
+                self.photo.storeImage(image)
+                self.display(image: image)
+            case .failure(_):
                 self.displayErrorThumbnail()
             }
         }
@@ -114,7 +116,8 @@ class VideoDetailCell: UICollectionViewCell {
                                               contentMode: PHImageContentMode.aspectFit,
                                               options: options) { [weak self] (image, info) in
             if let image = image {
-                self?.photo.underlyingImage = image
+                self?.photo.storeImage(image)
+                self?.display(image: image)
             } else {
                 self?.displayImageFailure()
             }
