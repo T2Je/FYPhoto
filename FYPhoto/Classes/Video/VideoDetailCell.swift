@@ -94,6 +94,7 @@ class VideoDetailCell: UICollectionViewCell {
             switch result {
             case .success(let image):
                 self.photo.storeImage(image)
+                self.display(image: image)
             case .failure(_):
                 self.displayErrorThumbnail()
             }
@@ -116,6 +117,7 @@ class VideoDetailCell: UICollectionViewCell {
                                               options: options) { [weak self] (image, info) in
             if let image = image {
                 self?.photo.storeImage(image)
+                self?.display(image: image)
             } else {
                 self?.displayImageFailure()
             }

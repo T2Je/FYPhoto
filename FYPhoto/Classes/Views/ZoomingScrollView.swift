@@ -99,6 +99,7 @@ class ZoomingScrollView: UIScrollView {
         imageView.setAsset(asset, targeSize: targetSize) { [weak self] (image) in
             if let image = image {
                 self?.photo.storeImage(image)
+                self?.displayImage(image)
             } else {
                 self?.displayImageFailure()
             }
@@ -124,6 +125,7 @@ class ZoomingScrollView: UIScrollView {
                 self?.displayImageFailure()
             case .success(let image):
                 self?.photo.storeImage(image)
+                self?.displayImage(image)
             }
         }
     }
