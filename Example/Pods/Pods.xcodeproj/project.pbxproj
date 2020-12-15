@@ -379,6 +379,7 @@
 		E1ABBE1AAC147DB453DFF8178F9B2429 /* SDWebImageDefine.h in Headers */ = {isa = PBXBuildFile; fileRef = A21200FD5591A6EF7F6DF42061F629EE /* SDWebImageDefine.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E2284A040725F6C94F101FCB70A59572 /* UIViewController+BarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F68BC1DEA160E4D9D6C8B60CFDC1601 /* UIViewController+BarItem.swift */; };
 		E2DE94D6654967D7CD3BECA4411A4C0C /* CaptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84214BACC936789F35BF216CDBA4443 /* CaptionView.swift */; };
+		E32CA7C32588543900BC78D3 /* PBSelectedPhotosThumbnailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32CA7C22588543900BC78D3 /* PBSelectedPhotosThumbnailCell.swift */; };
 		E3A906702581F5C400CBE2B1 /* PhotoImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A9066B2581F5C400CBE2B1 /* PhotoImage.swift */; };
 		E3A906712581F5C400CBE2B1 /* Photo.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A9066C2581F5C400CBE2B1 /* Photo.swift */; };
 		E3A906722581F5C400CBE2B1 /* PhotoURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A9066D2581F5C400CBE2B1 /* PhotoURL.swift */; };
@@ -1002,6 +1003,7 @@
 		E2B31059F158F37CAE78F4C4C70EAD14 /* FGBase.bundle */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FGBase.bundle; sourceTree = BUILT_PRODUCTS_DIR; };
 		E2D098118BEC703D0E9955DAD4784F95 /* SDImageCachesManager.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = SDImageCachesManager.m; path = SDWebImage/Core/SDImageCachesManager.m; sourceTree = "<group>"; };
 		E318062932E1541F6E6498FAE83A4DBA /* FYPhoto.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = FYPhoto.strings; path = en.lproj/FYPhoto.strings; sourceTree = "<group>"; };
+		E32CA7C22588543900BC78D3 /* PBSelectedPhotosThumbnailCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PBSelectedPhotosThumbnailCell.swift; sourceTree = "<group>"; };
 		E379EACEB34BDFF6F70F05C36FC80A6B /* UIImageView+HighlightedWebCache.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "UIImageView+HighlightedWebCache.h"; path = "SDWebImage/Core/UIImageView+HighlightedWebCache.h"; sourceTree = "<group>"; };
 		E3A9066B2581F5C400CBE2B1 /* PhotoImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoImage.swift; sourceTree = "<group>"; };
 		E3A9066C2581F5C400CBE2B1 /* Photo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Photo.swift; sourceTree = "<group>"; };
@@ -1431,6 +1433,7 @@
 				288AFAD94DB093ED52D87829E58C9EED /* PhotoDetailCell.swift */,
 				8091A0EFE56D7C42C044D49292B84583 /* VideoCountDownOverlay.swift */,
 				82156DB6D5E4D4BE3857F14BC84F25D5 /* ZoomingScrollView.swift */,
+				E32CA7C22588543900BC78D3 /* PBSelectedPhotosThumbnailCell.swift */,
 			);
 			name = Views;
 			path = FYPhoto/Classes/Views;
@@ -3046,6 +3049,7 @@
 				7021E1E13A1D7C00CD6FD345F74DB06E /* PhotoDetailCell.swift in Sources */,
 				EB2B55E2F863A8ACF65AC654458C53AD /* PhotoInteractiveDismissTransitionDriver.swift in Sources */,
 				663D61708C406CED25DB1C8B97F25FC2 /* PhotoLauncher.swift in Sources */,
+				E32CA7C32588543900BC78D3 /* PBSelectedPhotosThumbnailCell.swift in Sources */,
 				6260CE4A1EC1DBD5DFF7F8AE093DFDD7 /* PhotoPickerResource.swift in Sources */,
 				2EEF5D8DEED38D2465ABDF4DE7572638 /* PhotoPickerSettingsOptions.swift in Sources */,
 				440F6F77E4C4D0E9266669BFBBC1640F /* PhotoPickerViewController+AssetTransition.swift in Sources */,

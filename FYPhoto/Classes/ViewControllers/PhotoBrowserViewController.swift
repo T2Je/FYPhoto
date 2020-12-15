@@ -9,10 +9,10 @@ import UIKit
 import Photos
 import MobileCoreServices
 
-private let photoCellReuseIdentifier = "PhotoDetailCell"
-private let videoCellReuseIdentifier = "VideoDetailCell"
-
 public class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
+    private let photoCellReuseIdentifier = "PhotoDetailCell"
+    private let videoCellReuseIdentifier = "VideoDetailCell"
+    private let selectedThumbnailsReuseIdentifier = "PBSelectedPhotosThumbnailCell"
 
     public weak var delegate: PhotoBrowserViewControllerDelegate?
 
@@ -20,6 +20,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         willSet {
             let assetIdentifiers = newValue.compactMap { $0.asset?.localIdentifier }
             delegate?.photoBrowser(self, selectedAssets: assetIdentifiers)
+            thumbnailsCollectionView.reloadData()
         }
     }
 
@@ -34,9 +35,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     fileprivate let photos: [PhotoProtocol]
 
-    fileprivate let imageManager = PHCachingImageManager()
-
-    fileprivate let collectionView: UICollectionView
+    fileprivate var collectionView: UICollectionView!
 
     fileprivate let captionView = CaptionView()
 
@@ -76,6 +75,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         "playable",
         "hasProtectedContent"
     ]
+    var playerItemStatusToken: NSKeyValueObservation?
 
     /// After the movie has played to its end time, seek back to time zero
     /// to play it again.
@@ -120,28 +120,42 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
 
-    var playerItemStatusToken: NSKeyValueObservation?
-
-
-    // MARK: - LifeCycle
+    // MARK: - Function
+    
+    // MARK: LifeCycle
     public init(photos: [PhotoProtocol], initialIndex: Int) {
         self.photos = photos
-        self.currentDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
-        self.currentPhoto = photos[currentDisplayedIndexPath.item]
-        let flowLayout = UICollectionViewFlowLayout()
-        flowLayout.minimumInteritemSpacing = 0
-        flowLayout.minimumLineSpacing = 20
-        flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
-        flowLayout.scrollDirection = .horizontal
+        currentDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
+        currentPhoto = photos[currentDisplayedIndexPath.item]
 //        flowLayout.itemSize = frame.size
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
         super.init(nibName: nil, bundle: nil)
+        
+        collectionView = generateMainCollectionView()
+        thumbnailsCollectionView = generateThumbnailsCollectionView()
     }
 
     required public init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
+    func generateMainCollectionView() -> UICollectionView {
+        let flowLayout = UICollectionViewFlowLayout()
+        flowLayout.minimumInteritemSpacing = 0
+        flowLayout.minimumLineSpacing = 20
+        flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        flowLayout.scrollDirection = .horizontal
+        return UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
+    }
+    
+    func generateThumbnailsCollectionView() -> UICollectionView {
+        let flowLayout = UICollectionViewFlowLayout()
+        flowLayout.minimumInteritemSpacing = 0
+        flowLayout.minimumLineSpacing = 20
+        flowLayout.scrollDirection = .horizontal
+        flowLayout.itemSize = CGSize(width: 50, height: 50)
+        return UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
+    }
+    
     deinit {
         NotificationCenter.default.removeObserver(self)
         playerItemStatusToken?.invalidate()
@@ -161,7 +175,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         previousAudioCategory = AVAudioSession.sharedInstance().category
 
         view.addSubview(collectionView)
-        view.addSubview(captionView)
+        view.addSubview(captionView)        
 
         setupCollectionView()
 
@@ -202,6 +216,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         restoreNavigationControllerData()
     }
 
+    // MARK: Setup
     func setupCollectionView() {
         collectionView.register(PhotoDetailCell.self, forCellWithReuseIdentifier: photoCellReuseIdentifier)
         collectionView.register(VideoDetailCell.self, forCellWithReuseIdentifier: videoCellReuseIdentifier)
@@ -266,7 +281,40 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
 
+    // selected photo thumbnail collectionView
+    lazy var thumbnailsCollectionView: UICollectionView = {
+        let collectionView = generateThumbnailsCollectionView()
+        collectionView.register(PBSelectedPhotosThumbnailCell.self, forCellWithReuseIdentifier: selectedThumbnailsReuseIdentifier)
+        collectionView.isPagingEnabled = false
+        collectionView.delegate = self
+        collectionView.dataSource = self
+//        collectionView.backgroundColor = .white
+        collectionView.contentInsetAdjustmentBehavior = .never
+    }()
+    var thumbnailCellIdx: IndexPath? {
+        willSet {
+            //TODO: scroll collection view
+            guard let idx = newValue else { return }
+            let photo = selectedPhotos[idx.row]
+            if let firstIndex = firstIndexOfPhoto(photo, in: photos) {
+                collectionView.scrollToItem(at: IndexPath(item: firstIndex, section: 0), at: .centeredHorizontally, animated: true)
+            }
+        }
+    }
+    func addThumbnailCollectionView() {
+        view.addSubview(thumbnailsCollectionView)
+        let safeAreaLayoutGuide = self.view.safeAreaLayoutGuide
+        thumbnailsCollectionView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            thumbnailsCollectionView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 15),
+            thumbnailsCollectionView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -15),
+            thumbnailsCollectionView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -40),
+            thumbnailsCollectionView.heightAnchor.constraint(equalToConstant: 70)
+        ])
+    }
+    
     func makeConstraints() {
+        let safeAreaLayoutGuide = self.view.safeAreaLayoutGuide
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: self.view.topAnchor),
@@ -276,20 +324,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         ])
 
         captionView.translatesAutoresizingMaskIntoConstraints = false
-        if #available(iOS 11.0, *) {
-            NSLayoutConstraint.activate([
-                captionView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
-                captionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
-                captionView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
-            ])
-        } else {
-            NSLayoutConstraint.activate([
-                captionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 10),
-                captionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -10),
-                captionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -10),
-            ])
-        }
+        NSLayoutConstraint.activate([
+            captionView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 10),
+            captionView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -10),
+            captionView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -10),
+        ])
     }
+    
+    
 
     func hideCaptionView(_ flag: Bool, animated: Bool = true) {
         if flag { // hide
@@ -325,28 +367,43 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of items
-        return photos.count
+        if collectionView == self.collectionView {
+            return photos.count
+        } else { // selected photos thumnail collectionView
+            return selectedPhotos.count
+        }
     }
 
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let photo = photos[indexPath.row]
-        if photo.isVideo {
-            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: videoCellReuseIdentifier, for: indexPath) as? VideoDetailCell {                
-                return cell
+        if collectionView == self.collectionView {
+            let photo = photos[indexPath.row]
+            if photo.isVideo {
+                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: videoCellReuseIdentifier, for: indexPath) as? VideoDetailCell {
+                    return cell
+                }
+            } else {
+                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: photoCellReuseIdentifier, for: indexPath) as? PhotoDetailCell {
+                    cell.maximumZoomScale = 2
+                    return cell
+                }
             }
-        } else {
-            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: photoCellReuseIdentifier, for: indexPath) as? PhotoDetailCell {
-                cell.maximumZoomScale = 2
+        } else { // thumbnails
+            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: selectedThumbnailsReuseIdentifier, for: indexPath) as? PBSelectedPhotosThumbnailCell {
+                cell.photo = selectedPhotos[indexPath.row]
+                if let selectedIdx = thumbnailCellIdx {
+                    cell.thumbnailIsSelected = indexPath == selectedIdx
+                } else {
+                    cell.thumbnailIsSelected = false
+                }
                 return cell
             }
         }
-
+        
         return UICollectionViewCell()
     }
 
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         stopPlayingVideoIfNeeded(at: currentDisplayedIndexPath)
-
         var photo = photos[indexPath.row]
         photo.targetSize = assetSize
         if photo.isVideo {
@@ -359,6 +416,12 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             if let photoCell = cell as? PhotoDetailCell {
                 photoCell.setPhoto(photo)
             }
+        }
+    }
+    
+    public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if collectionView == self.thumbnailsCollectionView {
+            thumbnailCellIdx = indexPath
         }
     }
 
@@ -419,9 +482,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
 
         let photo = photos[currentDisplayedIndexPath.row]
-
-        // already added, remove it from selections
+        
         if let exsit = firstIndexOfPhoto(photo, in: selectedPhotos) {
+            // already added, remove it from selections
             selectedPhotos.remove(at: exsit)
             addPhotoBarItem.title = addLocalizedString
             addPhotoBarItem.tintColor = .black
@@ -634,9 +697,9 @@ extension PhotoBrowserViewController {
 
 // MARK: - Video
 extension PhotoBrowserViewController {
-    fileprivate var currentVideoCell: VideoDetailCell? {
-        return collectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell
-    }
+//    fileprivate var currentVideoCell: VideoDetailCell? {
+//        return collectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell
+//    }
 
     fileprivate func setupPlayer(photo: PhotoProtocol, for playerView: PlayerView) {
         if let asset = photo.asset {
@@ -788,11 +851,6 @@ extension PhotoBrowserViewController: PhotoTransitioning {
 
 extension PhotoBrowserViewController {
     func firstIndexOfPhoto(_ photo: PhotoProtocol, in photos: [PhotoProtocol]) -> Int? {
-        for (idx, selected) in selectedPhotos.enumerated() {
-            if selected.isEqualTo(photo) {
-                return idx
-            }
-        }
-        return nil
+        return photos.firstIndex { $0.isEqualTo(photo) }
     }
 }
