@@ -9,31 +9,82 @@ import UIKit
 import Photos
 import MobileCoreServices
 
+public class PhotoBrowserBuilder {
+    let photos: [PhotoProtocol]
+    let initialIndex: Int
+    var selectedPhotos: [PhotoProtocol] = []
+    var maximumCanBeSelected: Int = 3
+    var isForSelection = false
+    var supportThumbnails = true
+    var supportCaption = false
+    var supportNavigationBar = true
+    var supportBottomToolBar = true
+    
+    init(photos: [PhotoProtocol], initialIndex: Int) {
+        self.photos = photos
+        self.initialIndex = initialIndex
+    }
+    
+    func setSelectedPhotos(_ selected: [PhotoProtocol]) -> Self {
+        selectedPhotos = selected
+        return self
+    }
+    
+    func setMaximumCanBeSelected(_ maximum: Int) -> Self {
+        maximumCanBeSelected = maximum
+        return self
+    }
+    
+    func buildForSelection(_ isForSelection: Bool) -> Self {
+        self.isForSelection = isForSelection
+        return self
+    }
+    
+    func supportThumbnails(_ isSupportThumbnails: Bool) -> Self {
+        self.supportThumbnails = isSupportThumbnails
+        return self
+    }
+    
+    func supportCaption(_ supportCaption: Bool) -> Self {
+        self.supportCaption = supportCaption
+        return self
+    }
+    
+    func supportNavigationBar(_ supportNavigationBar: Bool) -> Self {
+        self.supportNavigationBar = supportNavigationBar
+        return self
+    }
+    
+    func supportBottomToolBar(_ supportBottomToolBar: Bool) -> Self {
+        self.supportBottomToolBar = supportBottomToolBar
+        return self
+    }
+    
+    func build() -> PhotoBrowserViewController {
+        let photoBrowser = PhotoBrowserViewController(photos: self.photos, initialIndex: self.initialIndex)
+        photoBrowser.selectedPhotos = selectedPhotos
+        photoBrowser.maximumCanBeSelected = maximumCanBeSelected
+        photoBrowser.isForSelection = isForSelection
+        photoBrowser.supportThumbnails = supportThumbnails
+        photoBrowser.supportCaption = supportCaption
+        photoBrowser.supportNavigationBar = supportNavigationBar
+        photoBrowser.supportBottomToolBar = supportBottomToolBar
+    }
+}
+
 public class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
+    
     private let photoCellReuseIdentifier = "PhotoDetailCell"
     private let videoCellReuseIdentifier = "VideoDetailCell"
     private let selectedThumbnailsReuseIdentifier = "PBSelectedPhotosThumbnailCell"
 
     public weak var delegate: PhotoBrowserViewControllerDelegate?
 
-    var selectedPhotos: [PhotoProtocol] = [] {
-        willSet {
-            let assetIdentifiers = newValue.compactMap { $0.asset?.localIdentifier }
-            delegate?.photoBrowser(self, selectedAssets: assetIdentifiers)
-            thumbnailsCollectionView.reloadData()
-        }
-    }
-
-    /// the maximum number of photos you can select
-    var maximumNumber: Int = 0
-
     // bar item
     fileprivate var doneBarItem: UIBarButtonItem!
     fileprivate var addPhotoBarItem: UIBarButtonItem!
     fileprivate var playVideoBarItem: UIBarButtonItem!
     fileprivate var pauseVideoBarItem: UIBarButtonItem!
-
-    fileprivate let photos: [PhotoProtocol]
 
     fileprivate var collectionView: UICollectionView!
 
@@ -119,10 +170,29 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             }
         }
     }
+    
+    // main data source
+    var selectedPhotos: [PhotoProtocol] = [] {
+        willSet {
+            let assetIdentifiers = newValue.compactMap { $0.asset?.localIdentifier }
+            delegate?.photoBrowser(self, selectedAssets: assetIdentifiers)
+            thumbnailsCollectionView.reloadData()
+        }
+    }
 
+    /// the maximum number of photos you can select
+    var maximumCanBeSelected: Int = 0
+    fileprivate let photos: [PhotoProtocol]
+    
+    var isForSelection = false
+    var supportThumbnails = true
+    var supportCaption = false
+    var supportNavigaionBar = false
+    var supportBottomToolBar = false
+    
     // MARK: - Function
     
-    // MARK: LifeCycle
+    // MARK: LifeCycle`
     public init(photos: [PhotoProtocol], initialIndex: Int) {
         self.photos = photos
         currentDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
@@ -175,7 +245,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         previousAudioCategory = AVAudioSession.sharedInstance().category
 
         view.addSubview(collectionView)
-        view.addSubview(captionView)        
+        view.addSubview(captionView)
 
         setupCollectionView()
 
