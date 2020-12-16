@@ -9,70 +9,70 @@ import UIKit
 import Photos
 import MobileCoreServices
 
-public class PhotoBrowserBuilder {
-    let photos: [PhotoProtocol]
-    let initialIndex: Int
-    var selectedPhotos: [PhotoProtocol] = []
-    var maximumCanBeSelected: Int = 3
-    var isForSelection = false
-    var supportThumbnails = true
-    var supportCaption = false
-    var supportNavigationBar = true
-    var supportBottomToolBar = true
-    
-    init(photos: [PhotoProtocol], initialIndex: Int) {
-        self.photos = photos
-        self.initialIndex = initialIndex
-    }
-    
-    func setSelectedPhotos(_ selected: [PhotoProtocol]) -> Self {
-        selectedPhotos = selected
-        return self
-    }
-    
-    func setMaximumCanBeSelected(_ maximum: Int) -> Self {
-        maximumCanBeSelected = maximum
-        return self
-    }
-    
-    func buildForSelection(_ isForSelection: Bool) -> Self {
-        self.isForSelection = isForSelection
-        return self
-    }
-    
-    func supportThumbnails(_ isSupportThumbnails: Bool) -> Self {
-        self.supportThumbnails = isSupportThumbnails
-        return self
-    }
-    
-    func supportCaption(_ supportCaption: Bool) -> Self {
-        self.supportCaption = supportCaption
-        return self
-    }
-    
-    func supportNavigationBar(_ supportNavigationBar: Bool) -> Self {
-        self.supportNavigationBar = supportNavigationBar
-        return self
-    }
-    
-    func supportBottomToolBar(_ supportBottomToolBar: Bool) -> Self {
-        self.supportBottomToolBar = supportBottomToolBar
-        return self
-    }
-    
-    func build() -> PhotoBrowserViewController {
-        let photoBrowser = PhotoBrowserViewController(photos: self.photos, initialIndex: self.initialIndex)
-        photoBrowser.selectedPhotos = selectedPhotos
-        photoBrowser.maximumCanBeSelected = maximumCanBeSelected
-        photoBrowser.isForSelection = isForSelection
-        photoBrowser.supportThumbnails = supportThumbnails
-        photoBrowser.supportCaption = supportCaption
-        photoBrowser.supportNavigationBar = supportNavigationBar
-        photoBrowser.supportBottomToolBar = supportBottomToolBar
-    }
-}
-
 public class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
+    public class Builder {
+        let photos: [PhotoProtocol]
+        let initialIndex: Int
+        var selectedPhotos: [PhotoProtocol] = []
+        var maximumCanBeSelected: Int = 3
+        var isForSelection = false
+        var supportThumbnails = true
+        var supportCaption = false
+        var supportNavigationBar = true
+        var supportBottomToolBar = true
+        
+        public init(photos: [PhotoProtocol], initialIndex: Int) {
+            self.photos = photos
+            self.initialIndex = initialIndex
+        }
+        
+        public func setSelectedPhotos(_ selected: [PhotoProtocol]) -> Self {
+            selectedPhotos = selected
+            return self
+        }
+        
+        public func setMaximumCanBeSelected(_ maximum: Int) -> Self {
+            maximumCanBeSelected = maximum
+            return self
+        }
+        
+        public func buildForSelection(_ isForSelection: Bool) -> Self {
+            self.isForSelection = isForSelection
+            return self
+        }
+        
+        public func supportThumbnails(_ isSupportThumbnails: Bool) -> Self {
+            self.supportThumbnails = isSupportThumbnails
+            return self
+        }
+        
+        public func supportCaption(_ supportCaption: Bool) -> Self {
+            self.supportCaption = supportCaption
+            return self
+        }
+        
+        public func supportNavigationBar(_ supportNavigationBar: Bool) -> Self {
+            self.supportNavigationBar = supportNavigationBar
+            return self
+        }
+        
+        public func supportBottomToolBar(_ supportBottomToolBar: Bool) -> Self {
+            self.supportBottomToolBar = supportBottomToolBar
+            return self
+        }
+        
+        public func build() -> PhotoBrowserViewController {
+            let photoBrowser = PhotoBrowserViewController(photos: self.photos, initialIndex: self.initialIndex)
+            photoBrowser.selectedPhotos = selectedPhotos
+            photoBrowser.maximumCanBeSelected = maximumCanBeSelected
+            photoBrowser.isForSelection = isForSelection
+            photoBrowser.supportThumbnails = supportThumbnails
+            photoBrowser.supportCaption = supportCaption
+            photoBrowser.supportNavigationBar = supportNavigationBar
+            photoBrowser.supportBottomToolBar = supportBottomToolBar
+            return photoBrowser
+        }
+    }
     
     private let photoCellReuseIdentifier = "PhotoDetailCell"
     private let videoCellReuseIdentifier = "VideoDetailCell"
@@ -139,12 +139,13 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             if currentDisplayedIndexPath != newValue {
                 delegate?.photoBrowser(self, scrollAt: newValue)
             }
-            if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
+            if isForSelection {
                 updateAddBarItem(at: newValue)
             }
-            if let canDisplay = delegate?.canDisplayCaption(in: self), canDisplay {
+            if supportCaption {
                 updateCaption(at: newValue)
             }
+            
             updateNavigationTitle(at: newValue)
             stopPlayingVideoIfNeeded(at: currentDisplayedIndexPath)
         }
@@ -152,10 +153,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     fileprivate var currentPhoto: PhotoProtocol {
         willSet {
-            var showDone = false
-            if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
-                showDone = canSelect
-            }
+            var showDone = isForSelection
             if newValue.isVideo {
                 // tool bar items
                 if !playBarItemsIsShowed {
@@ -187,7 +185,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     var isForSelection = false
     var supportThumbnails = true
     var supportCaption = false
-    var supportNavigaionBar = false
+    var supportNavigationBar = false
     var supportBottomToolBar = false
     
     // MARK: - Function
@@ -260,17 +258,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         super.viewWillAppear(animated)
         try? AVAudioSession.sharedInstance().setCategory(.playback)
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
-        if let showNavigationBar = delegate?.showNavigationBar(in: self) {
-            self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: true)
-        } else {
-            self.navigationController?.setNavigationBarHidden(true, animated: false)
-        }
+        
+        self.navigationController?.setNavigationBarHidden(!supportNavigationBar, animated: true)
 
-        if let showToolBar = delegate?.showBottomToolBar(in: self) {
-            self.navigationController?.setToolbarHidden(!showToolBar, animated: false)
-        } else {
-            self.navigationController?.setToolbarHidden(true, animated: false)
-        }
+        self.navigationController?.setToolbarHidden(!supportBottomToolBar, animated: false)
 
         originCaptionTransform = captionView.transform
     }
@@ -300,7 +291,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     func setupNavigationBar() {
         self.navigationController?.navigationBar.tintColor = .white
         self.navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
+        if isForSelection {
             addPhotoBarItem = UIBarButtonItem(title: "", style: .plain, target: self, action: #selector(PhotoBrowserViewController.addPhotoBarItemClicked(_:)))
             addPhotoBarItem.title = addLocalizedString
             addPhotoBarItem.tintColor = .black
@@ -310,24 +301,21 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     func setupNavigationToolBar() {
-        if let showToolBar = delegate?.showBottomToolBar(in: self), showToolBar {
-            playVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.play, target: self, action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
-            pauseVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.pause, target: self, action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
+        guard supportBottomToolBar else { return }
+        playVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.play, target: self, action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
+        pauseVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.pause, target: self, action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
 
-            var showVideoPlay = false
-            if currentPhoto.isVideo {
-                showVideoPlay = true
-            }
-            var showDone = false
-
-            if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
-                doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(PhotoBrowserViewController.doneBarButtonClicked(_:)))
-                doneBarItem.isEnabled = !selectedPhotos.isEmpty
-                showDone = canSelect
-            }
-
-            updateToolBar(shouldShowDone: showDone, shouldShowPlay: showVideoPlay)
+        var showVideoPlay = false
+        if currentPhoto.isVideo {
+            showVideoPlay = true
         }
+        
+        if isForSelection {
+            doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(PhotoBrowserViewController.doneBarButtonClicked(_:)))
+            doneBarItem.isEnabled = !selectedPhotos.isEmpty
+        }
+
+        updateToolBar(shouldShowDone: isForSelection, shouldShowPlay: showVideoPlay)
     }
 
     fileprivate func restoreNavigationControllerData() {
@@ -360,7 +348,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         collectionView.dataSource = self
 //        collectionView.backgroundColor = .white
         collectionView.contentInsetAdjustmentBehavior = .never
+        return collectionView
     }()
+    
     var thumbnailCellIdx: IndexPath? {
         willSet {
             //TODO: scroll collection view
@@ -401,8 +391,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         ])
     }
     
-    
-
     func hideCaptionView(_ flag: Bool, animated: Bool = true) {
         if flag { // hide
             let transition = CGAffineTransform(translationX: 0, y: captionView.bounds.height)
@@ -531,10 +519,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         if (!self.initialScrollDone) {
             self.initialScrollDone = true
             self.collectionView.scrollToItem(at: currentDisplayedIndexPath, at: .centeredHorizontally, animated: false)
-            if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
+            if isForSelection {
                 updateAddBarItem(at: currentDisplayedIndexPath)
             }
-            if let canDisplay = delegate?.canDisplayCaption(in: self), canDisplay {
+            if supportCaption {
                 updateCaption(at: currentDisplayedIndexPath)
             }
         }
@@ -620,7 +608,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         let photo = photos[indexPath.row]
         guard let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) else {
             addPhotoBarItem.title = addLocalizedString
-            addPhotoBarItem.isEnabled = selectedPhotos.count < maximumNumber
+            addPhotoBarItem.isEnabled = selectedPhotos.count < maximumCanBeSelected
             addPhotoBarItem.tintColor = .black
             return
         }
@@ -641,8 +629,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     func updateNavigationTitle(at indexPath: IndexPath) {
-        if let showNavigationBar = delegate?.showNavigationBar(in: self), showNavigationBar {
-            if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
+        if supportNavigationBar {
+            if isForSelection {
                 navigationItem.title = ""
             } else {
                 navigationItem.title = "\(indexPath.item + 1) /\(photos.count)"
@@ -710,15 +698,15 @@ extension PhotoBrowserViewController {
     }
 
     fileprivate func hideOrShowTopBottom() {
-        if let showNavigationBar = delegate?.showNavigationBar(in: self), showNavigationBar {
+        if supportNavigationBar {
             self.navigationController?.setNavigationBarHidden(!(self.navigationController?.isNavigationBarHidden ?? true), animated: true)
         }
 
-        if let showToolBar = delegate?.showBottomToolBar(in: self), showToolBar {
+        if supportBottomToolBar {
             self.navigationController?.setToolbarHidden(!(self.navigationController?.isToolbarHidden ?? true), animated: true)
         }
 
-        if let canDisplay = delegate?.canDisplayCaption(in: self), canDisplay {
+        if supportCaption {
             hideCaptionView(!captionView.isHidden)
         }
     }
