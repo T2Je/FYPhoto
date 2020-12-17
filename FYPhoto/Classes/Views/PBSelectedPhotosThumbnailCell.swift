@@ -54,41 +54,11 @@ class PBSelectedPhotosThumbnailCell: UICollectionViewCell {
         }
     }
     
-    
-//    var thumbnail: PBSelectedPhotosThumbnail? {
-//        didSet {
-//            guard let thumbnail = thumbnail else { return }
-//            if let image = thumbnail.photo.image {
-//                if image != imageView.image {
-//                    imageView.image = image
-//                }
-//            } else if let asset = thumbnail.photo.asset {
-//                PHImageManager.default().requestImage(for: asset,
-//                                                      targetSize: thumbnail.photo.targetSize ?? bounds.size,
-//                                                      contentMode: .aspectFill,
-//                                                      options: nil) { (image, _) in
-//                    if let image = image {
-//                        self.imageView.image = image
-//                        thumbnail.photo.storeImage(image)
-//                    }
-//                }
-//            }
-//            if thumbnail.isSelected {
-//                contentView.layer.borderColor = UIColor(red: 0/255.0, green: 122/255.0, blue: 255/255.0, alpha: 1).cgColor
-//                contentView.layer.borderWidth = 2
-//            } else {
-//                contentView.layer.borderColor = UIColor.clear.cgColor
-//                contentView.layer.borderWidth = 0
-//            }
-//        }
-//    }
-    
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.addSubview(imageView)
         imageView.frame = contentView.frame
-        imageView.contentMode = .scaleAspectFill
-        
+        imageView.contentMode = .scaleToFill
     }
     
     required init?(coder: NSCoder) {
