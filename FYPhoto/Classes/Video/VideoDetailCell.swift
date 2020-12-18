@@ -12,6 +12,8 @@ import SDWebImage
 import MobileCoreServices
 
 class VideoDetailCell: UICollectionViewCell {
+    static let reuseIdentifier = "VideoDetailCell"
+    
     var playerView = PlayerView()
 
     var activityIndicator = UIActivityIndicatorView(style: .white)

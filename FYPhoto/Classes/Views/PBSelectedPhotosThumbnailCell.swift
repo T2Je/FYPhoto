@@ -8,18 +8,9 @@
 import UIKit
 import Photos
 
-class PBSelectedPhotosThumbnail {
-    internal init(photo: PhotoProtocol, isSelected: Bool) {
-        self.photo = photo
-        self.isSelected = isSelected
-    }
-    
-    let photo: PhotoProtocol
-    var isSelected: Bool
-    
-}
-
 class PBSelectedPhotosThumbnailCell: UICollectionViewCell {
+    static let reuseIdentifier = "PBSelectedPhotosThumbnailCell"
+    
     let imageView = UIImageView()
     var photo: PhotoProtocol? {
         willSet {
@@ -58,7 +49,8 @@ class PBSelectedPhotosThumbnailCell: UICollectionViewCell {
         super.init(frame: frame)
         contentView.addSubview(imageView)
         imageView.frame = contentView.frame
-        imageView.contentMode = .scaleToFill
+        imageView.contentMode = .scaleAspectFill
+        imageView.layer.masksToBounds = true
     }
     
     required init?(coder: NSCoder) {

@@ -9,6 +9,8 @@ import UIKit
 import Photos
 
 class PhotoDetailCell: UICollectionViewCell {
+    static let reuseIdentifier = "PhotoDetailCell"
+    
     let zoomingView = ZoomingScrollView(frame: .zero, settingOptions: PhotoPickerSettingsOptions.default)    
 
     var image: UIImage? {

@@ -96,10 +96,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             return photoBrowser
         }
     }
-    
-    private let photoCellReuseIdentifier = "PhotoDetailCell"
-    private let videoCellReuseIdentifier = "VideoDetailCell"
-    private let selectedThumbnailsReuseIdentifier = "PBSelectedPhotosThumbnailCell"
 
     public weak var delegate: PhotoBrowserViewControllerDelegate?
 
@@ -155,7 +151,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     /// After the movie has played to its end time, seek back to time zero
     /// to play it again.
     private var seekToZeroBeforePlay: Bool = false
-
+    
     fileprivate var currentDisplayedIndexPath: IndexPath {
         willSet {
             stopPlayingIfNeeded()
@@ -170,7 +166,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 updateCaption(at: newValue)
             }
             if supportThumbnails {
-                if isScrollingMainPhotos {
+                if isOperatingMainPhotos {
                     updateThumbnails(at: newValue)
                 }
             }
@@ -182,9 +178,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     var selectedThumbnailIndexPath: IndexPath? {
         willSet {
             guard isThumbnailIndexPathInitialized else {
+                // do nothing when building PhotoBrowserViewController
                 return
             }
             guard newValue != selectedThumbnailIndexPath else {
+                // nothing changed
                 return
             }
             guard let idx = newValue else {
@@ -193,19 +191,21 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 }
                 return
             }
-            // 处理滑动主 collectionView 照片， 如果thubnails 里面有，刷新cell，改变 selected 状态
-            thumbnailsCollectionView.reloadData()
-            guard !isScrollingMainPhotos else { // 点击 thumbnail
+            
+            guard !isOperatingMainPhotos else { // 点击 thumbnail
+                // reload thumbnailsCollectionView when scorlling mainCollectionView
+                thumbnailsCollectionView.reloadData()
                 return
             }
                         
-            // 处理点击thumbnail collectionView cell， 滑动主 collectionView
+            // scroll mainCollectionView when selecting thumbnail cell
             let thumbnailPhoto = selectedPhotos[idx.item]
             let mainPhoto = photos[currentDisplayedIndexPath.item]
             if !thumbnailPhoto.isEqualTo(mainPhoto), mainCollectionView.superview != nil {
                 if let firstIndex = firstIndexOfPhoto(thumbnailPhoto, in: photos) { // 点击thumbnail cell 滑动主collectionView
                     let mainPhotoIndexPath = IndexPath(item: firstIndex, section: 0)
                     mainCollectionView.scrollToItem(at: mainPhotoIndexPath, at: .centeredHorizontally, animated: true)
+                    // scroll to item function doesn't trigger scrollview did end decelerating delegate function
                     currentDisplayedIndexPath = mainPhotoIndexPath
                 }
             }
@@ -216,8 +216,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             }
         }
     }
-    // 避免 main photo 与 thumbnail indexpath 循环调用
-    fileprivate var isScrollingMainPhotos = false
+    // mainCollectionView 和 thumbnailsCollectionView 同步切换cell 是通过 currentDisplayedIndexPath 和 selectedThumbnailIndexPath
+    // 这两个 indexPath 来实现的。
+    // 因此需要一个Bool 类型的值来避免 currentDisplayedIndexPath 与 selectedThumbnailIndexPath 循环调用
+    // 调用时机需要注意，需要在给 indexPath 赋值之前
+    fileprivate var isOperatingMainPhotos = false
     
     fileprivate var currentPhoto: PhotoProtocol {
         willSet {
@@ -235,37 +238,43 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             }
         }
     }
-    
+        
     fileprivate var isThumbnailIndexPathInitialized = false
     
     // main data source
     var selectedPhotos: [PhotoProtocol] = [] {
         didSet {
+            guard supportThumbnails else { return }
             let assetIdentifiers = selectedPhotos.compactMap { $0.asset?.localIdentifier }
             delegate?.photoBrowser(self, selectedAssets: assetIdentifiers)
-            if supportThumbnails {
-                if !selectedPhotos.isEmpty {
-                    if !isThumbnailIndexPathInitialized {
-                        let initialPhoto = photos[initialIndex]
-                        if let photoIndexInSelectedPhotos = firstIndexOfPhoto(initialPhoto, in: selectedPhotos) {
-                            let initialIndexPathInThumbnails = IndexPath(item: photoIndexInSelectedPhotos, section: 0)
-                            selectedThumbnailIndexPath = initialIndexPathInThumbnails
-                        }
-                    } else {
-                        return selectedThumbnailIndexPath = IndexPath(item: selectedPhotos.count - 1, section: 0)
-                    }
-                } else {
-                    selectedThumbnailIndexPath = nil
+            guard !selectedPhotos.isEmpty else {
+                selectedThumbnailIndexPath = nil
+                if !thumbnailsCollectionView.isHidden {
+                    thumbnailsCollectionView.isHidden = true
                 }
+                
+                return
+            }
+            if thumbnailsCollectionView.isHidden {
+                thumbnailsCollectionView.isHidden = false
+            }
+            if !isThumbnailIndexPathInitialized {
+                // initialize thumbnail indexPath if selected photos are not empty when building PhotoBrowserViewController
+                let initialPhoto = photos[initialIndex]
+                if let photoIndexInSelectedPhotos = firstIndexOfPhoto(initialPhoto, in: selectedPhotos) {
+                    let initialIndexPathInThumbnails = IndexPath(item: photoIndexInSelectedPhotos, section: 0)
+                    selectedThumbnailIndexPath = initialIndexPathInThumbnails
+                }
+            } else {
+                return selectedThumbnailIndexPath = IndexPath(item: selectedPhotos.count - 1, section: 0)
             }
         }
     }
 
-    /// the maximum number of photos you can select
-    var maximumCanBeSelected: Int = 0
     fileprivate let photos: [PhotoProtocol]
     fileprivate let initialIndex: Int
-    
+    /// the maximum number of photos you can select
+    var maximumCanBeSelected: Int = 0
     var isForSelection = false
     var supportThumbnails = true
     var supportCaption = false
@@ -307,15 +316,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         edgesForExtendedLayout = .all
 
         cachePreviousData()
-        
-        addSubviews()
-        
         setupCollectionView()
-
         setupNavigationBar()
         setupNavigationToolBar()
-        
-        makeConstraints()
+        addSubviews()
     }
 
     public override func viewWillAppear(_ animated: Bool) {
@@ -373,14 +377,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         flowLayout.minimumInteritemSpacing = 0
         flowLayout.minimumLineSpacing = 10
         flowLayout.scrollDirection = .horizontal
-        flowLayout.itemSize = CGSize(width: 50, height: 50)
+        flowLayout.itemSize = CGSize(width: 70, height: 70)
         flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
         return UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
     }
     
     func setupCollectionView() {
-        mainCollectionView.register(PhotoDetailCell.self, forCellWithReuseIdentifier: photoCellReuseIdentifier)
-        mainCollectionView.register(VideoDetailCell.self, forCellWithReuseIdentifier: videoCellReuseIdentifier)
+        mainCollectionView.register(PhotoDetailCell.self, forCellWithReuseIdentifier: PhotoDetailCell.reuseIdentifier)
+        mainCollectionView.register(VideoDetailCell.self, forCellWithReuseIdentifier: VideoDetailCell.reuseIdentifier)
         mainCollectionView.isPagingEnabled = true
         mainCollectionView.delegate = self
         mainCollectionView.dataSource = self
@@ -390,7 +394,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     func setupNavigationBar() {
         self.navigationController?.navigationBar.tintColor = .white
-        self.navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        self.navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "",
+                                                                                              style: .plain,
+                                                                                              target: nil,
+                                                                                              action: nil)
         if isForSelection {
             addPhotoBarItem = UIBarButtonItem(title: "", style: .plain, target: self, action: #selector(PhotoBrowserViewController.addPhotoBarItemClicked(_:)))
             addPhotoBarItem.title = addLocalizedString
@@ -402,8 +409,12 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     func setupNavigationToolBar() {
         guard supportBottomToolBar else { return }
-        playVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.play, target: self, action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
-        pauseVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.pause, target: self, action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
+        playVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.play,
+                                           target: self,
+                                           action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
+        pauseVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.pause,
+                                            target: self,
+                                            action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
 
         var showVideoPlay = false
         if currentPhoto.isVideo {
@@ -422,15 +433,12 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         if let title = previousNavigationTitle {
             navigationItem.title = title
         }
-
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = previousInteractivePop ?? true
-
         if let originalIsNavigationBarHidden = previousNavigationBarHidden {
             navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: false)
         }
-        // Drag to dismiss quickly canceled, may result in a navigation hide animation bug
+        // Drag to dismiss quickly canceled, may result in a navigation hide animation bug, FIXME
         if let originalToolBarHidden = previousToolBarHidden {
-            //            navigationController?.setToolbarHidden(originalToolBarHidden, animated: false)
             navigationController?.isToolbarHidden = originalToolBarHidden
         }
 
@@ -442,7 +450,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     // selected photo thumbnail collectionView
     lazy var thumbnailsCollectionView: UICollectionView = {
         let collectionView = generateThumbnailsCollectionView()
-        collectionView.register(PBSelectedPhotosThumbnailCell.self, forCellWithReuseIdentifier: selectedThumbnailsReuseIdentifier)
+        collectionView.register(PBSelectedPhotosThumbnailCell.self, forCellWithReuseIdentifier: PBSelectedPhotosThumbnailCell.reuseIdentifier)
         collectionView.isPagingEnabled = false
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -453,13 +461,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         
     func addThumbnailCollectionView() {
         view.addSubview(thumbnailsCollectionView)
+        thumbnailsCollectionView.backgroundColor = UIColor(white: 0.1, alpha: 0.9)
         let safeAreaLayoutGuide = self.view.safeAreaLayoutGuide
         thumbnailsCollectionView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             thumbnailsCollectionView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0),
             thumbnailsCollectionView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: 0),
-            thumbnailsCollectionView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -40),
-            thumbnailsCollectionView.heightAnchor.constraint(equalToConstant: 70)
+            thumbnailsCollectionView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: 0),
+            thumbnailsCollectionView.heightAnchor.constraint(equalToConstant: 90)
         ])
     }
     
@@ -484,10 +493,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             mainCollectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
         ])
     }
-    func makeConstraints() {
-        
-    }
-    
+
     func hideCaptionView(_ flag: Bool, animated: Bool = true) {
         if flag { // hide
             let transition = CGAffineTransform(translationX: 0, y: captionView.bounds.height)
@@ -533,17 +539,20 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         if collectionView == self.mainCollectionView {
             let photo = photos[indexPath.item]
             if photo.isVideo {
-                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: videoCellReuseIdentifier, for: indexPath) as? VideoDetailCell {
+                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VideoDetailCell.reuseIdentifier,
+                                                                 for: indexPath) as? VideoDetailCell {
                     return cell
                 }
             } else {
-                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: photoCellReuseIdentifier, for: indexPath) as? PhotoDetailCell {
+                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoDetailCell.reuseIdentifier,
+                                                                 for: indexPath) as? PhotoDetailCell {
                     cell.maximumZoomScale = 2
                     return cell
                 }
             }
         } else { // thumbnails
-            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: selectedThumbnailsReuseIdentifier, for: indexPath) as? PBSelectedPhotosThumbnailCell {
+            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PBSelectedPhotosThumbnailCell.reuseIdentifier,
+                                                             for: indexPath) as? PBSelectedPhotosThumbnailCell {
                 cell.photo = selectedPhotos[indexPath.item]
                 if let selectedIdx = selectedThumbnailIndexPath {
                     cell.thumbnailIsSelected = indexPath == selectedIdx
@@ -576,7 +585,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if collectionView == self.thumbnailsCollectionView {
-            isScrollingMainPhotos = false
+            isOperatingMainPhotos = false
             selectedThumbnailIndexPath = indexPath
         }
     }
@@ -639,6 +648,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
         let photo = photos[currentDisplayedIndexPath.item]
         
+        isOperatingMainPhotos = true
         if let exsit = firstIndexOfPhoto(photo, in: selectedPhotos) {
             // already added, remove it from selections
             selectedPhotos.remove(at: exsit)
@@ -781,13 +791,12 @@ extension PhotoBrowserViewController: UIScrollViewDelegate {
 //        let pageWidth = view.bounds.size.width
 //        let currentPage = Int((scrollView.contentOffset.x + pageWidth / 2) / pageWidth)
         if scrollView == mainCollectionView {
-            isScrollingMainPhotos = true
+            isOperatingMainPhotos = true
             if let currentIndexPath = self.mainCollectionView.indexPathsForVisibleItems.last {
                 currentDisplayedIndexPath = currentIndexPath
             } else {
                 currentDisplayedIndexPath = IndexPath(row: 0, section: 0)
             }
-            
         }
     }
 }
@@ -866,10 +875,6 @@ extension PhotoBrowserViewController {
 
 // MARK: - Video
 extension PhotoBrowserViewController {
-//    fileprivate var currentVideoCell: VideoDetailCell? {
-//        return collectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell
-//    }
-
     fileprivate func setupPlayer(photo: PhotoProtocol, for playerView: PlayerView) {
         if let asset = photo.asset {
             setupPlayer(asset: asset, for: playerView)
