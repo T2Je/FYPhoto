@@ -10,7 +10,7 @@ import Photos
 import SDWebImage
 
 class PhotoMetaData: PhotoProtocol {
-    let resourceType: PhotoResourceType
+//    let resourceType: PhotoResourceType
     
     var url: URL?
     
@@ -27,7 +27,7 @@ class PhotoMetaData: PhotoProtocol {
     
     init(data: Data) {
         self.metaData = data
-        self.resourceType = .data
+//        self.resourceType = .data
     }
     
     func storeImage(_ image: UIImage) {

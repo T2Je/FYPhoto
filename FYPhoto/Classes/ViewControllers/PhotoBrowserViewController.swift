@@ -9,22 +9,95 @@ import UIKit
 import Photos
 import MobileCoreServices
 
-private let photoCellReuseIdentifier = "PhotoDetailCell"
-private let videoCellReuseIdentifier = "VideoDetailCell"
-
 public class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
-
-    public weak var delegate: PhotoBrowserViewControllerDelegate?
-
-    var selectedPhotos: [PhotoProtocol] = [] {
-        willSet {
-            let assetIdentifiers = newValue.compactMap { $0.asset?.localIdentifier }
-            delegate?.photoBrowser(self, selectedAssets: assetIdentifiers)
+    public class Builder {
+        let photos: [PhotoProtocol]
+        let initialIndex: Int
+        
+        var selectedPhotos: [PhotoProtocol] = []
+        var maximumCanBeSelected: Int = 6
+        var isForSelection = false
+        var supportThumbnails = true
+        var supportCaption = false
+        var supportNavigationBar = true
+        var supportBottomToolBar = true
+        
+        public init(photos: [PhotoProtocol], initialIndex: Int) {
+            self.photos = photos
+            self.initialIndex = initialIndex
+        }
+        
+        public func setSelectedPhotos(_ selected: [PhotoProtocol]) -> Self {
+            selectedPhotos = selected
+            return self
+        }
+        
+        public func setMaximumCanBeSelected(_ maximum: Int) -> Self {
+            maximumCanBeSelected = maximum
+            return self
+        }
+        
+        public func buildForSelection(_ isForSelection: Bool) -> Self {
+            self.isForSelection = isForSelection
+            return self
+        }
+        
+        public func supportThumbnails(_ supportThumbnails: Bool) -> Self {
+            self.supportThumbnails = supportThumbnails
+            return self
+        }
+        
+        public func supportCaption(_ supportCaption: Bool) -> Self {
+            self.supportCaption = supportCaption
+            return self
+        }
+        
+        public func supportNavigationBar(_ supportNavigationBar: Bool) -> Self {
+            self.supportNavigationBar = supportNavigationBar
+            return self
+        }
+        
+        public func supportBottomToolBar(_ supportBottomToolBar: Bool) -> Self {
+            self.supportBottomToolBar = supportBottomToolBar
+            return self
+        }
+        
+        public func quickBuildForSelection(_ selected: [PhotoProtocol], maximumCanBeSelected: Int) -> Self {
+            isForSelection = true
+            supportThumbnails = true
+            supportNavigationBar = true
+            supportBottomToolBar = true
+            supportCaption = false
+            self.maximumCanBeSelected = maximumCanBeSelected
+            self.selectedPhotos = selected
+            return self
+        }
+        
+        func quickBuildJustForBrowser() -> Self {
+            isForSelection = false
+            supportThumbnails = false
+            supportNavigationBar = true
+            supportBottomToolBar = true
+            supportCaption = true
+            self.maximumCanBeSelected = 0
+            self.selectedPhotos = []
+            return self
+        }
+        
+        public func build() -> PhotoBrowserViewController {
+            let photoBrowser = PhotoBrowserViewController(photos: self.photos, initialIndex: self.initialIndex)
+            photoBrowser.selectedPhotos = selectedPhotos
+            photoBrowser.maximumCanBeSelected = maximumCanBeSelected
+            photoBrowser.isForSelection = isForSelection
+            photoBrowser.supportThumbnails = supportThumbnails
+            photoBrowser.supportCaption = supportCaption
+            photoBrowser.supportNavigationBar = supportNavigationBar
+            photoBrowser.supportBottomToolBar = supportBottomToolBar
+            return photoBrowser
         }
     }
 
-    /// the maximum number of photos you can select
-    var maximumNumber: Int = 0
+    public weak var delegate: PhotoBrowserViewControllerDelegate?
 
     // bar item
     fileprivate var doneBarItem: UIBarButtonItem!
@@ -32,13 +105,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     fileprivate var playVideoBarItem: UIBarButtonItem!
     fileprivate var pauseVideoBarItem: UIBarButtonItem!
 
-    fileprivate let photos: [PhotoProtocol]
+    fileprivate var mainCollectionView: UICollectionView!
 
-    fileprivate let imageManager = PHCachingImageManager()
-
-    fileprivate let collectionView: UICollectionView
-
-    fileprivate let captionView = CaptionView()
+    /// 底部标题
+    fileprivate lazy var captionView = CaptionView()
 
     fileprivate var playBarItemsIsShowed = false
 
@@ -54,8 +124,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     fileprivate var originCaptionTransform: CGAffineTransform!
 
-    fileprivate var flowLayout: UICollectionViewFlowLayout? {
-        return collectionView.collectionViewLayout as? UICollectionViewFlowLayout
+    fileprivate var mainFlowLayout: UICollectionViewFlowLayout? {
+        return mainCollectionView.collectionViewLayout as? UICollectionViewFlowLayout
     }
 
     fileprivate var assetSize: CGSize?
@@ -76,11 +146,12 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         "playable",
         "hasProtectedContent"
     ]
+    var playerItemStatusToken: NSKeyValueObservation?
 
     /// After the movie has played to its end time, seek back to time zero
     /// to play it again.
     private var seekToZeroBeforePlay: Bool = false
-
+    
     fileprivate var currentDisplayedIndexPath: IndexPath {
         willSet {
             stopPlayingIfNeeded()
@@ -88,112 +159,182 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             if currentDisplayedIndexPath != newValue {
                 delegate?.photoBrowser(self, scrollAt: newValue)
             }
-            if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
+            if isForSelection {
                 updateAddBarItem(at: newValue)
             }
-            if let canDisplay = delegate?.canDisplayCaption(in: self), canDisplay {
+            if supportCaption {
                 updateCaption(at: newValue)
+            }
+            if supportThumbnails {
+                if isOperatingMainPhotos {
+                    updateThumbnails(at: newValue)
+                }
             }
             updateNavigationTitle(at: newValue)
             stopPlayingVideoIfNeeded(at: currentDisplayedIndexPath)
         }
     }
-
+    
+    var selectedThumbnailIndexPath: IndexPath? {
+        willSet {
+            guard isThumbnailIndexPathInitialized else {
+                // do nothing when building PhotoBrowserViewController
+                return
+            }
+            guard newValue != selectedThumbnailIndexPath else {
+                // nothing changed
+                return
+            }
+            guard let idx = newValue else {
+                if selectedThumbnailIndexPath != nil { // 有值 -> 无值 取消 thumbnail selected 状态
+                    thumbnailsCollectionView.reloadData()
+                }
+                return
+            }
+            
+            guard !isOperatingMainPhotos else { // 点击 thumbnail
+                // reload thumbnailsCollectionView when scorlling mainCollectionView
+                thumbnailsCollectionView.reloadData()
+                return
+            }
+                        
+            // scroll mainCollectionView when selecting thumbnail cell
+            let thumbnailPhoto = selectedPhotos[idx.item]
+            let mainPhoto = photos[currentDisplayedIndexPath.item]
+            if !thumbnailPhoto.isEqualTo(mainPhoto), mainCollectionView.superview != nil {
+                if let firstIndex = firstIndexOfPhoto(thumbnailPhoto, in: photos) { // 点击thumbnail cell 滑动主collectionView
+                    let mainPhotoIndexPath = IndexPath(item: firstIndex, section: 0)
+                    mainCollectionView.scrollToItem(at: mainPhotoIndexPath, at: .centeredHorizontally, animated: true)
+                    // scroll to item function doesn't trigger scrollview did end decelerating delegate function
+                    currentDisplayedIndexPath = mainPhotoIndexPath
+                }
+            }
+        }
+        didSet {
+            if !isThumbnailIndexPathInitialized {
+                isThumbnailIndexPathInitialized = true
+            }
+        }
+    }
+    // mainCollectionView 和 thumbnailsCollectionView 同步切换cell 是通过 currentDisplayedIndexPath 和 selectedThumbnailIndexPath
+    // 这两个 indexPath 来实现的。
+    // 因此需要一个Bool 类型的值来避免 currentDisplayedIndexPath 与 selectedThumbnailIndexPath 循环调用
+    // 调用时机需要注意，需要在给 indexPath 赋值之前
+    fileprivate var isOperatingMainPhotos = false
+    
     fileprivate var currentPhoto: PhotoProtocol {
         willSet {
-            var showDone = false
-            if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
-                showDone = canSelect
-            }
             if newValue.isVideo {
                 // tool bar items
                 if !playBarItemsIsShowed {
-                    updateToolBar(shouldShowDone: showDone, shouldShowPlay: true)
+                    updateToolBar(shouldShowDone: isForSelection, shouldShowPlay: true)
                     playBarItemsIsShowed = true
                 } else {
                     updateToolBarItems(isPlaying: isPlaying)
                 }
             } else {
-                updateToolBar(shouldShowDone: showDone, shouldShowPlay: false)
+                updateToolBar(shouldShowDone: isForSelection, shouldShowPlay: false)
                 playBarItemsIsShowed = false
             }
         }
     }
+        
+    fileprivate var isThumbnailIndexPathInitialized = false
+    
+    // main data source
+    var selectedPhotos: [PhotoProtocol] = [] {
+        didSet {
+            guard supportThumbnails else { return }
+            let assetIdentifiers = selectedPhotos.compactMap { $0.asset?.localIdentifier }
+            delegate?.photoBrowser(self, selectedAssets: assetIdentifiers)
+            guard !selectedPhotos.isEmpty else {
+                selectedThumbnailIndexPath = nil
+                if !thumbnailsCollectionView.isHidden {
+                    thumbnailsCollectionView.isHidden = true
+                }
+                
+                return
+            }
+            if thumbnailsCollectionView.isHidden {
+                thumbnailsCollectionView.isHidden = false
+            }
+            if !isThumbnailIndexPathInitialized {
+                // initialize thumbnail indexPath if selected photos are not empty when building PhotoBrowserViewController
+                let initialPhoto = photos[initialIndex]
+                if let photoIndexInSelectedPhotos = firstIndexOfPhoto(initialPhoto, in: selectedPhotos) {
+                    let initialIndexPathInThumbnails = IndexPath(item: photoIndexInSelectedPhotos, section: 0)
+                    selectedThumbnailIndexPath = initialIndexPathInThumbnails
+                }
+            } else {
+                return selectedThumbnailIndexPath = IndexPath(item: selectedPhotos.count - 1, section: 0)
+            }
+        }
+    }
 
-    var playerItemStatusToken: NSKeyValueObservation?
-
-
-    // MARK: - LifeCycle
+    fileprivate let photos: [PhotoProtocol]
+    fileprivate let initialIndex: Int
+    /// the maximum number of photos you can select
+    var maximumCanBeSelected: Int = 0
+    var isForSelection = false
+    var supportThumbnails = true
+    var supportCaption = false
+    var supportNavigationBar = false
+    var supportBottomToolBar = false
+    
+    // MARK: - Function
+    
+    // MARK: LifeCycle`
+    /// PhotoBrowserViewController initialization.
+    /// - Parameters:
+    ///   - photos: data source to show
+    ///   - initialIndex: first show the photo you clicked
     public init(photos: [PhotoProtocol], initialIndex: Int) {
         self.photos = photos
-        self.currentDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
-        self.currentPhoto = photos[currentDisplayedIndexPath.item]
-        let flowLayout = UICollectionViewFlowLayout()
-        flowLayout.minimumInteritemSpacing = 0
-        flowLayout.minimumLineSpacing = 20
-        flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
-        flowLayout.scrollDirection = .horizontal
+        self.initialIndex = initialIndex
+        currentDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
+        currentPhoto = photos[currentDisplayedIndexPath.item]
 //        flowLayout.itemSize = frame.size
-        collectionView = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
         super.init(nibName: nil, bundle: nil)
+        
+        mainCollectionView = generateMainCollectionView()
     }
 
     required public init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     deinit {
         NotificationCenter.default.removeObserver(self)
         playerItemStatusToken?.invalidate()
         player?.pause()
     }
-
+    
     public override func viewDidLoad() {
         super.viewDidLoad()
         view.clipsToBounds = true
         view.backgroundColor = UIColor.white
         edgesForExtendedLayout = .all
 
-        previousToolBarHidden = self.navigationController?.toolbar.isHidden
-        previousNavigationBarHidden = self.navigationController?.navigationBar.isHidden
-        previousInteractivePop = self.navigationController?.interactivePopGestureRecognizer?.isEnabled
-        previousNavigationTitle = self.navigationController?.navigationItem.title
-        previousAudioCategory = AVAudioSession.sharedInstance().category
-
-        view.addSubview(collectionView)
-        view.addSubview(captionView)
-
+        cachePreviousData()
         setupCollectionView()
-
         setupNavigationBar()
         setupNavigationToolBar()
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-        makeConstraints()
+        addSubviews()
     }
 
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         try? AVAudioSession.sharedInstance().setCategory(.playback)
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
-        if let showNavigationBar = delegate?.showNavigationBar(in: self) {
-            self.navigationController?.setNavigationBarHidden(!showNavigationBar, animated: true)
-        } else {
-            self.navigationController?.setNavigationBarHidden(true, animated: false)
-        }
-
-        if let showToolBar = delegate?.showBottomToolBar(in: self) {
-            self.navigationController?.setToolbarHidden(!showToolBar, animated: false)
-        } else {
-            self.navigationController?.setToolbarHidden(true, animated: false)
-        }
+        self.navigationController?.setNavigationBarHidden(!supportNavigationBar, animated: true)
+        self.navigationController?.setToolbarHidden(!supportBottomToolBar, animated: false)
 
         originCaptionTransform = captionView.transform
     }
 
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        print(collectionView.contentOffset)
+        print(mainCollectionView.contentOffset)
     }
     
     public override func viewWillDisappear(_ animated: Bool) {
@@ -202,20 +343,62 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         restoreNavigationControllerData()
     }
 
+    fileprivate func cachePreviousData() {
+        previousToolBarHidden = self.navigationController?.toolbar.isHidden
+        previousNavigationBarHidden = self.navigationController?.navigationBar.isHidden
+        previousInteractivePop = self.navigationController?.interactivePopGestureRecognizer?.isEnabled
+        previousNavigationTitle = self.navigationController?.navigationItem.title
+        previousAudioCategory = AVAudioSession.sharedInstance().category
+    }
+    
+    // MARK: Setup
+    
+    func addSubviews() {
+        addCollectionView()
+        if supportThumbnails {
+            addThumbnailCollectionView()
+        }
+        if supportCaption {
+            addCaptionView()
+        }
+    }
+    
+    func generateMainCollectionView() -> UICollectionView {
+        let flowLayout = UICollectionViewFlowLayout()
+        flowLayout.minimumInteritemSpacing = 0
+        flowLayout.minimumLineSpacing = 20
+        flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        flowLayout.scrollDirection = .horizontal
+        return UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
+    }
+    
+    func generateThumbnailsCollectionView() -> UICollectionView {
+        let flowLayout = UICollectionViewFlowLayout()
+        flowLayout.minimumInteritemSpacing = 0
+        flowLayout.minimumLineSpacing = 10
+        flowLayout.scrollDirection = .horizontal
+        flowLayout.itemSize = CGSize(width: 70, height: 70)
+        flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
+        return UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
+    }
+    
     func setupCollectionView() {
-        collectionView.register(PhotoDetailCell.self, forCellWithReuseIdentifier: photoCellReuseIdentifier)
-        collectionView.register(VideoDetailCell.self, forCellWithReuseIdentifier: videoCellReuseIdentifier)
-        collectionView.isPagingEnabled = true
-        collectionView.delegate = self
-        collectionView.dataSource = self
+        mainCollectionView.register(PhotoDetailCell.self, forCellWithReuseIdentifier: PhotoDetailCell.reuseIdentifier)
+        mainCollectionView.register(VideoDetailCell.self, forCellWithReuseIdentifier: VideoDetailCell.reuseIdentifier)
+        mainCollectionView.isPagingEnabled = true
+        mainCollectionView.delegate = self
+        mainCollectionView.dataSource = self
 //        collectionView.backgroundColor = .white
-        collectionView.contentInsetAdjustmentBehavior = .never
+        mainCollectionView.contentInsetAdjustmentBehavior = .never
     }
 
     func setupNavigationBar() {
         self.navigationController?.navigationBar.tintColor = .white
-        self.navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
+        self.navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "",
+                                                                                              style: .plain,
+                                                                                              target: nil,
+                                                                                              action: nil)
+        if isForSelection {
             addPhotoBarItem = UIBarButtonItem(title: "", style: .plain, target: self, action: #selector(PhotoBrowserViewController.addPhotoBarItemClicked(_:)))
             addPhotoBarItem.title = addLocalizedString
             addPhotoBarItem.tintColor = .black
@@ -225,39 +408,37 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     func setupNavigationToolBar() {
-        if let showToolBar = delegate?.showBottomToolBar(in: self), showToolBar {
-            playVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.play, target: self, action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
-            pauseVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.pause, target: self, action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
+        guard supportBottomToolBar else { return }
+        playVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.play,
+                                           target: self,
+                                           action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
+        pauseVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.pause,
+                                            target: self,
+                                            action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
 
-            var showVideoPlay = false
-            if currentPhoto.isVideo {
-                showVideoPlay = true
-            }
-            var showDone = false
-
-            if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
-                doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(PhotoBrowserViewController.doneBarButtonClicked(_:)))
-                doneBarItem.isEnabled = !selectedPhotos.isEmpty
-                showDone = canSelect
-            }
-
-            updateToolBar(shouldShowDone: showDone, shouldShowPlay: showVideoPlay)
+        var showVideoPlay = false
+        if currentPhoto.isVideo {
+            showVideoPlay = true
         }
+        
+        if isForSelection {
+            doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(PhotoBrowserViewController.doneBarButtonClicked(_:)))
+            doneBarItem.isEnabled = !selectedPhotos.isEmpty
+        }
+
+        updateToolBar(shouldShowDone: isForSelection, shouldShowPlay: showVideoPlay)
     }
 
     fileprivate func restoreNavigationControllerData() {
         if let title = previousNavigationTitle {
             navigationItem.title = title
         }
-
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = previousInteractivePop ?? true
-
         if let originalIsNavigationBarHidden = previousNavigationBarHidden {
             navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: false)
         }
-        // Drag to dismiss quickly canceled, may result in a navigation hide animation bug
+        // Drag to dismiss quickly canceled, may result in a navigation hide animation bug, FIXME
         if let originalToolBarHidden = previousToolBarHidden {
-            //            navigationController?.setToolbarHidden(originalToolBarHidden, animated: false)
             navigationController?.isToolbarHidden = originalToolBarHidden
         }
 
@@ -266,29 +447,51 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
 
-    func makeConstraints() {
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
+    // selected photo thumbnail collectionView
+    lazy var thumbnailsCollectionView: UICollectionView = {
+        let collectionView = generateThumbnailsCollectionView()
+        collectionView.register(PBSelectedPhotosThumbnailCell.self, forCellWithReuseIdentifier: PBSelectedPhotosThumbnailCell.reuseIdentifier)
+        collectionView.isPagingEnabled = false
+        collectionView.delegate = self
+        collectionView.dataSource = self
+//        collectionView.backgroundColor = .white
+        collectionView.contentInsetAdjustmentBehavior = .never
+        return collectionView
+    }()
+        
+    func addThumbnailCollectionView() {
+        view.addSubview(thumbnailsCollectionView)
+        thumbnailsCollectionView.backgroundColor = UIColor(white: 0.1, alpha: 0.9)
+        let safeAreaLayoutGuide = self.view.safeAreaLayoutGuide
+        thumbnailsCollectionView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            collectionView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
-            collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
+            thumbnailsCollectionView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0),
+            thumbnailsCollectionView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: 0),
+            thumbnailsCollectionView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: 0),
+            thumbnailsCollectionView.heightAnchor.constraint(equalToConstant: 90)
         ])
-
+    }
+    
+    func addCaptionView() {
+        view.addSubview(captionView)
+        let safeAreaLayoutGuide = self.view.safeAreaLayoutGuide
         captionView.translatesAutoresizingMaskIntoConstraints = false
-        if #available(iOS 11.0, *) {
-            NSLayoutConstraint.activate([
-                captionView.leadingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.leadingAnchor, constant: 10),
-                captionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
-                captionView.trailingAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -10),
-            ])
-        } else {
-            NSLayoutConstraint.activate([
-                captionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 10),
-                captionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -10),
-                captionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -10),
-            ])
-        }
+        NSLayoutConstraint.activate([
+            captionView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 10),
+            captionView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -10),
+            captionView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -10),
+        ])
+    }
+    
+    func addCollectionView() {
+        view.addSubview(mainCollectionView)
+        mainCollectionView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            mainCollectionView.topAnchor.constraint(equalTo: self.view.topAnchor),
+            mainCollectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            mainCollectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+            mainCollectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
+        ])
     }
 
     func hideCaptionView(_ flag: Bool, animated: Bool = true) {
@@ -315,8 +518,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             }
         }
     }
+    
     // MARK: UICollectionViewDataSource
-
     public func numberOfSections(in collectionView: UICollectionView) -> Int {
         // #warning Incomplete implementation, return the number of sections
         return 1
@@ -325,29 +528,47 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of items
-        return photos.count
+        if collectionView == self.mainCollectionView {
+            return photos.count
+        } else { // selected photos thumnail collectionView
+            return selectedPhotos.count
+        }
     }
 
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let photo = photos[indexPath.row]
-        if photo.isVideo {
-            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: videoCellReuseIdentifier, for: indexPath) as? VideoDetailCell {                
-                return cell
+        if collectionView == self.mainCollectionView {
+            let photo = photos[indexPath.item]
+            if photo.isVideo {
+                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VideoDetailCell.reuseIdentifier,
+                                                                 for: indexPath) as? VideoDetailCell {
+                    return cell
+                }
+            } else {
+                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoDetailCell.reuseIdentifier,
+                                                                 for: indexPath) as? PhotoDetailCell {
+                    cell.maximumZoomScale = 2
+                    return cell
+                }
             }
-        } else {
-            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: photoCellReuseIdentifier, for: indexPath) as? PhotoDetailCell {
-                cell.maximumZoomScale = 2
+        } else { // thumbnails
+            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PBSelectedPhotosThumbnailCell.reuseIdentifier,
+                                                             for: indexPath) as? PBSelectedPhotosThumbnailCell {
+                cell.photo = selectedPhotos[indexPath.item]
+                if let selectedIdx = selectedThumbnailIndexPath {
+                    cell.thumbnailIsSelected = indexPath == selectedIdx
+                } else {
+                    cell.thumbnailIsSelected = false
+                }
                 return cell
             }
         }
-
+        
         return UICollectionViewCell()
     }
 
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         stopPlayingVideoIfNeeded(at: currentDisplayedIndexPath)
-
-        var photo = photos[indexPath.row]
+        var photo = photos[indexPath.item]
         photo.targetSize = assetSize
         if photo.isVideo {
             if let videoCell = cell as? VideoDetailCell {
@@ -361,6 +582,13 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             }
         }
     }
+    
+    public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if collectionView == self.thumbnailsCollectionView {
+            isOperatingMainPhotos = false
+            selectedThumbnailIndexPath = indexPath
+        }
+    }
 
     public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         // Device rotating
@@ -371,11 +599,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             view.frame = CGRect(origin: view.frame.origin, size: size)
             view.layoutIfNeeded()
         } else {
-            let indexPath = self.collectionView.indexPathsForVisibleItems.last
+            let indexPath = self.mainCollectionView.indexPathsForVisibleItems.last
             coordinator.animate(alongsideTransition: { ctx in
-                self.collectionView.layoutIfNeeded()
+                self.mainCollectionView.layoutIfNeeded()
                 if let indexPath = indexPath {
-                    self.collectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
+                    self.mainCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
                 }
             }, completion: { _ in
 
@@ -387,8 +615,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        if self.collectionView.frame != view.frame.insetBy(dx: -10.0, dy: 0.0) {
-            self.collectionView.frame = view.frame.insetBy(dx: -10.0, dy: 0.0)
+        if self.mainCollectionView.frame != view.frame.insetBy(dx: -10.0, dy: 0.0) {
+            self.mainCollectionView.frame = view.frame.insetBy(dx: -10.0, dy: 0.0)
         }
         if !resized && view.bounds.size != .zero {
             resized = true
@@ -397,11 +625,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
         if (!self.initialScrollDone) {
             self.initialScrollDone = true
-            self.collectionView.scrollToItem(at: currentDisplayedIndexPath, at: .centeredHorizontally, animated: false)
-            if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
+            self.mainCollectionView.scrollToItem(at: currentDisplayedIndexPath, at: .centeredHorizontally, animated: false)
+            if isForSelection {
                 updateAddBarItem(at: currentDisplayedIndexPath)
             }
-            if let canDisplay = delegate?.canDisplayCaption(in: self), canDisplay {
+            if supportCaption {
                 updateCaption(at: currentDisplayedIndexPath)
             }
         }
@@ -418,10 +646,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             doneBarItem.isEnabled = !selectedPhotos.isEmpty
         }
 
-        let photo = photos[currentDisplayedIndexPath.row]
-
-        // already added, remove it from selections
+        let photo = photos[currentDisplayedIndexPath.item]
+        
+        isOperatingMainPhotos = true
         if let exsit = firstIndexOfPhoto(photo, in: selectedPhotos) {
+            // already added, remove it from selections
             selectedPhotos.remove(at: exsit)
             addPhotoBarItem.title = addLocalizedString
             addPhotoBarItem.tintColor = .black
@@ -484,10 +713,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     func updateAddBarItem(at indexPath: IndexPath) {
-        let photo = photos[indexPath.row]
+        let photo = photos[indexPath.item]
         guard let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) else {
             addPhotoBarItem.title = addLocalizedString
-            addPhotoBarItem.isEnabled = selectedPhotos.count < maximumNumber
+            addPhotoBarItem.isEnabled = selectedPhotos.count < maximumCanBeSelected
             addPhotoBarItem.tintColor = .black
             return
         }
@@ -503,17 +732,27 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     func updateCaption(at indexPath: IndexPath) {
-        let photo = photos[indexPath.row]
+        let photo = photos[indexPath.item]
         captionView.setup(content: photo.captionContent, signature: photo.captionSignature)
     }
 
     func updateNavigationTitle(at indexPath: IndexPath) {
-        if let showNavigationBar = delegate?.showNavigationBar(in: self), showNavigationBar {
-            if let canSelect = delegate?.canSelectPhoto(in: self), canSelect {
+        if supportNavigationBar {
+            if isForSelection {
                 navigationItem.title = ""
             } else {
                 navigationItem.title = "\(indexPath.item + 1) /\(photos.count)"
             }
+        }
+    }
+    
+    func updateThumbnails(at indexPath: IndexPath) {
+        let photo = photos[indexPath.item]
+        
+        if let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) {
+            selectedThumbnailIndexPath = IndexPath(item: firstIndex, section: 0)
+        } else {
+            selectedThumbnailIndexPath = nil
         }
     }
 
@@ -523,7 +762,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     func recalculateItemSize(inBoundingSize size: CGSize) {
-        guard let flowLayout = flowLayout else { return }
+        guard let flowLayout = mainFlowLayout else { return }
         let itemSize = recalculateLayout(flowLayout,
                                          inBoundingSize: size)
         let scale = UIScreen.main.scale
@@ -551,12 +790,14 @@ extension PhotoBrowserViewController: UIScrollViewDelegate {
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
 //        let pageWidth = view.bounds.size.width
 //        let currentPage = Int((scrollView.contentOffset.x + pageWidth / 2) / pageWidth)
-        if let currentIndexPath = self.collectionView.indexPathsForVisibleItems.last {
-            currentDisplayedIndexPath = currentIndexPath
-        } else {
-            currentDisplayedIndexPath = IndexPath(row: 0, section: 0)
+        if scrollView == mainCollectionView {
+            isOperatingMainPhotos = true
+            if let currentIndexPath = self.mainCollectionView.indexPathsForVisibleItems.last {
+                currentDisplayedIndexPath = currentIndexPath
+            } else {
+                currentDisplayedIndexPath = IndexPath(row: 0, section: 0)
+            }
         }
-
     }
 }
 
@@ -577,15 +818,15 @@ extension PhotoBrowserViewController {
     }
 
     fileprivate func hideOrShowTopBottom() {
-        if let showNavigationBar = delegate?.showNavigationBar(in: self), showNavigationBar {
+        if supportNavigationBar {
             self.navigationController?.setNavigationBarHidden(!(self.navigationController?.isNavigationBarHidden ?? true), animated: true)
         }
 
-        if let showToolBar = delegate?.showBottomToolBar(in: self), showToolBar {
+        if supportBottomToolBar {
             self.navigationController?.setToolbarHidden(!(self.navigationController?.isToolbarHidden ?? true), animated: true)
         }
 
-        if let canDisplay = delegate?.canDisplayCaption(in: self), canDisplay {
+        if supportCaption {
             hideCaptionView(!captionView.isHidden)
         }
     }
@@ -596,7 +837,7 @@ extension PhotoBrowserViewController {
             switch cfstring {
             case kUTTypeImage:
                 if let touchPoint = userInfo["touchPoint"] as? CGPoint,
-                   let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell  {
+                   let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell  {
                     doubleTap(touchPoint, on: cell)
                 }
             case kUTTypeVideo:
@@ -634,10 +875,6 @@ extension PhotoBrowserViewController {
 
 // MARK: - Video
 extension PhotoBrowserViewController {
-    fileprivate var currentVideoCell: VideoDetailCell? {
-        return collectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell
-    }
-
     fileprivate func setupPlayer(photo: PhotoProtocol, for playerView: PlayerView) {
         if let asset = photo.asset {
             setupPlayer(asset: asset, for: playerView)
@@ -756,30 +993,30 @@ extension PhotoBrowserViewController {
 // MARK: - PhotoDetailTransitionAnimatorDelegate
 extension PhotoBrowserViewController: PhotoTransitioning {
     public func transitionWillStart() {
-        guard let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) else { return }
+        guard let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) else { return }
         cell.isHidden = true
     }
 
     public func transitionDidEnd() {
-        guard let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) else { return }
+        guard let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) else { return }
         cell.isHidden = false
     }
 
     public func referenceImage() -> UIImage? {
-        if let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell {
+        if let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell {
             return cell.image
         }
-        if let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell {
+        if let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell {
             return cell.image
         }
         return nil
     }
 
     public func imageFrame() -> CGRect? {
-        if let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell {
+        if let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell {
             return CGRect.makeRect(aspectRatio: cell.image?.size ?? .zero, insideRect: cell.bounds)
         }
-        if let cell = collectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell {
+        if let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? VideoDetailCell {
             return CGRect.makeRect(aspectRatio: cell.image?.size ?? .zero, insideRect: cell.bounds)
         }
         return nil
@@ -788,11 +1025,6 @@ extension PhotoBrowserViewController: PhotoTransitioning {
 
 extension PhotoBrowserViewController {
     func firstIndexOfPhoto(_ photo: PhotoProtocol, in photos: [PhotoProtocol]) -> Int? {
-        for (idx, selected) in selectedPhotos.enumerated() {
-            if selected.isEqualTo(photo) {
-                return idx
-            }
-        }
-        return nil
+        return photos.firstIndex { $0.isEqualTo(photo) }
     }
 }

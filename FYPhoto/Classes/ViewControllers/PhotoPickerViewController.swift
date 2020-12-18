@@ -309,20 +309,28 @@ public class PhotoPickerViewController: UICollectionViewController {
                 photos.append(Photo.photoWithPHAsset(asset))
             }
 
-            var selectedPhotos: [PhotoProtocol] = []
-            let selectedAssetsResult = PHAsset.fetchAssets(withLocalIdentifiers: assetSelectionIdentifierCache, options: nil)
-            selectedAssetsResult.enumerateObjects { (asset, _, _) in
-                let photo = Photo.photoWithPHAsset(asset)
-                selectedPhotos.append(photo)
+            var tempCache = [String: PHAsset]()
+            let selectedAssetsResult = PHAsset.fetchAssets(withLocalIdentifiers: assetSelectionIdentifierCache, options: nil) // output sequence is not the same order as input
+            selectedAssetsResult.enumerateObjects { (asset, idx, _) in
+                tempCache[asset.localIdentifier] = asset
             }
-
+            let orderedAssets = assetSelectionIdentifierCache.compactMap { tempCache[$0] }
+            let selectedPhotos = orderedAssets.map { Photo.photoWithPHAsset($0) }
+                        
             // collectionview
-            let detailVC = PhotoBrowserViewController(photos: photos, initialIndex: regenerate(indexPath: indexPath, for: true).item)
-            detailVC.selectedPhotos = selectedPhotos
-            detailVC.maximumNumber = maximumCanBeSelected
-            detailVC.delegate = self
+            let initialIndex = regenerate(indexPath: indexPath, for: true).item // due to the placeholder camera cell
+            let photoBrowser = PhotoBrowserViewController.Builder(photos: photos, initialIndex: initialIndex)
+                .buildForSelection(true)
+                .setSelectedPhotos(selectedPhotos)
+                .setMaximumCanBeSelected(3)
+                .supportThumbnails(true)
+                .supportNavigationBar(true)
+                .supportBottomToolBar(true)
+                .build()
+                        
+            photoBrowser.delegate = self
 
-            self.navigationController?.pushViewController(detailVC, animated: true)
+            self.navigationController?.pushViewController(photoBrowser, animated: true)
         }
     }
 

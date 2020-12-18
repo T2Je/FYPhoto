@@ -20,10 +20,10 @@ class PhotoImage: PhotoProtocol {
         
     var isVideo: Bool { return false }
     
-    let resourceType: PhotoResourceType
+//    let resourceType: PhotoResourceType
     
     private init() {
-        resourceType = .pureImage
+//        resourceType = .pureImage
     }
     convenience init(image: UIImage) {
         self.init()

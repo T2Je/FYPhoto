@@ -18,7 +18,7 @@ class PhotoAsset: PhotoProtocol {
     var asset: PHAsset?
     var targetSize: CGSize?
     
-    let resourceType: PhotoResourceType
+//    let resourceType: PhotoResourceType
     
     var isVideo: Bool {
         guard let asset = asset else { return false }
@@ -31,7 +31,7 @@ class PhotoAsset: PhotoProtocol {
     
     init(asset: PHAsset) {
         self.asset = asset
-        self.resourceType = .asset
+//        self.resourceType = .asset
     }
     
     func isEqualTo(_ photo: PhotoProtocol) -> Bool {

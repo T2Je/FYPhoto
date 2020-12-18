@@ -12,13 +12,13 @@ public protocol PhotoProtocol: URLPhotoProtocol, AssetPhotoProtocol, PhotoCaptio
     var image: UIImage? { get }
     var metaData: Data? { get }
     var isVideo: Bool { get }
-    var resourceType: PhotoResourceType { get }
+//    var resourceType: PhotoResourceType { get }
     
     func storeImage(_ image: UIImage)
     func isEqualTo(_ photo: PhotoProtocol) -> Bool
 }
 
-extension PhotoProtocol {
+public extension PhotoProtocol {
     func storeImage(_ image: UIImage) { }
 }
 

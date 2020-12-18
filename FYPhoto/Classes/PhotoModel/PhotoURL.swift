@@ -27,7 +27,7 @@ class PhotoURL: PhotoProtocol {
     private(set) var captionContent: String?
     private(set) var captionSignature: String?
     
-    let resourceType: PhotoResourceType
+//    let resourceType: PhotoResourceType
     
     private lazy var urlAssetQueue: DispatchQueue = DispatchQueue(label: "com.variflight.urlAssetQueue")
     private let videoTypes = ["mp4", "m4a", "mov"]
@@ -51,7 +51,7 @@ class PhotoURL: PhotoProtocol {
     
     init(url: URL) {
         self.url = url
-        resourceType = .url
+//        resourceType = .url
     }
     
     static func == (lhs: PhotoURL, rhs: PhotoURL) -> Bool {
