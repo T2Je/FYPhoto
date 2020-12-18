@@ -322,7 +322,7 @@ public class PhotoPickerViewController: UICollectionViewController {
             let photoBrowser = PhotoBrowserViewController.Builder(photos: photos, initialIndex: initialIndex)
                 .buildForSelection(true)
                 .setSelectedPhotos(selectedPhotos)
-                .setMaximumCanBeSelected(3)
+                .setMaximumCanBeSelected(maximumCanBeSelected)
                 .supportThumbnails(true)
                 .supportNavigationBar(true)
                 .supportBottomToolBar(true)
