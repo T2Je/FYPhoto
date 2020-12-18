@@ -109,6 +109,15 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     /// 底部标题
     fileprivate lazy var captionView = CaptionView()
+    
+    fileprivate lazy var pageControl: UIPageControl = {
+        let pageCtl = UIPageControl()
+        pageCtl.numberOfPages = photos.count
+        pageCtl.currentPage = initialIndex
+        pageCtl.currentPageIndicatorTintColor = UIColor.white
+        pageCtl.pageIndicatorTintColor = UIColor.lightGray
+        return pageCtl
+    }()
 
     fileprivate var playBarItemsIsShowed = false
 
@@ -161,6 +170,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             }
             if isForSelection {
                 updateAddBarItem(at: newValue)
+            } else {
+                pageControl.currentPage = newValue.item
             }
             if supportCaption {
                 updateCaption(at: newValue)
@@ -355,11 +366,15 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     
     func addSubviews() {
         addCollectionView()
-        if supportThumbnails {
-            addThumbnailCollectionView()
-        }
-        if supportCaption {
-            addCaptionView()
+        if isForSelection {
+            if supportThumbnails {
+                addThumbnailCollectionView()
+            }
+        } else {
+            addPageControl()
+            if supportCaption {
+                addCaptionView()
+            }
         }
     }
     
@@ -494,6 +509,16 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         ])
     }
 
+    func addPageControl() {
+        view.addSubview(pageControl)
+        pageControl.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            pageControl.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            pageControl.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -15),
+            pageControl.widthAnchor.constraint(equalToConstant: 200),
+            pageControl.heightAnchor.constraint(equalToConstant: 30)
+        ])
+    }
     func hideCaptionView(_ flag: Bool, animated: Bool = true) {
         if flag { // hide
             let transition = CGAffineTransform(translationX: 0, y: captionView.bounds.height)
@@ -524,7 +549,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         // #warning Incomplete implementation, return the number of sections
         return 1
     }
-
 
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of items
@@ -633,9 +657,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 updateCaption(at: currentDisplayedIndexPath)
             }
         }
+        if isForSelection {
+            pageControl.subviews.forEach {
+                $0.transform = CGAffineTransform(scaleX: 1.5, y: 1.5)
+            }
+        }
     }
 
-    // MARK: -Bar item actions
+    // MARK: Bar item actions
     @objc func doneBarButtonClicked(_ sender: UIBarButtonItem) {
         assert(!selectedPhotos.isEmpty, "photos shouldn't be empty")
         delegate?.photoBrowser(self, didCompleteSelected: selectedPhotos)
@@ -678,7 +707,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
 
-    // MARK: ToolBar updates
+    // MARK: Update ToolBar, collectionView
     func updateToolBar(shouldShowDone: Bool, shouldShowPlay: Bool) {
         var items = [UIBarButtonItem]()
         let spaceItem = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
@@ -756,6 +785,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
 
+    // MARK: Target action
     @objc func playerItemDidReachEnd(_ notification: Notification) {
         isPlaying = false
         seekToZeroBeforePlay = true
@@ -792,11 +822,8 @@ extension PhotoBrowserViewController: UIScrollViewDelegate {
 //        let currentPage = Int((scrollView.contentOffset.x + pageWidth / 2) / pageWidth)
         if scrollView == mainCollectionView {
             isOperatingMainPhotos = true
-            if let currentIndexPath = self.mainCollectionView.indexPathsForVisibleItems.last {
-                currentDisplayedIndexPath = currentIndexPath
-            } else {
-                currentDisplayedIndexPath = IndexPath(row: 0, section: 0)
-            }
+            let indexPath = mainCollectionView.indexPathsForVisibleItems.last ?? IndexPath(row: 0, section: 0)
+            currentDisplayedIndexPath = indexPath
         }
     }
 }
