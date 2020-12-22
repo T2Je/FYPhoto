@@ -24,7 +24,7 @@ public protocol CameraViewControllerDelegate: class {
     func camera(_ cameraViewController: CameraViewController, didFinishCapturingMediaInfo info: [CameraViewController.InfoKey: Any])
     func cameraDidCancel(_ cameraViewController: CameraViewController)
     func watermarkImage() -> WatermarkImage?
-    func cameraViewControllerStartAddingWatermark()
+    func cameraViewControllerStartAddingWatermark(_ cameraViewController: CameraViewController)
     func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL)
 }
 
@@ -32,7 +32,7 @@ public extension CameraViewControllerDelegate {
     func watermarkImage() -> WatermarkImage? {
         return nil
     }
-    func cameraViewControllerStartAddingWatermark() {}
+    func cameraViewControllerStartAddingWatermark(_ cameraViewController: CameraViewController) {}
     func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL) {}
 }
 
@@ -825,8 +825,8 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                     let image = UIImage(data: data)
                     mediaInfo[InfoKey.originalImage] = image
                     mediaInfo[InfoKey.mediaMetadata] = data
-                    if let image = image, let waterMarkImage = self.delegate?.watermarkImage() {
-                        mediaInfo[InfoKey.waterMarkImage] = self.addWaterMarkImage(waterMarkImage, on: image)
+                    if let image = image, let watermarkImage = self.delegate?.watermarkImage() {
+                        mediaInfo[InfoKey.watermarkImage] = self.addWaterMarkImage(watermarkImage, on: image)
                     }
                 }
                 self.delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
@@ -920,7 +920,6 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
     }
     public func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?) {
         defer {
-            delegate?.cameraDidCancel(self)
             cameraOverlayView.enableFlash = true
         }
 
@@ -960,25 +959,12 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
             mediaInfo[CameraViewController.InfoKey.mediaURL] = outputFileURL
             
             if let waterMark = self.delegate?.watermarkImage() {
-//                let videoName = "watermark-" + outputFileURL.lastPathComponent
-//                let exportPath = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(videoName)
-//
-//                if FileManager.default.fileExists(atPath: exportPath.absoluteString) {
-//                    try? FileManager.default.removeItem(at: exportPath)
-//                }
-//
-//                watermark(video: AVAsset(url: outputFileURL), with: waterMark.image, outputURL: exportPath) { (url) in
-//                    DispatchQueue.main.async {
-//                        mediaInfo[CameraViewController.InfoKey.waterMarkVideoURL] = url
-//                        self.delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
-//                    }
-//                }
-                delegate?.cameraViewControllerStartAddingWatermark()
+                delegate?.cameraViewControllerStartAddingWatermark(self)
                 createWaterMark(waterMarkImage: waterMark, onVideo: outputFileURL) { (url) in
                     DispatchQueue.main.async {
                         self.delegate?.camera(self, didFinishAddingWatermarkAt: url)
                         
-                        mediaInfo[CameraViewController.InfoKey.waterMarkVideoURL] = url
+                        mediaInfo[CameraViewController.InfoKey.watermarkVideoURL] = url
                         self.delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
                     }
                 }
@@ -989,6 +975,7 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
             endBackgroundTask()
         } else {
             cleanup()
+            delegate?.cameraDidCancel(self)
         }
     }
     
@@ -1225,6 +1212,6 @@ public extension CameraViewController.InfoKey {
 
     static let imageURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "imageURL") // a URL
     
-    static let waterMarkImage: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "waterMarkImage") // a UIImage
-    static let waterMarkVideoURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "waterMarkVideoURL") // a URL
+    static let watermarkImage: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "watermarkImage") // a UIImage
+    static let watermarkVideoURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "watermarkVideoURL") // a URL
 }
