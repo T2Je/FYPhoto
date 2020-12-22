@@ -380,6 +380,7 @@
 		E2284A040725F6C94F101FCB70A59572 /* UIViewController+BarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F68BC1DEA160E4D9D6C8B60CFDC1601 /* UIViewController+BarItem.swift */; };
 		E2DE94D6654967D7CD3BECA4411A4C0C /* CaptionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F84214BACC936789F35BF216CDBA4443 /* CaptionView.swift */; };
 		E32CA7C32588543900BC78D3 /* PBSelectedPhotosThumbnailCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32CA7C22588543900BC78D3 /* PBSelectedPhotosThumbnailCell.swift */; };
+		E380301D259094EE00CD3088 /* AVAsset+NaturalSize.swift in Sources */ = {isa = PBXBuildFile; fileRef = E380301C259094EE00CD3088 /* AVAsset+NaturalSize.swift */; };
 		E3A906702581F5C400CBE2B1 /* PhotoImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A9066B2581F5C400CBE2B1 /* PhotoImage.swift */; };
 		E3A906712581F5C400CBE2B1 /* Photo.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A9066C2581F5C400CBE2B1 /* Photo.swift */; };
 		E3A906722581F5C400CBE2B1 /* PhotoURL.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3A9066D2581F5C400CBE2B1 /* PhotoURL.swift */; };
@@ -1005,6 +1006,7 @@
 		E318062932E1541F6E6498FAE83A4DBA /* FYPhoto.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = FYPhoto.strings; path = en.lproj/FYPhoto.strings; sourceTree = "<group>"; };
 		E32CA7C22588543900BC78D3 /* PBSelectedPhotosThumbnailCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PBSelectedPhotosThumbnailCell.swift; sourceTree = "<group>"; };
 		E379EACEB34BDFF6F70F05C36FC80A6B /* UIImageView+HighlightedWebCache.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "UIImageView+HighlightedWebCache.h"; path = "SDWebImage/Core/UIImageView+HighlightedWebCache.h"; sourceTree = "<group>"; };
+		E380301C259094EE00CD3088 /* AVAsset+NaturalSize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AVAsset+NaturalSize.swift"; sourceTree = "<group>"; };
 		E3A9066B2581F5C400CBE2B1 /* PhotoImage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoImage.swift; sourceTree = "<group>"; };
 		E3A9066C2581F5C400CBE2B1 /* Photo.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Photo.swift; sourceTree = "<group>"; };
 		E3A9066D2581F5C400CBE2B1 /* PhotoURL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PhotoURL.swift; sourceTree = "<group>"; };
@@ -1635,6 +1637,7 @@
 				A430BAE6B7719947CA600BB94D3BABC0 /* UICollectionView+IndexPathsInRect.swift */,
 				1F782749C85A0928ECAFB22F1E070BEF /* UIResponder+routerEvent.swift */,
 				3A7C798CE5B1C1E0B72B7F3B0A1C3F13 /* URL+mediaType.swift */,
+				E380301C259094EE00CD3088 /* AVAsset+NaturalSize.swift */,
 			);
 			name = extensions;
 			path = FYPhoto/Classes/extensions;
@@ -3036,6 +3039,7 @@
 				C198F94BD06848C54A1B372227E74AFA /* CameraViewController.swift in Sources */,
 				E2DE94D6654967D7CD3BECA4411A4C0C /* CaptionView.swift in Sources */,
 				317BF77BDDB3D98634B46E9E5A9CB119 /* CG+extensions.swift in Sources */,
+				E380301D259094EE00CD3088 /* AVAsset+NaturalSize.swift in Sources */,
 				5B95DC37B1622CC9DD3555F2B8B1C952 /* CustomNavigationTitleView.swift in Sources */,
 				E5AEF26975838F158B28C57799C04E6B /* FYPhoto-dummy.m in Sources */,
 				E3A906832582108000CBE2B1 /* PhotoProtocol.swift in Sources */,

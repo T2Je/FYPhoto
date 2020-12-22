@@ -231,9 +231,7 @@ public class PhotoPickerViewController: UICollectionViewController {
         return IndexPath(item: indexPath.item + para, section: indexPath.section)
     }
     
-    fileprivate func configureCell(_ cell: GridViewCell, at indexPath: IndexPath) {
-        let asset = fetchResult.object(at: regenerate(indexPath: indexPath, for: true).item)
-        
+    fileprivate func configureAssetCell(_ cell: GridViewCell, asset: PHAsset, at indexPath: IndexPath) {
         cell.delegate = self
         
         // Add a badge to the cell if the PHAsset represents a Live Photo.
@@ -257,6 +255,7 @@ public class PhotoPickerViewController: UICollectionViewController {
                     } else {
                         cell.isEnable = true
                     }
+                    cell.isVideoAsset = true
                 } else {
                     cell.videoDuration = ""
                     if let isVideo = self.selectedAssetIsVideo {
@@ -264,6 +263,7 @@ public class PhotoPickerViewController: UICollectionViewController {
                     } else {
                         cell.isEnable = true
                     }
+                    cell.isVideoAsset = false
                 }
                 if let exsist = self.assetSelectionIdentifierCache.firstIndex(of: asset.localIdentifier) {
                     cell.displayButtonTitle("\(exsist + 1)") // display selected asset order
@@ -288,7 +288,8 @@ public class PhotoPickerViewController: UICollectionViewController {
         } else {
             // Dequeue a GridViewCell.
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridViewCell.self), for: indexPath) as? GridViewCell {
-                configureCell(cell, at: indexPath)
+                let asset = fetchResult.object(at: regenerate(indexPath: indexPath, for: true).item)
+                configureAssetCell(cell, asset: asset, at: indexPath)
                 return cell
             }
         }
@@ -333,6 +334,27 @@ public class PhotoPickerViewController: UICollectionViewController {
             self.navigationController?.pushViewController(photoBrowser, animated: true)
         }
     }
+    
+    func browseVideo(_ asset: PHAsset) {
+        guard asset.mediaType == .video else {
+            assertionFailure("Not a video asset: \(asset)")
+            return
+        }
+        let options = PHVideoRequestOptions()
+        options.isNetworkAccessAllowed = true
+        
+        PHImageManager.default().requestAVAsset(forVideo: asset, options: options) { (avAsset, _, _) in
+            guard let urlAsset = avAsset as? AVURLAsset else {
+                #if DEBUG
+                print("❌ Unsupported media type: \(avAsset)")
+                #endif
+                return
+            }
+            
+        }
+    }
+    
+    
 
     // MARK: UIScrollView
     public override func scrollViewDidScroll(_ scrollView: UIScrollView) {

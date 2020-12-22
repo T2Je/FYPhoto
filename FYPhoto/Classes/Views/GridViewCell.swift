@@ -37,15 +37,23 @@ class GridViewCell: UICollectionViewCell {
     var livePhotoBadgeImage: UIImage! {
         didSet {
             livePhotoBadgeImageView.image = livePhotoBadgeImage
+            isVideoAsset = false
         }
     }
 
     var videoDuration: String! {
         didSet {
             videoDurationLabel.text = videoDuration
+            isVideoAsset = true
         }
     }
 
+    var isVideoAsset: Bool = false {
+        didSet {
+            selectionButton.isHidden = isVideoAsset
+        }
+    }
+    
     var isEnable: Bool = false {
         willSet {
             overlayView.isHidden = newValue
@@ -69,6 +77,7 @@ class GridViewCell: UICollectionViewCell {
         livePhotoBadgeImageView.image = nil
         selectionButton.setImage("ImageSelectedSmallOff".photoImage, for: .normal)
         indexPath = nil
+        isVideoAsset = false
     }
     
     func setupUI() {
@@ -155,4 +164,5 @@ class GridViewCell: UICollectionViewCell {
             selectionButton.backgroundColor = .green
         }
     }
+    
 }
