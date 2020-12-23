@@ -27,3 +27,7 @@ t2je, xiaoyang@variflight.com
 ## License
 
 FYPhoto is available under the MIT license. See the LICENSE file for more info.
+
+## TODO
+
+add progress bar when playing video

@@ -28,7 +28,7 @@ public class VideoPreviewController: UIViewController {
     public weak var delegate: VideoPreviewControllerDelegate?
     
     let playerItem: AVPlayerItem
-    
+
     public init(videoURL: URL) {
         self.videoURL = videoURL
         playerItem = AVPlayerItem(url: videoURL)
@@ -49,11 +49,15 @@ public class VideoPreviewController: UIViewController {
         view.addSubview(saveButton)
         
         cancelButton.setTitle("Cancel".photoTablelocalized, for: .normal)
+        cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         cancelButton.layer.masksToBounds = true
         cancelButton.layer.cornerRadius = 5
         cancelButton.addTarget(self, action: #selector(cancelButtonClicked(_:)), for: .touchUpInside)
-        
+                
         saveButton.setTitle("Save".photoTablelocalized, for: .normal)
+        saveButton.backgroundColor = UIColor(red: 44/255.0, green: 118/255.0, blue: 227/255.0, alpha: 1)
+        saveButton.setTitleColor(UIColor.white, for: .normal)
+        saveButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         saveButton.layer.masksToBounds = true
         saveButton.layer.cornerRadius = 5
         saveButton.addTarget(self, action: #selector(saveButtonClicked(_:)), for: .touchUpInside)
@@ -67,6 +71,11 @@ public class VideoPreviewController: UIViewController {
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         player.play()
+    }
+    
+    public override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        player.pause()
     }
     
     @objc func cancelButtonClicked(_ sender: UIButton) {
@@ -94,15 +103,15 @@ public class VideoPreviewController: UIViewController {
         NSLayoutConstraint.activate([
             cancelButton.leadingAnchor.constraint(equalTo: safeLayoutGuide.leadingAnchor, constant: 10),
             cancelButton.topAnchor.constraint(equalTo: safeLayoutGuide.topAnchor, constant: 25),
-            cancelButton.widthAnchor.constraint(equalToConstant: 60),
-            cancelButton.heightAnchor.constraint(equalToConstant: 35)
+            cancelButton.widthAnchor.constraint(equalToConstant: 64),
+            cancelButton.heightAnchor.constraint(equalToConstant: 32)
         ])
         
         NSLayoutConstraint.activate([
             saveButton.trailingAnchor.constraint(equalTo: safeLayoutGuide.trailingAnchor, constant: -10),
             saveButton.topAnchor.constraint(equalTo: safeLayoutGuide.topAnchor, constant: 25),
-            saveButton.widthAnchor.constraint(equalToConstant: 60),
-            saveButton.heightAnchor.constraint(equalToConstant: 35)
+            saveButton.widthAnchor.constraint(equalToConstant: 64),
+            saveButton.heightAnchor.constraint(equalToConstant: 32)
         ])
         
     }

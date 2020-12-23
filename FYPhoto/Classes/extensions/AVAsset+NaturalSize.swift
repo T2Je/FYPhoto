@@ -7,9 +7,13 @@
 
 import Foundation
 import AVKit
+import Photos
 
-//extension AVAsset {
-//    func size(<#parameters#>) -> <#return type#> {
-//        <#function body#>
-//    }
-//}
+extension AVAsset {
+    func dataSize() -> Float? {
+        guard let lastTrackTotal = tracks(withMediaType: .video).last?.totalSampleDataLength else {
+            return nil
+        }
+        return Float(lastTrackTotal) / 1024 / 1024
+    }
+}

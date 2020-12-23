@@ -138,6 +138,11 @@ public class PhotoPickerResource {
 }
 
 extension PhotoPickerResource {
+    
+    /// Fetch hight quality images synchronously
+    /// - Parameters:
+    ///   - assets: image assets
+    ///   - completion: images call back
     func fetchHighQualityImages(_ assets: [PHAsset], completion: @escaping (([UIImage]) -> Void)) {
         let group = DispatchGroup()
         var requestIDs = [PHImageRequestID]()
