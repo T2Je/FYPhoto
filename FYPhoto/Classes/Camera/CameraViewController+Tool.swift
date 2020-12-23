@@ -65,6 +65,7 @@ public extension CameraViewController {
         }
     }
 
+    //TODO: 要在主线程
     static func saveVideoDataToAlbums(_ videoPath: URL, completion: @escaping ((Error?) -> Void)) {
         // Check the authorization status.
         PHPhotoLibrary.requestAuthorization { status in
@@ -79,7 +80,9 @@ public extension CameraViewController {
                     if !success {
                         print("AVCam couldn't save the movie to your photo library: \(String(describing: error))")
                     }
-                    completion(error)
+                    DispatchQueue.main.async {
+                        completion(error)
+                    }
                 }
                 )
             } else {

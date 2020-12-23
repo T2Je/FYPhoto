@@ -11,7 +11,19 @@ import UIKit
 import Photos
 import PhotosUI
 
-public class PhotoPickerViewController: UICollectionViewController {    
+public struct MediaOptions: OptionSet {
+    public let rawValue: Int
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+    
+    public static let image = MediaOptions(rawValue: 1 << 0)
+    public static let video = MediaOptions(rawValue: 1 << 1)
+    
+    public static let all: MediaOptions = [.image, .video]
+}
+
+public class PhotoPickerViewController: UICollectionViewController {
     
     // call back for photo, video selections
     public var selectedPhotos: (([UIImage]) -> Void)?
@@ -63,7 +75,8 @@ public class PhotoPickerViewController: UICollectionViewController {
     var transitionController: PhotoTransitionController?
 
     fileprivate let maximumCanBeSelected: Int
-    fileprivate let isOnlyImages: Bool
+//    fileprivate let isOnlyImages: Bool
+    fileprivate let mediaOptions: MediaOptions
     
     // video
     fileprivate var videoMaximumDuration: TimeInterval?
@@ -72,14 +85,14 @@ public class PhotoPickerViewController: UICollectionViewController {
     /// Initial of GridVC
     /// - Parameter maximumCanBeSelected: You can selected the maximum number of photos
     /// - Parameter isOnlyImages: If TRUE, only display images, otherwise, display all media types on device
-    public init(maximumCanBeSelected: Int, isOnlyImages: Bool) {
+    public init(maximumCanBeSelected: Int, mediaOptions: MediaOptions) {
         let flowLayout = UICollectionViewFlowLayout()
         flowLayout.itemSize = CGSize(width: 120, height: 120)
         flowLayout.minimumInteritemSpacing = 1
         flowLayout.minimumLineSpacing = 1
         flowLayout.scrollDirection = .vertical
         self.maximumCanBeSelected = maximumCanBeSelected
-        self.isOnlyImages = isOnlyImages
+        self.mediaOptions = mediaOptions
         super.init(collectionViewLayout: flowLayout)
     }
 
@@ -116,13 +129,8 @@ public class PhotoPickerViewController: UICollectionViewController {
     }
 
     func requestAlbumsData() {
-        if isOnlyImages {
-            allPhotos = PhotoPickerResource.shared.allImages()
-            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums(isOnlyImage: true)
-        } else {
-            allPhotos = PhotoPickerResource.shared.allAssets(ascending: false)
-            smartAlbums = PhotoPickerResource.shared.filteredSmartAlbums()
-        }
+        allPhotos = PhotoPickerResource.shared.getAssets(withMediaOptions: mediaOptions)
+        smartAlbums = PhotoPickerResource.shared.getSmartAlbums(withMediaOptions: mediaOptions)
         userCollections = PhotoPickerResource.shared.userCollection()
     }
 
@@ -381,7 +389,15 @@ public class PhotoPickerViewController: UICollectionViewController {
     
     func launchCamera() {
         let cameraVC = CameraViewController()
-        let captureModes = isOnlyImages ? [CameraViewController.CaptureMode.image] : [CameraViewController.CaptureMode.movie, CameraViewController.CaptureMode.image]
+        let captureModes: [CameraViewController.CaptureMode]
+        if mediaOptions == .image {
+            captureModes = [CameraViewController.CaptureMode.image]
+        } else if mediaOptions == .video {
+            captureModes = [CameraViewController.CaptureMode.movie]
+        } else {
+            captureModes = [CameraViewController.CaptureMode.movie, CameraViewController.CaptureMode.image]
+        }
+        
         cameraVC.captureModes = captureModes
         cameraVC.videoMaximumDuration = videoMaximumDuration ?? 15 //TODO: where to get duration
         cameraVC.moviePathExtension = moviePathExtension
@@ -484,14 +500,17 @@ extension PhotoPickerViewController: AlbumsTableViewControllerDelegate {
                 return
             }
             customTitleView.title = collection.localizedTitle ?? ""
-            if isOnlyImages {
+            if mediaOptions == .image {
                 let fetchOptions = PHFetchOptions()
                 fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue)
+                fetchResult = PHAsset.fetchAssets(in: assetCollection, options: fetchOptions)
+            } else if mediaOptions == .video {
+                let fetchOptions = PHFetchOptions()
+                fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.video.rawValue)
                 fetchResult = PHAsset.fetchAssets(in: assetCollection, options: fetchOptions)
             } else {
                 fetchResult = PHAsset.fetchAssets(in: assetCollection, options: nil)
             }
-
         }
     }
 }
