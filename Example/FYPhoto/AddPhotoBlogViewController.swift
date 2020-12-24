@@ -370,9 +370,12 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
                 let photo = Photo.photoWithUIImage(selectedImageArray[index])
                 photos.append(photo)                
             }
-            let detailVC = PhotoBrowserViewController(photos: photos, initialIndex: indexPath.row)
-            detailVC.delegate = self
-            self.navigationController?.pushViewController(detailVC, animated: true)
+            let photoBrowser = PhotoBrowserViewController.Builder(photos: photos, initialIndex: indexPath.row)
+                .quickBuildJustForBrowser()
+                .showDeleteButtonForBrowser()
+                .build()
+            photoBrowser.delegate = self
+            self.navigationController?.pushViewController(photoBrowser, animated: true)
         }
     }
 
@@ -399,29 +402,6 @@ extension AddPhotoBlogViewController: PhotoLauncherDelegate {
 }
 
 extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
-    func showNavigationBar(in photoBrowser: PhotoBrowserViewController) -> Bool {
-        true
-    }
-
-    func showBottomToolBar(in photoBrowser: PhotoBrowserViewController) -> Bool {
-        false
-    }
-
-    func canDisplayCaption(in photoBrowser: PhotoBrowserViewController) -> Bool {
-        false
-    }
-
-    public func showNavigationBarToolBar(in photoBrowser: PhotoBrowserViewController) -> Bool {
-        return false
-    }
-
-    func canSelectPhoto(in photoBrowser: PhotoBrowserViewController) -> Bool {
-        return false
-    }
-
-    func canEditPhoto(in photoBrowser: PhotoBrowserViewController) -> Bool {
-        return false
-    }
 
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt indexPath: IndexPath) {
         lastSelectedIndexPath = indexPath
@@ -434,7 +414,14 @@ extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, didCompleteSelected photos: [PhotoProtocol]) {
 
     }
-
+    
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, photosAfterBrowsing photos: [PhotoProtocol]) {
+        guard photos.count != selectedImageArray.count else {
+            return
+        }
+        
+        selectedImageArray = photos.compactMap { $0.image }
+    }
 }
 
 extension AddPhotoBlogViewController: PhotoTransitioning {
