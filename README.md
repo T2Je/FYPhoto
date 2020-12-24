@@ -30,4 +30,5 @@ FYPhoto is available under the MIT license. See the LICENSE file for more info.
 
 ## TODO
 
-add progress bar when playing video
+1. add progress bar when playing video
+2. use SDWebImage cache instead of Cache

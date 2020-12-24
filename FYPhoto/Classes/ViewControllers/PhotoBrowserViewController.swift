@@ -15,12 +15,23 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         let initialIndex: Int
         
         var selectedPhotos: [PhotoProtocol] = []
+        /// maximum photos can be selected. Default is 6
         var maximumCanBeSelected: Int = 6
         var isForSelection = false
-        var supportThumbnails = true
+        
+        /// 选择照片时，在底部展示缩略图
+        var supportThumbnails = false
+                
+        /// ACDM 随手拍底部展示图片的标题
         var supportCaption = false
-        var supportNavigationBar = true
-        var supportBottomToolBar = true
+        
+        /// 显示 navigationBar, contains title，添加，取消添加 bar item
+        var supportNavigationBar = false
+        /// 显示 bottom tool bar, contains play video bar item, complete selection bar item
+        var supportBottomToolBar = false
+        
+        /// show delete button for photo browser
+        var canDeletePhotoWhenBrowsing = false
         
         public init(photos: [PhotoProtocol], initialIndex: Int) {
             self.photos = photos
@@ -37,51 +48,75 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             return self
         }
         
+        /// Add a delete button in the upper right corner of the photo when you only browse the photos without selecting them
+        /// 只浏览照片不选择照片时在照片右上角加删除按钮
+        /// - Returns: Builder
+        public func showDeleteButtonForBrowser() -> Self {
+            canDeletePhotoWhenBrowsing = true
+            return self
+        }
+        
         public func buildForSelection(_ isForSelection: Bool) -> Self {
             self.isForSelection = isForSelection
             return self
         }
         
-        public func supportThumbnails(_ supportThumbnails: Bool) -> Self {
-            self.supportThumbnails = supportThumbnails
+        public func buildThumbnailsForSelection() -> Self {
+            self.supportThumbnails = true
             return self
         }
         
-        public func supportCaption(_ supportCaption: Bool) -> Self {
-            self.supportCaption = supportCaption
+        /// ACDM 随手拍照片底部有标题
+        /// - Returns: Builder
+        public func buildCaption() -> Self {
+            self.supportCaption = true
             return self
         }
         
-        public func supportNavigationBar(_ supportNavigationBar: Bool) -> Self {
-            self.supportNavigationBar = supportNavigationBar
+        public func buildNavigationBar() -> Self {
+            self.supportNavigationBar = true
             return self
         }
         
-        public func supportBottomToolBar(_ supportBottomToolBar: Bool) -> Self {
-            self.supportBottomToolBar = supportBottomToolBar
+        public func buildBottomToolBar() -> Self {
+            self.supportBottomToolBar = true
             return self
         }
-        
+        /// 快速创建一个 builder，用来展示图片并支持选择图片。不包含删除按钮
+        /// Quick builder for photo picker to use which mean you can select, unselect photos and submit your selection
+        /// - Parameters:
+        ///   - selected: already selected photos
+        ///   - maximumCanBeSelected: maximum photos can be selected.
+        /// - Returns: Builder
         public func quickBuildForSelection(_ selected: [PhotoProtocol], maximumCanBeSelected: Int) -> Self {
             isForSelection = true
             supportThumbnails = true
             supportNavigationBar = true
             supportBottomToolBar = true
             supportCaption = false
+            canDeletePhotoWhenBrowsing = false
             self.maximumCanBeSelected = maximumCanBeSelected
             self.selectedPhotos = selected
             return self
         }
         
-        func quickBuildJustForBrowser() -> Self {
+        /// 快速创建一个 builder，用来展示图片。不包含删除按钮
+        /// Quick builder just for browsing photos which means you cannot select or unselect photo.
+        /// - Returns: Builder
+        public func quickBuildJustForBrowser() -> Self {
             isForSelection = false
             supportThumbnails = false
             supportNavigationBar = true
-            supportBottomToolBar = true
+            supportBottomToolBar = photosContainsVideo()
             supportCaption = true
+            canDeletePhotoWhenBrowsing = false
             self.maximumCanBeSelected = 0
             self.selectedPhotos = []
             return self
+        }
+        
+        func photosContainsVideo() -> Bool {
+            return photos.contains { $0.isVideo }
         }
         
         public func build() -> PhotoBrowserViewController {
@@ -93,6 +128,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             photoBrowser.supportCaption = supportCaption
             photoBrowser.supportNavigationBar = supportNavigationBar
             photoBrowser.supportBottomToolBar = supportBottomToolBar
+            photoBrowser.canDeletePhotoWhenBrowsing = canDeletePhotoWhenBrowsing
             return photoBrowser
         }
     }
@@ -102,6 +138,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     // bar item
     fileprivate var doneBarItem: UIBarButtonItem!
     fileprivate var addPhotoBarItem: UIBarButtonItem!
+    fileprivate var removePhotoBarItem: UIBarButtonItem!
+    
     fileprivate var playVideoBarItem: UIBarButtonItem!
     fileprivate var pauseVideoBarItem: UIBarButtonItem!
 
@@ -160,8 +198,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     /// After the movie has played to its end time, seek back to time zero
     /// to play it again.
     private var seekToZeroBeforePlay: Bool = false
-    
-    fileprivate var currentDisplayedIndexPath: IndexPath {
+
+    var currentDisplayedIndexPath: IndexPath {
         willSet {
             stopPlayingIfNeeded()
             currentPhoto = photos[newValue.item]
@@ -171,7 +209,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             if isForSelection {
                 updateAddBarItem(at: newValue)
             } else {
-                pageControl.currentPage = newValue.item
+                updatePageControl(withPage: newValue.item)
             }
             if supportCaption {
                 updateCaption(at: newValue)
@@ -282,7 +320,21 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
 
-    fileprivate let photos: [PhotoProtocol]
+    fileprivate var photos: [PhotoProtocol] {
+        didSet {
+            mainCollectionView.reloadData()
+            if !isForSelection {
+                pageControl.numberOfPages = photos.count
+                updatePageControl(withPage: currentDisplayedIndexPath.item)
+                
+                if canDeletePhotoWhenBrowsing {
+                    
+                    delegate?.photoBrowser(self, photosAfterBrowsing: photos)
+                }
+            }
+        }
+    }
+    
     fileprivate let initialIndex: Int
     /// the maximum number of photos you can select
     var maximumCanBeSelected: Int = 0
@@ -291,6 +343,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     var supportCaption = false
     var supportNavigationBar = false
     var supportBottomToolBar = false
+    /// show delete button for photo browser
+    var canDeletePhotoWhenBrowsing = false
     
     // MARK: - Function
     
@@ -418,6 +472,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             addPhotoBarItem.title = addLocalizedString
             addPhotoBarItem.tintColor = .black
             self.navigationItem.rightBarButtonItem = addPhotoBarItem
+        } else {
+            removePhotoBarItem = UIBarButtonItem(barButtonSystemItem: .trash, target: self, action: #selector(removePhotoWhenBrowsingBarItemClicked(_:)))
+            removePhotoBarItem.tintColor = .black
+            self.navigationItem.rightBarButtonItem = removePhotoBarItem
         }
         updateNavigationTitle(at: currentDisplayedIndexPath)
     }
@@ -697,6 +755,13 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
         // filter different media type
     }
+    
+    @objc func removePhotoWhenBrowsingBarItemClicked(_ sender: UIBarButtonItem) {
+        photos.remove(at: currentDisplayedIndexPath.item)
+        let minusOneItem = currentDisplayedIndexPath.item - 1
+        let fixedIndexPath = minusOneItem < 0 ? currentDisplayedIndexPath : IndexPath(item: minusOneItem, section: 0)
+        currentDisplayedIndexPath = fixedIndexPath
+    }
 
     @objc func playVideoBarItemClicked(_ sender: UIBarButtonItem) {
         guard currentPhoto.isVideo else { return }
@@ -784,7 +849,16 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             selectedThumbnailIndexPath = nil
         }
     }
-
+    
+    fileprivate func updatePageControl(withPage page: Int) {
+        if photos.count <= 1 {
+            pageControl.isHidden = true
+        } else {
+            pageControl.isHidden = false
+            pageControl.currentPage = page
+        }
+    }
+    
     // MARK: Target action
     @objc func playerItemDidReachEnd(_ notification: Notification) {
         isPlaying = false

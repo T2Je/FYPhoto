@@ -345,9 +345,9 @@ public class PhotoPickerViewController: UICollectionViewController {
             .buildForSelection(true)
             .setSelectedPhotos(selectedPhotos)
             .setMaximumCanBeSelected(maximumCanBeSelected)
-            .supportThumbnails(true)
-            .supportNavigationBar(true)
-            .supportBottomToolBar(true)
+            .buildThumbnailsForSelection()
+            .buildNavigationBar()
+            .buildBottomToolBar()
             .build()
                     
         photoBrowser.delegate = self
