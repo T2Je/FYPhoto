@@ -104,10 +104,14 @@ class ViewController: UIViewController {
             DispatchQueue.main.async {
                 switch status {
                 case .authorized:
-                    let photoPickerVC = PhotoPickerViewController(maximumCanBeSelected: 6, isOnlyImages: false)
+                    let photoPickerVC = PhotoPickerViewController(maximumCanBeSelected: 6, mediaOptions: .all)
                     photoPickerVC.selectedPhotos = { [weak self] images in
                         print("selected \(images.count) photos: \(images)")
                     }
+                    photoPickerVC.selectedVideo = { [weak self] video in
+                        print("selected video: \(video)")
+                    }
+                    
 //                    let navi = CustomNavigationController(rootViewController: gridVC)
                     let navi = UINavigationController(rootViewController: photoPickerVC)
                     navi.modalPresentationStyle = .fullScreen

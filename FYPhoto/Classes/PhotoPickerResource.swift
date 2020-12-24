@@ -15,7 +15,7 @@ public class PhotoPickerResource {
     private init() { }
 
     // image & video
-    public func allAssets(ascending: Bool = true) -> PHFetchResult<PHAsset> {
+    public func allAssets(ascending: Bool = false) -> PHFetchResult<PHAsset> {
         let allPhotosOptions = PHFetchOptions()
         allPhotosOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: ascending)]
         return PHAsset.fetchAssets(with: allPhotosOptions)
@@ -23,6 +23,14 @@ public class PhotoPickerResource {
 
     public func allImages(_ ascending: Bool = false) -> PHFetchResult<PHAsset> {
         let predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue)
+        let fetchOptions = PHFetchOptions()
+        fetchOptions.predicate = predicate
+        fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: ascending)]
+        return PHAsset.fetchAssets(with: fetchOptions)
+    }
+    
+    public func allVideos(_ ascending: Bool = false) -> PHFetchResult<PHAsset> {
+        let predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.video.rawValue)
         let fetchOptions = PHFetchOptions()
         fetchOptions.predicate = predicate
         fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: ascending)]
@@ -37,6 +45,61 @@ public class PhotoPickerResource {
         return PHCollectionList.fetchTopLevelUserCollections(with: nil)
     }
 
+    public func getAssets(withMediaOptions options: MediaOptions) -> PHFetchResult<PHAsset> {
+        if options == .image {
+            return allImages()
+        } else if options == .video {
+            return allVideos()
+        } else {
+            return allAssets()
+        }
+    }
+    
+    public func getSmartAlbums(withMediaOptions options: MediaOptions) -> [PHAssetCollection] {
+        if options == .all {
+            var imageAlbums = allImageAlbums()
+            imageAlbums.append(contentsOf: allVideoAlbums())
+            return imageAlbums
+        } else if options == .image {
+            return allImageAlbums()
+        } else if options == .video {
+            return allVideoAlbums()
+        } else {
+            return []
+        }
+    }
+    
+    func allImageAlbums() -> [PHAssetCollection] {
+        var albums = [PHAssetCollection]()
+        if let selfies = selfies(), selfies.estimatedAssetCount > 0 {
+            albums.append(selfies)
+        }
+        if let panoramas = panoramas(), panoramas.estimatedAssetCount > 0 {
+            albums.append(panoramas)
+        }
+        if let slomos = slomos(), slomos.estimatedAssetCount > 0 {
+            albums.append(slomos)
+        }
+        if let screenShots = screenShots(), screenShots.estimatedAssetCount > 0 {
+            albums.append(screenShots)
+        }
+        if let animated = animated(), animated.estimatedAssetCount > 0 {
+            albums.append(animated)
+        }
+        if let longExposure = longExposure(), longExposure.estimatedAssetCount > 0 {
+            albums.append(longExposure)
+        }
+        return albums
+    }
+    
+    func allVideoAlbums() -> [PHAssetCollection] {
+        var albums = [PHAssetCollection]()
+        if let videos = videos(), videos.estimatedAssetCount > 0 {
+            albums.append(videos)
+        }
+        return albums
+    }
+    
     /// favorites, selfies, live(>=iOS10.3), panoramas, slomos, videos, screenshots, animated(>= iOS11), longExposure(>= iOS11)
     public func filteredSmartAlbums(isOnlyImage: Bool = false) -> [PHAssetCollection] {
         var albums = [PHAssetCollection]()
@@ -138,6 +201,11 @@ public class PhotoPickerResource {
 }
 
 extension PhotoPickerResource {
+    
+    /// Fetch hight quality images synchronously
+    /// - Parameters:
+    ///   - assets: image assets
+    ///   - completion: images call back
     func fetchHighQualityImages(_ assets: [PHAsset], completion: @escaping (([UIImage]) -> Void)) {
         let group = DispatchGroup()
         var requestIDs = [PHImageRequestID]()
