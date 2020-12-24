@@ -11,6 +11,7 @@ import UIKit
 import Photos
 import PhotosUI
 
+/// Option set of media types
 public struct MediaOptions: OptionSet {
     public let rawValue: Int
     public init(rawValue: Int) {
@@ -341,14 +342,24 @@ public class PhotoPickerViewController: UICollectionViewController {
         let orderedAssets = assetSelectionIdentifierCache.compactMap { tempCache[$0] }
         let selectedPhotos = orderedAssets.map { Photo.photoWithPHAsset($0) }    
         
-        let photoBrowser = PhotoBrowserViewController.Builder(photos: photos, initialIndex: indexPath.item)
-            .buildForSelection(true)
-            .setSelectedPhotos(selectedPhotos)
-            .setMaximumCanBeSelected(maximumCanBeSelected)
-            .buildThumbnailsForSelection()
-            .buildNavigationBar()
-            .buildBottomToolBar()
-            .build()
+        let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: indexPath.item, builder: { builder -> PhotoBrowserViewController.Builder in
+            builder
+                .buildForSelection(true)
+                .setSelectedPhotos(selectedPhotos)
+                .setMaximumCanBeSelected(self.maximumCanBeSelected)
+                .buildThumbnailsForSelection()
+                .buildNavigationBar()
+                .buildBottomToolBar()
+            
+        })        
+//        let photoBrowser = PhotoBrowserViewController.Builder(photos: photos, initialIndex: indexPath.item)
+//            .buildForSelection(true)
+//            .setSelectedPhotos(selectedPhotos)
+//            .setMaximumCanBeSelected(maximumCanBeSelected)
+//            .buildThumbnailsForSelection()
+//            .buildNavigationBar()
+//            .buildBottomToolBar()
+//            .build()
                     
         photoBrowser.delegate = self
         self.navigationController?.pushViewController(photoBrowser, animated: true)

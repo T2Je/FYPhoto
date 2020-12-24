@@ -370,10 +370,12 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
                 let photo = Photo.photoWithUIImage(selectedImageArray[index])
                 photos.append(photo)                
             }
-            let photoBrowser = PhotoBrowserViewController.Builder(photos: photos, initialIndex: indexPath.row)
-                .quickBuildJustForBrowser()
-                .showDeleteButtonForBrowser()
-                .build()
+            
+            let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: indexPath.item) {
+                $0.quickBuildJustForBrowser()
+                    .showDeleteButtonForBrowser()
+            }
+            
             photoBrowser.delegate = self
             self.navigationController?.pushViewController(photoBrowser, animated: true)
         }
@@ -418,8 +420,7 @@ extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, photosAfterBrowsing photos: [PhotoProtocol]) {
         guard photos.count != selectedImageArray.count else {
             return
-        }
-        
+        }        
         selectedImageArray = photos.compactMap { $0.image }
     }
 }

@@ -11,9 +11,9 @@ import MobileCoreServices
 
 public class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     public class Builder {
-        let photos: [PhotoProtocol]
-        let initialIndex: Int
-        
+//        var photos: [PhotoProtocol]
+//        var initialIndex: Int
+//
         var selectedPhotos: [PhotoProtocol] = []
         /// maximum photos can be selected. Default is 6
         var maximumCanBeSelected: Int = 6
@@ -33,9 +33,15 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         /// show delete button for photo browser
         var canDeletePhotoWhenBrowsing = false
         
-        public init(photos: [PhotoProtocol], initialIndex: Int) {
-            self.photos = photos
-            self.initialIndex = initialIndex
+//        public convenience init(photos: [PhotoProtocol], initialIndex: Int) {
+//            self.init()
+//            self.photos = photos
+//            self.initialIndex = initialIndex
+//        }
+        
+        init() {
+//            self.photos = []
+//            initialIndex = 0
         }
         
         public func setSelectedPhotos(_ selected: [PhotoProtocol]) -> Self {
@@ -107,29 +113,24 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             isForSelection = false
             supportThumbnails = false
             supportNavigationBar = true
-            supportBottomToolBar = photosContainsVideo()
+            supportBottomToolBar = true
             supportCaption = true
             canDeletePhotoWhenBrowsing = false
             self.maximumCanBeSelected = 0
             self.selectedPhotos = []
             return self
         }
+
         
-        func photosContainsVideo() -> Bool {
-            return photos.contains { $0.isVideo }
-        }
-        
-        public func build() -> PhotoBrowserViewController {
-            let photoBrowser = PhotoBrowserViewController(photos: self.photos, initialIndex: self.initialIndex)
+        public func build(_ photoBrowser: PhotoBrowserViewController) {
             photoBrowser.selectedPhotos = selectedPhotos
             photoBrowser.maximumCanBeSelected = maximumCanBeSelected
             photoBrowser.isForSelection = isForSelection
             photoBrowser.supportThumbnails = supportThumbnails
             photoBrowser.supportCaption = supportCaption
             photoBrowser.supportNavigationBar = supportNavigationBar
-            photoBrowser.supportBottomToolBar = supportBottomToolBar
+            photoBrowser.supportBottomToolBar = photoBrowser.photos.contains { $0.isVideo }
             photoBrowser.canDeletePhotoWhenBrowsing = canDeletePhotoWhenBrowsing
-            return photoBrowser
         }
     }
 
@@ -353,7 +354,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     /// - Parameters:
     ///   - photos: data source to show
     ///   - initialIndex: first show the photo you clicked
-    public init(photos: [PhotoProtocol], initialIndex: Int) {
+    private init(photos: [PhotoProtocol], initialIndex: Int) {
         self.photos = photos
         self.initialIndex = initialIndex
         currentDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
@@ -363,7 +364,16 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         
         mainCollectionView = generateMainCollectionView()
     }
-
+    
+    public static func create(photos: [PhotoProtocol],
+                              initialIndex: Int,
+                              builder: ((Builder) -> Builder)?) -> PhotoBrowserViewController {
+        let photoBrowser = PhotoBrowserViewController(photos: photos, initialIndex: initialIndex)
+        let concretBuilder = Builder()
+        builder?(concretBuilder).build(photoBrowser)
+        return photoBrowser
+    }
+    
     required public init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

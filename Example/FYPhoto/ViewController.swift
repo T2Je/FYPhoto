@@ -182,7 +182,10 @@ class ViewController: UIViewController {
         guard let url = URL(string: urlStr) else { return }
 
         let photo = Photo.photoWithURL(url)
-        let photosDetailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
+        
+        let photosDetailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0) {
+            $0.buildBottomToolBar()
+        }        
         photosDetailVC.delegate = self
         navigationController?.pushViewController(photosDetailVC, animated: true)
     }
@@ -210,7 +213,8 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
             UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
             picker.dismiss(animated: true) {
                 let photo = Photo.photoWithUIImage(image)
-                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
+                let detailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0, builder: nil)
+//                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
                 detailVC.delegate = self
                 self.navigationController?.pushViewController(detailVC, animated: true)
             }
@@ -339,7 +343,8 @@ extension ViewController: CameraViewControllerDelegate {
             }
             cameraViewController.dismiss(animated: true) {
                 let photo = Photo.photoWithUIImage(image)
-                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
+                let detailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0, builder: nil)
+//                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
                 detailVC.delegate = self
                 self.navigationController?.pushViewController(detailVC, animated: true)
             }

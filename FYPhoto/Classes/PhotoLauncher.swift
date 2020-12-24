@@ -23,10 +23,10 @@ public protocol PhotoLauncherDelegate: class {
         public var sourceRect: CGRect = .zero
         /// You can choose the maximum number of photos, default 6.
         public var maximumNumberCanChoose: Int = 6
-        /// true => image, false => image & video. If camera action is choosed,
-        /// this flag determines whether camera can capture video.
+        /// mediaOptions contain image, video. If camera action is choosed,
+        /// this value determines camera can either capture video or image or both.
         /// Default video format is mp4.
-        public var isOnlyImages: Bool = true
+        public var mediaOptions: MediaOptions = .image
         /// maximum video capture duration. Default 15s
         public var videoMaximumDuration: TimeInterval = 15
         /// url extension, e.g., xxx.mp4
@@ -63,16 +63,21 @@ public protocol PhotoLauncherDelegate: class {
     public func showCustomPhotoPickerCameraAlertSheet(in container: CameraContainer, config: PhotoLauncherConfig = PhotoLauncherConfig()) {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let photo = UIAlertAction(title: "photo".photoTablelocalized, style: .default) { (_) in
-            self.launchCustomPhotoLibrary(in: container, maximumNumberCanChoose: config.maximumNumberCanChoose, isOnlyImages: config.isOnlyImages)
+            self.launchCustomPhotoLibrary(in: container, maximumNumberCanChoose: config.maximumNumberCanChoose, mediaOptions: config.mediaOptions)
         }
         let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
-            if config.isOnlyImages {
+            if config.mediaOptions == .image {
                 self.launchCamera(in: container,
                                   captureModes: [CameraViewController.CaptureMode.image],
                                   videoMaximumDuration: config.videoMaximumDuration)
+            } else if config.mediaOptions == .video {
+                self.launchCamera(in: container,
+                                  captureModes: [.movie],
+                                  moviePathExtension: config.videoPathExtension,
+                                  videoMaximumDuration: config.videoMaximumDuration)
             } else {
                 self.launchCamera(in: container,
-                                  captureModes: [.image, .movie],
+                                  captureModes: [.movie, .image],
                                   moviePathExtension: config.videoPathExtension,
                                   videoMaximumDuration: config.videoMaximumDuration)
             }
@@ -109,16 +114,16 @@ public protocol PhotoLauncherDelegate: class {
 
     public func launchCustomPhotoLibrary(in viewController: UIViewController,
                                             maximumNumberCanChoose: Int,
-                                            isOnlyImages: Bool = true) {
+                                            mediaOptions: MediaOptions = .image) {
         switch PHPhotoLibrary.authorizationStatus() {
         case .authorized:
-            launchPhotoLibrary(in: viewController, maximumNumberCanChoose, isOnlyImages: isOnlyImages)
+            launchPhotoLibrary(in: viewController, maximumNumberCanChoose, mediaOptions: mediaOptions)
         case .notDetermined:
             PHPhotoLibrary.requestAuthorization { (status) in
                 switch status {
                 case .authorized:
                     DispatchQueue.main.async {
-                        self.launchPhotoLibrary(in: viewController, maximumNumberCanChoose, isOnlyImages: isOnlyImages)
+                        self.launchPhotoLibrary(in: viewController, maximumNumberCanChoose, mediaOptions: mediaOptions)
                     }
                 default: break
                 }
@@ -127,8 +132,8 @@ public protocol PhotoLauncherDelegate: class {
         }
     }
 
-    func launchPhotoLibrary(in viewController: UIViewController, _ maximumNumberCanChoose: Int, isOnlyImages: Bool) {
-        let gridVC = PhotoPickerViewController(maximumCanBeSelected: maximumNumberCanChoose, mediaOptions: .image)
+    func launchPhotoLibrary(in viewController: UIViewController, _ maximumNumberCanChoose: Int, mediaOptions: MediaOptions) {
+        let gridVC = PhotoPickerViewController(maximumCanBeSelected: maximumNumberCanChoose, mediaOptions: mediaOptions)
         gridVC.selectedPhotos = { [weak self] images in
             self?.delegate?.selectedPhotosInPhotoLauncher(images)
         }
@@ -164,11 +169,13 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
                                                       config: PhotoLauncherConfig = PhotoLauncherConfig()) {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let photo = UIAlertAction(title: "photo".photoTablelocalized, style: .default) { (_) in
-            self.launchSystemPhotoPicker(in: container, maximumNumberCanChoose: config.maximumNumberCanChoose, isOnlyImages: config.isOnlyImages)
+            self.launchSystemPhotoPicker(in: container, maximumNumberCanChoose: config.maximumNumberCanChoose, mediaOptions: config.mediaOptions)
         }
         let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
-            if config.isOnlyImages {
+            if config.mediaOptions == .image {
                 self.launchCamera(in: container, captureModes: [.image], videoMaximumDuration: config.videoMaximumDuration)
+            } else if config.mediaOptions == .video {
+                self.launchCamera(in: container, captureModes: [.movie], moviePathExtension: config.videoPathExtension, videoMaximumDuration: config.videoMaximumDuration)
             } else {
                 self.launchCamera(in: container, captureModes: [.image, .movie], moviePathExtension: config.videoPathExtension, videoMaximumDuration: config.videoMaximumDuration)
             }
@@ -184,11 +191,13 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
         container.present(alert, animated: true, completion: nil)
     }
 
-    public func launchSystemPhotoPicker(in viewController: UIViewController, maximumNumberCanChoose: Int = 6, isOnlyImages: Bool = true) {
+    public func launchSystemPhotoPicker(in viewController: UIViewController, maximumNumberCanChoose: Int = 6, mediaOptions: MediaOptions = .image) {
         var configuration = PHPickerConfiguration()
         let filter: PHPickerFilter
-        if isOnlyImages {
+        if mediaOptions == .image {
             filter = PHPickerFilter.images
+        } else if mediaOptions == .video {
+            filter = PHPickerFilter.videos
         } else {
             filter = PHPickerFilter.any(of: [.images, .videos])
         }
