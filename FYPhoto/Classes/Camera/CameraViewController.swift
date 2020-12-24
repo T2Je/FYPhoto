@@ -252,10 +252,10 @@ public class CameraViewController: UIViewController {
         let safeArea = self.view.safeAreaLayoutGuide
         previewView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            previewView.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            previewView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
-            previewView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
-            previewView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
+            previewView.topAnchor.constraint(equalTo: view.topAnchor),
+            previewView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            previewView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            previewView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
 
         cameraOverlayView.translatesAutoresizingMaskIntoConstraints = false

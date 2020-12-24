@@ -63,18 +63,20 @@ extension PhotoPickerViewController: VideoPreviewControllerDelegate {
         print("video path: \(path)\npath.path: \(path.path)")
         CameraViewController.saveVideoDataToAlbums(path) { [weak self] (error) in
             DispatchQueue.main.async {
-                preview.dismiss(animated: true, completion: nil)
-                if let error = error {
-                    print("❌ \(error)")
-                    guard let videoAsset = PhotoPickerResource.shared.allVideos().firstObject else { return }
-                    let highQualityImage = videoAsset.getHightQualityImageSynchorously()
-                    let thumbnail = videoAsset.getThumbnailImageSynchorously()
-                    let selectedVideo = SelectedVideo(asset: videoAsset, fullImage: highQualityImage, url: path)
-                    selectedVideo.briefImage = thumbnail
-                    self?.selectedVideo?(.success(selectedVideo))
-                } else {
-                    print("video saved successfully")
-                }
+                preview.dismiss(animated: true, completion: {
+                    if let error = error {
+                        print("❌ \(error)")
+                    } else {
+                        guard let videoAsset = PhotoPickerResource.shared.allVideos().firstObject else { return }
+                        let highQualityImage = videoAsset.getHightQualityImageSynchorously()
+                        let thumbnail = videoAsset.getThumbnailImageSynchorously()
+                        let selectedVideo = SelectedVideo(asset: videoAsset, fullImage: highQualityImage, url: path)
+                        selectedVideo.briefImage = thumbnail
+                        self?.selectedVideo?(.success(selectedVideo))
+                        self?.dismiss(animated: true, completion: nil)
+                        print("video saved successfully")
+                    }
+                })
             }            
         }        
     }
