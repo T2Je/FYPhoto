@@ -387,7 +387,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         view.clipsToBounds = true
         view.backgroundColor = UIColor.white
         edgesForExtendedLayout = .all
-
+        
+        // Set this value to true to fix a bug: when NavigationBar is opaque, photoBrowser show navigationbar again after hiding it,
+        // but photoBrowser view is under a navigationBar height space
+        extendedLayoutIncludesOpaqueBars = true
+        
         cachePreviousData()
         setupCollectionView()
         setupNavigationBar()
