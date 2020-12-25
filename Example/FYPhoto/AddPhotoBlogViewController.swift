@@ -417,12 +417,10 @@ extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
 
     }
     
-    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, photosAfterBrowsing photos: [PhotoProtocol]) {
-        guard photos.count != selectedImageArray.count else {
-            return
-        }        
-        selectedImageArray = photos.compactMap { $0.image }
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, deletePhotoAtIndexWhenBrowsing index: Int) {
+        selectedImageArray.remove(at: index)
     }
+
 }
 
 extension AddPhotoBlogViewController: PhotoTransitioning {

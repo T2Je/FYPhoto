@@ -163,7 +163,7 @@ class ViewController: UIViewController {
     @objc func cameraPhotoButtonClicked(_ sender: UIButton) {
         var config = PhotoLauncher.PhotoLauncherConfig()
         config.maximumNumberCanChoose = 6
-        config.isOnlyImages = false
+        config.mediaOptions = [.image, .video]
         config.sourceRect = sender.frame
         config.videoPathExtension = "mp4"
         config.videoMaximumDuration = 15

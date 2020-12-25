@@ -327,11 +327,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             if !isForSelection {
                 pageControl.numberOfPages = photos.count
                 updatePageControl(withPage: currentDisplayedIndexPath.item)
-                
-                if canDeletePhotoWhenBrowsing {
-                    
-                    delegate?.photoBrowser(self, photosAfterBrowsing: photos)
-                }
+//                if canDeletePhotoWhenBrowsing {
+//                    delegate?.photoBrowser(self, photosAfterBrowsing: photos)
+//                }
             }
         }
     }
@@ -768,6 +766,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     
     @objc func removePhotoWhenBrowsingBarItemClicked(_ sender: UIBarButtonItem) {
         photos.remove(at: currentDisplayedIndexPath.item)
+        delegate?.photoBrowser(self, deletePhotoAtIndexWhenBrowsing: currentDisplayedIndexPath.item)
+        
         let minusOneItem = currentDisplayedIndexPath.item - 1
         let fixedIndexPath = minusOneItem < 0 ? currentDisplayedIndexPath : IndexPath(item: minusOneItem, section: 0)
         currentDisplayedIndexPath = fixedIndexPath
