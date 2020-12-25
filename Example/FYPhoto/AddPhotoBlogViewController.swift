@@ -372,8 +372,9 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
             }
             
             let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: indexPath.item) {
-                $0.quickBuildJustForBrowser()
-                    .showDeleteButtonForBrowser()
+                $0.buildForSelection(false)
+//                $0.quickBuildJustForBrowser()
+//                    .showDeleteButtonForBrowser()
             }
             
             photoBrowser.delegate = self

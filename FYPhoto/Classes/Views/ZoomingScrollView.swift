@@ -117,6 +117,7 @@ class ZoomingScrollView: UIScrollView {
                 self.circularProgressView.value = CGFloat(progress)
             }
         } completed: { [weak self] (result) in
+            self?.circularProgressView.isHidden = true
             switch result {
             case .failure(let error):
                 #if DEBUG
