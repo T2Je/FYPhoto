@@ -481,9 +481,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             addPhotoBarItem.tintColor = .black
             self.navigationItem.rightBarButtonItem = addPhotoBarItem
         } else {
-            removePhotoBarItem = UIBarButtonItem(barButtonSystemItem: .trash, target: self, action: #selector(removePhotoWhenBrowsingBarItemClicked(_:)))
-            removePhotoBarItem.tintColor = .black
-            self.navigationItem.rightBarButtonItem = removePhotoBarItem
+            if canDeletePhotoWhenBrowsing {
+                removePhotoBarItem = UIBarButtonItem(barButtonSystemItem: .trash, target: self, action: #selector(removePhotoWhenBrowsingBarItemClicked(_:)))
+    //            removePhotoBarItem.tintColor = .black
+                self.navigationItem.rightBarButtonItem = removePhotoBarItem
+            }
         }
         updateNavigationTitle(at: currentDisplayedIndexPath)
     }
@@ -767,10 +769,21 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     @objc func removePhotoWhenBrowsingBarItemClicked(_ sender: UIBarButtonItem) {
         photos.remove(at: currentDisplayedIndexPath.item)
         delegate?.photoBrowser(self, deletePhotoAtIndexWhenBrowsing: currentDisplayedIndexPath.item)
-        
-        let minusOneItem = currentDisplayedIndexPath.item - 1
-        let fixedIndexPath = minusOneItem < 0 ? currentDisplayedIndexPath : IndexPath(item: minusOneItem, section: 0)
-        currentDisplayedIndexPath = fixedIndexPath
+        if !photos.isEmpty {
+            let minusOneItem = currentDisplayedIndexPath.item - 1
+            let fixedIndexPath = minusOneItem < 0 ? currentDisplayedIndexPath : IndexPath(item: minusOneItem, section: 0)
+            currentDisplayedIndexPath = fixedIndexPath
+        } else {
+            back()
+        }
+    }
+    
+    func back() {
+        if isModal {
+            dismiss(animated: true, completion: nil)
+        } else {
+            navigationController?.popViewController(animated: true)
+        }
     }
 
     @objc func playVideoBarItemClicked(_ sender: UIBarButtonItem) {

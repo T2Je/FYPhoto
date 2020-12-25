@@ -398,7 +398,9 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
 
 extension AddPhotoBlogViewController: PhotoLauncherDelegate {
     func selectedPhotosInPhotoLauncher(_ photos: [UIImage]) {
+        #if DEBUG
         print("selected \(photos.count) photos")
+        #endif
         self.selectedImageArray += photos
     }
 }
