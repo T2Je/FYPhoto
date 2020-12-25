@@ -779,10 +779,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
     
     func back() {
-        if isModal {
-            dismiss(animated: true, completion: nil)
+        if let naviController = navigationController {
+            if naviController.isBeingPresented {
+                dismiss(animated: true, completion: nil)
+            } else {
+                navigationController?.popViewController(animated: true)
+            }
         } else {
-            navigationController?.popViewController(animated: true)
+            dismiss(animated: true, completion: nil)
         }
     }
 
