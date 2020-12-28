@@ -25,7 +25,9 @@ public struct MediaOptions: OptionSet {
 }
 
 public class PhotoPickerViewController: UICollectionViewController {
-    
+//    struct PhotoPickerConfig {
+//        <#fields#>
+//    }
     // call back for photo, video selections
     public var selectedPhotos: (([UIImage]) -> Void)?
     public var selectedVideo: ((Result<SelectedVideo, Error>) -> Void)?
@@ -75,31 +77,67 @@ public class PhotoPickerViewController: UICollectionViewController {
 
     var transitionController: PhotoTransitionController?
 
-    fileprivate let maximumCanBeSelected: Int
+    fileprivate var maximumCanBeSelected: Int = 6
 //    fileprivate let isOnlyImages: Bool
-    fileprivate let mediaOptions: MediaOptions
+    
     
     // video
     fileprivate var videoMaximumDuration: TimeInterval?
     fileprivate var moviePathExtension = "mp4"
-    // MARK: - Init
-    /// Initial of GridVC
-    /// - Parameter maximumCanBeSelected: You can selected the maximum number of photos
-    /// - Parameter isOnlyImages: If TRUE, only display images, otherwise, display all media types on device
-    public init(maximumCanBeSelected: Int, mediaOptions: MediaOptions) {
+//    // MARK: - Init
+//    /// Initial of GridVC
+//    /// - Parameter maximumCanBeSelected: You can selected the maximum number of photos
+//    /// - Parameter isOnlyImages: If TRUE, only display images, otherwise, display all media types on device
+//    public init(maximumCanBeSelected: Int, mediaOptions: MediaOptions) {
+//        let flowLayout = UICollectionViewFlowLayout()
+//        flowLayout.itemSize = CGSize(width: 120, height: 120)
+//        flowLayout.minimumInteritemSpacing = 1
+//        flowLayout.minimumLineSpacing = 1
+//        flowLayout.scrollDirection = .vertical
+//        self.maximumCanBeSelected = maximumCanBeSelected
+//        self.mediaOptions = mediaOptions
+//        super.init(collectionViewLayout: flowLayout)
+//    }
+    
+    fileprivate let mediaOptions: MediaOptions
+    
+    /// Initialize PhotoPicker with media types: image, video or both. Use the setting method below to config it.
+    /// - Parameter mediaTypes: image, video, both
+    public init(mediaTypes: MediaOptions) {
+        self.mediaOptions = mediaTypes
         let flowLayout = UICollectionViewFlowLayout()
         flowLayout.itemSize = CGSize(width: 120, height: 120)
         flowLayout.minimumInteritemSpacing = 1
         flowLayout.minimumLineSpacing = 1
         flowLayout.scrollDirection = .vertical
-        self.maximumCanBeSelected = maximumCanBeSelected
-        self.mediaOptions = mediaOptions
         super.init(collectionViewLayout: flowLayout)
     }
 
     public required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }    
+    }
+    
+    @discardableResult
+    public func setMaximumPhotosCanBeSelected(_ maximum: Int) -> Self {
+        self.maximumCanBeSelected = maximum
+        return self
+    }
+    
+    @discardableResult
+    public func setMaximumVideoDuration(_ duration: Double) -> Self {
+        self.videoMaximumDuration = duration
+        return self
+    }
+    
+    var maximumVideoSize: Double = 40 // MB
+    var compressedQuality: VideoCompressor.QualityLevel = .AVAssetExportPreset640x480
+    
+    @discardableResult
+    public func setMaximumVideoSizePerMB(_ size: Double, compressedQuality: VideoCompressor.QualityLevel) -> Self {
+        self.maximumVideoSize = size
+        self.compressedQuality = compressedQuality
+        return self
+    }
 
     deinit {
         resetCachedAssets()
