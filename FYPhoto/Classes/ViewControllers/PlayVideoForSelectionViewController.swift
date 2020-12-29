@@ -144,6 +144,7 @@ class PlayVideoForSelectionViewController: UIViewController {
     
     @objc func selectButtonClicked(_ sender: UIButton) {
         if isCreatedByURL {
+            self.dismiss(animated: true, completion: nil)
             selectedVideo?(url)
         } else {
             let option = PHVideoRequestOptions()
@@ -154,8 +155,8 @@ class PlayVideoForSelectionViewController: UIViewController {
                         self.dismiss(animated: true, completion: nil)
                         return
                     }
-                    self.selectedVideo?(urlAsset.url)
                     self.dismiss(animated: true, completion: nil)
+                    self.selectedVideo?(urlAsset.url)                    
                 }
             }
         }

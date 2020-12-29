@@ -82,6 +82,10 @@ public class VideoCompressor {
         
     }
     
+    
+    ///  Your app should remove files from this directory when they are no longer needed;
+    ///  however, the system may purge this directory when your app is not running.
+    /// - Parameter path: path to remove
     public static func removeCompressedTempFile(at path: URL) {
         if FileManager.default.fileExists(atPath: path.path) {
             try? FileManager.default.removeItem(at: path)

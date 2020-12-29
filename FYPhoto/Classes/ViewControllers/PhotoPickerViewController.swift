@@ -423,11 +423,7 @@ public class PhotoPickerViewController: UICollectionViewController {
                 if pass {
                     self.browseVideo(asset)
                 } else {
-                    guard let _url = url else {
-                        self.selectedVideo?(.failure(PhotoPickerError.UnspportedVideoFormat))
-                        return
-                    }
-                    self.compressVideoAndShow(url: _url, asset: asset, sizeLimit: maximimVideoSize)
+                    self.selectedVideo?(.failure(PhotoPickerError.VideoMemoryOutOfSize))
                 }
             }
         } else {
@@ -438,16 +434,34 @@ public class PhotoPickerViewController: UICollectionViewController {
     func browseVideo(_ asset: PHAsset) {
         let videoPlayer = PlayVideoForSelectionViewController.playVideo(asset)
         videoPlayer.selectedVideo = { [weak self] url in
-            let highQualityImage = asset.getHightQualityImageSynchorously()
-            let thumbnailImage = asset.getThumbnailImageSynchorously()
-            let selectedVideo = SelectedVideo(asset: asset, fullImage: highQualityImage, url: url)
-            selectedVideo.briefImage = thumbnailImage
-            self?.selectedVideo?(.success(selectedVideo))
+            guard let self = self else { return }
+            if url.sizePerMB() <= 10 {
+                let highQualityImage = asset.getHightQualityImageSynchorously()
+                let thumbnailImage = asset.getThumbnailImageSynchorously()
+                let selectedVideo = SelectedVideo(asset: asset, fullImage: highQualityImage, url: url)
+                selectedVideo.briefImage = thumbnailImage
+                self.selectedVideo?(.success(selectedVideo))
+                self.back()
+            } else {
+                self.compressVideo(url: url, asset: asset) { (result) in
+                    switch result {
+                    case .success(let url):
+                        let highQualityImage = asset.getHightQualityImageSynchorously()
+                        let thumbnailImage = asset.getThumbnailImageSynchorously()
+                        let selectedVideo = SelectedVideo(asset: asset, fullImage: highQualityImage, url: url)
+                        selectedVideo.briefImage = thumbnailImage
+                        self.selectedVideo?(.success(selectedVideo))
+                    case .failure(let error):
+                        self.selectedVideo?(.failure(error))
+                    }
+                    self.back()
+                }
+            }
         }
         present(videoPlayer, animated: true, completion: nil)
     }
     
-    func browseVideo(url: URL, withAsset asset: PHAsset) {
+    fileprivate func browseVideo(url: URL, withAsset asset: PHAsset) {
         let videoPlayer = PlayVideoForSelectionViewController.playVideo(url)
         videoPlayer.selectedVideo = { [weak self] url in
             let highQualityImage = asset.getHightQualityImageSynchorously()
@@ -459,7 +473,7 @@ public class PhotoPickerViewController: UICollectionViewController {
         present(videoPlayer, animated: true, completion: nil)
     }
     
-    func checkMemoryUsageFor(video: PHAsset, limit: Double, completion: @escaping (Bool, URL?) -> Void) {
+    fileprivate func checkMemoryUsageFor(video: PHAsset, limit: Double, completion: @escaping (Bool, URL?) -> Void) {
         let options = PHVideoRequestOptions()
         options.deliveryMode = .highQualityFormat
         options.isNetworkAccessAllowed = true
@@ -475,21 +489,15 @@ public class PhotoPickerViewController: UICollectionViewController {
         }
     }
     
-    fileprivate func compressVideoAndShow(url: URL, asset: PHAsset, sizeLimit: Double) {
+    fileprivate func compressVideo(url: URL, asset: PHAsset, completion: @escaping ((Result<URL, Error>) -> Void)) {
         let quality = self.compressedQuality ?? .AVAssetExportPreset640x480
         VideoCompressor.compressVideo(url: url,
-                                      quality: quality) { [weak self] (result) in
-            guard let self = self else { return }
+                                      quality: quality) { (result) in            
             switch result {
             case .success(let url):
-                if self.validVideoSize(url, by: sizeLimit) {
-                    self.browseVideo(url: url, withAsset: asset)
-                } else {
-                    self.selectedVideo?(.failure(PhotoPickerError.VideoMemoryOutOfSize))
-                    VideoCompressor.removeCompressedTempFile(at: url)
-                }
+                completion(.success(url))
             case .failure(let error):
-                self.selectedVideo?(.failure(error))
+                completion(.failure(error))
             }
         }
     }
