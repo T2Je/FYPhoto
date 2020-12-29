@@ -36,16 +36,15 @@ public class VideoCompressor {
         }
         do {
             var tempDirectory = try VideoCompressor.tempDirectory()
-            tempDirectory.appendPathComponent("compressedVideo")
-            tempDirectory.appendPathComponent("\(UUID().uuidString).mp4")
+            let videoName = UUID().uuidString + ".mp4"
+            tempDirectory.appendPathComponent("\(videoName)")
             #if DEBUG
             print("compression temp file path: \(tempDirectory)")
-            #endif
-            #if DEBUG
             print("original video size: \(url.sizePerMB()) MB")
             #endif
             exportSession.outputURL = tempDirectory
             exportSession.outputFileType = .mp4
+            exportSession.shouldOptimizeForNetworkUse = true
             exportSession.exportAsynchronously {
                 switch exportSession.status {
                 case .waiting:
@@ -57,16 +56,24 @@ public class VideoCompressor {
                     print("exporting compressed video")
                     #endif
                 case .cancelled, .failed:
-                    completion(.failure(exportSession.error!))
+                    DispatchQueue.main.async {
+                        completion(.failure(exportSession.error!))
+                    }
                 case .completed:
                     #if DEBUG
                     print("compressed video size: \(tempDirectory.sizePerMB()) MB")
                     #endif
-                    completion(.success(tempDirectory))
+                    DispatchQueue.main.async {
+                        completion(.success(tempDirectory))
+                    }
                 case .unknown:
-                    completion(.failure(CompressionError.exportStatuUnknown))
+                    DispatchQueue.main.async {
+                        completion(.failure(CompressionError.exportStatuUnknown))
+                    }
                 @unknown default:
-                    completion(.failure(CompressionError.exportStatuUnknown))
+                    DispatchQueue.main.async {
+                        completion(.failure(CompressionError.exportStatuUnknown))
+                    }
                 }
             }
         } catch {
@@ -86,6 +93,16 @@ public class VideoCompressor {
         do {
             // Only the volume(卷) of cache url is used.
             let temp = try FileManager.default.url(for: .itemReplacementDirectory, in: .userDomainMask, appropriateFor: cacheURL, create: true)
+            let subDirectory = "compressedVideo"
+            let compressedDirectory = temp.appendingPathComponent(subDirectory)
+            
+            if !FileManager.default.fileExists(atPath: compressedDirectory.absoluteString) {
+                do {
+                    try FileManager.default.createDirectory(at: compressedDirectory, withIntermediateDirectories: true, attributes: nil)
+                } catch {
+                    throw error
+                }
+            }
             #if DEBUG
             print("temp directory path👉\(temp)👈")
             #endif

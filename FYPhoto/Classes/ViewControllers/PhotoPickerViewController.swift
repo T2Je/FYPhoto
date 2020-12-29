@@ -464,12 +464,14 @@ public class PhotoPickerViewController: UICollectionViewController {
         options.deliveryMode = .highQualityFormat
         options.isNetworkAccessAllowed = true
         PHImageManager.default().requestAVAsset(forVideo: video, options: options) { (avasset, _, _) in
-            guard let avURLAsset = avasset as? AVURLAsset else {
-                completion(false, nil)
-                return
+            DispatchQueue.main.async {
+                guard let avURLAsset = avasset as? AVURLAsset else {
+                    completion(false, nil)
+                    return
+                }
+                let valid = self.validVideoSize(avURLAsset.url, by: limit)
+                completion(valid, avURLAsset.url)
             }
-            let valid = self.validVideoSize(avURLAsset.url, by: limit)
-            completion(valid, avURLAsset.url)
         }
     }
     
@@ -484,6 +486,7 @@ public class PhotoPickerViewController: UICollectionViewController {
                     self.browseVideo(url: url, withAsset: asset)
                 } else {
                     self.selectedVideo?(.failure(PhotoPickerError.VideoMemoryOutOfSize))
+                    VideoCompressor.removeCompressedTempFile(at: url)
                 }
             case .failure(let error):
                 self.selectedVideo?(.failure(error))

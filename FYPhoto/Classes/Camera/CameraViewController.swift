@@ -1082,7 +1082,7 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         
         guard
             let assetExport = AVAssetExportSession(asset: mixComposition,
-                                                     presetName: AVAssetExportPresetHighestQuality) else {
+                                                   presetName: AVAssetExportPresetHighestQuality) else {
             completion(url)
             return
         }
@@ -1106,8 +1106,6 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
                     let endDate = Date()
                     let distance = startDate.distance(to: endDate)
                     print("It took \(distance) to create water mark for \(videoAsset.duration.seconds) seconds video")
-                } else {
-                    
                 }
                 #endif
             case .failed:

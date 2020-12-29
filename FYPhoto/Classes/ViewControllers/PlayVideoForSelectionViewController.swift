@@ -120,8 +120,9 @@ class PlayVideoForSelectionViewController: UIViewController {
     }
     
     fileprivate func playURLVideo(_ url: URL) {
+        playerView.frame = UIScreen.main.bounds
         playerView.player = player
-        player?.play()
+        player?.play()        
     }
     
     fileprivate func playAssetVideo(_ asset: PHAsset) {
