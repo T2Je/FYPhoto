@@ -84,6 +84,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             return self
         }
         
+        /// Build bottom bar for play video bar button and done bar button.
+        /// If datasource has videos, PhotoBrowser will support bottomTooBar by default.
+        /// - Returns: Self
         public func buildBottomToolBar() -> Self {
             self.supportBottomToolBar = true
             return self
@@ -129,7 +132,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             photoBrowser.supportThumbnails = supportThumbnails
             photoBrowser.supportCaption = supportCaption
             photoBrowser.supportNavigationBar = supportNavigationBar
-            photoBrowser.supportBottomToolBar = photoBrowser.photos.contains { $0.isVideo }
+            photoBrowser.supportBottomToolBar = supportBottomToolBar || photoBrowser.photos.contains { $0.isVideo }
             photoBrowser.canDeletePhotoWhenBrowsing = canDeletePhotoWhenBrowsing
         }
     }

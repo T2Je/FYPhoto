@@ -19,13 +19,32 @@ class PlayVideoForSelectionViewController: UIViewController {
     fileprivate var player: AVPlayer?
     fileprivate var playerItem: AVPlayerItem?
     
-    let asset: PHAsset
+    var isCreatedByURL = false
     
-    init(asset: PHAsset) {
-        self.asset = asset
+    var asset: PHAsset!
+    
+    private init() {
         super.init(nibName: nil, bundle: nil)
     }
     
+    var url: URL!
+    static func playVideo(_ url: URL) -> PlayVideoForSelectionViewController {
+        let playerVC = PlayVideoForSelectionViewController()
+        playerVC.isCreatedByURL = true
+        playerVC.url = url
+        let playerItem = AVPlayerItem(url: url)
+        playerVC.player = AVPlayer(playerItem: playerItem)
+        playerVC.playerItem = playerItem
+        return playerVC
+    }
+        
+    static func playVideo(_ asset: PHAsset) -> PlayVideoForSelectionViewController {
+        let playerVC = PlayVideoForSelectionViewController()
+        playerVC.asset = asset
+        playerVC.isCreatedByURL = false
+        return playerVC
+    }
+        
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -92,7 +111,20 @@ class PlayVideoForSelectionViewController: UIViewController {
         
     }
     
-    func playVideo() {
+    fileprivate func playVideo() {
+        if isCreatedByURL {
+            playURLVideo(url)
+        } else {
+            playAssetVideo(asset)
+        }
+    }
+    
+    fileprivate func playURLVideo(_ url: URL) {
+        playerView.player = player
+        player?.play()
+    }
+    
+    fileprivate func playAssetVideo(_ asset: PHAsset) {
         let option = PHVideoRequestOptions()
         option.isNetworkAccessAllowed = true
         PHImageManager.default().requestPlayerItem(forVideo: asset, options: option) { (playerItem, _) in
@@ -110,17 +142,22 @@ class PlayVideoForSelectionViewController: UIViewController {
     }
     
     @objc func selectButtonClicked(_ sender: UIButton) {
-        let option = PHVideoRequestOptions()
-        option.isNetworkAccessAllowed = true
-        PHImageManager.default().requestAVAsset(forVideo: asset, options: option) { (avAsset, _, _) in
-            DispatchQueue.main.async {
-                guard let urlAsset = avAsset as? AVURLAsset else {
+        if isCreatedByURL {
+            selectedVideo?(url)
+        } else {
+            let option = PHVideoRequestOptions()
+            option.isNetworkAccessAllowed = true
+            PHImageManager.default().requestAVAsset(forVideo: asset, options: option) { (avAsset, _, _) in
+                DispatchQueue.main.async {
+                    guard let urlAsset = avAsset as? AVURLAsset else {
+                        self.dismiss(animated: true, completion: nil)
+                        return
+                    }
+                    self.selectedVideo?(urlAsset.url)
                     self.dismiss(animated: true, completion: nil)
-                    return
                 }
-                self.selectedVideo?(urlAsset.url)
-                self.dismiss(animated: true, completion: nil)
             }
         }
+        
     }
 }

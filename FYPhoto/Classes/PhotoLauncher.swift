@@ -51,6 +51,7 @@ public protocol PhotoLauncherDelegate: class {
         super.init()
     }
 
+    @available(swift, deprecated: 0.3, message: "Use PhotoPickerViewController instead")
     /// Show PhotoPicker or Camera action sheet. This is for CUSTOM photo picker, if you want to use SYSTEM photo picker,
     /// use
     /// `showSystemPhotoPickerAletSheet(in:, sourceRect:, maximumNumberCanChoose:, isOnlyImages:)`
@@ -113,8 +114,8 @@ public protocol PhotoLauncherDelegate: class {
     }
 
     public func launchCustomPhotoLibrary(in viewController: UIViewController,
-                                            maximumNumberCanChoose: Int,
-                                            mediaOptions: MediaOptions = .image) {
+                                         maximumNumberCanChoose: Int,
+                                         mediaOptions: MediaOptions = .image) {
         switch PHPhotoLibrary.authorizationStatus() {
         case .authorized:
             launchPhotoLibrary(in: viewController, maximumNumberCanChoose, mediaOptions: mediaOptions)
@@ -133,7 +134,9 @@ public protocol PhotoLauncherDelegate: class {
     }
 
     func launchPhotoLibrary(in viewController: UIViewController, _ maximumNumberCanChoose: Int, mediaOptions: MediaOptions) {
-        let gridVC = PhotoPickerViewController(maximumCanBeSelected: maximumNumberCanChoose, mediaOptions: mediaOptions)
+        let gridVC = PhotoPickerViewController(mediaTypes: mediaOptions)
+            .setMaximumPhotosCanBeSelected(maximumNumberCanChoose)
+            .setPickerWithCamera(false)
         gridVC.selectedPhotos = { [weak self] images in
             self?.delegate?.selectedPhotosInPhotoLauncher(images)
         }

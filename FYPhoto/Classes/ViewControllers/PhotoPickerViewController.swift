@@ -25,9 +25,6 @@ public struct MediaOptions: OptionSet {
 }
 
 public class PhotoPickerViewController: UICollectionViewController {
-//    struct PhotoPickerConfig {
-//        <#fields#>
-//    }
     // call back for photo, video selections
     public var selectedPhotos: (([UIImage]) -> Void)?
     public var selectedVideo: ((Result<SelectedVideo, Error>) -> Void)?
@@ -77,27 +74,14 @@ public class PhotoPickerViewController: UICollectionViewController {
 
     var transitionController: PhotoTransitionController?
 
-    fileprivate var maximumCanBeSelected: Int = 6
-//    fileprivate let isOnlyImages: Bool
-    
+    // photo
+    fileprivate var maximumCanBeSelected: Int = 0
     
     // video
     fileprivate var videoMaximumDuration: TimeInterval?
+    fileprivate var maximumVideoSize: Double?// MB
+    fileprivate var compressedQuality: VideoCompressor.QualityLevel?
     fileprivate var moviePathExtension = "mp4"
-//    // MARK: - Init
-//    /// Initial of GridVC
-//    /// - Parameter maximumCanBeSelected: You can selected the maximum number of photos
-//    /// - Parameter isOnlyImages: If TRUE, only display images, otherwise, display all media types on device
-//    public init(maximumCanBeSelected: Int, mediaOptions: MediaOptions) {
-//        let flowLayout = UICollectionViewFlowLayout()
-//        flowLayout.itemSize = CGSize(width: 120, height: 120)
-//        flowLayout.minimumInteritemSpacing = 1
-//        flowLayout.minimumLineSpacing = 1
-//        flowLayout.scrollDirection = .vertical
-//        self.maximumCanBeSelected = maximumCanBeSelected
-//        self.mediaOptions = mediaOptions
-//        super.init(collectionViewLayout: flowLayout)
-//    }
     
     fileprivate let mediaOptions: MediaOptions
     
@@ -129,13 +113,19 @@ public class PhotoPickerViewController: UICollectionViewController {
         return self
     }
     
-    var maximumVideoSize: Double = 40 // MB
-    var compressedQuality: VideoCompressor.QualityLevel = .AVAssetExportPreset640x480
-    
     @discardableResult
-    public func setMaximumVideoSizePerMB(_ size: Double, compressedQuality: VideoCompressor.QualityLevel) -> Self {
+    public func setMaximumVideoSizePerMB(_ size: Double,
+                                         compressedQuality: VideoCompressor.QualityLevel = .AVAssetExportPreset640x480) -> Self {
         self.maximumVideoSize = size
         self.compressedQuality = compressedQuality
+        return self
+    }
+    
+    fileprivate var containsCamera: Bool = true
+    
+    @discardableResult
+    public func setPickerWithCamera(_ containsCamera: Bool) -> Self {
+        self.containsCamera = containsCamera
         return self
     }
 
@@ -264,7 +254,8 @@ public class PhotoPickerViewController: UICollectionViewController {
     // MARK: UICollectionView
 
     public override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return fetchResult.count + 1 // one cell for taking picture or video
+        return containsCamera ? fetchResult.count + 1 : fetchResult.count
+        // + 1, one cell for taking picture or video
     }
     
     
@@ -277,8 +268,12 @@ public class PhotoPickerViewController: UICollectionViewController {
     ///   - purePhotos: is this indexPath for pure photos browsing. If true, indexPath item minus one, else indexPath item plus one.
     /// - Returns: regenerated indexPath
     func regenerate(indexPath: IndexPath, for purePhotos: Bool) -> IndexPath {
-        let para = purePhotos ? -1 : 1
-        return IndexPath(item: indexPath.item + para, section: indexPath.section)
+        if containsCamera {
+            let para = purePhotos ? -1 : 1
+            return IndexPath(item: indexPath.item + para, section: indexPath.section)
+        } else {
+            return indexPath
+        }
     }
     
     fileprivate func configureAssetCell(_ cell: GridViewCell, asset: PHAsset, at indexPath: IndexPath) {
@@ -333,30 +328,47 @@ public class PhotoPickerViewController: UICollectionViewController {
     }
     
     public override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if indexPath.item == 0 {// camera
-            return collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridCameraCell.self), for: indexPath)
+        if containsCamera {
+            if indexPath.item == 0 {// camera
+                return collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridCameraCell.self), for: indexPath)
+            } else {
+                // Dequeue a GridViewCell.
+                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridViewCell.self), for: indexPath) as? GridViewCell {
+                    let asset = fetchResult.object(at: regenerate(indexPath: indexPath, for: true).item)
+                    configureAssetCell(cell, asset: asset, at: indexPath)
+                    return cell
+                }
+            }
         } else {
-            // Dequeue a GridViewCell.
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridViewCell.self), for: indexPath) as? GridViewCell {
                 let asset = fetchResult.object(at: regenerate(indexPath: indexPath, for: true).item)
                 configureAssetCell(cell, asset: asset, at: indexPath)
                 return cell
             }
         }
-        
         return UICollectionViewCell()
     }
 
     public override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         lastSelectedIndexPath = indexPath
-        if indexPath.item == 0 { // camera
-            launchCamera()
+        if containsCamera {
+            if indexPath.item == 0 { // camera
+                launchCamera()
+            } else {
+                // due to the placeholder camera cell
+                let fixedIndexPath = regenerate(indexPath: indexPath, for: true)
+                let selectedAsset = fetchResult[fixedIndexPath.item]
+                if selectedAsset.mediaType == .video {
+                    browseVideoIfValid(selectedAsset)
+                } else {
+                    browseImages(at: fixedIndexPath)
+                }
+            }
         } else {
-            // due to the placeholder camera cell
             let fixedIndexPath = regenerate(indexPath: indexPath, for: true)
             let selectedAsset = fetchResult[fixedIndexPath.item]
             if selectedAsset.mediaType == .video {
-                browseVideo(selectedAsset)
+                browseVideoIfValid(selectedAsset)
             } else {
                 browseImages(at: fixedIndexPath)
             }
@@ -379,41 +391,52 @@ public class PhotoPickerViewController: UICollectionViewController {
         }
         let orderedAssets = assetSelectionIdentifierCache.compactMap { tempCache[$0] }
         let selectedPhotos = orderedAssets.map { Photo.photoWithPHAsset($0) }    
-        
+                
+        let browserCanSelectPhotosCount = max(maximumCanBeSelected - selectedPhotos.count, 0)
         let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: indexPath.item, builder: { builder -> PhotoBrowserViewController.Builder in
             builder
                 .buildForSelection(true)
                 .setSelectedPhotos(selectedPhotos)
-                .setMaximumCanBeSelected(self.maximumCanBeSelected)
+                .setMaximumCanBeSelected(browserCanSelectPhotosCount)
                 .buildThumbnailsForSelection()
                 .buildNavigationBar()
                 .buildBottomToolBar()
             
         })        
-//        let photoBrowser = PhotoBrowserViewController.Builder(photos: photos, initialIndex: indexPath.item)
-//            .buildForSelection(true)
-//            .setSelectedPhotos(selectedPhotos)
-//            .setMaximumCanBeSelected(maximumCanBeSelected)
-//            .buildThumbnailsForSelection()
-//            .buildNavigationBar()
-//            .buildBottomToolBar()
-//            .build()
-                    
+
         photoBrowser.delegate = self
         self.navigationController?.pushViewController(photoBrowser, animated: true)
     }
     
-    func browseVideo(_ asset: PHAsset) {
+    func browseVideoIfValid(_ asset: PHAsset) {
         guard asset.mediaType == .video else {
             return
         }
-        
         guard validVideoDuration(asset) else {
             selectedVideo?(.failure(PhotoPickerError.VideoDurationTooLong))
             return
         }
         
-        let videoPlayer = PlayVideoForSelectionViewController(asset: asset)
+        if let maximimVideoSize = maximumVideoSize {
+            checkMemoryUsageFor(video: asset, limit: maximimVideoSize) { [weak self] (pass, url) in
+                guard let self = self else { return }
+                if pass {
+                    self.browseVideo(asset)
+                } else {
+                    guard let _url = url else {
+                        self.selectedVideo?(.failure(PhotoPickerError.UnspportedVideoFormat))
+                        return
+                    }
+                    self.compressVideoAndShow(url: _url, asset: asset, sizeLimit: maximimVideoSize)
+                }
+            }
+        } else {
+            browseVideo(asset)
+        }
+    }
+    
+    func browseVideo(_ asset: PHAsset) {
+        let videoPlayer = PlayVideoForSelectionViewController.playVideo(asset)
         videoPlayer.selectedVideo = { [weak self] url in
             let highQualityImage = asset.getHightQualityImageSynchorously()
             let thumbnailImage = asset.getThumbnailImageSynchorously()
@@ -424,11 +447,62 @@ public class PhotoPickerViewController: UICollectionViewController {
         present(videoPlayer, animated: true, completion: nil)
     }
     
-    func validVideoDuration(_ asset: PHAsset) -> Bool {
+    func browseVideo(url: URL, withAsset asset: PHAsset) {
+        let videoPlayer = PlayVideoForSelectionViewController.playVideo(url)
+        videoPlayer.selectedVideo = { [weak self] url in
+            let highQualityImage = asset.getHightQualityImageSynchorously()
+            let thumbnailImage = asset.getThumbnailImageSynchorously()
+            let selectedVideo = SelectedVideo(asset: asset, fullImage: highQualityImage, url: url)
+            selectedVideo.briefImage = thumbnailImage
+            self?.selectedVideo?(.success(selectedVideo))
+        }
+        present(videoPlayer, animated: true, completion: nil)
+    }
+    
+    func checkMemoryUsageFor(video: PHAsset, limit: Double, completion: @escaping (Bool, URL?) -> Void) {
+        let options = PHVideoRequestOptions()
+        options.deliveryMode = .highQualityFormat
+        options.isNetworkAccessAllowed = true
+        PHImageManager.default().requestAVAsset(forVideo: video, options: options) { (avasset, _, _) in
+            guard let avURLAsset = avasset as? AVURLAsset else {
+                completion(false, nil)
+                return
+            }
+            let valid = self.validVideoSize(avURLAsset.url, by: limit)
+            completion(valid, avURLAsset.url)
+        }
+    }
+    
+    fileprivate func compressVideoAndShow(url: URL, asset: PHAsset, sizeLimit: Double) {
+        let quality = self.compressedQuality ?? .AVAssetExportPreset640x480
+        VideoCompressor.compressVideo(url: url,
+                                      quality: quality) { [weak self] (result) in
+            guard let self = self else { return }
+            switch result {
+            case .success(let url):
+                if self.validVideoSize(url, by: sizeLimit) {
+                    self.browseVideo(url: url, withAsset: asset)
+                } else {
+                    self.selectedVideo?(.failure(PhotoPickerError.VideoMemoryOutOfSize))
+                }
+            case .failure(let error):
+                self.selectedVideo?(.failure(error))
+            }
+        }
+    }
+    
+    fileprivate func validVideoDuration(_ asset: PHAsset) -> Bool {
         guard let maximumDuration = videoMaximumDuration else {
             return true
         }
         return asset.duration < maximumDuration
+    }
+    
+    fileprivate func validVideoSize(_ url: URL, by limit: Double) -> Bool {
+        guard url.isFileURL else {
+            return false
+        }
+        return url.sizePerMB() <= limit
     }
 
     // MARK: UIScrollView

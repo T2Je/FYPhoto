@@ -104,7 +104,11 @@ class ViewController: UIViewController {
             DispatchQueue.main.async {
                 switch status {
                 case .authorized:
-                    let photoPickerVC = PhotoPickerViewController(maximumCanBeSelected: 6, mediaOptions: .all)
+                    let photoPickerVC = PhotoPickerViewController(mediaTypes: .all)
+                        .setMaximumPhotosCanBeSelected(6)
+                        .setMaximumVideoSizePerMB(40, compressedQuality: .AVAssetExportPreset640x480)
+                        .setPickerWithCamera(false)
+
                     photoPickerVC.selectedPhotos = { [weak self] images in
                         print("selected \(images.count) photos: \(images)")
                     }
