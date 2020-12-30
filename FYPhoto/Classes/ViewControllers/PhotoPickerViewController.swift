@@ -232,14 +232,12 @@ public class PhotoPickerViewController: UICollectionViewController {
     ///   - assets: selected assets
     ///   - animated: dissmiss animated
     func selectionCompleted(assets: [PHAsset], animated: Bool) {
-        defer {
-            back()
-        }
         guard !assets.isEmpty else {
             return
         }
         PhotoPickerResource.shared.fetchHighQualityImages(assets) {
             self.selectedPhotos?($0)
+            self.back()
         }
     }
 
