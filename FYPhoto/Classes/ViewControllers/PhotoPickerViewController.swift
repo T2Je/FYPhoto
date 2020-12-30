@@ -24,6 +24,7 @@ public struct MediaOptions: OptionSet {
     public static let all: MediaOptions = [.image, .video]
 }
 
+/// PhotoPicker need be wrapped by NavigationController
 public class PhotoPickerViewController: UICollectionViewController {
     // call back for photo, video selections
     public var selectedPhotos: (([SelectedImage]) -> Void)?
@@ -236,7 +237,7 @@ public class PhotoPickerViewController: UICollectionViewController {
             return
         }
         
-        PhotoPickerResource.shared.fetchLowQualityImages(assets, targetSize: thumbnailSize) { thumbnails in
+        PhotoPickerResource.shared.fetchHighQualityImages(assets) { thumbnails in
             var selectedArr = [SelectedImage]()
             for index in 0..<thumbnails.count {
                 let asset = assets[index]
@@ -250,11 +251,12 @@ public class PhotoPickerViewController: UICollectionViewController {
     }
 
     func back() {
-        if self.presentingViewController != nil {
-            self.dismiss(animated: true, completion: nil)
-        } else {
-            self.navigationController?.popViewController(animated: true)
-        }
+        self.dismiss(animated: true, completion: nil)
+//        if self.presentingViewController != nil {
+//            self.dismiss(animated: true, completion: nil)
+//        } else {
+//            self.navigationController?.popViewController(animated: true)
+//        }
     }
 
     // MARK: UICollectionView
