@@ -17,21 +17,26 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
 //        case "public.image":
         case String(kUTTypeImage):
             guard let data = info[.mediaMetadata] as? Data else { return }
+            
+            var asset: PHAsset?
+            
             CameraViewController.saveImageDataToAlbums(data) { (error) in
                 if let error = error {
                     print("🤢\(error)🤮")
                 } else {
                     print("image saved")
+                    let fetchOptions = PHFetchOptions()
+                    fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+                    let result = PHAsset.fetchAssets(with: fetchOptions)
+                    asset = result.firstObject
                 }
             }
             cameraViewController.dismiss(animated: true) {
                 guard let image = info[.originalImage] as? UIImage else { return }
-                self.selectedPhotos?([image])
-                self.dismiss(animated: true, completion: nil)
-                //                let photo = Photo.photoWithUIImage(image)
-//                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
-//                detailVC.delegate = self
-//                self.navigationController?.pushViewController(detailVC, animated: true)
+                if let asset = asset {
+                    self.selectedPhotos?([SelectedImage(asset: asset, image: image)])
+                }
+                self.dismiss(animated: true, completion: nil)                
             }
         case String(kUTTypeMovie):
             guard let videoURL = info[.mediaURL] as? URL else {

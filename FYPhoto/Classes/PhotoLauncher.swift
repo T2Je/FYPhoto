@@ -12,7 +12,7 @@ import MobileCoreServices
 import PhotosUI
 
 public protocol PhotoLauncherDelegate: class {
-    func selectedPhotosInPhotoLauncher(_ photos: [UIImage])
+    func selectedPhotosInPhotoLauncher(_ photos: [SelectedImage])
 //    func selectedPhotosInPhotoLauncher(_ photos: [Photo])
 }
 
@@ -218,13 +218,13 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
         picker.dismiss(animated: true, completion: nil)
     }
 
-    func parsePickerFetchResults(_ results: [PHPickerResult], completion: @escaping (([UIImage]) -> Void)) {
+    func parsePickerFetchResults(_ results: [PHPickerResult], completion: @escaping (([SelectedImage]) -> Void)) {
         guard !results.isEmpty else {
             completion([])
             return
         }
 
-        var images: [UIImage] = []
+        var images: [SelectedImage] = []
         let group = DispatchGroup()
 
         results.forEach { result in
@@ -232,11 +232,16 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
                 group.enter()
                 result.itemProvider.loadObject(ofClass: UIImage.self) { image, error in
                     if let image = image as? UIImage {
-                        images.append(image)
-                    } else {
-                        if let placeholder = "cover_placeholder".photoImage {
-                            images.append(placeholder)
+                        var asset: PHAsset?
+                        if let id = result.assetIdentifier {
+                            asset = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil).firstObject
                         }
+                        images.append(SelectedImage(asset: asset, image: image))
+                    } else {
+                        //TODO: what's the use of the code below?
+//                        if let placeholder = "cover_placeholder".photoImage {
+//                            images.append(placeholder)
+//                        }
                         print("Couldn't load image with error: \(error?.localizedDescription ?? "unknown error")")
                     }
                     group.leave()

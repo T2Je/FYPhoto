@@ -201,7 +201,7 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: PhotoLauncherDelegate {
-    func selectedPhotosInPhotoLauncher(_ photos: [UIImage]) {
+    func selectedPhotosInPhotoLauncher(_ photos: [SelectedImage]) {
         print("selected \(photos.count) images")
     }
 }

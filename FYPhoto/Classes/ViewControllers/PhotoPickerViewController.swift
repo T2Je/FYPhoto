@@ -26,7 +26,7 @@ public struct MediaOptions: OptionSet {
 
 public class PhotoPickerViewController: UICollectionViewController {
     // call back for photo, video selections
-    public var selectedPhotos: (([UIImage]) -> Void)?
+    public var selectedPhotos: (([SelectedImage]) -> Void)?
     public var selectedVideo: ((Result<SelectedVideo, Error>) -> Void)?
     
     var allPhotos: PHFetchResult<PHAsset>!
@@ -235,8 +235,16 @@ public class PhotoPickerViewController: UICollectionViewController {
         guard !assets.isEmpty else {
             return
         }
-        PhotoPickerResource.shared.fetchHighQualityImages(assets) {
-            self.selectedPhotos?($0)
+        
+        PhotoPickerResource.shared.fetchLowQualityImages(assets, targetSize: thumbnailSize) { thumbnails in
+            var selectedArr = [SelectedImage]()
+            for index in 0..<thumbnails.count {
+                let asset = assets[index]
+                let thumbnail = thumbnails[index]
+                selectedArr.append(SelectedImage(asset: asset, image: thumbnail))
+            }
+            
+            self.selectedPhotos?(selectedArr)
             self.back()
         }
     }
