@@ -73,11 +73,6 @@ public class CameraViewController: UIViewController {
     // Movie
     private var movieFileOutput: AVCaptureMovieFileOutput?
     private var backgroundRecordingID: UIBackgroundTaskIdentifier?
-
-    // location
-    private let locationManager = CLLocationManager()
-    private var currentLocation: CLLocation?
-
     
     var windowOrientation: UIInterfaceOrientation {
         if #available(iOS 13.0, *) {
@@ -91,11 +86,6 @@ public class CameraViewController: UIViewController {
         videoDeviceInput != nil
     }
     
-    func setupLocationManager() {
-        locationManager.delegate = self
-        locationManager.requestWhenInUseAuthorization()
-    }
-
     public init() {
         super.init(nibName: nil, bundle: nil)
         initVideoDeviceDiscoverySession()
@@ -1167,30 +1157,6 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
                 completion(outputURL)
             }
         }
-    }
-}
-
-extension CameraViewController: CLLocationManagerDelegate {
-    public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        currentLocation = locations.last
-    }
-    
-    public func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        switch status {
-        case .authorizedWhenInUse:
-            manager.startUpdatingLocation()
-        default:
-            manager.stopUpdatingLocation()
-        }
-    }
-    
-    func locationMetaDataItem(_ location: CLLocation) -> AVMetadataItem {
-        let metadataItem = AVMutableMetadataItem()
-        metadataItem.keySpace = AVMetadataKeySpace.common
-        metadataItem.key = AVMetadataKey.commonKeyLocation as NSCopying & NSObjectProtocol
-        
-        metadataItem.value = NSString(format: "+08.4lf%+09.4lf/", location.coordinate.latitude, location.coordinate.longitude)
-        return metadataItem
     }
 }
 
