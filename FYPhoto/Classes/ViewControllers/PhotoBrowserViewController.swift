@@ -172,7 +172,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     fileprivate var previousInteractivePop: Bool?
     fileprivate var previousNavigationTitle: String?
     fileprivate var previousAudioCategory: AVAudioSession.Category?
-
+    fileprivate var previousExtendedLayoutIncludesOpaqueBars: Bool = false
+    
     fileprivate var originCaptionTransform: CGAffineTransform!
 
     fileprivate var mainFlowLayout: UICollectionViewFlowLayout? {
@@ -380,6 +381,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
     
     deinit {
+        restoreOtherPreviousData()
         NotificationCenter.default.removeObserver(self)
         playerItemStatusToken?.invalidate()
         player?.pause()
@@ -390,12 +392,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         view.clipsToBounds = true
         view.backgroundColor = UIColor.white
         edgesForExtendedLayout = .all
-        
+        cachePreviousData()
         // Set this value to true to fix a bug: when NavigationBar is opaque, photoBrowser show navigationbar again after hiding it,
         // but photoBrowser view is under a navigationBar height space
         extendedLayoutIncludesOpaqueBars = true
         
-        cachePreviousData()
         setupCollectionView()
         setupNavigationBar()
         setupNavigationToolBar()
@@ -414,13 +415,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        print(mainCollectionView.contentOffset)
+//        print(mainCollectionView.contentOffset)
     }
     
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         stopPlayingIfNeeded()
-        restoreNavigationControllerData()
+        restorePreviousNavigationControllerData()
+//        restorePreviousData()
     }
 
     fileprivate func cachePreviousData() {
@@ -429,6 +431,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         previousInteractivePop = self.navigationController?.interactivePopGestureRecognizer?.isEnabled
         previousNavigationTitle = self.navigationController?.navigationItem.title
         previousAudioCategory = AVAudioSession.sharedInstance().category
+        previousExtendedLayoutIncludesOpaqueBars = extendedLayoutIncludesOpaqueBars
     }
     
     // MARK: Setup
@@ -519,7 +522,15 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         updateToolBar(shouldShowDone: isForSelection, shouldShowPlay: showVideoPlay)
     }
 
-    fileprivate func restoreNavigationControllerData() {
+    fileprivate func restoreOtherPreviousData() {
+        if let audioCategory = previousAudioCategory {
+            try? AVAudioSession.sharedInstance().setCategory(audioCategory)
+        }
+        
+        extendedLayoutIncludesOpaqueBars = previousExtendedLayoutIncludesOpaqueBars
+    }
+    
+    func restorePreviousNavigationControllerData() {
         if let title = previousNavigationTitle {
             navigationItem.title = title
         }
@@ -530,10 +541,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         // Drag to dismiss quickly canceled, may result in a navigation hide animation bug, FIXME
         if let originalToolBarHidden = previousToolBarHidden {
             navigationController?.isToolbarHidden = originalToolBarHidden
-        }
-
-        if let audioCategory = previousAudioCategory {
-            try? AVAudioSession.sharedInstance().setCategory(audioCategory)
         }
     }
 

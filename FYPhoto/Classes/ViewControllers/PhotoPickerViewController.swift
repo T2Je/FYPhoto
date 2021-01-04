@@ -67,11 +67,13 @@ public class PhotoPickerViewController: UICollectionViewController {
 
     internal private(set) var fetchResult: PHFetchResult<PHAsset>! {
         willSet {
-            if newValue != fetchResult {
+            if newValue != fetchResult, !willBatchUpdated {
                 collectionView.reloadData()
             }
         }
     }
+    
+    var willBatchUpdated: Bool = false
 
     var transitionController: PhotoTransitionController?
 
@@ -753,6 +755,7 @@ extension PhotoPickerViewController: PHPhotoLibraryChangeObserver {
         // main queue before acting on the change as we'll be updating the UI.
         DispatchQueue.main.sync {
             // Hang on to the new fetch result.
+            self.willBatchUpdated = changes.hasIncrementalChanges
             fetchResult = changes.fetchResultAfterChanges
             if changes.hasIncrementalChanges {
                 // If we have incremental diffs, animate them in the collection view.
