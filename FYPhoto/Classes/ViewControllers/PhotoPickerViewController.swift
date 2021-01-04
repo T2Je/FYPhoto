@@ -164,6 +164,14 @@ public class PhotoPickerViewController: UICollectionViewController {
         allPhotos = PhotoPickerResource.shared.getAssets(withMediaOptions: mediaOptions)
         smartAlbums = PhotoPickerResource.shared.getSmartAlbums(withMediaOptions: mediaOptions)
         userCollections = PhotoPickerResource.shared.userCollection()
+        
+        
+        if #available(iOS 14, *) {
+            if PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited {
+                let bundleName = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? ""
+                PhotosAuthority.presentLimitedLibraryPicker(title: "\(bundleName)想访问您的照片", message: "用于您上传和保存照片", from: self)
+            }
+        }
     }
 
     func initalFetchResult() {

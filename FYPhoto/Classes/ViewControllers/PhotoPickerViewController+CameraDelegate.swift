@@ -72,18 +72,25 @@ extension PhotoPickerViewController: VideoPreviewControllerDelegate {
                     if let error = error {
                         print("❌ \(error)")
                     } else {
+                        print("video saved successfully")
                         guard let videoAsset = PhotoPickerResource.shared.allVideos().firstObject else { return }
                         let highQualityImage = videoAsset.getHightQualityImageSynchorously()
                         let thumbnail = videoAsset.getThumbnailImageSynchorously()
-                        let selectedVideo = SelectedVideo(asset: videoAsset, fullImage: highQualityImage, url: path)
-                        selectedVideo.briefImage = thumbnail
-                        self?.selectedVideo?(.success(selectedVideo))
-                        self?.dismiss(animated: true, completion: nil)
-                        print("video saved successfully")
+                        
+                        
+                        PHImageManager.default().requestAVAsset(forVideo: videoAsset, options: nil) { (avAsset, _, _) in
+                            guard let urlAsset = avAsset as? AVURLAsset else { return }
+                            DispatchQueue.main.async {
+                                let selectedVideo = SelectedVideo(asset: videoAsset, fullImage: highQualityImage, url: urlAsset.url)
+                                selectedVideo.briefImage = thumbnail
+                                self?.selectedVideo?(.success(selectedVideo))
+                                self?.dismiss(animated: true, completion: nil)
+                            }
+                        }
                     }
                 })
-            }            
-        }        
+            }
+        }
     }
     
     public func videoPreviewControllerDidCancel(_ preview: VideoPreviewController) {

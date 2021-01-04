@@ -20,3 +20,6 @@
 "photo" = "Photo";
 "camera" = "Camera";
 "Front/Rear" = "Front/Rear";
+
+"SelectMorePhotos" = "Select more photos...";
+"KeepCurrent" = "Keep current selection";

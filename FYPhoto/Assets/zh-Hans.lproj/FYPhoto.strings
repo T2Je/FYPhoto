@@ -23,3 +23,6 @@
 "camera" = "相机";
 
 "Front/Rear" = "前置/后置";
+
+"SelectMorePhotos" = "选择更多照片...";
+"KeepCurrent" = "保留当前所选内容";
