@@ -27,8 +27,9 @@
 "SelectMorePhotos" = "选择更多照片...";
 "KeepCurrent" = "保留当前所选内容";
 
-"VideoDurationTooLong" = "文件过大，请重新选择";
+"VideoDurationTooLong" = "视频时间过长，请重新选择";
 "UnspportedVideoFormat" = "不支持的文件格式";
+"VideoMemoryOutOfSize" = "文件过大，请重新选择";
 
 "WithoutCameraPermission" = "没有使用相机的权限，请修改权限设置";
 
