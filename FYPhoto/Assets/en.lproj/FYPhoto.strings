@@ -17,9 +17,20 @@
 "Cancel" = "Cancel";
 "Save" = "Save";
 
-"photo" = "Photo";
-"camera" = "Camera";
+"Photo" = "Photo";
+"Camera" = "Camera";
 "Front/Rear" = "Front/Rear";
 
 "SelectMorePhotos" = "Select more photos...";
 "KeepCurrent" = "Keep current selection";
+
+"VideoDurationTooLong" = "Selected video duration larger than expected";
+"VideoMemoryOutOfSize" = "Selected video out of size";
+"UnspportedVideoFormat" = "Unspported video format";
+
+"WithoutCameraPermission" = "doesn't have permission to use the camera, please change privacy settings";
+
+"OK" = "OK";
+"Settings" = "Settings";
+
+"CameraConfigurationFailed" = "Unable to capture media";

@@ -170,16 +170,17 @@ public class CameraViewController: UIViewController {
                 self.isSessionRunning = self.session.isRunning
 
             case .notAuthorized:
+                let bundleDisplayName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName")
                 DispatchQueue.main.async {
-                    let changePrivacySetting = "AVCam doesn't have permission to use the camera, please change privacy settings"
+                    let changePrivacySetting = "\(bundleDisplayName as? String) \("WithoutCameraPermission".photoTablelocalized)"
                     let message = NSLocalizedString(changePrivacySetting, comment: "Alert message when the user has denied access to the camera")
-                    let alertController = UIAlertController(title: "AVCam", message: message, preferredStyle: .alert)
+                    let alertController = UIAlertController(title: "bundleDisplayName", message: message, preferredStyle: .alert)
 
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Alert OK button"),
+                    alertController.addAction(UIAlertAction(title: NSLocalizedString("OK".photoTablelocalized, comment: "Alert OK button"),
                                                             style: .cancel,
                                                             handler: nil))
 
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString("Settings", comment: "Alert button to open Settings"),
+                    alertController.addAction(UIAlertAction(title: NSLocalizedString("Settings".photoTablelocalized, comment: "Alert button to open Settings"),
                                                             style: .`default`,
                                                             handler: { _ in
                                                                 UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!,
@@ -193,10 +194,10 @@ public class CameraViewController: UIViewController {
             case .configurationFailed:
                 DispatchQueue.main.async {
                     let alertMsg = "Alert message when something goes wrong during capture session configuration"
-                    let message = NSLocalizedString("Unable to capture media", comment: alertMsg)
-                    let alertController = UIAlertController(title: "Camera", message: message, preferredStyle: .alert)
+                    let message = NSLocalizedString("CameraConfigurationFailed".photoTablelocalized, comment: alertMsg)
+                    let alertController = UIAlertController(title: "Camera".photoTablelocalized, message: message, preferredStyle: .alert)
 
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Alert OK button"),
+                    alertController.addAction(UIAlertAction(title: NSLocalizedString("OK".photoTablelocalized, comment: "Alert OK button"),
                                                             style: .cancel,
                                                             handler: nil))
                     self.present(alertController, animated: true, completion: nil)

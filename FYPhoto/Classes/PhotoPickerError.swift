@@ -10,18 +10,18 @@ import Foundation
 public enum PhotoPickerError: Error {
     case VideoDurationTooLong
     case VideoMemoryOutOfSize
-    case UnspportedVideoFormat
+    case UnspportedVideoFormat    
 }
 
 extension PhotoPickerError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .VideoDurationTooLong:
-            return "selected video duration larger than expected"
+            return "VideoDurationTooLong".photoTablelocalized
         case .VideoMemoryOutOfSize:
-            return "selected video out of size"
+            return "VideoMemoryOutOfSize".photoTablelocalized
         case .UnspportedVideoFormat:
-            return "unspported video format"
+            return "UnspportedVideoFormat".photoTablelocalized
         }
     }
 }

@@ -63,10 +63,10 @@ public protocol PhotoLauncherDelegate: class {
     ///     sourceRect = .zero, maximumNumberCanChoose = 6, isOnlyImages = true, videoMaximumDuration = 15, videoPathExtension = mp4
     public func showCustomPhotoPickerCameraAlertSheet(in container: CameraContainer, config: PhotoLauncherConfig = PhotoLauncherConfig()) {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        let photo = UIAlertAction(title: "photo".photoTablelocalized, style: .default) { (_) in
+        let photo = UIAlertAction(title: "Photo".photoTablelocalized, style: .default) { (_) in
             self.launchCustomPhotoLibrary(in: container, maximumNumberCanChoose: config.maximumNumberCanChoose, mediaOptions: config.mediaOptions)
         }
-        let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
+        let camera = UIAlertAction(title: "Camera".photoTablelocalized, style: .default) { (_) in
             if config.mediaOptions == .image {
                 self.launchCamera(in: container,
                                   captureModes: [CameraViewController.CaptureMode.image],
@@ -171,10 +171,10 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
     public func showSystemPhotoPickerCameraAlertSheet(in container: CameraContainer,
                                                       config: PhotoLauncherConfig = PhotoLauncherConfig()) {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        let photo = UIAlertAction(title: "photo".photoTablelocalized, style: .default) { (_) in
+        let photo = UIAlertAction(title: "Photo".photoTablelocalized, style: .default) { (_) in
             self.launchSystemPhotoPicker(in: container, maximumNumberCanChoose: config.maximumNumberCanChoose, mediaOptions: config.mediaOptions)
         }
-        let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
+        let camera = UIAlertAction(title: "Camera".photoTablelocalized, style: .default) { (_) in
             if config.mediaOptions == .image {
                 self.launchCamera(in: container, captureModes: [.image], videoMaximumDuration: config.videoMaximumDuration)
             } else if config.mediaOptions == .video {
@@ -184,7 +184,7 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
             }
         }
 
-        let cancel = UIAlertAction(title: "cancel".photoTablelocalized, style: .cancel, handler: nil)
+        let cancel = UIAlertAction(title: "Cancel".photoTablelocalized, style: .cancel, handler: nil)
 
         alert.addAction(photo)
         alert.addAction(camera)
