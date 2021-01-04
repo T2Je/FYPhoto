@@ -168,8 +168,9 @@ public class PhotoPickerViewController: UICollectionViewController {
         
         if #available(iOS 14, *) {
             if PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited {
-                let bundleName = Bundle.main.object(forInfoDictionaryKey: "CFBundleName") ?? ""
-                PhotosAuthority.presentLimitedLibraryPicker(title: "\(bundleName)想访问您的照片", message: "用于您上传和保存照片", from: self)
+                let bundleName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") ?? ""
+                let photosAuthorityRequestText = Bundle.main.object(forInfoDictionaryKey: "NSPhotoLibraryUsageDescription")
+                PhotosAuthority.presentLimitedLibraryPicker(title: "\(bundleName)想访问您的照片", message: photosAuthorityRequestText as? String, from: self)
             }
         }
     }
