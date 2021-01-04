@@ -239,12 +239,12 @@ public class PhotoPickerViewController: UICollectionViewController {
             return
         }
         
-        PhotoPickerResource.shared.fetchHighQualityImages(assets) { thumbnails in
+        PhotoPickerResource.shared.fetchHighQualityImages(assets) { images in
             var selectedArr = [SelectedImage]()
-            for index in 0..<thumbnails.count {
+            for index in 0..<images.count {
                 let asset = assets[index]
-                let thumbnail = thumbnails[index]
-                selectedArr.append(SelectedImage(asset: asset, image: thumbnail))
+                let image = images[index]
+                selectedArr.append(SelectedImage(asset: asset, image: image))
             }
             
             self.selectedPhotos?(selectedArr)
