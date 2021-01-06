@@ -98,7 +98,7 @@ class ZoomingScrollView: UIScrollView {
     func displayAsset(_ asset: PHAsset, targetSize: CGSize) {
         imageView.setAsset(asset, targeSize: targetSize) { [weak self] (image) in
             if let image = image {
-                self?.photo.storeImage(image)
+//                self?.photo.storeImage(image)  Avoid out of memory
                 self?.displayImage(image)
             } else {
                 self?.displayImageFailure()

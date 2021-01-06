@@ -97,7 +97,7 @@ class ViewController: UIViewController {
 //        imageController.cameraCaptureMode = .photo
 //        print("available media types: \(UIImagePickerController.availableMediaTypes(for: .camera))")
     }
-
+    
 // MARK: - Button action
     @objc func photosViewButtonClicked(_ sender: UIButton) {
         PHPhotoLibrary.requestAuthorization { (status) in
@@ -122,7 +122,6 @@ class ViewController: UIViewController {
                     self.present(navi, animated: true, completion: nil)
 //                    self.navigationController?.navigationBar.tintColor = .white
 //                    self.navigationController?.pushViewController(gridVC, animated: true)
-
                 case .denied, .restricted, .notDetermined:
                     print("⚠️ without authorization! ⚠️")
                 case .limited:
