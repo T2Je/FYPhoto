@@ -130,8 +130,8 @@ class GridViewCell: UICollectionViewCell {
         NSLayoutConstraint.activate([
             selectionButton.topAnchor.constraint(equalTo: topAnchor, constant: 0),
             selectionButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
-            selectionButton.widthAnchor.constraint(equalToConstant: 40),
-            selectionButton.heightAnchor.constraint(equalToConstant: 40)
+            selectionButton.widthAnchor.constraint(equalToConstant: 37),
+            selectionButton.heightAnchor.constraint(equalToConstant: 37)
         ])
 
         NSLayoutConstraint.activate([

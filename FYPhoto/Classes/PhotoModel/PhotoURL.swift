@@ -111,6 +111,7 @@ class PhotoURL: PhotoProtocol {
     func clearAsset() {
         urlAssetQueue.async {
             self.asset = nil
+            self.image = nil
         }
     }
     
