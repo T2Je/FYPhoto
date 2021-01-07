@@ -10,10 +10,9 @@ import UIKit
 import FYPhoto
 import FGBase
 
-private let cellIdentifier = "AddPhotoCollectionViewCell"
-
 @objc class AddPhotoBlogViewController: BaseViewController {
-
+    private static let cellIdentifier = "AddPhotoCollectionViewCell"
+    
     fileprivate var dataSource = [UIImage]()
 
     var hasAddButton = true
@@ -50,7 +49,7 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
     }()
 
     var collectionView: UICollectionView!
-    var transitionController: PhotoTransitionController?
+    var transitionController: PhotoPushTransitionController?
 
     let photoLauncher = PhotoLauncher()
 
@@ -94,7 +93,7 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
 
     func setupTransitionController() {
         guard let navigationController = self.navigationController else { return }
-        transitionController = PhotoTransitionController(navigationController: navigationController)
+        transitionController = PhotoPushTransitionController(navigationController: navigationController)
         navigationController.delegate = transitionController
     }
 
@@ -121,7 +120,7 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         collectionView.dataSource = self
         collectionView.alwaysBounceVertical = true
         collectionView.backgroundColor = .white
-        collectionView.register(AddPhotoCollectionViewCell.self, forCellWithReuseIdentifier: cellIdentifier)
+        collectionView.register(AddPhotoCollectionViewCell.self, forCellWithReuseIdentifier: Self.cellIdentifier)
     }
 
     func addViews() {
@@ -337,7 +336,7 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as? AddPhotoCollectionViewCell else { return UICollectionViewCell() }
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.cellIdentifier, for: indexPath) as? AddPhotoCollectionViewCell else { return UICollectionViewCell() }
 
         let image = dataSource[indexPath.row]
         cell.image = image

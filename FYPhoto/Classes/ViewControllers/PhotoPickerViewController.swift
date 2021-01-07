@@ -75,7 +75,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     
     var willBatchUpdated: Bool = false
 
-    var transitionController: PhotoTransitionController?
+    var transitionController: PhotoPushTransitionController?
 
     // photo
     fileprivate var maximumCanBeSelected: Int = 0
@@ -222,7 +222,7 @@ public class PhotoPickerViewController: UICollectionViewController {
 
     func setupTransitionController() {
         guard let navigationController = self.navigationController else { return }
-        transitionController = PhotoTransitionController(navigationController: navigationController)
+        transitionController = PhotoPushTransitionController(navigationController: navigationController)
     }
     
     @objc func backBarButton(_ sender: UIBarButtonItem) {

@@ -11,7 +11,7 @@ import Photos
 class PhotoDetailCell: UICollectionViewCell {
     static let reuseIdentifier = "PhotoDetailCell"
     
-    let zoomingView = ZoomingScrollView(frame: .zero, settingOptions: PhotoPickerSettingsOptions.default)    
+    let zoomingView = ZoomingScrollView(frame: .zero)    
 
     var image: UIImage? {
         return zoomingView.imageView.image ?? "cover_placeholder".photoImage

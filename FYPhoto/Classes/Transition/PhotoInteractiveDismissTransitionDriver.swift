@@ -13,7 +13,6 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
     let transitionContext: UIViewControllerContextTransitioning
 
     private let panGestureRecognizer: UIPanGestureRecognizer
-    private let duration: TimeInterval
     private var itemFrameAnimator: UIViewPropertyAnimator?
 
     var fromAssetTransitioning: PhotoTransitioning?
@@ -39,10 +38,9 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
 
     // MARK: Initialization
 
-    init(context: UIViewControllerContextTransitioning, panGestureRecognizer panGesture: UIPanGestureRecognizer, duration: TimeInterval) {
+    init(context: UIViewControllerContextTransitioning, panGestureRecognizer panGesture: UIPanGestureRecognizer) {
         self.transitionContext = context
         self.panGestureRecognizer = panGesture
-        self.duration = duration
 
         setup(context)
     }
@@ -107,7 +105,7 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
 
         // Create a UIViewPropertyAnimator that lives the lifetime of the transition
         let spring = CGFloat(0.95)
-        transitionAnimator = UIViewPropertyAnimator(duration: duration, dampingRatio: spring) {
+        transitionAnimator = UIViewPropertyAnimator(duration: 0.38, dampingRatio: spring) {
             topView.alpha = topViewTargetAlpha
             self.visualEffectView.effect = targetEffect
         }

@@ -37,10 +37,7 @@ class ZoomingScrollView: UIScrollView {
 
     var circularProgressView = UICircularProgressRing()
 
-    let settingOptions: PhotoPickerSettingsOptions
-
-    init(frame: CGRect, settingOptions: PhotoPickerSettingsOptions = .default) {
-        self.settingOptions = settingOptions
+    override init(frame: CGRect) {        
         super.init(frame: frame)
         setup()
     }
@@ -80,9 +77,6 @@ class ZoomingScrollView: UIScrollView {
             circularProgressView.widthAnchor.constraint(equalToConstant: 130),
             circularProgressView.heightAnchor.constraint(equalToConstant: 130)
         ])
-
-        showsHorizontalScrollIndicator = settingOptions.contains(.displayHorizontalScrollIndicator)
-        showsVerticalScrollIndicator = settingOptions.contains(.displayVerticalScrollIndicator)
     }
 
     required init?(coder: NSCoder) {
