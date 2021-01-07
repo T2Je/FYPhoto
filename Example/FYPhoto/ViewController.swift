@@ -103,7 +103,7 @@ class ViewController: UIViewController {
         PHPhotoLibrary.requestAuthorization { (status) in
             DispatchQueue.main.async {
                 switch status {
-                case .authorized:
+                case .authorized, .limited:
                     let photoPickerVC = PhotoPickerViewController(mediaTypes: .all)
                         .setMaximumPhotosCanBeSelected(6)
                         .setMaximumVideoSizePerMB(40, compressedQuality: .AVAssetExportPreset640x480)
@@ -143,7 +143,7 @@ class ViewController: UIViewController {
             PHPhotoLibrary.requestAuthorization { (status) in
                 DispatchQueue.main.async {
                     switch status {
-                    case .authorized:
+                    case .authorized, .limited:
                         let addPhotoVC = AddPhotoBlogViewController()
                         addPhotoVC.selectedImageArray = []
                         self.navigationController?.pushViewController(addPhotoVC, animated: true)

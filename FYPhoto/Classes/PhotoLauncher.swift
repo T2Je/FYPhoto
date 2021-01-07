@@ -117,7 +117,7 @@ public protocol PhotoLauncherDelegate: class {
                                          maximumNumberCanChoose: Int,
                                          mediaOptions: MediaOptions = .image) {
         switch PHPhotoLibrary.authorizationStatus() {
-        case .authorized:
+        case .authorized, .limited:
             launchPhotoLibrary(in: viewController, maximumNumberCanChoose, mediaOptions: mediaOptions)
         case .notDetermined:
             PHPhotoLibrary.requestAuthorization { (status) in

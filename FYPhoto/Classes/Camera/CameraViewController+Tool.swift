@@ -9,17 +9,17 @@ import Foundation
 import Photos
 
 public extension CameraViewController {
-    enum SaveMediaError: Error, CustomStringConvertible {
-        public var description: String {
+    enum SaveMediaError: Error, LocalizedError {
+        public var errorDescription: String? {
             switch self {
             case .withoutAuthourity:
-                return "没有权限将照片存储到相册中"
+                return "NoPermissionToSave".photoTablelocalized
             }
         }
 
         case withoutAuthourity
-
     }
+    
     static func saveImageDataToAlbums(_ photoData: Data, completion: @escaping ((Error?) -> Void)) {
         PHPhotoLibrary.requestAuthorization { status in
             if status == .authorized {
@@ -32,9 +32,7 @@ public extension CameraViewController {
                         print("Error occurred while saving photo to photo library: \(error)")
                     }
                     completion(error)
-                }
-
-                )
+                })
             } else {
                 completion(SaveMediaError.withoutAuthourity)
             }
