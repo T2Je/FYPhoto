@@ -7,13 +7,15 @@
 
 import Foundation
 
-class PhotoPushPopTransitionDriver: TransitionDriver {
+class PhotoTransitionDriver: TransitionDriver {
     var transitionAnimator: UIViewPropertyAnimator!
     var isInteractive: Bool {
         return transitionContext.isInteractive
     }
     let transitionContext: UIViewControllerContextTransitioning
-    private let operation: UINavigationController.Operation
+    let isPresenting: Bool
+    let isNavigationAnimation: Bool
+    
     private let duration: TimeInterval
     private var itemFrameAnimator: UIViewPropertyAnimator?
     var fromAssetTransitioning: PhotoTransitioning?
@@ -30,21 +32,18 @@ class PhotoPushPopTransitionDriver: TransitionDriver {
         imageView.isUserInteractionEnabled = true
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        if #available(iOS 11.0, *) {
-            imageView.accessibilityIgnoresInvertColors = true
-        } else {
-            // Fallback on earlier versions
-        }
+        imageView.accessibilityIgnoresInvertColors = true
         return imageView
     }()
 
     // MARK: Initialization
 
-    init(operation: UINavigationController.Operation, context: UIViewControllerContextTransitioning, duration: TimeInterval) {
+    init(isPresenting: Bool, isNavigationAnimation: Bool, context: UIViewControllerContextTransitioning, duration: TimeInterval) {
         self.transitionContext = context
-        self.operation = operation
+        self.isPresenting = isPresenting
         self.duration = duration
-
+        self.isNavigationAnimation = isNavigationAnimation
+        
         setup(context)
     }
 
@@ -52,26 +51,32 @@ class PhotoPushPopTransitionDriver: TransitionDriver {
         // Setup the transition "chrome"
         guard
             let fromViewController = context.viewController(forKey: .from),
-            let toViewController = context.viewController(forKey: .to),
-            let fromAssetTransitioning = (fromViewController as? PhotoTransitioning),
-            let toAssetTransitioning = (toViewController as? PhotoTransitioning),
-            let fromView = fromViewController.view,
-            let toView = toViewController.view
-            else {
-                assertionFailure("None of them should be nil")
-                return
+            let toViewController = context.viewController(forKey: .to)
+        else {
+            return
+        }
+        self.fromAssetTransitioning = fromViewController as? PhotoTransitioning
+        self.toAssetTransitioning = toViewController as? PhotoTransitioning
+        if isNavigationAnimation {
+            let fromView = context.view(forKey: .from)
+            self.fromView = fromView
+            let toView = context.view(forKey: .to)
+            self.toView = toView
+        } else {
+            let toView = context.view(forKey: .to)
+            self.toView = toView            
         }
 
-        self.fromAssetTransitioning = fromAssetTransitioning
-        self.toAssetTransitioning = toAssetTransitioning
-        self.toView = toView
-        self.fromView = fromView
+//        self.fromAssetTransitioning = fromAssetTransitioning
+//        self.toAssetTransitioning = toAssetTransitioning
+//        self.toView = toView
+//        self.fromView = fromView
 
         let containerView = context.containerView
 
         // Create a visual effect view and animate the effect in the transition animator
-        let effect: UIVisualEffect? = (operation == .pop) ? UIBlurEffect(style: .extraLight) : nil
-        let targetEffect: UIVisualEffect? = (operation == .pop) ? nil : UIBlurEffect(style: .light)
+        let effect: UIVisualEffect? = !isPresenting ? UIBlurEffect(style: .extraLight) : nil
+        let targetEffect: UIVisualEffect? = !isPresenting ? nil : UIBlurEffect(style: .light)
         //        let visualEffectView = UIVisualEffectView(effect: effect)
         visualEffectView.effect = effect
         visualEffectView.frame = containerView.bounds
@@ -79,40 +84,44 @@ class PhotoPushPopTransitionDriver: TransitionDriver {
         containerView.addSubview(visualEffectView)
 
         // Insert the toViewController's view into the transition container view
-        let topView: UIView
+        var topView: UIView?
         var topViewTargetAlpha: CGFloat = 0.0
-        if operation == .push {
+        if isPresenting {
             topView = toView
             topViewTargetAlpha = 1.0
-            toView.alpha = 0.0
-            containerView.addSubview(toView)
+            if let to = toView {
+                to.alpha = 0.0
+                containerView.addSubview(to)
+            }
         } else {
             topView = fromView
             topViewTargetAlpha = 0.0
-            containerView.insertSubview(toView, at: 0)
+            if let to = toView {
+                containerView.insertSubview(to, at: 0)
+            }
         }
 
         // Ensure the toView has the correct size and position
-        toView.frame = context.finalFrame(for: toViewController)
+        toView?.frame = context.finalFrame(for: toViewController)
 
-        if let fromImage = fromAssetTransitioning.referenceImage() {
+        if let fromImage = fromAssetTransitioning?.referenceImage() {
             transitionImageView.image = fromImage
         }
 
-        if let frame = fromAssetTransitioning.imageFrame() {
+        if let frame = fromAssetTransitioning?.imageFrame() {
             transitionImageView.frame = frame
         }
 
         containerView.addSubview(transitionImageView)
 
         // Inform the view controller's the transition is about to start
-        fromAssetTransitioning.transitionWillStart()
-        toAssetTransitioning.transitionWillStart()
+        fromAssetTransitioning?.transitionWillStart()
+        toAssetTransitioning?.transitionWillStart()
 
         // Create a UIViewPropertyAnimator that lives the lifetime of the transition
         let spring = CGFloat(0.95)
         transitionAnimator = UIViewPropertyAnimator(duration: duration, dampingRatio: spring) {
-            topView.alpha = topViewTargetAlpha
+            topView?.alpha = topViewTargetAlpha
             self.visualEffectView.effect = targetEffect
         }
 
@@ -120,7 +129,7 @@ class PhotoPushPopTransitionDriver: TransitionDriver {
             transitionAnimator.startAnimation()
         }
 
-        if operation == .pop {
+        if !isPresenting {
             // HACK: By delaying 0.005s, I get a layout-refresh on the toViewController,
             // which means its collectionview has updated its layout,
             // and our toAssetTransitioning?.imageFrame() is accurate, even if

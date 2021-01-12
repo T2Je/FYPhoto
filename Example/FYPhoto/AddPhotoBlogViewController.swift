@@ -10,10 +10,9 @@ import UIKit
 import FYPhoto
 import FGBase
 
-private let cellIdentifier = "AddPhotoCollectionViewCell"
-
 @objc class AddPhotoBlogViewController: BaseViewController {
-
+    private static let cellIdentifier = "AddPhotoCollectionViewCell"
+    
     fileprivate var dataSource = [UIImage]()
 
     var hasAddButton = true
@@ -50,7 +49,6 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
     }()
 
     var collectionView: UICollectionView!
-    var transitionController: PhotoTransitionController?
 
     let photoLauncher = PhotoLauncher()
 
@@ -82,7 +80,7 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         addViews()
         addGestures()
         setupNavigation()
-        setupTransitionController()
+
         photoLauncher.delegate = self
         // Do any additional setup after loading the view.
     }
@@ -90,12 +88,6 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.navigationController?.setNavigationBarHidden(false, animated: animated)
-    }
-
-    func setupTransitionController() {
-        guard let navigationController = self.navigationController else { return }
-        transitionController = PhotoTransitionController(navigationController: navigationController)
-        navigationController.delegate = transitionController
     }
 
     func setupTextView() {
@@ -121,10 +113,10 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         collectionView.dataSource = self
         collectionView.alwaysBounceVertical = true
         collectionView.backgroundColor = .white
-        collectionView.register(AddPhotoCollectionViewCell.self, forCellWithReuseIdentifier: cellIdentifier)
+        collectionView.register(AddPhotoCollectionViewCell.self, forCellWithReuseIdentifier: Self.cellIdentifier)
     }
 
-    func addViews() {
+    func addViews() {        
         view.addSubview(textView)
         view.addSubview(textCountLabel)
         view.addSubview(collectionView)
@@ -240,8 +232,8 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
             return
         }
         self.view.endEditing(true)
-        showHUD()
-        let text = textView.text ?? ""
+//        showHUD()
+//        let text = textView.text ?? ""
 //        uploadText(text, images: selectedImageArray, userID: UserManager.shared.user?.uid ?? "", userTrueName: UserManager.shared.user?.trueName ?? "")
     }
 
@@ -337,7 +329,7 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as? AddPhotoCollectionViewCell else { return UICollectionViewCell() }
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.cellIdentifier, for: indexPath) as? AddPhotoCollectionViewCell else { return UICollectionViewCell() }
 
         let image = dataSource[indexPath.row]
         cell.image = image
@@ -372,13 +364,17 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
             }
             
             let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: indexPath.item) {
-                $0.buildForSelection(false)
-//                $0.quickBuildJustForBrowser()
-//                    .showDeleteButtonForBrowser()
+//                $0.buildForSelection(false)
+                $0.quickBuildJustForBrowser()
+                    .showDeleteButtonForBrowser()
             }
             
             photoBrowser.delegate = self
-            self.navigationController?.pushViewController(photoBrowser, animated: true)
+            self.fyphoto.present(photoBrowser, animated: true) {
+                print("present photo browser completely")
+            }
+//            self.navigationController?.fyphoto.push(photoBrowser, animated: true)
+//            self.navigationController?.pushViewController(photoBrowser, animated: true)
         }
     }
 
@@ -429,13 +425,11 @@ extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
 
 extension AddPhotoBlogViewController: PhotoTransitioning {
     public func transitionWillStart() {
-        print(#file, #function)
         guard let indexPath = lastSelectedIndexPath else { return }
         collectionView.cellForItem(at: indexPath)?.isHidden = true
     }
 
     public func transitionDidEnd() {
-        print(#file, #function)
         guard let indexPath = lastSelectedIndexPath else { return }
         collectionView.cellForItem(at: indexPath)?.isHidden = false
     }

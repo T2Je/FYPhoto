@@ -74,9 +74,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     }
     
     var willBatchUpdated: Bool = false
-
-    var transitionController: PhotoTransitionController?
-
+    
     // photo
     fileprivate var maximumCanBeSelected: Int = 0
     
@@ -140,8 +138,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     // MARK: UIViewController / Lifecycle
     
     public override func viewDidLoad() {
-        super.viewDidLoad()
-
+        super.viewDidLoad()        
         collectionView.backgroundColor = .white
 
         collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: String(describing: GridViewCell.self))
@@ -153,9 +150,7 @@ public class PhotoPickerViewController: UICollectionViewController {
 
         setupNavigationBar()
 
-        resetCachedAssets()
-
-        setupTransitionController()
+        resetCachedAssets()        
 
         PHPhotoLibrary.shared().register(self)
     }
@@ -164,7 +159,6 @@ public class PhotoPickerViewController: UICollectionViewController {
         allPhotos = PhotoPickerResource.shared.getAssets(withMediaOptions: mediaOptions)
         smartAlbums = PhotoPickerResource.shared.getSmartAlbums(withMediaOptions: mediaOptions)
         userCollections = PhotoPickerResource.shared.userCollection()
-        
         
         if #available(iOS 14, *) {
             if PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited {
@@ -218,11 +212,6 @@ public class PhotoPickerViewController: UICollectionViewController {
         }
         customTitleView.title = "All photos".photoTablelocalized
         self.navigationItem.titleView = customTitleView
-    }
-
-    func setupTransitionController() {
-        guard let navigationController = self.navigationController else { return }
-        transitionController = PhotoTransitionController(navigationController: navigationController)
     }
     
     @objc func backBarButton(_ sender: UIBarButtonItem) {
@@ -424,7 +413,7 @@ public class PhotoPickerViewController: UICollectionViewController {
         })        
 
         photoBrowser.delegate = self
-        self.navigationController?.pushViewController(photoBrowser, animated: true)
+        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
     }
     
     func browseVideoIfValid(_ asset: PHAsset) {
