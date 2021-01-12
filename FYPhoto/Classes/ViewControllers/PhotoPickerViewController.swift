@@ -140,8 +140,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     // MARK: UIViewController / Lifecycle
     
     public override func viewDidLoad() {
-        super.viewDidLoad()
-
+        super.viewDidLoad()        
         collectionView.backgroundColor = .white
 
         collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: String(describing: GridViewCell.self))
@@ -164,7 +163,6 @@ public class PhotoPickerViewController: UICollectionViewController {
         allPhotos = PhotoPickerResource.shared.getAssets(withMediaOptions: mediaOptions)
         smartAlbums = PhotoPickerResource.shared.getSmartAlbums(withMediaOptions: mediaOptions)
         userCollections = PhotoPickerResource.shared.userCollection()
-        
         
         if #available(iOS 14, *) {
             if PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited {

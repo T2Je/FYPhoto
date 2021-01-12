@@ -12,9 +12,11 @@ class PhotoHideShowAnimator: NSObject, UIViewControllerAnimatedTransitioning {
     var transitionDriver: TransitionDriver?
 
     let isPresenting: Bool
-
-    init(isPresenting: Bool) {
+    let isNavigationAnimation: Bool
+    
+    init(isPresenting: Bool, isNavigationAnimation: Bool) {
         self.isPresenting = isPresenting
+        self.isNavigationAnimation = isNavigationAnimation
         super.init()
     }
 
@@ -28,6 +30,7 @@ class PhotoHideShowAnimator: NSObject, UIViewControllerAnimatedTransitioning {
 
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
         transitionDriver = PhotoTransitionDriver(isPresenting: isPresenting,
+                                                 isNavigationAnimation: isNavigationAnimation,
                                                  context: transitionContext,
                                                  duration: transitionDuration(using: transitionContext))
     }
@@ -40,11 +43,14 @@ class PhotoHideShowAnimator: NSObject, UIViewControllerAnimatedTransitioning {
 
 
 // MARK: - InteractiveTransitioning
-class PhotoInteractiveForPushAnimator: NSObject, UIViewControllerInteractiveTransitioning {
+class PhotoInteractiveAnimator: NSObject, UIViewControllerInteractiveTransitioning {
     var transitionDriver: TransitionDriver?
     let panGestureRecognizer: UIPanGestureRecognizer
-    init(panGestureRecognizer: UIPanGestureRecognizer) {
+    let isNavigationDismiss: Bool
+    
+    init(panGestureRecognizer: UIPanGestureRecognizer, isNavigationDismiss: Bool) {
         self.panGestureRecognizer = panGestureRecognizer
+        self.isNavigationDismiss = isNavigationDismiss
         super.init()
     }
 
@@ -52,12 +58,12 @@ class PhotoInteractiveForPushAnimator: NSObject, UIViewControllerInteractiveTran
         // Create our helper object to manage the transition for the given transitionContext.
         if transitionContext.isInteractive {
             transitionDriver = PhotoInteractiveDismissTransitionDriver(context: transitionContext,
-                                                                       panGestureRecognizer: panGestureRecognizer)
+                                                                       panGestureRecognizer: panGestureRecognizer, isNavigationDismiss: isNavigationDismiss)
         }
     }
 }
 
-extension PhotoInteractiveForPushAnimator: UIViewControllerAnimatedTransitioning {
+extension PhotoInteractiveAnimator: UIViewControllerAnimatedTransitioning {
     func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
         fatalError("never called")
     }
@@ -70,39 +76,3 @@ extension PhotoInteractiveForPushAnimator: UIViewControllerAnimatedTransitioning
         transitionDriver = nil
     }
 }
-
-//
-class PhotoInteractiveForPresentAnimator: NSObject, UIViewControllerInteractiveTransitioning {
-    var transitionDriver: TransitionDriver?
-    var panGesture: UIPanGestureRecognizer?
-            
-    func startInteractiveTransition(_ transitionContext: UIViewControllerContextTransitioning) {
-        let panGesture = UIPanGestureRecognizer()
-        panGesture.maximumNumberOfTouches = 1
-        let containerView = transitionContext.containerView
-        containerView.addGestureRecognizer(panGesture)
-        self.panGesture = panGesture
-        // Create our helper object to manage the transition for the given transitionContext.
-        if transitionContext.isInteractive {
-            transitionDriver = PhotoInteractiveDismissTransitionDriver(context: transitionContext,
-                                                                       panGestureRecognizer: panGesture)
-        }
-    }
-    
-    
-}
-
-extension PhotoInteractiveForPresentAnimator: UIViewControllerAnimatedTransitioning {
-    func animateTransition(using transitionContext: UIViewControllerContextTransitioning) {
-        fatalError("never called")
-    }
-
-    func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
-        0.38
-    }
-
-    func animationEnded(_ transitionCompleted: Bool) {
-        transitionDriver = nil
-    }
-}
-

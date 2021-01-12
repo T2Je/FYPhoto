@@ -10,9 +10,11 @@ import Foundation
 class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
     var transitionAnimator: UIViewPropertyAnimator!
     var isInteractive: Bool { return transitionContext.isInteractive }
-    let transitionContext: UIViewControllerContextTransitioning
-
+    
+    private let transitionContext: UIViewControllerContextTransitioning
     private let panGestureRecognizer: UIPanGestureRecognizer
+    private let isNavigationDismiss: Bool
+    
     private var itemFrameAnimator: UIViewPropertyAnimator?
 
     var fromAssetTransitioning: PhotoTransitioning?
@@ -28,42 +30,43 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         imageView.isUserInteractionEnabled = true
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        if #available(iOS 11.0, *) {
-            imageView.accessibilityIgnoresInvertColors = true
-        } else {
-            // Fallback on earlier versions
-        }
+        imageView.accessibilityIgnoresInvertColors = true
         return imageView
     }()
 
     // MARK: Initialization
 
-    init(context: UIViewControllerContextTransitioning, panGestureRecognizer panGesture: UIPanGestureRecognizer) {
+    init(context: UIViewControllerContextTransitioning, panGestureRecognizer panGesture: UIPanGestureRecognizer, isNavigationDismiss: Bool) {
         self.transitionContext = context
         self.panGestureRecognizer = panGesture
-
-        setup(context)
+        self.isNavigationDismiss = isNavigationDismiss
+        
+        setup(context, isNavigationDismiss: isNavigationDismiss)
     }
 
-    func setup(_ context: UIViewControllerContextTransitioning) {
+    func setup(_ context: UIViewControllerContextTransitioning, isNavigationDismiss: Bool) {
         // Setup the transition "chrome"
         guard
             let fromViewController = context.viewController(forKey: .from),
-            let toViewController = context.viewController(forKey: .to),
-            let fromAssetTransitioning = (fromViewController as? PhotoTransitioning),
-            let toAssetTransitioning = (toViewController as? PhotoTransitioning),
-            let fromView = fromViewController.view,
-            let toView = toViewController.view
+            let toViewController = context.viewController(forKey: .to)
         else {
             assertionFailure("None of them should be nil")
             return
         }
-
-        self.fromAssetTransitioning = fromAssetTransitioning
-        self.toAssetTransitioning = toAssetTransitioning
-        self.toView = toView
-        self.fromView = fromView
-
+        if isNavigationDismiss {
+            self.fromAssetTransitioning = fromViewController as? PhotoTransitioning
+            self.toAssetTransitioning = toViewController as? PhotoTransitioning
+            self.fromView = context.view(forKey: .from)
+            self.toView = context.view(forKey: .to)
+        } else {
+            self.fromAssetTransitioning = fromViewController as? PhotoTransitioning
+            self.fromView = context.view(forKey: .from)
+            if let presentingNavi = fromViewController.presentingViewController as? UINavigationController {
+                self.toAssetTransitioning = presentingNavi.topViewController as? PhotoTransitioning
+                self.toView = presentingNavi.topViewController?.view
+            }
+        }
+        
         let containerView = context.containerView
 
         // Add ourselves as a target of the pan gesture
@@ -79,34 +82,35 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         containerView.addSubview(visualEffectView)
 
         // Insert the toViewController's view into the transition container view
-        let topView: UIView
-        var topViewTargetAlpha: CGFloat = 0.0
-
-        topView = fromView
-        topViewTargetAlpha = 0.0
-        containerView.insertSubview(toView, at: 0)
-
+        let topView = fromView
+        let topViewTargetAlpha: CGFloat = 0.0
+                
+        if isNavigationDismiss {
+            if let toView = toView {
+                containerView.insertSubview(toView, at: 0)
+                // Ensure the toView has the correct size and position
+                toView.frame = context.finalFrame(for: toViewController)
+            }
+        }
+        
         containerView.addSubview(transitionImageView)
 
-        // Ensure the toView has the correct size and position
-        toView.frame = context.finalFrame(for: toViewController)
-        
-        if let fromImage = fromAssetTransitioning.referenceImage() {
+        if let fromImage = self.fromAssetTransitioning?.referenceImage() {
             transitionImageView.image = fromImage
         }
 
-        if let frame = fromAssetTransitioning.imageFrame() {
+        if let frame = self.fromAssetTransitioning?.imageFrame() {
             transitionImageView.frame = frame
         }
 
         // Inform the view controller's the transition is about to start
-        fromAssetTransitioning.transitionWillStart()
-        toAssetTransitioning.transitionWillStart()
+        self.fromAssetTransitioning?.transitionWillStart()
+        self.toAssetTransitioning?.transitionWillStart()
 
         // Create a UIViewPropertyAnimator that lives the lifetime of the transition
         let spring = CGFloat(0.95)
         transitionAnimator = UIViewPropertyAnimator(duration: 0.38, dampingRatio: spring) {
-            topView.alpha = topViewTargetAlpha
+            topView?.alpha = topViewTargetAlpha
             self.visualEffectView.effect = targetEffect
         }
     }
@@ -146,7 +150,8 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
     func endInteraction() {
         // Ensure the context is currently interactive
         guard transitionContext.isInteractive else { return }
-
+        // TODO: 😴zZ remove pan gesture
+        
         // Inform the transition context of whether we are finishing or cancelling the transition
         let completionPosition = self.completionPosition()
 
@@ -272,4 +277,5 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         let rect = CGRect.makeRect(aspectRatio: image.size, insideRect: view.bounds)
         return rect
     }
+    
 }

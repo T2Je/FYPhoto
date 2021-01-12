@@ -240,14 +240,16 @@ public class CameraViewController: UIViewController {
     }
 
     func makeConstraints() {
+        previewView.frame = UIScreen.main.bounds
+        
         let safeArea = self.view.safeAreaLayoutGuide
-        previewView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            previewView.topAnchor.constraint(equalTo: view.topAnchor),
-            previewView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            previewView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            previewView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-        ])
+//        previewView.translatesAutoresizingMaskIntoConstraints = false
+//        NSLayoutConstraint.activate([
+//            previewView.topAnchor.constraint(equalTo: view.topAnchor),
+//            previewView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+//            previewView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+//            previewView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+//        ])
 
         cameraOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([

@@ -14,7 +14,7 @@ public class PhotoPushTransitionController: NSObject {
     var panGestureRecognizer: UIPanGestureRecognizer = UIPanGestureRecognizer()
 
     var pushPopTransitioning: PhotoHideShowAnimator?
-    var interactiveTransitioning: PhotoInteractiveForPushAnimator?
+    var interactiveTransitioning: PhotoInteractiveAnimator?
 
     fileprivate var currentAnimationTransition: UIViewControllerAnimatedTransitioning? = nil
 
@@ -73,16 +73,16 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
         if fromVC is PhotoTransitioning, operation == .push {
             if let transitionToVC = toVC as? PhotoTransitioning {
                 if transitionToVC.enablePhotoTransitionPush() {
-                    result = PhotoHideShowAnimator(isPresenting: operation == .push)
+                    result = PhotoHideShowAnimator(isPresenting: operation == .push, isNavigationAnimation: true)
                 }
             }
         } else if toVC is PhotoTransitioning, operation == .pop {
             if let transitionFromVC = fromVC as? PhotoTransitioning {
                 if transitionFromVC.enablePhotoTransitionPush() {
                     if initiallyInteractive {
-                        result = PhotoInteractiveForPushAnimator(panGestureRecognizer: panGestureRecognizer)
+                        result = PhotoInteractiveAnimator(panGestureRecognizer: panGestureRecognizer, isNavigationDismiss: true)
                     } else {
-                        result = PhotoHideShowAnimator(isPresenting: operation == .push)
+                        result = PhotoHideShowAnimator(isPresenting: operation == .push, isNavigationAnimation: true)
                     }
                 }
             }

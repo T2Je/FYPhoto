@@ -48,6 +48,8 @@ public class VideoPreviewController: UIViewController {
         view.addSubview(cancelButton)
         view.addSubview(saveButton)
         
+        playerView.backgroundColor = .black
+        
         cancelButton.setTitle("Cancel".photoTablelocalized, for: .normal)
         cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         cancelButton.layer.masksToBounds = true

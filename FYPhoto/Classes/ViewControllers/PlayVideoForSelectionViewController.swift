@@ -55,6 +55,8 @@ class PlayVideoForSelectionViewController: UIViewController {
         view.addSubview(playerView)
         view.addSubview(cancelButton)
         view.addSubview(selectButton)
+
+        playerView.backgroundColor = .black
         
         cancelButton.setTitle("Cancel".photoTablelocalized, for: .normal)
         cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)

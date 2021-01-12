@@ -14,6 +14,7 @@ class PhotoTransitionDriver: TransitionDriver {
     }
     let transitionContext: UIViewControllerContextTransitioning
     let isPresenting: Bool
+    let isNavigationAnimation: Bool
     
     private let duration: TimeInterval
     private var itemFrameAnimator: UIViewPropertyAnimator?
@@ -31,21 +32,18 @@ class PhotoTransitionDriver: TransitionDriver {
         imageView.isUserInteractionEnabled = true
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        if #available(iOS 11.0, *) {
-            imageView.accessibilityIgnoresInvertColors = true
-        } else {
-            // Fallback on earlier versions
-        }
+        imageView.accessibilityIgnoresInvertColors = true
         return imageView
     }()
 
     // MARK: Initialization
 
-    init(isPresenting: Bool, context: UIViewControllerContextTransitioning, duration: TimeInterval) {
+    init(isPresenting: Bool, isNavigationAnimation: Bool, context: UIViewControllerContextTransitioning, duration: TimeInterval) {
         self.transitionContext = context
         self.isPresenting = isPresenting
         self.duration = duration
-
+        self.isNavigationAnimation = isNavigationAnimation
+        
         setup(context)
     }
 
@@ -53,20 +51,26 @@ class PhotoTransitionDriver: TransitionDriver {
         // Setup the transition "chrome"
         guard
             let fromViewController = context.viewController(forKey: .from),
-            let toViewController = context.viewController(forKey: .to),
-            let fromAssetTransitioning = (fromViewController as? PhotoTransitioning),
-            let toAssetTransitioning = (toViewController as? PhotoTransitioning),
-            let fromView = fromViewController.view,
-            let toView = toViewController.view
-            else {
-                assertionFailure("None of them should be nil")
-                return
+            let toViewController = context.viewController(forKey: .to)
+        else {
+            return
+        }
+        self.fromAssetTransitioning = fromViewController as? PhotoTransitioning
+        self.toAssetTransitioning = toViewController as? PhotoTransitioning
+        if isNavigationAnimation {
+            let toView = context.view(forKey: .to)
+            self.toView = toView
+        } else {
+            let fromView = context.view(forKey: .from)
+            self.fromView = fromView
+            let toView = context.view(forKey: .to)
+            self.toView = toView
         }
 
-        self.fromAssetTransitioning = fromAssetTransitioning
-        self.toAssetTransitioning = toAssetTransitioning
-        self.toView = toView
-        self.fromView = fromView
+//        self.fromAssetTransitioning = fromAssetTransitioning
+//        self.toAssetTransitioning = toAssetTransitioning
+//        self.toView = toView
+//        self.fromView = fromView
 
         let containerView = context.containerView
 
@@ -80,40 +84,44 @@ class PhotoTransitionDriver: TransitionDriver {
         containerView.addSubview(visualEffectView)
 
         // Insert the toViewController's view into the transition container view
-        let topView: UIView
+        var topView: UIView?
         var topViewTargetAlpha: CGFloat = 0.0
         if isPresenting {
             topView = toView
             topViewTargetAlpha = 1.0
-            toView.alpha = 0.0
-            containerView.addSubview(toView)
+            if let to = toView {
+                to.alpha = 0.0
+                containerView.addSubview(to)
+            }
         } else {
             topView = fromView
             topViewTargetAlpha = 0.0
-            containerView.insertSubview(toView, at: 0)
+            if let to = toView {
+                containerView.insertSubview(to, at: 0)
+            }
         }
 
         // Ensure the toView has the correct size and position
-        toView.frame = context.finalFrame(for: toViewController)
+        toView?.frame = context.finalFrame(for: toViewController)
 
-        if let fromImage = fromAssetTransitioning.referenceImage() {
+        if let fromImage = fromAssetTransitioning?.referenceImage() {
             transitionImageView.image = fromImage
         }
 
-        if let frame = fromAssetTransitioning.imageFrame() {
+        if let frame = fromAssetTransitioning?.imageFrame() {
             transitionImageView.frame = frame
         }
 
         containerView.addSubview(transitionImageView)
 
         // Inform the view controller's the transition is about to start
-        fromAssetTransitioning.transitionWillStart()
-        toAssetTransitioning.transitionWillStart()
+        fromAssetTransitioning?.transitionWillStart()
+        toAssetTransitioning?.transitionWillStart()
 
         // Create a UIViewPropertyAnimator that lives the lifetime of the transition
         let spring = CGFloat(0.95)
         transitionAnimator = UIViewPropertyAnimator(duration: duration, dampingRatio: spring) {
-            topView.alpha = topViewTargetAlpha
+            topView?.alpha = topViewTargetAlpha
             self.visualEffectView.effect = targetEffect
         }
 

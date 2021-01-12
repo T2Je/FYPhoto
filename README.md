@@ -33,3 +33,5 @@ FYPhoto is available under the MIT license. See the LICENSE file for more info.
 1. add progress bar when playing video
 2. use SDWebImage cache instead of Cache
 3. support Present animation
+4. AVPlayer restore previous state
+5. Camera caputre view frame

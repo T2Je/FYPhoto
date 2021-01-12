@@ -123,7 +123,7 @@ import FGBase
         collectionView.register(AddPhotoCollectionViewCell.self, forCellWithReuseIdentifier: Self.cellIdentifier)
     }
 
-    func addViews() {
+    func addViews() {        
         view.addSubview(textView)
         view.addSubview(textCountLabel)
         view.addSubview(collectionView)
@@ -239,8 +239,8 @@ import FGBase
             return
         }
         self.view.endEditing(true)
-        showHUD()
-        let text = textView.text ?? ""
+//        showHUD()
+//        let text = textView.text ?? ""
 //        uploadText(text, images: selectedImageArray, userID: UserManager.shared.user?.uid ?? "", userTrueName: UserManager.shared.user?.trueName ?? "")
     }
 
@@ -371,12 +371,15 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
             }
             
             let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: indexPath.item) {
-                $0.buildForSelection(false)
-//                $0.quickBuildJustForBrowser()
-//                    .showDeleteButtonForBrowser()
+//                $0.buildForSelection(false)
+                $0.quickBuildJustForBrowser()
+                    .showDeleteButtonForBrowser()
             }
             
             photoBrowser.delegate = self
+//            self.fyphoto.present(photoBrowser, animated: true) {
+//                print("present photo browser completely")
+//            }
             self.navigationController?.pushViewController(photoBrowser, animated: true)
         }
     }
