@@ -9,24 +9,45 @@ import Foundation
 
 extension UIViewController: FYNameSpaceProtocol {
     struct TransitionHolder {
-        static var _holderValue: PhotoPresentTransitionController?
+        private static var _viewControllerTransition: UIViewControllerTransitioningDelegate?
+        private static var _naviTransition: UINavigationControllerDelegate?
+        
+        static func storeViewControllerTransition(_ transition: UIViewControllerTransitioningDelegate) {
+            _viewControllerTransition = transition
+        }
+        static func storeNaviTransition(_ transition: UINavigationControllerDelegate) {
+            _naviTransition = transition
+        }
+        static func clearViewControllerTransition() {
+            _viewControllerTransition = nil
+        }
+        
+        static func clearNaviTransition() {
+            _viewControllerTransition = nil
+        }
     }
 }
 
-extension TypeWrapper {
-    
-}
 extension TypeWrapperProtocol where WrappedType: UIViewController {
     
     public func present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)?) {
-        
         let transition = PhotoPresentTransitionController(viewController: viewControllerToPresent)
         viewControllerToPresent.modalPresentationStyle = .custom
         viewControllerToPresent.transitioningDelegate = transition
         wrappedValue.present(viewControllerToPresent, animated: animated, completion: {
             completion?()
         })
-//        wrappedValue.present(viewControllerToPresent, animated: animated, completion: completion)
-        UIViewController.TransitionHolder._holderValue = transition
+        UIViewController.TransitionHolder.storeViewControllerTransition(transition)
+    }
+
+    
+}
+
+extension TypeWrapperProtocol where WrappedType: UINavigationController {
+    public func push(_ viewController: UIViewController, animated: Bool) {
+        let transition = PhotoPushTransitionController(navigationController: wrappedValue)
+        wrappedValue.delegate = transition
+        wrappedValue.pushViewController(viewController, animated: true)
+        UIViewController.TransitionHolder.storeNaviTransition(transition)
     }
 }

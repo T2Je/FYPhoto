@@ -58,13 +58,13 @@ class PhotoTransitionDriver: TransitionDriver {
         self.fromAssetTransitioning = fromViewController as? PhotoTransitioning
         self.toAssetTransitioning = toViewController as? PhotoTransitioning
         if isNavigationAnimation {
-            let toView = context.view(forKey: .to)
-            self.toView = toView
-        } else {
             let fromView = context.view(forKey: .from)
             self.fromView = fromView
             let toView = context.view(forKey: .to)
             self.toView = toView
+        } else {
+            let toView = context.view(forKey: .to)
+            self.toView = toView            
         }
 
 //        self.fromAssetTransitioning = fromAssetTransitioning

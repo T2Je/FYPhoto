@@ -9,8 +9,8 @@ import Foundation
 
 class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningDelegate {
     let panGesture = UIPanGestureRecognizer()
-    let viewController: UIViewController
-    init(viewController: UIViewController) {
+    weak var viewController: UIViewController?
+    init(viewController: UIViewController?) {
         self.viewController = viewController
         super.init()
         configurePanGestureRecognizer()
@@ -27,15 +27,15 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
         panGesture.delegate = self
         panGesture.maximumNumberOfTouches = 1
         panGesture.addTarget(self, action: #selector(initiateTransitionInteractively(_:)))
-        viewController.view.addGestureRecognizer(panGesture)
+        viewController?.view.addGestureRecognizer(panGesture)
     }
 
     @objc func initiateTransitionInteractively(_ panGesture: UIPanGestureRecognizer) {
         if panGesture.state == .began && interactiveAnimator?.transitionDriver == nil {
 //            viewController.dismiss(animated: true, completion: nil)
-            viewController.dismiss(animated: true) {
-                UIViewController.TransitionHolder._holderValue = nil
-                self.viewController.view.removeGestureRecognizer(panGesture)
+            viewController?.dismiss(animated: true) {
+                UIViewController.TransitionHolder.clearViewControllerTransition()
+                self.viewController?.view.removeGestureRecognizer(panGesture)
             }
         }
     }

@@ -49,7 +49,6 @@ import FGBase
     }()
 
     var collectionView: UICollectionView!
-    var transitionController: PhotoPushTransitionController?
 
     let photoLauncher = PhotoLauncher()
 
@@ -81,7 +80,7 @@ import FGBase
         addViews()
         addGestures()
         setupNavigation()
-        setupTransitionController()
+
         photoLauncher.delegate = self
         // Do any additional setup after loading the view.
     }
@@ -89,12 +88,6 @@ import FGBase
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.navigationController?.setNavigationBarHidden(false, animated: animated)
-    }
-
-    func setupTransitionController() {
-        guard let navigationController = self.navigationController else { return }
-        transitionController = PhotoPushTransitionController(navigationController: navigationController)
-        navigationController.delegate = transitionController
     }
 
     func setupTextView() {
@@ -377,10 +370,11 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
             }
             
             photoBrowser.delegate = self
-//            self.fyphoto.present(photoBrowser, animated: true) {
-//                print("present photo browser completely")
-//            }
-            self.navigationController?.pushViewController(photoBrowser, animated: true)
+            self.fyphoto.present(photoBrowser, animated: true) {
+                print("present photo browser completely")
+            }
+//            self.navigationController?.fyphoto.push(photoBrowser, animated: true)
+//            self.navigationController?.pushViewController(photoBrowser, animated: true)
         }
     }
 
@@ -431,13 +425,11 @@ extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
 
 extension AddPhotoBlogViewController: PhotoTransitioning {
     public func transitionWillStart() {
-        print(#file, #function)
         guard let indexPath = lastSelectedIndexPath else { return }
         collectionView.cellForItem(at: indexPath)?.isHidden = true
     }
 
     public func transitionDidEnd() {
-        print(#file, #function)
         guard let indexPath = lastSelectedIndexPath else { return }
         collectionView.cellForItem(at: indexPath)?.isHidden = false
     }

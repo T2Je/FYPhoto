@@ -74,9 +74,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     }
     
     var willBatchUpdated: Bool = false
-
-    var transitionController: PhotoPushTransitionController?
-
+    
     // photo
     fileprivate var maximumCanBeSelected: Int = 0
     
@@ -152,9 +150,7 @@ public class PhotoPickerViewController: UICollectionViewController {
 
         setupNavigationBar()
 
-        resetCachedAssets()
-
-        setupTransitionController()
+        resetCachedAssets()        
 
         PHPhotoLibrary.shared().register(self)
     }
@@ -216,11 +212,6 @@ public class PhotoPickerViewController: UICollectionViewController {
         }
         customTitleView.title = "All photos".photoTablelocalized
         self.navigationItem.titleView = customTitleView
-    }
-
-    func setupTransitionController() {
-        guard let navigationController = self.navigationController else { return }
-        transitionController = PhotoPushTransitionController(navigationController: navigationController)
     }
     
     @objc func backBarButton(_ sender: UIBarButtonItem) {
@@ -422,7 +413,7 @@ public class PhotoPickerViewController: UICollectionViewController {
         })        
 
         photoBrowser.delegate = self
-        self.navigationController?.pushViewController(photoBrowser, animated: true)
+        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
     }
     
     func browseVideoIfValid(_ asset: PHAsset) {

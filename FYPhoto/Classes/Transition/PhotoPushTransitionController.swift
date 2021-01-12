@@ -40,6 +40,7 @@ public class PhotoPushTransitionController: NSObject {
         if panGesture.state == .began && interactiveTransitioning?.transitionDriver == nil {
             initiallyInteractive = true
             let _ = navigationController?.popViewController(animated: true)
+            UIViewController.TransitionHolder.clearNaviTransition()
         } else {
             initiallyInteractive = false
         }
