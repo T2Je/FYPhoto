@@ -9,21 +9,22 @@ import UIKit
 import Photos
 import SDWebImage
 
-protocol DetectingTapViewDelegate: class {
+protocol DetectingGestureViewDelegate: class {
     func handleSingleTap(_ touchPoint: CGPoint)
     func handleDoubleTap(_ touchPoint: CGPoint)
+    func handleLongPress()
 }
 
 
 protocol DetectingTapView {
-    var tapGestureDelegate: DetectingTapViewDelegate? { get set }
+    var gestureDelegate: DetectingGestureViewDelegate? { get set }
     var singleTap: UITapGestureRecognizer { get }
     var doubleTap: UITapGestureRecognizer { get}
 }
 
 class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
 
-    weak var tapGestureDelegate: DetectingTapViewDelegate?
+    weak var gestureDelegate: DetectingGestureViewDelegate?
 
     let singleTap: UITapGestureRecognizer
     let doubleTap: UITapGestureRecognizer
@@ -35,6 +36,8 @@ class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
         singleTap = UITapGestureRecognizer()
         singleTap.numberOfTapsRequired = 1
 
+        let longPress = UILongPressGestureRecognizer()
+        
         super.init(frame: frame)
         isUserInteractionEnabled = true
         addGestureRecognizer(doubleTap)
@@ -42,8 +45,11 @@ class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
         singleTap.require(toFail: doubleTap)
         addGestureRecognizer(singleTap)
         
+        addGestureRecognizer(longPress)
+        
         doubleTap.addTarget(self, action: #selector(doubleTap(_:)))
         singleTap.addTarget(self, action: #selector(singleTap(_:)))
+        longPress.addTarget(self, action: #selector(longPressed(_:)))
     }
 
     required init?(coder: NSCoder) {
@@ -51,11 +57,15 @@ class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
     }
 
     @objc func singleTap(_ tap: UITapGestureRecognizer) {
-        tapGestureDelegate?.handleSingleTap(tap.location(in: self))
+        gestureDelegate?.handleSingleTap(tap.location(in: self))
     }
 
     @objc func doubleTap(_ tap: UITapGestureRecognizer) {
-        tapGestureDelegate?.handleDoubleTap(tap.location(in: self))
+        gestureDelegate?.handleDoubleTap(tap.location(in: self))
+    }
+    
+    @objc func longPressed(_ gesture: UILongPressGestureRecognizer) {
+        gestureDelegate?.handleLongPress()
     }
     
     func setAsset(_ asset: PHAsset, targeSize: CGSize, resultHandler: ((UIImage?) -> Void)? = nil) {

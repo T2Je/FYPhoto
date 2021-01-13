@@ -123,7 +123,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             self.selectedPhotos = []
             return self
         }
-
         
         public func build(_ photoBrowser: PhotoBrowserViewController) {
             photoBrowser.selectedPhotos = selectedPhotos
@@ -684,7 +683,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             }
         } else {
             if let photoCell = cell as? PhotoDetailCell {
-                photoCell.setPhoto(photo)
+                photoCell.photo = photo
             }
         }
     }
@@ -946,12 +945,14 @@ extension PhotoBrowserViewController: UIScrollViewDelegate {
 // MARK: - Router event
 extension PhotoBrowserViewController {
     override func routerEvent(name: String, userInfo: [AnyHashable : Any]?) {
-        if let tap = ImageViewTap(rawValue: name) {
+        if let tap = ImageViewGestureEvent(rawValue: name) {
             switch tap {
             case .singleTap:
                 hideOrShowTopBottom()
             case .doubleTap:
                 handleDoubleTap(userInfo)
+            case .longPress:
+                handleLongPress()
             }
         } else {
             // pass the event
@@ -1012,6 +1013,13 @@ extension PhotoBrowserViewController {
         zoomRect.origin.x = center.x - (zoomRect.size.width / 2.0)
         zoomRect.origin.y = center.y - (zoomRect.size.height / 2.0)
         return zoomRect
+    }
+    
+    func handleLongPress() {
+        if let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? CellWithPhotoProtocol,
+           let photo = cell.photo {
+            delegate?.photoBrowser(self, longPressedOnPhoto: photo)
+        }
     }
 }
 

@@ -64,6 +64,9 @@ class VideoDetailCell: UICollectionViewCell {
         tap.require(toFail: doubleTap)
         contentView.addGestureRecognizer(tap)
 
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressed(_:)))
+        contentView.addGestureRecognizer(longPress)
+        
         makeConstraints()
     }
 
@@ -139,15 +142,19 @@ class VideoDetailCell: UICollectionViewCell {
     }
 
     @objc func tapVideoCell(_ gesture: UITapGestureRecognizer) {
-        routerEvent(name: ImageViewTap.singleTap.rawValue, userInfo: nil)
+        routerEvent(name: ImageViewGestureEvent.singleTap.rawValue, userInfo: nil)
     }
 
     @objc func doubleTapVideoCell(_ gesture: UITapGestureRecognizer) {
         var info = [String: Any]()
         info["mediaType"] = kUTTypeVideo
-        routerEvent(name: ImageViewTap.doubleTap.rawValue, userInfo: info)
+        routerEvent(name: ImageViewGestureEvent.doubleTap.rawValue, userInfo: info)
     }
 
+    @objc func longPressed(_ gesture: UILongPressGestureRecognizer) {
+        routerEvent(name: ImageViewGestureEvent.longPress.rawValue, userInfo: nil)
+    }
+    
     fileprivate func makeConstraints() {
         playerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([

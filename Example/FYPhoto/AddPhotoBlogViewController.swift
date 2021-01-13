@@ -421,6 +421,26 @@ extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
         selectedImageArray.remove(at: index)
     }
 
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, longPressedOnPhoto photo: PhotoProtocol) {
+        alertLongPress(with: photo, on: photoBrowser)
+    }
+    
+    func alertLongPress(with photo: PhotoProtocol, on photoBrowser: PhotoBrowserViewController) {
+        let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let saveTitle = photo.isVideo ? "Save Video" : "Save Image"
+        let saveAction = UIAlertAction(title: saveTitle, style: .default) { _ in
+            if photo.isVideo {
+                print("save video at \(photo.url)")
+            } else {
+                print("save image: \(photo.image)")
+            }
+        }
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alertController.addAction(saveAction)
+        alertController.addAction(cancelAction)
+        photoBrowser.present(alertController, animated: true, completion: nil)
+    }
 }
 
 extension AddPhotoBlogViewController: PhotoTransitioning {

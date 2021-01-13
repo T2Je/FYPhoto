@@ -10,16 +10,17 @@ import Photos
 import UICircularProgressRing
 import MobileCoreServices
 
-enum ImageViewTap: String {
+enum ImageViewGestureEvent: String {
     case singleTap = "single_tap"
-    case doubleTap = "doubel_tap"
+    case doubleTap = "double_tap"
+    case longPress = "long_press"
 }
 
 class ZoomingScrollView: UIScrollView {
-    var photo: PhotoProtocol! {
+    var photo: PhotoProtocol? {
         didSet {
             circularProgressView.isHidden = true
-            if photo != nil {
+            if let photo = photo {
                 if let image = photo.image {
                     displayImage(image)
                 } else if let asset = photo.asset {
@@ -44,7 +45,7 @@ class ZoomingScrollView: UIScrollView {
 
     func setup() {
 //        backgroundColor = .clear
-        imageView.tapGestureDelegate = self
+        imageView.gestureDelegate = self
         imageView.contentMode = .scaleAspectFit
 
         circularProgressView.outerRingColor = .white
@@ -121,7 +122,7 @@ class ZoomingScrollView: UIScrollView {
                 #endif
                 self?.displayImageFailure()
             case .success(let image):
-                self?.photo.storeImage(image)
+                self?.photo?.storeImage(image)
                 self?.displayImage(image)
             }
         }
@@ -134,15 +135,19 @@ class ZoomingScrollView: UIScrollView {
     }
 }
 
-extension ZoomingScrollView: DetectingTapViewDelegate {
+extension ZoomingScrollView: DetectingGestureViewDelegate {
     func handleSingleTap(_ touchPoint: CGPoint) {
-        routerEvent(name: ImageViewTap.singleTap.rawValue, userInfo: nil)
+        routerEvent(name: ImageViewGestureEvent.singleTap.rawValue, userInfo: nil)
     }
     
     func handleDoubleTap(_ touchPoint: CGPoint) {
         var info = [String: Any]()
         info["touchPoint"] = touchPoint
         info["mediaType"] = kUTTypeImage
-        routerEvent(name: ImageViewTap.doubleTap.rawValue, userInfo: info)
+        routerEvent(name: ImageViewGestureEvent.doubleTap.rawValue, userInfo: info)
+    }
+    
+    func handleLongPress() {
+        routerEvent(name: ImageViewGestureEvent.longPress.rawValue, userInfo: nil)
     }
 }
