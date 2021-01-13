@@ -10,16 +10,17 @@ import Photos
 import UICircularProgressRing
 import MobileCoreServices
 
-enum ImageViewTap: String {
+enum ImageViewGestureEvent: String {
     case singleTap = "single_tap"
-    case doubleTap = "doubel_tap"
+    case doubleTap = "double_tap"
+    case longPress = "long_press"
 }
 
 class ZoomingScrollView: UIScrollView {
-    var photo: PhotoProtocol! {
+    var photo: PhotoProtocol? {
         didSet {
             circularProgressView.isHidden = true
-            if photo != nil {
+            if let photo = photo {
                 if let image = photo.image {
                     displayImage(image)
                 } else if let asset = photo.asset {
@@ -44,17 +45,17 @@ class ZoomingScrollView: UIScrollView {
 
     func setup() {
 //        backgroundColor = .clear
-        imageView.tapGestureDelegate = self
+        imageView.gestureDelegate = self
         imageView.contentMode = .scaleAspectFit
 
-        circularProgressView.outerRingColor = .gray
-        circularProgressView.innerRingColor = .orange
+        circularProgressView.outerRingColor = .white
+        circularProgressView.innerRingColor = UIColor(red: 43/255.0, green: 134/255.0, blue: 245/255.0, alpha: 1)
         circularProgressView.style = .ontop
         circularProgressView.startAngle = 270
         circularProgressView.isHidden = true
         circularProgressView.minValue = 0
-        circularProgressView.maxValue = 1
-        circularProgressView.innerRingWidth = 3
+        circularProgressView.maxValue = 100
+        circularProgressView.innerRingWidth = 5
 
         addSubview(imageView)
         addSubview(circularProgressView)
@@ -90,6 +91,8 @@ class ZoomingScrollView: UIScrollView {
     }
 
     func displayAsset(_ asset: PHAsset, targetSize: CGSize) {
+        circularProgressView.value = 100
+        circularProgressView.isHidden = false
         imageView.setAsset(asset, targeSize: targetSize) { [weak self] (image) in
             if let image = image {
 //                self?.photo.storeImage(image)  Avoid out of memory
@@ -108,7 +111,7 @@ class ZoomingScrollView: UIScrollView {
                 if self.circularProgressView.isHidden == true {
                     self.circularProgressView.isHidden = false
                 }
-                self.circularProgressView.value = CGFloat(progress)
+                self.circularProgressView.value = CGFloat(progress * 100)
             }
         } completed: { [weak self] (result) in
             self?.circularProgressView.isHidden = true
@@ -119,7 +122,7 @@ class ZoomingScrollView: UIScrollView {
                 #endif
                 self?.displayImageFailure()
             case .success(let image):
-                self?.photo.storeImage(image)
+                self?.photo?.storeImage(image)
                 self?.displayImage(image)
             }
         }
@@ -132,15 +135,19 @@ class ZoomingScrollView: UIScrollView {
     }
 }
 
-extension ZoomingScrollView: DetectingTapViewDelegate {
+extension ZoomingScrollView: DetectingGestureViewDelegate {
     func handleSingleTap(_ touchPoint: CGPoint) {
-        routerEvent(name: ImageViewTap.singleTap.rawValue, userInfo: nil)
+        routerEvent(name: ImageViewGestureEvent.singleTap.rawValue, userInfo: nil)
     }
     
     func handleDoubleTap(_ touchPoint: CGPoint) {
         var info = [String: Any]()
         info["touchPoint"] = touchPoint
         info["mediaType"] = kUTTypeImage
-        routerEvent(name: ImageViewTap.doubleTap.rawValue, userInfo: info)
+        routerEvent(name: ImageViewGestureEvent.doubleTap.rawValue, userInfo: info)
+    }
+    
+    func handleLongPress() {
+        routerEvent(name: ImageViewGestureEvent.longPress.rawValue, userInfo: nil)
     }
 }
