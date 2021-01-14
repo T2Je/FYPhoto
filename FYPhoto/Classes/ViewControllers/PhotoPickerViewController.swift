@@ -194,16 +194,16 @@ public class PhotoPickerViewController: UICollectionViewController {
 
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(backBarButton(_:)))
         navigationItem.leftBarButtonItem?.tintColor = .black
-
-        selectedPhotoCountBarItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
+        
+        // There is a UI bug on iOS 14.2 and above, set title to " " to fix this bug.
+        selectedPhotoCountBarItem = UIBarButtonItem(title: " ", style: .plain, target: nil, action: nil)
         selectedPhotoCountBarItem.tintColor = .systemBlue
-
+        
         doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(doneBarButton(_:)))
         doneBarItem.isEnabled = false
         doneBarItem.tintColor = .black
 
         navigationItem.rightBarButtonItems = [doneBarItem, selectedPhotoCountBarItem]
-
         // custom titleview
         customTitleView.tapped = { [weak self] in
             guard let self = self else { return }
