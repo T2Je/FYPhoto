@@ -91,9 +91,11 @@ public class PhotoPickerViewController: UICollectionViewController {
     public init(mediaTypes: MediaOptions) {
         self.mediaOptions = mediaTypes
         let flowLayout = UICollectionViewFlowLayout()
-        flowLayout.itemSize = CGSize(width: 120, height: 120)
-        flowLayout.minimumInteritemSpacing = 1
-        flowLayout.minimumLineSpacing = 1
+        let screenSize = UIScreen.main.bounds.size
+        let width = floor((screenSize.width - 5) / 3)
+        flowLayout.itemSize = CGSize(width: width, height: width)
+        flowLayout.minimumInteritemSpacing = 2.5
+        flowLayout.minimumLineSpacing = 2.5
         flowLayout.scrollDirection = .vertical
         super.init(collectionViewLayout: flowLayout)
     }
@@ -175,7 +177,6 @@ public class PhotoPickerViewController: UICollectionViewController {
 
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-
         // Determine the size of the thumbnails to request from the PHCachingImageManager
         let scale = UIScreen.main.scale
         let cellSize = (collectionViewLayout as! UICollectionViewFlowLayout).itemSize

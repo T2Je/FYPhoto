@@ -58,8 +58,7 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
     public func cameraDidCancel(_ cameraViewController: CameraViewController) {
         cameraViewController.dismiss(animated: true, completion: nil)
     }
-    
-    
+
 }
 
 extension PhotoPickerViewController: VideoPreviewControllerDelegate {
