@@ -13,7 +13,7 @@ import PhotosUI
 
 public protocol PhotoLauncherDelegate: class {
     func selectedPhotosInPhotoLauncher(_ photos: [SelectedImage])
-//    func selectedPhotosInPhotoLauncher(_ photos: [Photo])
+    func selectedVideosInPhotoLauncher(_ videos: [Result<SelectedVideo, Error>])
 }
 
 /// A helper class to launch photo picker and camera.
@@ -32,9 +32,7 @@ public protocol PhotoLauncherDelegate: class {
         /// url extension, e.g., xxx.mp4
         public var videoPathExtension: String = "mp4"
 
-        public init() {
-
-        }
+        public init() {}
     }
 
     public typealias CameraContainer = UIViewController & UINavigationControllerDelegate & CameraViewControllerDelegate
@@ -140,7 +138,9 @@ public protocol PhotoLauncherDelegate: class {
         gridVC.selectedPhotos = { [weak self] images in
             self?.delegate?.selectedPhotosInPhotoLauncher(images)
         }
-
+        gridVC.selectedVideo = { [weak self] video in
+            self?.delegate?.selectedVideosInPhotoLauncher([video])
+        }
         let navi = UINavigationController(rootViewController: gridVC)
         navi.modalPresentationStyle = .fullScreen
         viewController.present(navi, animated: true, completion: nil)
@@ -226,7 +226,7 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
 
         var images: [SelectedImage] = []
         let group = DispatchGroup()
-
+        
         results.forEach { result in
             if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
                 group.enter()
@@ -246,6 +246,28 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
                     }
                     group.leave()
                 }
+            } else if result.itemProvider.hasRepresentationConforming(toTypeIdentifier: AVFileType.mp4.rawValue, fileOptions: []) {
+                result.itemProvider.loadFileRepresentation(forTypeIdentifier: AVFileType.mp4.rawValue) { (url, error) in
+                    if let error = error {
+                        #if DEBUG
+                        print("❌ Couldn't load video with error: \(error)")
+                        #endif
+                    } else {
+                         print("selected video url: \(url)")
+                    }
+                }
+            } else if result.itemProvider.hasRepresentationConforming(toTypeIdentifier: AVFileType.mov.rawValue, fileOptions: []){
+                result.itemProvider.loadFileRepresentation(forTypeIdentifier: AVFileType.mov.rawValue) { (url, error) in
+                    if let error = error {
+                        #if DEBUG
+                        print("❌ Couldn't load video with error: \(error)")
+                        #endif
+                    } else {
+                         print("selected video url: \(url)")
+                    }
+                }
+            } else {
+                print("couldn't load item")
             }
         }
 

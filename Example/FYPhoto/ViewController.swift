@@ -200,6 +200,10 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: PhotoLauncherDelegate {
+    func selectedVideosInPhotoLauncher(_ videos: [Result<SelectedVideo, Error>]) {
+        
+    }
+    
     func selectedPhotosInPhotoLauncher(_ photos: [SelectedImage]) {
         print("selected \(photos.count) images")
     }

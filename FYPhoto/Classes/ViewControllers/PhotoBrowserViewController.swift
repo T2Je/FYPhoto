@@ -170,8 +170,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     fileprivate var previousToolBarHidden: Bool?
     fileprivate var previousInteractivePop: Bool?
     fileprivate var previousNavigationTitle: String?
-    fileprivate var previousAudioCategory: AVAudioSession.Category?
     fileprivate var previousExtendedLayoutIncludesOpaqueBars: Bool = false
+    
+    fileprivate var previousAudioCategory: AVAudioSession.Category?
+    fileprivate var previousAudioMode: AVAudioSession.Mode?
+    fileprivate var previousAudioOptions: AVAudioSession.CategoryOptions?
     
     fileprivate var originCaptionTransform: CGAffineTransform!
 
@@ -429,8 +432,29 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         previousNavigationBarHidden = self.navigationController?.navigationBar.isHidden
         previousInteractivePop = self.navigationController?.interactivePopGestureRecognizer?.isEnabled
         previousNavigationTitle = self.navigationController?.navigationItem.title
-        previousAudioCategory = AVAudioSession.sharedInstance().category
         previousExtendedLayoutIncludesOpaqueBars = extendedLayoutIncludesOpaqueBars
+        
+        previousAudioCategory = AVAudioSession.sharedInstance().category
+        previousAudioMode = AVAudioSession.sharedInstance().mode
+        previousAudioOptions = AVAudioSession.sharedInstance().categoryOptions
+    }
+        
+    fileprivate func activateOtherInterruptedAudioSessions() {
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+            
+            if let category = previousAudioCategory {
+                do {
+                    try AVAudioSession.sharedInstance().setCategory(category,
+                                                                    mode: previousAudioMode ?? .default,
+                                                                    options: previousAudioOptions ?? [])
+                } catch {
+                    print(error)
+                }
+            }
+        } catch let error {
+            print("audio session set active error: \(error)")
+        }
     }
     
     // MARK: Setup
@@ -522,10 +546,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     fileprivate func restoreOtherPreviousData() {
-        if let audioCategory = previousAudioCategory {
-            try? AVAudioSession.sharedInstance().setCategory(audioCategory)
-        }
-        
+        activateOtherInterruptedAudioSessions()        
         extendedLayoutIncludesOpaqueBars = previousExtendedLayoutIncludesOpaqueBars
     }
     

@@ -352,9 +352,16 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
         if cell.isAdd {
             // go to grid vc
             if #available(iOS 14, *) {
-                photoLauncher.launchSystemPhotoPicker(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
+                photoLauncher.launchSystemPhotoPicker(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count, mediaOptions: .all)
             } else {
-                photoLauncher.launchCustomPhotoLibrary(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
+//                photoLauncher.launchCustomPhotoLibrary(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
+                let photoPicker = PhotoPickerViewController(mediaTypes: .all)
+                    .setPickerWithCamera(true)
+                    .setMaximumPhotosCanBeSelected(photosLimited - selectedImageArray.count)
+                let navi = UINavigationController(rootViewController: photoPicker)
+                navi.modalPresentationStyle = .fullScreen
+                
+                self.present(navi, animated: true, completion: nil)
             }
         } else {
             var photos = [PhotoProtocol]()
@@ -394,6 +401,10 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
 }
 
 extension AddPhotoBlogViewController: PhotoLauncherDelegate {
+    func selectedVideosInPhotoLauncher(_ videos: [Result<SelectedVideo, Error>]) {
+        
+    }
+    
     func selectedPhotosInPhotoLauncher(_ photos: [SelectedImage]) {
         #if DEBUG
         print("selected \(photos.count) photos")
