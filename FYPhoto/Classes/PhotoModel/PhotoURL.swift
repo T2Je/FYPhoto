@@ -62,6 +62,7 @@ class PhotoURL: PhotoProtocol {
         self.image = image
     }
     
+    // TODO: 😴zZ Use method in URL+Thumbnail instead
     func generateThumbnail(_ url: URL, size: CGSize, completion: @escaping ((Result<UIImage, Error>) -> Void)) {
         let cache = URLCache.shared
         let urlRequest = URLRequest(url: url)

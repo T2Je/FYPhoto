@@ -200,8 +200,8 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: PhotoLauncherDelegate {
-    func selectedVideosInPhotoLauncher(_ videos: [Result<SelectedVideo, Error>]) {
-        
+    func selectedVideoInPhotoLauncher(_ video: Result<SelectedVideo, Error>) {
+        print("Selected video: \(try? video.get())")
     }
     
     func selectedPhotosInPhotoLauncher(_ photos: [SelectedImage]) {

@@ -13,7 +13,7 @@ import PhotosUI
 
 public protocol PhotoLauncherDelegate: class {
     func selectedPhotosInPhotoLauncher(_ photos: [SelectedImage])
-    func selectedVideosInPhotoLauncher(_ videos: [Result<SelectedVideo, Error>])
+    func selectedVideoInPhotoLauncher(_ video: Result<SelectedVideo, Error>)
 }
 
 /// A helper class to launch photo picker and camera.
@@ -139,7 +139,7 @@ public protocol PhotoLauncherDelegate: class {
             self?.delegate?.selectedPhotosInPhotoLauncher(images)
         }
         gridVC.selectedVideo = { [weak self] video in
-            self?.delegate?.selectedVideosInPhotoLauncher([video])
+            self?.delegate?.selectedVideoInPhotoLauncher(video)
         }
         let navi = UINavigationController(rootViewController: gridVC)
         navi.modalPresentationStyle = .fullScreen
@@ -193,38 +193,58 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
         alert.popoverPresentationController?.sourceRect = config.sourceRect
         container.present(alert, animated: true, completion: nil)
     }
-
+    
+    /// Launch system PhotoPicker with selectionLimit, mediaOptions in viewcontroller
+    /// mediaOptions parameter should be ethier `.image` or `.video`.
+    ///
+    /// - Parameters:
+    ///   - viewController: presenting viewController
+    ///   - maximumNumberCanChoose: selectionLimit. For `.video` media, 1 always as the selectionLimit
+    ///   - mediaOptions: ethier `.image` or `.video`. `.all` value will be reset to `.image`
     public func launchSystemPhotoPicker(in viewController: UIViewController, maximumNumberCanChoose: Int = 6, mediaOptions: MediaOptions = .image) {
         var configuration = PHPickerConfiguration()
         let filter: PHPickerFilter
         if mediaOptions == .image {
             filter = PHPickerFilter.images
+            configuration.selectionLimit = maximumNumberCanChoose
         } else if mediaOptions == .video {
             filter = PHPickerFilter.videos
+            configuration.selectionLimit = 1
         } else {
-            filter = PHPickerFilter.any(of: [.images, .videos])
+            filter = PHPickerFilter.images
+            configuration.selectionLimit = maximumNumberCanChoose
+//            filter = PHPickerFilter.any(of: [.images, .videos])
         }
         configuration.filter = filter
-        configuration.selectionLimit = maximumNumberCanChoose
+        
         let pickerController = PHPickerViewController(configuration: configuration)
         pickerController.delegate = self
         viewController.present(pickerController, animated: true, completion: nil)
     }
 
     public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-        parsePickerFetchResults(results) { (images) in
-            self.delegate?.selectedPhotosInPhotoLauncher(images)
+        if picker.configuration.filter == PHPickerFilter.images {
+            loadItemFromFetchResults(results) { (images: [SelectedImage]) in
+                self.delegate?.selectedPhotosInPhotoLauncher(images)
+            }
+        } else if picker.configuration.filter == PHPickerFilter.videos {
+            loadItemFromFetchResults(results) { (videos: [SelectedVideo]) in
+                guard !videos.isEmpty else { return }
+                let result = Result<SelectedVideo, Error>.success(videos[0])
+                self.delegate?.selectedVideoInPhotoLauncher(result)
+            }
         }
+        
         picker.dismiss(animated: true, completion: nil)
     }
 
-    func parsePickerFetchResults(_ results: [PHPickerResult], completion: @escaping (([SelectedImage]) -> Void)) {
+    func loadItemFromFetchResults<T>(_ results: [PHPickerResult], completion: @escaping (([T]) -> Void)) {
         guard !results.isEmpty else {
             completion([])
             return
         }
 
-        var images: [SelectedImage] = []
+        var items: [T] = []
         let group = DispatchGroup()
         
         results.forEach { result in
@@ -236,7 +256,9 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
                         if let id = result.assetIdentifier {
                             asset = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil).firstObject
                         }
-                        images.append(SelectedImage(asset: asset, image: image))
+                        if let image = SelectedImage(asset: asset, image: image) as? T {
+                            items.append(image)
+                        }
                     } else {
                         //TODO: what's the use of the code below?
 //                        if let placeholder = "cover_placeholder".photoImage {
@@ -247,24 +269,46 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
                     group.leave()
                 }
             } else if result.itemProvider.hasRepresentationConforming(toTypeIdentifier: AVFileType.mp4.rawValue, fileOptions: []) {
+                group.enter()
                 result.itemProvider.loadFileRepresentation(forTypeIdentifier: AVFileType.mp4.rawValue) { (url, error) in
                     if let error = error {
                         #if DEBUG
                         print("❌ Couldn't load video with error: \(error)")
                         #endif
                     } else {
-                         print("selected video url: \(url)")
+                        guard let url = url else { return }
+                        print("selected video url: \(url)")
+                        print("url exsisted \(FileManager.default.fileExists(atPath: url.path))")
+                        let video = SelectedVideo(url: url)
+                        if let t = video as? T {
+                            url.generateThumbnail(completion: { (result) in
+                                video.briefImage = try? result.get()
+                            })
+                            items.append(t)
+                        }
                     }
+                    group.leave()
                 }
             } else if result.itemProvider.hasRepresentationConforming(toTypeIdentifier: AVFileType.mov.rawValue, fileOptions: []){
+                group.enter()
                 result.itemProvider.loadFileRepresentation(forTypeIdentifier: AVFileType.mov.rawValue) { (url, error) in
                     if let error = error {
                         #if DEBUG
                         print("❌ Couldn't load video with error: \(error)")
                         #endif
                     } else {
-                         print("selected video url: \(url)")
+                        guard let url = url else { return }
+                        print("selected video url: \(url)")
+                        print("url exsisted \(FileManager.default.fileExists(atPath: url.path))")
+                        let video = SelectedVideo(url: url)
+                        if let t = video as? T {
+                            url.generateThumbnail(completion: { (result) in
+                                video.briefImage = try? result.get()
+                            })
+                            items.append(t)
+                        }
                     }
+                    group.leave()
                 }
             } else {
                 print("couldn't load item")
@@ -272,7 +316,7 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
         }
 
         group.notify(queue: .main) {
-            completion(images)
+            completion(items)
         }
     }
 

@@ -393,6 +393,7 @@
 		E1A6F4F56235217A16B78FE5283C5C8A /* UIImage+MultiFormat.m in Sources */ = {isa = PBXBuildFile; fileRef = 59DD3A01B824D554BF623C4294E5AA42 /* UIImage+MultiFormat.m */; };
 		E1D6F3BA5C47BFF15C01A218973A02A7 /* SDWebImageCacheSerializer.m in Sources */ = {isa = PBXBuildFile; fileRef = 084F623BD69202C4911BCE88A193AF9D /* SDWebImageCacheSerializer.m */; };
 		E2284A040725F6C94F101FCB70A59572 /* UIViewController+BarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F68BC1DEA160E4D9D6C8B60CFDC1601 /* UIViewController+BarItem.swift */; };
+		E3798A1D25B019A500362DED /* URL+Thumbnail.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3798A1C25B019A500362DED /* URL+Thumbnail.swift */; };
 		E47866CC7910F6A0FD9BEFD97C34FA8C /* PhotoPickerResource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9417BB86D4FD7DBC685EDD9B15A4DD0 /* PhotoPickerResource.swift */; };
 		E488C8147F1E41C86DBD22A9E93752E5 /* UIImageView+HighlightedWebCache.h in Headers */ = {isa = PBXBuildFile; fileRef = E379EACEB34BDFF6F70F05C36FC80A6B /* UIImageView+HighlightedWebCache.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E489C34C45530FD8CB13D831FD2C7DA5 /* FGMouduleBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCCB18A28A96949A985A6D910EEF154 /* FGMouduleBlockView.swift */; };
@@ -1028,6 +1029,7 @@
 		E2EB1452DD8BA57BEECDA5FE7CEB0662 /* CameraViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
 		E31386CA8F6859BE3AD09CC818B31643 /* UIImagePickerController+Tool.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "UIImagePickerController+Tool.swift"; sourceTree = "<group>"; };
 		E34CE93458D97FCA83CB3E214BB5C251 /* FYPhoto.podspec */ = {isa = PBXFileReference; explicitFileType = text.script.ruby; includeInIndex = 1; indentWidth = 2; path = FYPhoto.podspec; sourceTree = "<group>"; tabWidth = 2; xcLanguageSpecificationIdentifier = xcode.lang.ruby; };
+		E3798A1C25B019A500362DED /* URL+Thumbnail.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+Thumbnail.swift"; sourceTree = "<group>"; };
 		E379EACEB34BDFF6F70F05C36FC80A6B /* UIImageView+HighlightedWebCache.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "UIImageView+HighlightedWebCache.h"; path = "SDWebImage/Core/UIImageView+HighlightedWebCache.h"; sourceTree = "<group>"; };
 		E4CE2D66CAD5633B9138B4C93AA5F118 /* PhotoPickerError.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PhotoPickerError.swift; path = FYPhoto/Classes/PhotoPickerError.swift; sourceTree = "<group>"; };
 		E5640FD0E6EB1CA7206225F450B711E2 /* ResourceBundle-FGBase-FGBase-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "ResourceBundle-FGBase-FGBase-Info.plist"; sourceTree = "<group>"; };
@@ -1756,6 +1758,7 @@
 				85B003F5D6C881674F28C22EE4D352CA /* UIResponder+routerEvent.swift */,
 				65A5D79108A3BF969C21ED816E29C99B /* URL+FileSize.swift */,
 				1695BCBEB484FFF42729CEC86ADA5A15 /* URL+mediaType.swift */,
+				E3798A1C25B019A500362DED /* URL+Thumbnail.swift */,
 			);
 			name = extensions;
 			path = FYPhoto/Classes/extensions;
@@ -3115,6 +3118,7 @@
 				21411B07D2AA32560953D40886005990 /* PlayVideoForSelectionViewController.swift in Sources */,
 				40DF5F4808F233230ECC49C724CB2FD8 /* ResourceTool.swift in Sources */,
 				A6EBDA8FD27CDE38CD92642E0CFA030C /* SelectedImage.swift in Sources */,
+				E3798A1D25B019A500362DED /* URL+Thumbnail.swift in Sources */,
 				F85A1225D239CA4496292B2013C8E5D6 /* SelectedVideo.swift in Sources */,
 				253BCBC5671EFA3B01A9B59B0951C395 /* TransitionDriver.swift in Sources */,
 				05C39BDBED4E0D7A212AD37593DE0A16 /* UICollectionView+IndexPathsInRect.swift in Sources */,

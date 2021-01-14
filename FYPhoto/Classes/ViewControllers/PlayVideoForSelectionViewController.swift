@@ -12,22 +12,26 @@ import AVFoundation
 class PlayVideoForSelectionViewController: UIViewController {
     var selectedVideo: ((URL) -> Void)?
     
-    let cancelButton = UIButton()
-    let selectButton = UIButton()
+    fileprivate let cancelButton = UIButton()
+    fileprivate let selectButton = UIButton()
     
-    var playerView = PlayerView()
+    fileprivate var playerView = PlayerView()
     fileprivate var player: AVPlayer?
     fileprivate var playerItem: AVPlayerItem?
+    
+    fileprivate var previousAudioCategory: AVAudioSession.Category?
+    fileprivate var previousAudioMode: AVAudioSession.Mode?
+    fileprivate var previousAudioOptions: AVAudioSession.CategoryOptions?
     
     var isCreatedByURL = false
     
     var asset: PHAsset!
+    var url: URL!
     
     private init() {
         super.init(nibName: nil, bundle: nil)
     }
-    
-    var url: URL!
+        
     static func playVideo(_ url: URL) -> PlayVideoForSelectionViewController {
         let playerVC = PlayVideoForSelectionViewController()
         playerVC.isCreatedByURL = true
@@ -137,6 +141,24 @@ class PlayVideoForSelectionViewController: UIViewController {
             self.playerView.player = player
             player.play()
             self.player = player
+        }
+    }
+    
+    fileprivate func activateOtherInterruptedAudioSessions() {
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+            
+            if let category = previousAudioCategory {
+                do {
+                    try AVAudioSession.sharedInstance().setCategory(category,
+                                                                    mode: previousAudioMode ?? .default,
+                                                                    options: previousAudioOptions ?? [])
+                } catch {
+                    print(error)
+                }
+            }
+        } catch let error {
+            print("audio session set active error: \(error)")
         }
     }
     
