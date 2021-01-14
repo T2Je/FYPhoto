@@ -91,7 +91,7 @@ class GridViewCell: UICollectionViewCell {
         selectionButton.addTarget(self, action: #selector(selectionButtonClicked(_:)), for: .touchUpInside)
 
         selectionButton.layer.masksToBounds = true
-        selectionButton.layer.cornerRadius = 20
+        selectionButton.layer.cornerRadius = 16
 
         overlayView.backgroundColor = UIColor(white: 0, alpha: 0.5)
         overlayView.isHidden = true
@@ -128,10 +128,10 @@ class GridViewCell: UICollectionViewCell {
         ])
 
         NSLayoutConstraint.activate([
-            selectionButton.topAnchor.constraint(equalTo: topAnchor, constant: 0),
-            selectionButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
-            selectionButton.widthAnchor.constraint(equalToConstant: 37),
-            selectionButton.heightAnchor.constraint(equalToConstant: 37)
+            selectionButton.topAnchor.constraint(equalTo: topAnchor, constant: 7),
+            selectionButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -7),
+            selectionButton.widthAnchor.constraint(equalToConstant: 32),
+            selectionButton.heightAnchor.constraint(equalToConstant: 32)
         ])
 
         NSLayoutConstraint.activate([
@@ -161,7 +161,7 @@ class GridViewCell: UICollectionViewCell {
         } else {
             selectionButton.setImage(nil, for: .normal)
             selectionButton.setTitle(title, for: .normal)
-            selectionButton.backgroundColor = .green
+            selectionButton.backgroundColor = UIColor(red: 43/255.0, green: 134/255.0, blue: 245/255.0, alpha: 1)
         }
     }
     

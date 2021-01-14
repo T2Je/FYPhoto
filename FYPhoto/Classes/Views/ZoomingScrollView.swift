@@ -70,7 +70,6 @@ class ZoomingScrollView: UIScrollView {
             imageView.heightAnchor.constraint(equalTo: self.heightAnchor)
         ])
 
-
         circularProgressView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             circularProgressView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
@@ -91,8 +90,6 @@ class ZoomingScrollView: UIScrollView {
     }
 
     func displayAsset(_ asset: PHAsset, targetSize: CGSize) {
-        circularProgressView.value = 100
-        circularProgressView.isHidden = false
         imageView.setAsset(asset, targeSize: targetSize) { [weak self] (image) in
             if let image = image {
 //                self?.photo.storeImage(image)  Avoid out of memory
