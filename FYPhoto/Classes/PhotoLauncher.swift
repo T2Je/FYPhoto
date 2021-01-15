@@ -67,16 +67,16 @@ public protocol PhotoLauncherDelegate: class {
         let camera = UIAlertAction(title: "Camera".photoTablelocalized, style: .default) { (_) in
             if config.mediaOptions == .image {
                 self.launchCamera(in: container,
-                                  captureModes: [CameraViewController.CaptureMode.image],
+                                  captureMode: .image,
                                   videoMaximumDuration: config.videoMaximumDuration)
             } else if config.mediaOptions == .video {
                 self.launchCamera(in: container,
-                                  captureModes: [.movie],
+                                  captureMode: .video,
                                   moviePathExtension: config.videoPathExtension,
                                   videoMaximumDuration: config.videoMaximumDuration)
             } else {
                 self.launchCamera(in: container,
-                                  captureModes: [.movie, .image],
+                                  captureMode: [.image, .video],
                                   moviePathExtension: config.videoPathExtension,
                                   videoMaximumDuration: config.videoMaximumDuration)
             }
@@ -99,11 +99,11 @@ public protocol PhotoLauncherDelegate: class {
     ///   - moviePathExtension: movie extension, default is mp4.
     ///   - videoMaximumDuration: video capture duration. Default 15s
     public func launchCamera(in viewController: CameraContainer,
-                             captureModes: [CameraViewController.CaptureMode] = [.image],
+                             captureMode: MediaOptions = .image,
                              moviePathExtension: String? = nil,
                              videoMaximumDuration: TimeInterval = 15) {
         let cameraVC = CameraViewController()
-        cameraVC.captureModes = captureModes
+        cameraVC.captureMode = captureMode
         cameraVC.videoMaximumDuration = videoMaximumDuration
         cameraVC.moviePathExtension = moviePathExtension ?? "mp4"
         cameraVC.delegate = viewController
@@ -176,11 +176,11 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
         }
         let camera = UIAlertAction(title: "Camera".photoTablelocalized, style: .default) { (_) in
             if config.mediaOptions == .image {
-                self.launchCamera(in: container, captureModes: [.image], videoMaximumDuration: config.videoMaximumDuration)
+                self.launchCamera(in: container, captureMode: .image, videoMaximumDuration: config.videoMaximumDuration)
             } else if config.mediaOptions == .video {
-                self.launchCamera(in: container, captureModes: [.movie], moviePathExtension: config.videoPathExtension, videoMaximumDuration: config.videoMaximumDuration)
+                self.launchCamera(in: container, captureMode: .video, moviePathExtension: config.videoPathExtension, videoMaximumDuration: config.videoMaximumDuration)
             } else {
-                self.launchCamera(in: container, captureModes: [.image, .movie], moviePathExtension: config.videoPathExtension, videoMaximumDuration: config.videoMaximumDuration)
+                self.launchCamera(in: container, captureMode: [.image, .video], moviePathExtension: config.videoPathExtension, videoMaximumDuration: config.videoMaximumDuration)
             }
         }
 

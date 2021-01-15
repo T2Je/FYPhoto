@@ -562,16 +562,8 @@ public class PhotoPickerViewController: UICollectionViewController {
     
     func launchCamera() {
         let cameraVC = CameraViewController()
-        let captureModes: [CameraViewController.CaptureMode]
-        if mediaOptions == .image {
-            captureModes = [CameraViewController.CaptureMode.image]
-        } else if mediaOptions == .video {
-            captureModes = [CameraViewController.CaptureMode.movie]
-        } else {
-            captureModes = [CameraViewController.CaptureMode.movie, CameraViewController.CaptureMode.image]
-        }
         
-        cameraVC.captureModes = captureModes
+        cameraVC.captureMode = mediaOptions
         cameraVC.videoMaximumDuration = videoMaximumDuration ?? 15 //TODO: where to get duration
         cameraVC.moviePathExtension = moviePathExtension
         cameraVC.delegate = self

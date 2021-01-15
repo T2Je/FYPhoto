@@ -194,7 +194,7 @@ class ViewController: UIViewController {
     }
 
     @objc func launchCustomCamera(_ sender: UIButton) {
-        photoLanucher.launchCamera(in: self, captureModes: [.image, .movie])
+        photoLanucher.launchCamera(in: self, captureMode: [.image, .video])
     }
 
 }
