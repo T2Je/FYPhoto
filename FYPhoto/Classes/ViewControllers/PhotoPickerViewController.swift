@@ -444,6 +444,7 @@ public class PhotoPickerViewController: UICollectionViewController {
         })        
 
         photoBrowser.delegate = self
+        photoBrowser.view.layoutIfNeeded()
         self.navigationController?.fyphoto.push(photoBrowser, animated: true)
     }
     

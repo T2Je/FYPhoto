@@ -225,14 +225,19 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 // do nothing when building PhotoBrowserViewController
                 return
             }
-            guard newValue != selectedThumbnailIndexPath else {
-                // nothing changed
+            
+            guard let idx = newValue else {
+                thumbnailsCollectionView.reloadData()
+                // 有值 -> 无值， 取消 thumbnail selected 状态
+                // 无值 -> 无值， selectedPhotos 改变
+//                if selectedThumbnailIndexPath != nil {
+//                    thumbnailsCollectionView.reloadData()
+//                }
                 return
             }
-            guard let idx = newValue else {
-                if selectedThumbnailIndexPath != nil { // 有值 -> 无值 取消 thumbnail selected 状态
-                    thumbnailsCollectionView.reloadData()
-                }
+            
+            guard idx != selectedThumbnailIndexPath else {
+                // 没有选中时，thumbanail collectionView
                 return
             }
             
@@ -291,17 +296,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             guard supportThumbnails else { return }
             let assetIdentifiers = selectedPhotos.compactMap { $0.asset?.localIdentifier }
             delegate?.photoBrowser(self, selectedAssets: assetIdentifiers)
+            
             guard !selectedPhotos.isEmpty else {
                 selectedThumbnailIndexPath = nil
-                if !thumbnailsCollectionView.isHidden {
-                    thumbnailsCollectionView.isHidden = true
-                }
-                
+                thumbnailsCollectionView.isHidden = true
                 return
             }
-            if thumbnailsCollectionView.isHidden {
-                thumbnailsCollectionView.isHidden = false
-            }
+            thumbnailsCollectionView.isHidden = false
+            
             if !isThumbnailIndexPathInitialized {
                 // initialize thumbnail indexPath if selected photos are not empty when building PhotoBrowserViewController
                 let initialPhoto = photos[initialIndex]
@@ -310,7 +312,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                     selectedThumbnailIndexPath = initialIndexPathInThumbnails
                 }
             } else {
-                return selectedThumbnailIndexPath = IndexPath(item: selectedPhotos.count - 1, section: 0)
+                if oldValue.count <= selectedPhotos.count {
+                    selectedThumbnailIndexPath = IndexPath(item: selectedPhotos.count - 1, section: 0)
+                } else {
+                    selectedThumbnailIndexPath = nil
+                }
             }
         }
     }
@@ -783,8 +789,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         if let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) {
             updateAddBarItem(title: "\(firstIndex + 1)")
         }
-
-        // filter different media type
     }
     
     @objc func removePhotoWhenBrowsingBarItemClicked(_ sender: UIBarButtonItem) {
@@ -856,6 +860,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     func updateAddBarItem(at indexPath: IndexPath) {
         let photo = photos[indexPath.item]
+        guard !photo.isVideo else {
+            addPhotoBarItem.title = " "
+            addPhotoBarItem.isEnabled = false            
+            return
+        }
         if let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) {
             updateAddBarItem(title: "\(firstIndex + 1)")
         } else {
