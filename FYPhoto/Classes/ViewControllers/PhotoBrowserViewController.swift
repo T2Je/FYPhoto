@@ -11,9 +11,6 @@ import MobileCoreServices
 
 public class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     public class Builder {
-//        var photos: [PhotoProtocol]
-//        var initialIndex: Int
-//
         var selectedPhotos: [PhotoProtocol] = []
         /// maximum photos can be selected. Default is 6
         var maximumCanBeSelected: Int = 6
@@ -33,16 +30,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         /// show delete button for photo browser
         var canDeletePhotoWhenBrowsing = false
         
-//        public convenience init(photos: [PhotoProtocol], initialIndex: Int) {
-//            self.init()
-//            self.photos = photos
-//            self.initialIndex = initialIndex
-//        }
-        
-        init() {
-//            self.photos = []
-//            initialIndex = 0
-        }
+        init() { }
         
         public func setSelectedPhotos(_ selected: [PhotoProtocol]) -> Self {
             selectedPhotos = selected
@@ -401,7 +389,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         
         setupCollectionView()
         setupNavigationBar()
-        setupNavigationToolBar()
+        setupBottomToolBar()
         addSubviews()
     }
 
@@ -504,26 +492,29 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     func setupNavigationBar() {
         self.navigationController?.navigationBar.tintColor = .white
-        self.navigationController?.navigationBar.topItem?.backBarButtonItem = UIBarButtonItem(title: "",
-                                                                                              style: .plain,
-                                                                                              target: nil,
-                                                                                              action: nil)
+        let backItem = UIBarButtonItem(title: "",
+                                       style: .plain,
+                                       target: nil,
+                                       action: nil)
+        self.navigationController?.navigationBar.topItem?.backBarButtonItem = backItem
         if isForSelection {
-            addPhotoBarItem = UIBarButtonItem(title: "", style: .plain, target: self, action: #selector(PhotoBrowserViewController.addPhotoBarItemClicked(_:)))
-            addPhotoBarItem.title = addLocalizedString
-            addPhotoBarItem.tintColor = .black
+//            addPhotoBarItem.setBackgroundImage("ImageSelectedSmallOff".photoImage, for: .normal, barMetrics: .default)
+            let image = "ImageSelectedSmallOff".photoImage
+            // “ ” 有一个空格，解决 iOS 14.2 及以上系统，展示text时，位置偏上或者偏下的bug
+            addPhotoBarItem = UIBarButtonItem(title: " ", style: .plain, target: self, action: #selector(PhotoBrowserViewController.addPhotoBarItemClicked(_:)))
+            addPhotoBarItem.setBackgroundImage(image, for: .normal, barMetrics: .default)
+            addPhotoBarItem.tintColor = UIColor(red: 43/255.0, green: 134/255.0, blue: 245/255.0, alpha: 1)
             self.navigationItem.rightBarButtonItem = addPhotoBarItem
         } else {
             if canDeletePhotoWhenBrowsing {
                 removePhotoBarItem = UIBarButtonItem(barButtonSystemItem: .trash, target: self, action: #selector(removePhotoWhenBrowsingBarItemClicked(_:)))
-    //            removePhotoBarItem.tintColor = .black
                 self.navigationItem.rightBarButtonItem = removePhotoBarItem
             }
         }
         updateNavigationTitle(at: currentDisplayedIndexPath)
     }
 
-    func setupNavigationToolBar() {
+    func setupBottomToolBar() {
         guard supportBottomToolBar else { return }
         playVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.play,
                                            target: self,
@@ -532,10 +523,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                                             target: self,
                                             action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
 
-        var showVideoPlay = false
-        if currentPhoto.isVideo {
-            showVideoPlay = true
-        }
+        let showVideoPlay = currentPhoto.isVideo
         
         if isForSelection {
             doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(PhotoBrowserViewController.doneBarButtonClicked(_:)))
@@ -780,11 +768,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         let photo = photos[currentDisplayedIndexPath.item]
         
         isOperatingMainPhotos = true
+        
         if let exsit = firstIndexOfPhoto(photo, in: selectedPhotos) {
             // already added, remove it from selections
             selectedPhotos.remove(at: exsit)
-            addPhotoBarItem.title = addLocalizedString
-            addPhotoBarItem.tintColor = .black
+            updateAddBarItem(title: "")
             return
         }
 
@@ -793,8 +781,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
         // update bar item: add, done
         if let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) {
-            addPhotoBarItem.title = "\(firstIndex + 1)"
-            addPhotoBarItem.tintColor = .systemBlue
+            updateAddBarItem(title: "\(firstIndex + 1)")
         }
 
         // filter different media type
@@ -869,15 +856,21 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     func updateAddBarItem(at indexPath: IndexPath) {
         let photo = photos[indexPath.item]
-        guard let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) else {
-            addPhotoBarItem.title = addLocalizedString
-            addPhotoBarItem.isEnabled = selectedPhotos.count < maximumCanBeSelected
-            addPhotoBarItem.tintColor = .black
-            return
+        if let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) {
+            updateAddBarItem(title: "\(firstIndex + 1)")
+        } else {
+            updateAddBarItem(title: "")
         }
-        addPhotoBarItem.isEnabled = true
-        addPhotoBarItem.title = "\(firstIndex + 1)"
-        addPhotoBarItem.tintColor = .systemBlue
+    }
+    
+    func updateAddBarItem(title: String) {
+        if title.isEmpty {
+            addPhotoBarItem.title = " "
+            addPhotoBarItem.isEnabled = selectedPhotos.count < maximumCanBeSelected
+        } else {
+            addPhotoBarItem.title = title
+            addPhotoBarItem.isEnabled = true
+        }
     }
 
     func stopPlayingVideoIfNeeded(at oldIndexPath: IndexPath) {

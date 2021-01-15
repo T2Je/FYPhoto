@@ -297,9 +297,7 @@ extension ViewController: VideoPreviewControllerDelegate {
 }
 
 extension ViewController: PhotoBrowserViewControllerDelegate {
-    func showBottomToolBar(in photoDetail: PhotoBrowserViewController) -> Bool {
-        true
-    }
+    
 }
 
 extension ViewController: CameraViewControllerDelegate {

@@ -46,8 +46,9 @@ public class PhotoPickerViewController: UICollectionViewController {
     /// identify selected assets
     fileprivate var assetSelectionIdentifierCache = [String]() {
         willSet {
-            updateSelectedAssetIsVideo(by: newValue)
-            updateNavigationBarItems(by: newValue)
+            updateSelectedAssetIsVideo(with: newValue)
+            updateNavigationBarItems(with: newValue)
+            updateBottomToolBar(with: newValue)
             reachedMaximum = newValue.count >= maximumCanBeSelected
             collectionView.reloadData()
         }
@@ -151,7 +152,9 @@ public class PhotoPickerViewController: UICollectionViewController {
         initalFetchResult()
 
         setupNavigationBar()
-
+        
+        setupBottomToolBar()
+        
         resetCachedAssets()        
 
         PHPhotoLibrary.shared().register(self)
@@ -180,19 +183,19 @@ public class PhotoPickerViewController: UICollectionViewController {
         // Determine the size of the thumbnails to request from the PHCachingImageManager
         let scale = UIScreen.main.scale
         let cellSize = (collectionViewLayout as! UICollectionViewFlowLayout).itemSize
-        thumbnailSize = CGSize(width: cellSize.width * scale, height: cellSize.height * scale)
+        thumbnailSize = CGSize(width: cellSize.width * scale, height: cellSize.height * scale)                
     }
 
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        navigationController?.isToolbarHidden = true
+//        navigationController?.isToolbarHidden = true
     }
 
     // MARK: -NavigationBar
     func setupNavigationBar() {
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(backBarButton(_:)))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel".photoTablelocalized, style: .plain, target: self, action: #selector(backBarButton(_:)))
         navigationItem.leftBarButtonItem?.tintColor = .black
         
         // There is a UI bug on iOS 14.2 and above, set title to " " to fix this bug.
@@ -215,20 +218,47 @@ public class PhotoPickerViewController: UICollectionViewController {
         self.navigationItem.titleView = customTitleView
     }
     
+    func setupBottomToolBar() {
+        navigationController?.setToolbarHidden(true, animated: true)
+        let previewItem = UIBarButtonItem(title: "Preview".photoTablelocalized, style: .plain, target: self, action: #selector(previewItemClicked(_:)))
+        let spaceItem = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
+        previewItem.tintColor = .black
+        // Set barButtonItem to navigationController.toolBar will not work, should set to viewController ⚠️
+        self.setToolbarItems([previewItem, spaceItem], animated: true)
+    }
+    
     @objc func backBarButton(_ sender: UIBarButtonItem) {
         back()
     }
 
     @objc func doneBarButton(_ sender: UIBarButtonItem) {
-        let selectedFetchResult: PHFetchResult<PHAsset> = PHAsset.fetchAssets(withLocalIdentifiers: assetSelectionIdentifierCache, options: nil)
-        var assets = [PHAsset]()
-        selectedFetchResult.enumerateObjects { (asset, _, _) in
-            assets.append(asset)
-        }
-        selectionCompleted(assets: assets, animated: true)
+        // The order of Assets fetched with identifiers maybe different from input identifiers order.
+//        let selectedFetchResult: PHFetchResult<PHAsset> = PHAsset.fetchAssets(withLocalIdentifiers: assetSelectionIdentifierCache, options: nil)
+//        var assets = [PHAsset]()
+//        selectedFetchResult.enumerateObjects { (asset, _, _) in
+//            assets.append(asset)
+//        }
+        
+        selectionCompleted(assets: selectedAssets, animated: true)
     }
     
-
+    @objc func previewItemClicked(_ sender: UIBarButtonItem) {
+        print(#function)
+        let photos = selectedAssets.map { Photo.photoWithPHAsset($0) }
+        let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: 0) {
+            $0.quickBuildForSelection(photos, maximumCanBeSelected: self.maximumCanBeSelected - photos.count)
+        }
+        photoBrowser.delegate = self
+        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
+    }
+    
+    fileprivate var selectedAssets: [PHAsset] {
+        let selectedFetchResults: [PHFetchResult<PHAsset>] = assetSelectionIdentifierCache.map {
+            PHAsset.fetchAssets(withLocalIdentifiers: [$0], options: nil)
+        }
+        return selectedFetchResults.compactMap { $0.firstObject }
+    }
+    
     /// complete photo selection
     /// - Parameters:
     ///   - assets: selected assets
@@ -568,7 +598,7 @@ extension PhotoPickerViewController: GridViewCellDelegate {
         collectionView.reloadData()
     }
 
-    func updateSelectedAssetIsVideo(by assetIdentifiers: [String]) {
+    func updateSelectedAssetIsVideo(with assetIdentifiers: [String]) {
         guard let first = assetIdentifiers.first else {
             selectedAssetIsVideo = nil
             return
@@ -581,11 +611,14 @@ extension PhotoPickerViewController: GridViewCellDelegate {
         }
     }
 
-    func updateNavigationBarItems(by assetIdentifiers: [String]) {
+    func updateNavigationBarItems(with assetIdentifiers: [String]) {
         selectedPhotoCountBarItem.title = (assetIdentifiers.count == 0) ? "" : "\(assetIdentifiers.count)"
         doneBarItem.isEnabled = assetIdentifiers.count > 0
     }
 
+    func updateBottomToolBar(with assetIdentifiers: [String]) {
+        navigationController?.setToolbarHidden(assetIdentifiers.isEmpty, animated: true)
+    }
 }
 
 // MARK: - PhotoDetailCollectionViewControllerDelegate

@@ -39,3 +39,5 @@
 "CameraConfigurationFailed" = "无法拍摄视频";
 
 "NoPermissionToSave" = "没有权限将照片存储到相册中";
+
+"Preview" = "预览";

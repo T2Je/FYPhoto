@@ -36,3 +36,5 @@
 "CameraConfigurationFailed" = "Unable to capture media";
 
 "NoPermissionToSave" = "No permission to save";
+
+"Preview" = "Preview";
