@@ -358,6 +358,13 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
                 let photoPicker = PhotoPickerViewController(mediaTypes: .all)
                     .setPickerWithCamera(true)
                     .setMaximumPhotosCanBeSelected(photosLimited - selectedImageArray.count)
+                photoPicker.selectedPhotos = { [weak self] selectedImages in
+                    #if DEBUG
+                    print("selected \(photos.count) photos")
+                    #endif
+                    let images = selectedImages.map { $0.image }
+                    self?.selectedImageArray += images
+                }
                 let navi = UINavigationController(rootViewController: photoPicker)
                 navi.modalPresentationStyle = .fullScreen
                 

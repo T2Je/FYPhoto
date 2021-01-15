@@ -67,11 +67,6 @@ class PhotoTransitionDriver: TransitionDriver {
             self.toView = toView            
         }
 
-//        self.fromAssetTransitioning = fromAssetTransitioning
-//        self.toAssetTransitioning = toAssetTransitioning
-//        self.toView = toView
-//        self.fromView = fromView
-
         let containerView = context.containerView
 
         // Create a visual effect view and animate the effect in the transition animator
@@ -124,12 +119,18 @@ class PhotoTransitionDriver: TransitionDriver {
             topView?.alpha = topViewTargetAlpha
             self.visualEffectView.effect = targetEffect
         }
+        
+        transitionAnimator.startAnimation()
 
-        if transitionAnimator.state == .inactive {
-            transitionAnimator.startAnimation()
-        }
-
-        if !isPresenting {
+        if isPresenting {
+            transitionAnimator.addAnimations {
+                if let referencedImage = self.fromAssetTransitioning?.referenceImage(),
+                    let toView = self.toView {
+                    let toReferenceFrame = Self.calculateZoomInImageFrame(image: referencedImage, forView: toView)
+                    self.transitionImageView.frame = toReferenceFrame
+                }
+            }
+        } else {
             // HACK: By delaying 0.005s, I get a layout-refresh on the toViewController,
             // which means its collectionview has updated its layout,
             // and our toAssetTransitioning?.imageFrame() is accurate, even if
@@ -139,14 +140,6 @@ class PhotoTransitionDriver: TransitionDriver {
                     if let imageFrame = self.toAssetTransitioning?.imageFrame() {
                         self.transitionImageView.frame = imageFrame
                     }
-                }
-            }
-        } else {
-            transitionAnimator.addAnimations {
-                if let referencedImage = self.fromAssetTransitioning?.referenceImage(),
-                    let toView = self.toView {
-                    let toReferenceFrame = Self.calculateZoomInImageFrame(image: referencedImage, forView: toView)
-                    self.transitionImageView.frame = toReferenceFrame
                 }
             }
         }

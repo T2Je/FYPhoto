@@ -753,11 +753,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 updateCaption(at: currentDisplayedIndexPath)
             }
         }
-        if isForSelection {
-            pageControl.subviews.forEach {
-                $0.transform = CGAffineTransform(scaleX: 1.5, y: 1.5)
-            }
-        }
     }
 
     // MARK: Bar item actions
