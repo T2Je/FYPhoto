@@ -460,7 +460,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 addThumbnailCollectionView()
             }
         } else {
-            addPageControl()
+            if photos.count > 1 {
+                addPageControl()
+            }            
             if supportCaption {
                 addCaptionView()
             }
