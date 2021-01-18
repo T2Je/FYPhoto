@@ -116,9 +116,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 thumbnailsCollectionView.reloadData()
                 // 有值 -> 无值， 取消 thumbnail selected 状态
                 // 无值 -> 无值， selectedPhotos 改变
-//                if selectedThumbnailIndexPath != nil {
-//                    thumbnailsCollectionView.reloadData()
-//                }
                 return
             }
             
@@ -173,7 +170,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             }
         }
     }
-        
+
     fileprivate var isThumbnailIndexPathInitialized = false
     
     // main data source
@@ -233,7 +230,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     
     // MARK: - Function
     
-    // MARK: LifeCycle`
+    // MARK: LifeCycle
     /// PhotoBrowserViewController initialization.
     /// - Parameters:
     ///   - photos: data source to show
@@ -384,6 +381,18 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         mainCollectionView.contentInsetAdjustmentBehavior = .never
     }
 
+    lazy var addItemButton: UIButton = {
+        let button = UIButton()
+        button.setImage("ImageSelectedOff".photoImage, for: .normal)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.widthAnchor.constraint(equalToConstant: 30).isActive = true
+        button.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        button.layer.cornerRadius = 15
+        button.layer.masksToBounds = true
+        button.addTarget(self, action: #selector(addPhotoBarItemClicked(_:)), for: .touchUpInside)
+        return button
+    }()
+    
     func setupNavigationBar() {
         self.navigationController?.navigationBar.tintColor = .white
         let backItem = UIBarButtonItem(title: "",
@@ -392,16 +401,13 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                                        action: nil)
         self.navigationController?.navigationBar.topItem?.backBarButtonItem = backItem
         if isForSelection {
-//            addPhotoBarItem.setBackgroundImage("ImageSelectedSmallOff".photoImage, for: .normal, barMetrics: .default)
-            let image = "ImageSelectedSmallOff".photoImage
-            // “ ” 有一个空格，解决 iOS 14.2 及以上系统，展示text时，位置偏上或者偏下的bug
-            addPhotoBarItem = UIBarButtonItem(title: " ", style: .plain, target: self, action: #selector(PhotoBrowserViewController.addPhotoBarItemClicked(_:)))
-            addPhotoBarItem.setBackgroundImage(image, for: .normal, barMetrics: .default)
-            addPhotoBarItem.tintColor = UIColor(red: 43/255.0, green: 134/255.0, blue: 245/255.0, alpha: 1)
+            addPhotoBarItem = UIBarButtonItem(customView: addItemButton)
             self.navigationItem.rightBarButtonItem = addPhotoBarItem
         } else {
             if canDeletePhotoWhenBrowsing {
-                removePhotoBarItem = UIBarButtonItem(barButtonSystemItem: .trash, target: self, action: #selector(removePhotoWhenBrowsingBarItemClicked(_:)))
+                removePhotoBarItem = UIBarButtonItem(barButtonSystemItem: .trash,
+                                                     target: self,
+                                                     action: #selector(removePhotoWhenBrowsingBarItemClicked(_:)))
                 self.navigationItem.rightBarButtonItem = removePhotoBarItem
             }
         }
@@ -412,10 +418,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         guard supportBottomToolBar else { return }
         playVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.play,
                                            target: self,
-                                           action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
+                                           action: #selector(playVideoBarItemClicked(_:)))
         pauseVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.pause,
                                             target: self,
-                                            action: #selector(PhotoBrowserViewController.playVideoBarItemClicked(_:)))
+                                            action: #selector(playVideoBarItemClicked(_:)))
 
         let showVideoPlay = currentPhoto.isVideo
         
@@ -449,7 +455,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     // selected photo thumbnail collectionView
     lazy var thumbnailsCollectionView: UICollectionView = {
         let collectionView = generateThumbnailsCollectionView()
-        collectionView.register(PBSelectedPhotosThumbnailCell.self, forCellWithReuseIdentifier: PBSelectedPhotosThumbnailCell.reuseIdentifier)
+        collectionView.register(PBSelectedPhotosThumbnailCell.self,
+                                forCellWithReuseIdentifier: PBSelectedPhotosThumbnailCell.reuseIdentifier)
         collectionView.isPagingEnabled = false
         collectionView.delegate = self
         collectionView.dataSource = self
@@ -648,8 +655,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         assert(!selectedPhotos.isEmpty, "photos shouldn't be empty")
         delegate?.photoBrowser(self, didCompleteSelected: selectedPhotos)
     }
-
-    @objc func addPhotoBarItemClicked(_ sender: UIBarButtonItem) {
+    
+    @objc func addPhotoBarItemClicked(_ sender: UIButton) {
         defer {
             doneBarItem.isEnabled = !selectedPhotos.isEmpty
         }
@@ -707,7 +714,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
 
-    // MARK: Update ToolBar, collectionView
+    // MARK: Updated
     func updateToolBar(shouldShowDone: Bool, shouldShowPlay: Bool) {
         var items = [UIBarButtonItem]()
         let spaceItem = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
@@ -744,10 +751,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     func updateAddBarItem(at indexPath: IndexPath) {
         let photo = photos[indexPath.item]
         guard !photo.isVideo else {
-            addPhotoBarItem.title = " "
-            addPhotoBarItem.isEnabled = false            
+            addItemButton.isHidden = true
             return
         }
+        addItemButton.isHidden = false
         if let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) {
             updateAddBarItem(title: "\(firstIndex + 1)")
         } else {
@@ -757,17 +764,19 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     
     func updateAddBarItem(title: String) {
         if title.isEmpty {
-            addPhotoBarItem.title = " "
-            addPhotoBarItem.isEnabled = selectedPhotos.count < maximumCanBeSelected
+//            addPhotoBarItem.title = " "
+            addItemButton.isEnabled = selectedPhotos.count < maximumCanBeSelected
+            if addItemButton.backgroundImage(for: .normal) == nil {
+                addItemButton.setImage("ImageSelectedOff".photoImage, for: .normal)
+                addItemButton.backgroundColor = nil
+                addItemButton.setTitle(nil, for: .normal)
+            }
         } else {
-            addPhotoBarItem.title = title
-            addPhotoBarItem.isEnabled = true
-        }
-    }
-
-    func stopPlayingVideoIfNeeded(at oldIndexPath: IndexPath) {
-        if isPlaying {
-            stopPlayingIfNeeded()
+//            addPhotoBarItem.isEnabled = true
+            addItemButton.isEnabled = true
+            addItemButton.setTitle(title, for: .normal)
+            addItemButton.setImage(nil, for: .normal)
+            addItemButton.backgroundColor = UIColor(red: 43/255.0, green: 134/255.0, blue: 245/255.0, alpha: 1)
         }
     }
 
@@ -788,7 +797,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     
     func updateThumbnails(at indexPath: IndexPath) {
         let photo = photos[indexPath.item]
-        
         if let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) {
             selectedThumbnailIndexPath = IndexPath(item: firstIndex, section: 0)
         } else {
@@ -1043,6 +1051,12 @@ extension PhotoBrowserViewController {
         player.pause()
         player.seek(to: .zero)
         isPlaying = false
+    }
+    
+    func stopPlayingVideoIfNeeded(at oldIndexPath: IndexPath) {
+        if isPlaying {
+            stopPlayingIfNeeded()
+        }
     }
 }
 
