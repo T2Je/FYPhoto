@@ -48,7 +48,7 @@ public class PhotoPickerViewController: UICollectionViewController {
         willSet {
             updateSelectedAssetIsVideo(with: newValue)
             updateNavigationBarItems(with: newValue)
-            updateBottomToolBar(with: newValue)
+            updatePreview(with: newValue)
             reachedMaximum = newValue.count >= maximumCanBeSelected
             collectionView.reloadData()
         }
@@ -63,7 +63,10 @@ public class PhotoPickerViewController: UICollectionViewController {
 
     fileprivate var selectedPhotoCountBarItem: UIBarButtonItem!
     fileprivate var doneBarItem: UIBarButtonItem!
+    fileprivate var previewItem: UIBarButtonItem!
 
+    var previewVC: PhotoBrowserViewController?
+    
     fileprivate var selectedAssetIsVideo: Bool? = nil
 
     internal private(set) var fetchResult: PHFetchResult<PHAsset>! {
@@ -210,7 +213,10 @@ public class PhotoPickerViewController: UICollectionViewController {
         // custom titleview
         customTitleView.tapped = { [weak self] in
             guard let self = self else { return }
-            let albumsVC = AlbumsTableViewController(allPhotos: self.allPhotos, smartAlbums: self.smartAlbums, userCollections: self.userCollections, selectedIndexPath: self.selectedAlbumIndexPath)
+            let albumsVC = AlbumsTableViewController(allPhotos: self.allPhotos,
+                                                     smartAlbums: self.smartAlbums,
+                                                     userCollections: self.userCollections,
+                                                     selectedIndexPath: self.selectedAlbumIndexPath)
             albumsVC.delegate = self
             self.present(albumsVC, animated: true, completion: nil)
         }
@@ -220,7 +226,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     
     func setupBottomToolBar() {
         navigationController?.setToolbarHidden(true, animated: true)
-        let previewItem = UIBarButtonItem(title: "Preview".photoTablelocalized, style: .plain, target: self, action: #selector(previewItemClicked(_:)))
+        previewItem = UIBarButtonItem(title: "Preview".photoTablelocalized, style: .plain, target: self, action: #selector(previewItemClicked(_:)))
         let spaceItem = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
         previewItem.tintColor = .black
         // Set barButtonItem to navigationController.toolBar will not work, should set to viewController ⚠️
@@ -232,29 +238,21 @@ public class PhotoPickerViewController: UICollectionViewController {
     }
 
     @objc func doneBarButton(_ sender: UIBarButtonItem) {
-        // The order of Assets fetched with identifiers maybe different from input identifiers order.
-//        let selectedFetchResult: PHFetchResult<PHAsset> = PHAsset.fetchAssets(withLocalIdentifiers: assetSelectionIdentifierCache, options: nil)
-//        var assets = [PHAsset]()
-//        selectedFetchResult.enumerateObjects { (asset, _, _) in
-//            assets.append(asset)
-//        }
-        
         selectionCompleted(assets: selectedAssets, animated: true)
     }
     
     @objc func previewItemClicked(_ sender: UIBarButtonItem) {
-        print(#function)
         let photos = selectedAssets.map { Photo.photoWithPHAsset($0) }
         let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: 0) {
             $0.buildNavigationBar().showDeleteButtonForBrowser()
-//            $0.quickBuildJustForBrowser().showDeleteButtonForBrowser()
-//            $0.quickBuildForSelection(photos, maximumCanBeSelected: self.maximumCanBeSelected - photos.count)
         }
         photoBrowser.delegate = self
         self.navigationController?.fyphoto.push(photoBrowser, animated: true)
+        self.previewVC = photoBrowser
     }
     
     fileprivate var selectedAssets: [PHAsset] {
+        // The order of Assets fetched with identifiers maybe different from input identifiers order.
         let selectedFetchResults: [PHFetchResult<PHAsset>] = assetSelectionIdentifierCache.map {
             PHAsset.fetchAssets(withLocalIdentifiers: [$0], options: nil)
         }
@@ -420,18 +418,11 @@ public class PhotoPickerViewController: UICollectionViewController {
         var photos = [PhotoProtocol]()
         for index in 0..<fetchResult.count {
             let asset = fetchResult[index]
-//            print("assert location: \(asset.location)")
-//                photos.append(Photo(asset: asset))
             photos.append(Photo.photoWithPHAsset(asset))
         }
-
-        var tempCache = [String: PHAsset]()
-        let selectedAssetsResult = PHAsset.fetchAssets(withLocalIdentifiers: assetSelectionIdentifierCache, options: nil) // output sequence is not the same order as input
-        selectedAssetsResult.enumerateObjects { (asset, idx, _) in
-            tempCache[asset.localIdentifier] = asset
-        }
-        let orderedAssets = assetSelectionIdentifierCache.compactMap { tempCache[$0] }
-        let selectedPhotos = orderedAssets.map { Photo.photoWithPHAsset($0) }    
+        
+        let selectedAssetsResult = selectedAssets
+        let selectedPhotos = selectedAssetsResult.map { Photo.photoWithPHAsset($0) }
                 
 //        let browserCanSelectPhotosCount = max(maximumCanBeSelected - selectedPhotos.count, 0)
         let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: indexPath.item, builder: { builder -> PhotoBrowserViewController.Builder in
@@ -507,9 +498,8 @@ public class PhotoPickerViewController: UICollectionViewController {
     fileprivate func browseVideo(url: URL, withAsset asset: PHAsset) {
         let videoPlayer = PlayVideoForSelectionViewController.playVideo(url)
         videoPlayer.selectedVideo = { [weak self] url in
-            let highQualityImage = asset.getHightQualityImageSynchorously()
             let thumbnailImage = asset.getThumbnailImageSynchorously()
-            let selectedVideo = SelectedVideo(asset: asset, fullImage: highQualityImage, url: url)
+            let selectedVideo = SelectedVideo(url: url)
             selectedVideo.briefImage = thumbnailImage
             self?.selectedVideo?(.success(selectedVideo))
         }
@@ -566,7 +556,6 @@ public class PhotoPickerViewController: UICollectionViewController {
     
     func launchCamera() {
         let cameraVC = CameraViewController()
-        
         cameraVC.captureMode = mediaOptions
         cameraVC.videoMaximumDuration = videoMaximumDuration ?? 15 //TODO: where to get duration
         cameraVC.moviePathExtension = moviePathExtension
@@ -612,8 +601,12 @@ extension PhotoPickerViewController: GridViewCellDelegate {
         doneBarItem.isEnabled = assetIdentifiers.count > 0
     }
 
-    func updateBottomToolBar(with assetIdentifiers: [String]) {
+    func updatePreview(with assetIdentifiers: [String]) {
+        if assetIdentifiers.isEmpty {
+            previewVC = nil
+        }
         navigationController?.setToolbarHidden(assetIdentifiers.isEmpty, animated: true)
+        previewItem.isEnabled = !assetIdentifiers.isEmpty
     }
 }
 
