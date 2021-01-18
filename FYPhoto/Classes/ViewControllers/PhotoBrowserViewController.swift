@@ -345,7 +345,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         } else {
             if photos.count > 1 {
                 addPageControl()
-            }            
+            }
             if supportCaption {
                 addCaptionView()
             }
@@ -390,6 +390,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         button.layer.cornerRadius = 15
         button.layer.masksToBounds = true
         button.addTarget(self, action: #selector(addPhotoBarItemClicked(_:)), for: .touchUpInside)
+        button.setTitleColor(UIColor(red: 43/255.0, green: 134/255.0, blue: 245/255.0, alpha: 1), for: .normal)
         return button
     }()
     
@@ -434,7 +435,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     fileprivate func restoreOtherPreviousData() {
-        activateOtherInterruptedAudioSessions()        
+        activateOtherInterruptedAudioSessions()
         extendedLayoutIncludesOpaqueBars = previousExtendedLayoutIncludesOpaqueBars
     }
     
@@ -776,7 +777,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             addItemButton.isEnabled = true
             addItemButton.setTitle(title, for: .normal)
             addItemButton.setImage(nil, for: .normal)
-            addItemButton.backgroundColor = UIColor(red: 43/255.0, green: 134/255.0, blue: 245/255.0, alpha: 1)
+            addItemButton.backgroundColor = .white
+//            addItemButton.backgroundColor = UIColor(red: 43/255.0, green: 134/255.0, blue: 245/255.0, alpha: 1)
         }
     }
 

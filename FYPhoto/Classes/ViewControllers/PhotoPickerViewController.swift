@@ -30,6 +30,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     public var selectedPhotos: (([SelectedImage]) -> Void)?
     public var selectedVideo: ((Result<SelectedVideo, Error>) -> Void)?
     
+    static let blueTintColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
     var allPhotos: PHFetchResult<PHAsset>!
 //    var smartAlbums: PHFetchResult<PHAssetCollection>!
     var smartAlbums: [PHAssetCollection]!
@@ -203,11 +204,11 @@ public class PhotoPickerViewController: UICollectionViewController {
         
         // There is a UI bug on iOS 14.2 and above, set title to " " to fix this bug.
         selectedPhotoCountBarItem = UIBarButtonItem(title: " ", style: .plain, target: nil, action: nil)
-        selectedPhotoCountBarItem.tintColor = .systemBlue
+        selectedPhotoCountBarItem.tintColor = PhotoPickerViewController.blueTintColor
         
         doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(doneBarButton(_:)))
         doneBarItem.isEnabled = false
-        doneBarItem.tintColor = .black
+        doneBarItem.tintColor = PhotoPickerViewController.blueTintColor
 
         navigationItem.rightBarButtonItems = [doneBarItem, selectedPhotoCountBarItem]
         // custom titleview
@@ -226,9 +227,10 @@ public class PhotoPickerViewController: UICollectionViewController {
     
     func setupBottomToolBar() {
         navigationController?.setToolbarHidden(true, animated: true)
+        navigationController?.toolbar.barTintColor = UIColor(red: 249/255.0, green: 249/255.0, blue: 249/255.0, alpha: 1)
         previewItem = UIBarButtonItem(title: "Preview".photoTablelocalized, style: .plain, target: self, action: #selector(previewItemClicked(_:)))
         let spaceItem = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
-        previewItem.tintColor = .black
+        previewItem.tintColor = PhotoPickerViewController.blueTintColor
         // Set barButtonItem to navigationController.toolBar will not work, should set to viewController ⚠️
         self.setToolbarItems([previewItem, spaceItem], animated: true)
     }
