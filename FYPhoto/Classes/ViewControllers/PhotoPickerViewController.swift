@@ -246,7 +246,9 @@ public class PhotoPickerViewController: UICollectionViewController {
         print(#function)
         let photos = selectedAssets.map { Photo.photoWithPHAsset($0) }
         let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: 0) {
-            $0.quickBuildForSelection(photos, maximumCanBeSelected: self.maximumCanBeSelected - photos.count)
+            $0.buildNavigationBar().showDeleteButtonForBrowser()
+//            $0.quickBuildJustForBrowser().showDeleteButtonForBrowser()
+//            $0.quickBuildForSelection(photos, maximumCanBeSelected: self.maximumCanBeSelected - photos.count)
         }
         photoBrowser.delegate = self
         self.navigationController?.fyphoto.push(photoBrowser, animated: true)
@@ -431,12 +433,12 @@ public class PhotoPickerViewController: UICollectionViewController {
         let orderedAssets = assetSelectionIdentifierCache.compactMap { tempCache[$0] }
         let selectedPhotos = orderedAssets.map { Photo.photoWithPHAsset($0) }    
                 
-        let browserCanSelectPhotosCount = max(maximumCanBeSelected - selectedPhotos.count, 0)
+//        let browserCanSelectPhotosCount = max(maximumCanBeSelected - selectedPhotos.count, 0)
         let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: indexPath.item, builder: { builder -> PhotoBrowserViewController.Builder in
             builder
                 .buildForSelection(true)
                 .setSelectedPhotos(selectedPhotos)
-                .setMaximumCanBeSelected(browserCanSelectPhotosCount)
+                .setMaximumCanBeSelected(self.maximumCanBeSelected)
                 .buildThumbnailsForSelection()
                 .buildNavigationBar()
                 .buildBottomToolBar()
@@ -475,9 +477,10 @@ public class PhotoPickerViewController: UICollectionViewController {
         videoPlayer.selectedVideo = { [weak self] url in
             guard let self = self else { return }
             if url.sizePerMB() <= 10 {
-                let highQualityImage = asset.getHightQualityImageSynchorously()
+//                let highQualityImage = asset.getHightQualityImageSynchorously()
                 let thumbnailImage = asset.getThumbnailImageSynchorously()
-                let selectedVideo = SelectedVideo(asset: asset, fullImage: highQualityImage, url: url)
+//                let selectedVideo = SelectedVideo(asset: asset, fullImage: highQualityImage, url: url)
+                let selectedVideo = SelectedVideo(url: url)
                 selectedVideo.briefImage = thumbnailImage
                 self.selectedVideo?(.success(selectedVideo))
                 self.back()
@@ -485,9 +488,10 @@ public class PhotoPickerViewController: UICollectionViewController {
                 self.compressVideo(url: url, asset: asset) { (result) in
                     switch result {
                     case .success(let url):
-                        let highQualityImage = asset.getHightQualityImageSynchorously()
+//                        let highQualityImage = asset.getHightQualityImageSynchorously()
                         let thumbnailImage = asset.getThumbnailImageSynchorously()
-                        let selectedVideo = SelectedVideo(asset: asset, fullImage: highQualityImage, url: url)
+//                        let selectedVideo = SelectedVideo(asset: asset, fullImage: highQualityImage, url: url)
+                        let selectedVideo = SelectedVideo(url: url)
                         selectedVideo.briefImage = thumbnailImage
                         self.selectedVideo?(.success(selectedVideo))
                     case .failure(let error):
@@ -615,26 +619,6 @@ extension PhotoPickerViewController: GridViewCellDelegate {
 
 // MARK: - PhotoDetailCollectionViewControllerDelegate
 extension PhotoPickerViewController: PhotoBrowserViewControllerDelegate {
-    public func showNavigationBar(in photoBrowser: PhotoBrowserViewController) -> Bool {
-        true
-    }
-
-    public func showBottomToolBar(in photoBrowser: PhotoBrowserViewController) -> Bool {
-        true
-    }
-
-    public func canDisplayCaption(in photoBrowser: PhotoBrowserViewController) -> Bool {
-        true
-    }
-
-    public func canSelectPhoto(in photoBrowser: PhotoBrowserViewController) -> Bool {
-        return true
-    }
-
-    public func canEditPhoto(in photoBrowser: PhotoBrowserViewController) -> Bool {
-        return false
-    }
-
     public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt indexPath: IndexPath) {
         lastSelectedIndexPath = regenerate(indexPath: indexPath, for: false)
     }
@@ -646,6 +630,10 @@ extension PhotoPickerViewController: PhotoBrowserViewControllerDelegate {
     public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, didCompleteSelected photos: [PhotoProtocol]) {
         let assets = photos.compactMap { $0.asset }
         selectionCompleted(assets: assets, animated: true)
+    }
+    
+    public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, deletePhotoAtIndexWhenBrowsing index: Int) {
+        assetSelectionIdentifierCache.remove(at: index)
     }
 }
 

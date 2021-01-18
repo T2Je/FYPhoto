@@ -207,7 +207,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
 
-    fileprivate var photos: [PhotoProtocol] {
+    var photos: [PhotoProtocol] {
         didSet {
             mainCollectionView.reloadData()
             if !isForSelection {
