@@ -398,6 +398,7 @@
 		E2092ABE7B504171CBBBC0A25A4C76C1 /* SDDeviceHelper.h in Headers */ = {isa = PBXBuildFile; fileRef = B89E808FC74EC7C434CDABBFBD0E4C7A /* SDDeviceHelper.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		E2284A040725F6C94F101FCB70A59572 /* UIViewController+BarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5F68BC1DEA160E4D9D6C8B60CFDC1601 /* UIViewController+BarItem.swift */; };
 		E337D29BC992F0B416744DFA4D8E7B61 /* CameraViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2E96470897768431348A72972C616B0 /* CameraViewController.swift */; };
+		E3C4196325B52DCB00B897A4 /* PhotoBrowserViewController+Builder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3C4196225B52DCB00B897A4 /* PhotoBrowserViewController+Builder.swift */; };
 		E488860713C2F30FC951A56E2F5E6FCA /* UIView+WebCacheOperation.m in Sources */ = {isa = PBXBuildFile; fileRef = C2460175D11ECE782A7B0D5AB2ACC7AD /* UIView+WebCacheOperation.m */; };
 		E489C34C45530FD8CB13D831FD2C7DA5 /* FGMouduleBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDCCB18A28A96949A985A6D910EEF154 /* FGMouduleBlockView.swift */; };
 		E51B90DE4B683D9225356F6AF75A711D /* Bundle+FGBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2FFDA3B9A835EC8888DC1476D0FE604 /* Bundle+FGBase.swift */; };
@@ -1036,6 +1037,7 @@
 		E2D098118BEC703D0E9955DAD4784F95 /* SDImageCachesManager.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = SDImageCachesManager.m; path = SDWebImage/Core/SDImageCachesManager.m; sourceTree = "<group>"; };
 		E2E96470897768431348A72972C616B0 /* CameraViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CameraViewController.swift; sourceTree = "<group>"; };
 		E379EACEB34BDFF6F70F05C36FC80A6B /* UIImageView+HighlightedWebCache.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = "UIImageView+HighlightedWebCache.h"; path = "SDWebImage/Core/UIImageView+HighlightedWebCache.h"; sourceTree = "<group>"; };
+		E3C4196225B52DCB00B897A4 /* PhotoBrowserViewController+Builder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PhotoBrowserViewController+Builder.swift"; sourceTree = "<group>"; };
 		E5640FD0E6EB1CA7206225F450B711E2 /* ResourceBundle-FGBase-FGBase-Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = "ResourceBundle-FGBase-FGBase-Info.plist"; sourceTree = "<group>"; };
 		E5893E4578327C086C7D3731C9303124 /* SDMemoryCache.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = SDMemoryCache.m; path = SDWebImage/Core/SDMemoryCache.m; sourceTree = "<group>"; };
 		E5EC77CB123BADAA2D7DF92511F18035 /* Toast-Swift-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "Toast-Swift-umbrella.h"; sourceTree = "<group>"; };
@@ -1808,6 +1810,7 @@
 				33B5FF9D36F09890AE00929BB083F836 /* PhotoPickerViewController+CameraDelegate.swift */,
 				FE054C266D4500EE94AC3107CED342DA /* PlayVideoForSelectionViewController.swift */,
 				2B1A1E92A577429191B467E03592699B /* VideoPreviewController.swift */,
+				E3C4196225B52DCB00B897A4 /* PhotoBrowserViewController+Builder.swift */,
 			);
 			name = ViewControllers;
 			path = FYPhoto/Classes/ViewControllers;
@@ -2892,6 +2895,7 @@
 				FA8DECB3BC3681725A3DD044595D13EF /* PhotoCaptureDelegate.swift in Sources */,
 				BE6B4454FC74291148E4708F2D9813B3 /* PhotoDetailCell.swift in Sources */,
 				5052A917E363E90649E20B379098FCF4 /* PhotoImage.swift in Sources */,
+				E3C4196325B52DCB00B897A4 /* PhotoBrowserViewController+Builder.swift in Sources */,
 				6E0656CD71E211375BDEC3E729C92B9D /* PhotoInteractiveDismissTransitionDriver.swift in Sources */,
 				F0500BF08671A12E3C659D05E1704DEB /* PhotoLauncher.swift in Sources */,
 				6E85EB4E6CA75450B6DA09D55CD9E364 /* PhotoMetaData.swift in Sources */,
