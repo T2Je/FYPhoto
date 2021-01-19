@@ -390,7 +390,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         button.layer.cornerRadius = 15
         button.layer.masksToBounds = true
         button.addTarget(self, action: #selector(addPhotoBarItemClicked(_:)), for: .touchUpInside)
-        button.setTitleColor(UIColor(red: 43/255.0, green: 134/255.0, blue: 245/255.0, alpha: 1), for: .normal)
+        button.setTitleColor(UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1), for: .normal)
         return button
     }()
     
@@ -778,7 +778,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             addItemButton.setTitle(title, for: .normal)
             addItemButton.setImage(nil, for: .normal)
             addItemButton.backgroundColor = .white
-//            addItemButton.backgroundColor = UIColor(red: 43/255.0, green: 134/255.0, blue: 245/255.0, alpha: 1)
+//            addItemButton.backgroundColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
         }
     }
 

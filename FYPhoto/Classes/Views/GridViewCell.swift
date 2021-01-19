@@ -161,7 +161,7 @@ class GridViewCell: UICollectionViewCell {
         } else {
             selectionButton.setImage(nil, for: .normal)
             selectionButton.setTitle(title, for: .normal)
-            selectionButton.backgroundColor = UIColor(red: 43/255.0, green: 134/255.0, blue: 245/255.0, alpha: 1)
+            selectionButton.backgroundColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
         }
     }
     

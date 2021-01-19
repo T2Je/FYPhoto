@@ -49,7 +49,7 @@ class ZoomingScrollView: UIScrollView {
         imageView.contentMode = .scaleAspectFit
 
         circularProgressView.outerRingColor = .white
-        circularProgressView.innerRingColor = UIColor(red: 43/255.0, green: 134/255.0, blue: 245/255.0, alpha: 1)
+        circularProgressView.innerRingColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
         circularProgressView.style = .ontop
         circularProgressView.startAngle = 270
         circularProgressView.isHidden = true

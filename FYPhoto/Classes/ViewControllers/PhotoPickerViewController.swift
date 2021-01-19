@@ -48,8 +48,9 @@ public class PhotoPickerViewController: UICollectionViewController {
     fileprivate var assetSelectionIdentifierCache = [String]() {
         willSet {
             updateSelectedAssetIsVideo(with: newValue)
-            updateNavigationBarItems(with: newValue)
-            updatePreview(with: newValue)
+//            updateNavigationBarItems(with: newValue)
+            updateSelectedAssetsCount(with: newValue)
+//            updatePreview(with: newValue)
             reachedMaximum = newValue.count >= maximumCanBeSelected
             collectionView.reloadData()
         }
@@ -62,10 +63,16 @@ public class PhotoPickerViewController: UICollectionViewController {
     fileprivate var thumbnailSize: CGSize!
     fileprivate var previousPreheatRect = CGRect.zero
 
-    fileprivate var selectedPhotoCountBarItem: UIBarButtonItem!
-    fileprivate var doneBarItem: UIBarButtonItem!
-    fileprivate var previewItem: UIBarButtonItem!
+//    fileprivate var selectedPhotoCountBarItem: UIBarButtonItem!
+//    fileprivate var doneBarItem: UIBarButtonItem!
+//    fileprivate var previewItem: UIBarButtonItem!
 
+    fileprivate lazy var bottomToolView: PhotoPickerBottomToolView = {
+        let toolView = PhotoPickerBottomToolView(selectionLimit: maximumCanBeSelected)
+        toolView.delegate = self
+        return toolView
+    }()
+    
     var previewVC: PhotoBrowserViewController?
     
     fileprivate var selectedAssetIsVideo: Bool? = nil
@@ -152,13 +159,10 @@ public class PhotoPickerViewController: UICollectionViewController {
         collectionView.register(GridCameraCell.self, forCellWithReuseIdentifier: String(describing: GridCameraCell.self))
         
         requestAlbumsData()
-
         initalFetchResult()
-
         setupNavigationBar()
-        
-        setupBottomToolBar()
-        
+//        setupBottomToolBar()
+        setupBottomToolView()
         resetCachedAssets()        
 
         PHPhotoLibrary.shared().register(self)
@@ -200,17 +204,17 @@ public class PhotoPickerViewController: UICollectionViewController {
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel".photoTablelocalized, style: .plain, target: self, action: #selector(backBarButton(_:)))
-        navigationItem.leftBarButtonItem?.tintColor = .black
+//        navigationItem.leftBarButtonItem?.tintColor = .black
         
         // There is a UI bug on iOS 14.2 and above, set title to " " to fix this bug.
-        selectedPhotoCountBarItem = UIBarButtonItem(title: " ", style: .plain, target: nil, action: nil)
-        selectedPhotoCountBarItem.tintColor = PhotoPickerViewController.blueTintColor
+//        selectedPhotoCountBarItem = UIBarButtonItem(title: " ", style: .plain, target: nil, action: nil)
+//        selectedPhotoCountBarItem.tintColor = .white
         
-        doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(doneBarButton(_:)))
-        doneBarItem.isEnabled = false
-        doneBarItem.tintColor = PhotoPickerViewController.blueTintColor
+//        doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(doneBarButton(_:)))
+//        doneBarItem.isEnabled = false
+//        doneBarItem.tintColor = .white
 
-        navigationItem.rightBarButtonItems = [doneBarItem, selectedPhotoCountBarItem]
+//        navigationItem.rightBarButtonItems = [doneBarItem, selectedPhotoCountBarItem]
         // custom titleview
         customTitleView.tapped = { [weak self] in
             guard let self = self else { return }
@@ -225,32 +229,19 @@ public class PhotoPickerViewController: UICollectionViewController {
         self.navigationItem.titleView = customTitleView
     }
     
-    func setupBottomToolBar() {
-        navigationController?.setToolbarHidden(true, animated: true)
-        navigationController?.toolbar.barTintColor = UIColor(red: 249/255.0, green: 249/255.0, blue: 249/255.0, alpha: 1)
-        previewItem = UIBarButtonItem(title: "Preview".photoTablelocalized, style: .plain, target: self, action: #selector(previewItemClicked(_:)))
-        let spaceItem = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
-        previewItem.tintColor = PhotoPickerViewController.blueTintColor
-        // Set barButtonItem to navigationController.toolBar will not work, should set to viewController ⚠️
-        self.setToolbarItems([previewItem, spaceItem], animated: true)
+    func setupBottomToolView() {
+        view.addSubview(bottomToolView)
+        bottomToolView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            bottomToolView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            bottomToolView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
+            bottomToolView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            bottomToolView.heightAnchor.constraint(equalToConstant: 45)
+        ])
     }
     
     @objc func backBarButton(_ sender: UIBarButtonItem) {
         back()
-    }
-
-    @objc func doneBarButton(_ sender: UIBarButtonItem) {
-        selectionCompleted(assets: selectedAssets, animated: true)
-    }
-    
-    @objc func previewItemClicked(_ sender: UIBarButtonItem) {
-        let photos = selectedAssets.map { Photo.photoWithPHAsset($0) }
-        let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: 0) {
-            $0.buildNavigationBar().showDeleteButtonForBrowser()
-        }
-        photoBrowser.delegate = self
-        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
-        self.previewVC = photoBrowser
     }
     
     fileprivate var selectedAssets: [PHAsset] {
@@ -285,11 +276,6 @@ public class PhotoPickerViewController: UICollectionViewController {
 
     func back() {
         self.dismiss(animated: true, completion: nil)
-//        if self.presentingViewController != nil {
-//            self.dismiss(animated: true, completion: nil)
-//        } else {
-//            self.navigationController?.popViewController(animated: true)
-//        }
     }
 
     // MARK: UICollectionView
@@ -298,7 +284,6 @@ public class PhotoPickerViewController: UICollectionViewController {
         return containsCamera ? fetchResult.count + 1 : fetchResult.count
         // + 1, one cell for taking picture or video
     }
-    
     
     /// Regenerate IndexPath whether the indexPath is for pure photos or not.
     ///
@@ -597,18 +582,9 @@ extension PhotoPickerViewController: GridViewCellDelegate {
             selectedAssetIsVideo = nil
         }
     }
-
-    func updateNavigationBarItems(with assetIdentifiers: [String]) {
-        selectedPhotoCountBarItem.title = (assetIdentifiers.count == 0) ? "" : "\(assetIdentifiers.count)"
-        doneBarItem.isEnabled = assetIdentifiers.count > 0
-    }
-
-    func updatePreview(with assetIdentifiers: [String]) {
-        if assetIdentifiers.isEmpty {
-            previewVC = nil
-        }
-        navigationController?.setToolbarHidden(assetIdentifiers.isEmpty, animated: true)
-        previewItem.isEnabled = !assetIdentifiers.isEmpty
+    
+    func updateSelectedAssetsCount(with assetIdentifiers: [String]) {
+        bottomToolView.updateCount(assetIdentifiers.count)
     }
 }
 
@@ -790,5 +766,21 @@ extension PhotoPickerViewController: PHPhotoLibraryChangeObserver {
             }
             resetCachedAssets()
         }
+    }
+}
+
+extension PhotoPickerViewController: PhotoPickerBottomToolViewDelegate {
+    func bottomToolViewPreviewButtonClicked() {
+        let photos = selectedAssets.map { Photo.photoWithPHAsset($0) }
+        let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: 0) {
+            $0.buildNavigationBar().showDeleteButtonForBrowser()
+        }
+        photoBrowser.delegate = self
+        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
+        self.previewVC = photoBrowser
+    }
+    
+    func bottomToolViewDoneButtonClicked() {
+        selectionCompleted(assets: selectedAssets, animated: true)
     }
 }
