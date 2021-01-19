@@ -13,13 +13,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     public weak var delegate: PhotoBrowserViewControllerDelegate?
 
     // bar item
-    fileprivate var doneBarItem: UIBarButtonItem!
+//    fileprivate var doneBarItem: UIBarButtonItem!
     fileprivate var addPhotoBarItem: UIBarButtonItem!
     fileprivate var removePhotoBarItem: UIBarButtonItem!
     
-    fileprivate var playVideoBarItem: UIBarButtonItem!
-    fileprivate var pauseVideoBarItem: UIBarButtonItem!
-
     fileprivate var mainCollectionView: UICollectionView!
 
     /// 底部标题
@@ -33,8 +30,15 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         pageCtl.pageIndicatorTintColor = UIColor.lightGray
         return pageCtl
     }()
-
-    fileprivate var playBarItemsIsShowed = false
+    
+    lazy var bottomToolView: PhotoBrowserBottomToolView = {
+        let toolView = PhotoBrowserBottomToolView()
+        toolView.delegate = self
+        return toolView
+    }()
+    var bottomToolViewBottomConstraint: NSLayoutConstraint?
+    
+//    fileprivate var playBarItemsIsShowed = false
 
     fileprivate var initialScrollDone = false
 
@@ -66,7 +70,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     var isPlaying = false {
         willSet {
             if currentPhoto.isVideo {
-                updateToolBarItems(isPlaying: newValue)
+                updateBottomViewPlayButton(newValue)
+//                updateToolBarItems(isPlaying: newValue)
             }
         }
     }
@@ -156,18 +161,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     
     fileprivate var currentPhoto: PhotoProtocol {
         willSet {
-            if newValue.isVideo {
-                // tool bar items
-                if !playBarItemsIsShowed {
-                    updateToolBar(shouldShowDone: isForSelection, shouldShowPlay: true)
-                    playBarItemsIsShowed = true
-                } else {
-                    updateToolBarItems(isPlaying: isPlaying)
-                }
-            } else {
-                updateToolBar(shouldShowDone: isForSelection, shouldShowPlay: false)
-                playBarItemsIsShowed = false
-            }
+            bottomToolView.showPlayButton(newValue.isVideo)
         }
     }
 
@@ -280,6 +274,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         setupNavigationBar()
         setupBottomToolBar()
         addSubviews()
+        self.view.bringSubviewToFront(bottomToolView)
     }
 
     public override func viewWillAppear(_ animated: Bool) {
@@ -287,7 +282,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         try? AVAudioSession.sharedInstance().setCategory(.playback)
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
         self.navigationController?.setNavigationBarHidden(!supportNavigationBar, animated: true)
-        self.navigationController?.setToolbarHidden(!supportBottomToolBar, animated: false)
+//        self.navigationController?.setToolbarHidden(!supportBottomToolBar, animated: false)
 
         originCaptionTransform = captionView.transform
     }
@@ -305,7 +300,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     fileprivate func cachePreviousData() {
-        previousToolBarHidden = self.navigationController?.toolbar.isHidden
+//        previousToolBarHidden = self.navigationController?.toolbar.isHidden
         previousNavigationBarHidden = self.navigationController?.navigationBar.isHidden
         previousInteractivePop = self.navigationController?.interactivePopGestureRecognizer?.isEnabled
         previousNavigationTitle = self.navigationController?.navigationItem.title
@@ -417,21 +412,20 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     func setupBottomToolBar() {
         guard supportBottomToolBar else { return }
-        playVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.play,
-                                           target: self,
-                                           action: #selector(playVideoBarItemClicked(_:)))
-        pauseVideoBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.pause,
-                                            target: self,
-                                            action: #selector(playVideoBarItemClicked(_:)))
-
-        let showVideoPlay = currentPhoto.isVideo
+        view.addSubview(bottomToolView)
+        bottomToolView.translatesAutoresizingMaskIntoConstraints = false
         
+        bottomToolViewBottomConstraint = bottomToolView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor)
+        bottomToolViewBottomConstraint?.isActive = true
+        NSLayoutConstraint.activate([
+            bottomToolView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            bottomToolView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            bottomToolView.heightAnchor.constraint(equalToConstant: 45)
+        ])
+        bottomToolView.showPlayButton(currentPhoto.isVideo)
         if isForSelection {
-            doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(PhotoBrowserViewController.doneBarButtonClicked(_:)))
-            doneBarItem.isEnabled = !selectedPhotos.isEmpty
+            bottomToolView.addDoneButton()
         }
-
-        updateToolBar(shouldShowDone: isForSelection, shouldShowPlay: showVideoPlay)
     }
 
     fileprivate func restoreOtherPreviousData() {
@@ -448,9 +442,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: false)
         }
         // Drag to dismiss quickly canceled, may result in a navigation hide animation bug, FIXME
-        if let originalToolBarHidden = previousToolBarHidden {
-            navigationController?.isToolbarHidden = originalToolBarHidden
-        }
+//        if let originalToolBarHidden = previousToolBarHidden {
+//            navigationController?.isToolbarHidden = originalToolBarHidden
+//        }
     }
 
     // selected photo thumbnail collectionView
@@ -471,23 +465,40 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         thumbnailsCollectionView.backgroundColor = UIColor(white: 0.1, alpha: 0.9)
         let safeAreaLayoutGuide = self.view.safeAreaLayoutGuide
         thumbnailsCollectionView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            thumbnailsCollectionView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0),
-            thumbnailsCollectionView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: 0),
-            thumbnailsCollectionView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: 0),
-            thumbnailsCollectionView.heightAnchor.constraint(equalToConstant: 90)
-        ])
+        if supportBottomToolBar {
+            NSLayoutConstraint.activate([
+                thumbnailsCollectionView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0),
+                thumbnailsCollectionView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: 0),
+                thumbnailsCollectionView.bottomAnchor.constraint(equalTo: self.bottomToolView.topAnchor, constant: 0),
+                thumbnailsCollectionView.heightAnchor.constraint(equalToConstant: 90)
+            ])
+        } else {
+            NSLayoutConstraint.activate([
+                thumbnailsCollectionView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 0),
+                thumbnailsCollectionView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: 0),
+                thumbnailsCollectionView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: 0),
+                thumbnailsCollectionView.heightAnchor.constraint(equalToConstant: 90)
+            ])
+        }
     }
     
     func addCaptionView() {
         view.addSubview(captionView)
         let safeAreaLayoutGuide = self.view.safeAreaLayoutGuide
         captionView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            captionView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 10),
-            captionView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -10),
-            captionView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -10),
-        ])
+        if supportBottomToolBar {
+            NSLayoutConstraint.activate([
+                captionView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 10),
+                captionView.bottomAnchor.constraint(equalTo: bottomToolView.topAnchor, constant: -10),
+                captionView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -10),
+            ])
+        } else {
+            NSLayoutConstraint.activate([
+                captionView.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 10),
+                captionView.bottomAnchor.constraint(equalTo: safeAreaLayoutGuide.bottomAnchor, constant: -10),
+                captionView.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -10),
+            ])
+        }
     }
     
     func addCollectionView() {
@@ -659,7 +670,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     
     @objc func addPhotoBarItemClicked(_ sender: UIButton) {
         defer {
-            doneBarItem.isEnabled = !selectedPhotos.isEmpty
+            bottomToolView.disableDoneButton(selectedPhotos.isEmpty)
         }
 
         let photo = photos[currentDisplayedIndexPath.item]
@@ -709,44 +720,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     @objc func playVideoBarItemClicked(_ sender: UIBarButtonItem) {
         guard currentPhoto.isVideo else { return }
         if isPlaying {
-            pausePlayback()
+            pauseVideo()
         } else {
             playVideo()
         }
     }
-
-    // MARK: Updated
-    func updateToolBar(shouldShowDone: Bool, shouldShowPlay: Bool) {
-        var items = [UIBarButtonItem]()
-        let spaceItem = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: self, action: nil)
-        if shouldShowPlay {
-            items.append(spaceItem)
-            items.append(playVideoBarItem)
-            items.append(spaceItem)
-        } else {
-            items.append(spaceItem)
-        }
-
-        if shouldShowDone {
-            items.append(doneBarItem)
-        }
-        self.setToolbarItems(items, animated: true)
-    }
-
-    func updateToolBarItems(isPlaying: Bool) {
-        var toolbarItems = self.toolbarItems
-        if isPlaying {
-            if let index = toolbarItems?.firstIndex(of: playVideoBarItem) {
-                toolbarItems?.remove(at: index)
-                toolbarItems?.insert(pauseVideoBarItem, at: index)
-            }
-        } else {
-            if let index = toolbarItems?.firstIndex(of: pauseVideoBarItem) {
-                toolbarItems?.remove(at: index)
-                toolbarItems?.insert(playVideoBarItem, at: index)
-            }
-        }
-        self.setToolbarItems(toolbarItems, animated: true)
+    
+    func updateBottomViewPlayButton(_ showPlay: Bool) {
+        bottomToolView.isPlaying = showPlay
     }
 
     func updateAddBarItem(at indexPath: IndexPath) {
@@ -882,7 +863,19 @@ extension PhotoBrowserViewController {
         }
 
         if supportBottomToolBar {
-            self.navigationController?.setToolbarHidden(!(self.navigationController?.isToolbarHidden ?? true), animated: true)
+            let toolViewIsHidden = bottomToolView.isHidden
+            let constant: CGFloat = toolViewIsHidden ? 0 : 45
+            if toolViewIsHidden {
+                self.bottomToolView.isHidden = false
+            }
+            UIView.animate(withDuration: 0.35) {
+                self.bottomToolViewBottomConstraint?.constant = constant
+                self.bottomToolView.layoutIfNeeded()
+            } completion: { _ in
+                if !toolViewIsHidden {
+                    self.bottomToolView.isHidden = true
+                }
+            }
         }
 
         if supportCaption {
@@ -901,7 +894,7 @@ extension PhotoBrowserViewController {
                 }
             case kUTTypeVideo:
                 if isPlaying {
-                    pausePlayback()
+                    pauseVideo()
                 } else {
                     playVideo()
                 }
@@ -1041,7 +1034,7 @@ extension PhotoBrowserViewController {
         isPlaying = true
     }
 
-    fileprivate func pausePlayback() {
+    fileprivate func pauseVideo() {
         player?.pause()
         isPlaying = false
     }
@@ -1098,5 +1091,21 @@ extension PhotoBrowserViewController: PhotoTransitioning {
 extension PhotoBrowserViewController {
     func firstIndexOfPhoto(_ photo: PhotoProtocol, in photos: [PhotoProtocol]) -> Int? {
         return photos.firstIndex { $0.isEqualTo(photo) }
+    }
+}
+
+extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
+    func browserBottomToolViewPlayButtonClicked() {
+        guard currentPhoto.isVideo else { return }
+        if isPlaying {
+            pauseVideo()
+        } else {
+            playVideo()
+        }
+    }
+    
+    func browserBottomToolViewDoneButtonClicked() {
+        assert(!selectedPhotos.isEmpty, "photos shouldn't be empty")
+        delegate?.photoBrowser(self, didCompleteSelected: selectedPhotos)
     }
 }
