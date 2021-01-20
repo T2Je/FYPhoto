@@ -41,3 +41,6 @@
 "NoPermissionToSave" = "没有权限将照片存储到相册中";
 
 "Preview" = "预览";
+
+"SavePhoto" = "保存图片";
+"SaveVideo" = "保存视频";

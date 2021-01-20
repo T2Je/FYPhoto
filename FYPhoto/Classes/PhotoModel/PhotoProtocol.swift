@@ -39,6 +39,9 @@ public protocol AssetPhotoProtocol {
 public protocol URLPhotoProtocol {
     var url: URL? { get set }
     
+    /// cached video data at local file path
+    var cachedURL: URL? { get }
+    
     func generateThumbnail(_ url: URL, size: CGSize, completion: @escaping ((Result<UIImage, Error>) -> Void))
     func clearThumbnail()
     func setCaptionContent(_ content: String)
@@ -46,6 +49,10 @@ public protocol URLPhotoProtocol {
 }
 
 public extension URLPhotoProtocol {
+    var cachedURL: URL? {
+        return nil
+    }
+    
     func generateThumbnail(_ url: URL, size: CGSize, completion: @escaping ((Result<UIImage, Error>) -> Void)) {}
     func clearThumbnail() {}
     func setCaptionContent(_ content: String) {}

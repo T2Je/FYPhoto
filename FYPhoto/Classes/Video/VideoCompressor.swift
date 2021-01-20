@@ -35,7 +35,7 @@ public class VideoCompressor {
             return
         }
         do {
-            var tempDirectory = try VideoCompressor.tempDirectory()
+            var tempDirectory = try FileManager.tempDirectory(with: "compressedVideo")
             let videoName = UUID().uuidString + ".mp4"
             tempDirectory.appendPathComponent("\(videoName)")
             #if DEBUG
@@ -89,30 +89,6 @@ public class VideoCompressor {
     public static func removeCompressedTempFile(at path: URL) {
         if FileManager.default.fileExists(atPath: path.path) {
             try? FileManager.default.removeItem(at: path)
-        }
-    }
-    
-    public static func tempDirectory() throws -> URL {
-        let cacheURL = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first!
-        do {
-            // Only the volume(卷) of cache url is used.
-            let temp = try FileManager.default.url(for: .itemReplacementDirectory, in: .userDomainMask, appropriateFor: cacheURL, create: true)
-            let subDirectory = "compressedVideo"
-            let compressedDirectory = temp.appendingPathComponent(subDirectory)
-            
-            if !FileManager.default.fileExists(atPath: compressedDirectory.absoluteString) {
-                do {
-                    try FileManager.default.createDirectory(at: compressedDirectory, withIntermediateDirectories: true, attributes: nil)
-                } catch {
-                    throw error
-                }
-            }
-            #if DEBUG
-            print("temp directory path👉\(temp)👈")
-            #endif
-            return temp
-        } catch {
-            throw error
         }
     }
 }

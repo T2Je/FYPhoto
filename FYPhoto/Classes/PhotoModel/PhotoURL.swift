@@ -21,13 +21,17 @@ class PhotoURL: PhotoProtocol {
     
     var url: URL?
     
+    var _cached: URL?
+    
+    var cachedURL: URL? {
+        return _cached
+    }
+    
     var asset: PHAsset?
     var targetSize: CGSize?
     
     private(set) var captionContent: String?
     private(set) var captionSignature: String?
-    
-//    let resourceType: PhotoResourceType
     
     private lazy var urlAssetQueue: DispatchQueue = DispatchQueue(label: "com.variflight.urlAssetQueue")
     private let videoTypes = ["mp4", "m4a", "mov"]
@@ -51,7 +55,20 @@ class PhotoURL: PhotoProtocol {
     
     init(url: URL) {
         self.url = url
-//        resourceType = .url
+        if isVideo {
+            urlAssetQueue.async {
+                self.cacheVideo(url) { (result) in
+                    switch result {
+                    case .success(let loaction):
+                        self._cached = loaction
+                    case .failure(let error):
+                        #if DEBUG
+                        print("❌ cached video error: \(error)")
+                        #endif
+                    }
+                }
+            }
+        }
     }
     
     static func == (lhs: PhotoURL, rhs: PhotoURL) -> Bool {
@@ -124,4 +141,48 @@ class PhotoURL: PhotoProtocol {
         self.captionSignature = signature
     }
     
+}
+
+extension PhotoURL {
+    func cacheVideo(_ url: URL, completion: @escaping ((Result<URL, Error>) -> Void)) {
+        guard !url.isFileURL else {
+            _cached = url
+            return
+        }
+        
+        URLSession.shared.downloadTask(with: url) { (location, response, error) in
+            guard let location = location else {
+                if let error = error {
+                    completion(.failure(error))
+                }
+                return
+            }
+            do {
+                let temp = try FileManager.tempDirectory(with: "DownloadedVideo")
+                try FileManager.default.moveItem(at: location, to: temp)
+                completion(.success(temp))
+            } catch {
+                completion(.failure(error))
+            }
+        }
+    }
+    
+//    func saveToVideoLibrary(_ url: URL, completion: (Error?) -> Void) {
+//        if #available(iOS 14, *) {
+//            PHPhotoLibrary.requestAuthorization(for: .readWrite) { (status) in
+//                switch status {
+//                case .authorized:
+//                    PHPhotoLibrary.shared().performChanges {
+//                        PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
+//                    } completionHandler: { (completed, error) in
+//                        completion(error)
+//                    }
+//                default:
+//
+//                }
+//            }
+//        } else {
+//            // Fallback on earlier versions
+//        }
+//    }
 }
