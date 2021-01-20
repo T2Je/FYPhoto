@@ -606,10 +606,6 @@ extension PhotoPickerViewController: PhotoBrowserViewControllerDelegate {
     public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, deletePhotoAtIndexWhenBrowsing index: Int) {
         assetSelectionIdentifierCache.remove(at: index)
     }
-    
-    public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, longPressedOnPhoto photo: PhotoProtocol) {
-        
-    }
 }
 
 // MARK: - AlbumsTableViewControllerDelegate

@@ -41,3 +41,8 @@
 
 "SavePhoto" = "Save picture";
 "SaveVideo" = "Save video";
+
+"FailedToSaveMedia" = "Save failed";
+"SuccessfullySavedMedia" = "Successfully Saved to Photo Library";
+
+"GotIt" = "Got it";

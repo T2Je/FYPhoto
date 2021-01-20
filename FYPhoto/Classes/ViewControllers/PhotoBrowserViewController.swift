@@ -925,6 +925,9 @@ extension PhotoBrowserViewController {
     }
     
     func handleLongPress() {
+        guard !isForSelection else {
+            return
+        }
         if let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? CellWithPhotoProtocol,
            let photo = cell.photo {
             delegate?.photoBrowser(self, longPressedOnPhoto: photo)

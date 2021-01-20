@@ -11,7 +11,7 @@ import Photos
 import SDWebImage
 import MobileCoreServices
 
-class VideoDetailCell: UICollectionViewCell {
+class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     static let reuseIdentifier = "VideoDetailCell"
     
     var playerView = PlayerView()
@@ -20,10 +20,10 @@ class VideoDetailCell: UICollectionViewCell {
 
     var imageView = UIImageView()
 
-    var photo: PhotoProtocol! {
+    var photo: PhotoProtocol? {
         didSet {
             activityIndicator.isHidden = true
-            if photo != nil {
+            if let photo = self.photo {
                 if let image = photo.image {
                     display(image: image)
                 } else if let asset = photo.asset {
@@ -94,11 +94,11 @@ class VideoDetailCell: UICollectionViewCell {
 
     fileprivate func display(url: URL) {
         activityIndicator.startAnimating()
-        photo.generateThumbnail(url, size: .zero) { (result) in
+        photo?.generateThumbnail(url, size: .zero) { (result) in
             self.activityIndicator.stopAnimating()
             switch result {
             case .success(let image):
-                self.photo.storeImage(image)
+                self.photo?.storeImage(image)
                 self.display(image: image)
             case .failure(_):
                 self.displayErrorThumbnail()
@@ -121,7 +121,7 @@ class VideoDetailCell: UICollectionViewCell {
                                               contentMode: PHImageContentMode.aspectFit,
                                               options: options) { [weak self] (image, info) in
             if let image = image {
-                self?.photo.storeImage(image)
+                self?.photo?.storeImage(image)
                 self?.display(image: image)
             } else {
                 self?.displayImageFailure()
@@ -171,13 +171,7 @@ class VideoDetailCell: UICollectionViewCell {
             imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
         ])
-//        playButton.translatesAutoresizingMaskIntoConstraints = false
-//        NSLayoutConstraint.activate([
-//            playButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-//            playButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-//            playButton.widthAnchor.constraint(equalToConstant: 50),
-//            playButton.heightAnchor.constraint(equalToConstant: 50)
-//        ])
+        
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),

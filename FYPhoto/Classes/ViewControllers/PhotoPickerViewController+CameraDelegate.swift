@@ -20,7 +20,7 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
             
             var asset: PHAsset?
             
-            CameraViewController.saveImageDataToAlbums(data) { (error) in
+            SaveMediaTool.saveImageDataToAlbums(data) { (error) in
                 if let error = error {
                     print("🤢\(error)🤮")
                 } else {
@@ -65,7 +65,7 @@ extension PhotoPickerViewController: VideoPreviewControllerDelegate {
     public func videoPreviewController(_ preview: VideoPreviewController, didSaveVideoAt path: URL) {
         preview.delegate = nil
         print("video path: \(path)\npath.path: \(path.path)")
-        CameraViewController.saveVideoDataToAlbums(path) { [weak self] (error) in
+        SaveMediaTool.saveVideoDataToAlbums(path) { [weak self] (error) in
             DispatchQueue.main.async {
                 preview.dismiss(animated: true, completion: {
                     if let error = error {
@@ -79,7 +79,7 @@ extension PhotoPickerViewController: VideoPreviewControllerDelegate {
                             DispatchQueue.main.async {
                                 let selectedVideo = SelectedVideo(url: urlAsset.url)
                                 selectedVideo.briefImage = thumbnail
-                                selectedVideo.asset = videoAsset
+//                                selectedVideo.asset = videoAsset
                                 self?.selectedVideo?(.success(selectedVideo))
                                 self?.dismiss(animated: true, completion: nil)
                             }

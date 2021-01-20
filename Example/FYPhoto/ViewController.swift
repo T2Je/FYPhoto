@@ -349,7 +349,6 @@ extension ViewController: CameraViewControllerDelegate {
             cameraViewController.dismiss(animated: true) {
                 let photo = Photo.photoWithUIImage(image)
                 let detailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0, builder: nil)
-//                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
                 detailVC.delegate = self
                 self.navigationController?.pushViewController(detailVC, animated: true)
             }
@@ -362,19 +361,9 @@ extension ViewController: CameraViewControllerDelegate {
             }
 
             cameraViewController.dismiss(animated: true) {
-//                 Editor controller
                 let previewVC = VideoPreviewController(videoURL: videoURL)
                 previewVC.delegate = self
                 self.present(previewVC, animated: true, completion: nil)
-                
-//                guard UIVideoEditorController.canEditVideo(atPath: videoURL.absoluteString) else { return }
-//                let videoEditorController = UIVideoEditorController()
-//                videoEditorController.videoPath = videoURL.path
-//                videoEditorController.delegate = self
-//                videoEditorController.videoMaximumDuration = 15
-//                videoEditorController.modalPresentationStyle = .fullScreen
-//                videoEditorController.videoQuality = .typeHigh
-//                self.present(videoEditorController, animated: true, completion: nil)
             }
         default:
             break

@@ -44,3 +44,8 @@
 
 "SavePhoto" = "保存图片";
 "SaveVideo" = "保存视频";
+
+"FailedToSaveMedia" = "保存失败";
+"SuccessfullySavedMedia" = "已保存到相册";
+
+"GotIt" = "知道了";
