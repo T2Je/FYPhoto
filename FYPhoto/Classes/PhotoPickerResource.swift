@@ -10,7 +10,7 @@ import Photos
 
 public class PhotoPickerResource {
 
-    public static var shared = PhotoPickerResource()
+    static var shared = PhotoPickerResource()
 
     private init() { }
 

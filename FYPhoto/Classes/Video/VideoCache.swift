@@ -8,7 +8,7 @@
 import Foundation
 import Alamofire
 import SDWebImage
-import Cache
+//import Cache
 
 protocol CacheProtocol {
     func cachePath(forKey key: String) -> String?
@@ -23,9 +23,9 @@ protocol CacheProtocol {
 /// Cache remote videos, expired in 3 days
 public class VideoCache {
     // Cache framework
-    private static let storageDiskConfig = DiskConfig(name: "VideoReourceCache", expiry: .seconds(3600*24*3))
-    private static let storageMemoryConfig = MemoryConfig(expiry: .never, countLimit: 10, totalCostLimit: 10)
-    private static let storage = try? Storage.init(diskConfig: VideoCache.storageDiskConfig, memoryConfig: VideoCache.storageMemoryConfig, transformer: TransformerFactory.forData())
+//    private static let storageDiskConfig = DiskConfig(name: "VideoReourceCache", expiry: .seconds(3600*24*3))
+//    private static let storageMemoryConfig = MemoryConfig(expiry: .never, countLimit: 10, totalCostLimit: 10)
+//    private static let storage = try? Storage.init(diskConfig: VideoCache.storageDiskConfig, memoryConfig: VideoCache.storageMemoryConfig, transformer: TransformerFactory.forData())
     
     // SDWebImage framework
     static var sdDiskConfig: SDImageCacheConfig  {
@@ -151,42 +151,42 @@ public class VideoCache {
 extension SDDiskCache: CacheProtocol {
 }
 
-extension Storage: CacheProtocol where T == Data {
-    func setData(_ data: Data?, forKey key: String) {
-        guard let data = data else { return }
-        do {
-            try setObject(data, forKey: key)
-        } catch {
-            print("store data error: \(error)")
-        }
-    }
-        
-    func data(forKey key: String) -> Data? {
-        do {
-            return try object(forKey: key)
-        } catch {
-            print("get data error: \(error)")
-            return nil
-        }
-    }
-    
-    func removeAllData() {
-        do {
-            try removeAll()
-        } catch {
-            print("get data error: \(error)")
-        }
-    }
-    
-    func cachePath(forKey key: String) -> String? {
-        do {
-            let en = try entry(forKey: key)
-            return en.filePath
-        } catch {
-            #if DEBUG
-            print("❌ error: \(error)")
-            #endif
-            return nil
-        }
-    }
-}
+//extension Storage: CacheProtocol where T == Data {
+//    func setData(_ data: Data?, forKey key: String) {
+//        guard let data = data else { return }
+//        do {
+//            try setObject(data, forKey: key)
+//        } catch {
+//            print("store data error: \(error)")
+//        }
+//    }
+//
+//    func data(forKey key: String) -> Data? {
+//        do {
+//            return try object(forKey: key)
+//        } catch {
+//            print("get data error: \(error)")
+//            return nil
+//        }
+//    }
+//
+//    func removeAllData() {
+//        do {
+//            try removeAll()
+//        } catch {
+//            print("get data error: \(error)")
+//        }
+//    }
+//
+//    func cachePath(forKey key: String) -> String? {
+//        do {
+//            let en = try entry(forKey: key)
+//            return en.filePath
+//        } catch {
+//            #if DEBUG
+//            print("❌ error: \(error)")
+//            #endif
+//            return nil
+//        }
+//    }
+//}
