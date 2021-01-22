@@ -1,6 +1,5 @@
 PODS:
   - Alamofire (5.2.2)
-  - Cache (5.3.0)
   - FGBase (4.0.9):
     - FGBase/Category (= 4.0.9)
     - FGBase/Config (= 4.0.9)
@@ -55,7 +54,6 @@ PODS:
     - SnapKit
   - FYPhoto (0.2.2):
     - Alamofire
-    - Cache (= 5.3.0)
     - SDWebImage/Core
     - UICircularProgressRing
   - MBProgressHUD (1.2.0)
@@ -65,7 +63,6 @@ PODS:
   - UICircularProgressRing (7.0.0)
 
 DEPENDENCIES:
-  - Cache (= 5.3.0)
   - FGBase
   - FYPhoto (from `../`)
 
@@ -74,7 +71,6 @@ SPEC REPOS:
     - FGBase
   trunk:
     - Alamofire
-    - Cache
     - MBProgressHUD
     - SDWebImage
     - SnapKit
@@ -87,15 +83,14 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Alamofire: 814429acc853c6c54ff123fc3d2ef66803823ce0
-  Cache: 48762993ec44e1d93483c4d4a13edd18452326f4
   FGBase: c36d0311b2f6ea29eb662634f4d8fcf39305dd3c
-  FYPhoto: e9dd9a0791dedcc864fda487c2c0119b14aa59d1
+  FYPhoto: de15cd1826961d81fd19bf05c88340ca1f90e31c
   MBProgressHUD: 3ee5efcc380f6a79a7cc9b363dd669c5e1ae7406
   SDWebImage: cf6922231e95550934da2ada0f20f2becf2ceba9
   SnapKit: 97b92857e3df3a0c71833cce143274bf6ef8e5eb
   Toast-Swift: 9b6a70f28b3bf0b96c40d46c0c4b9d6639846711
   UICircularProgressRing: 738b48db0ec1fbbd8482d727979392bb8c272e8d
 
-PODFILE CHECKSUM: 5bac7b6fad4d997d7cfcba79eeba9152e83561d8
+PODFILE CHECKSUM: ab52a93876a781552e0e74b1a724bc198b97845e
 
 COCOAPODS: 1.10.0

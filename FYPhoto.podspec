@@ -41,6 +41,6 @@ TODO: Add long description of the pod here.
 
    s.dependency 'SDWebImage/Core'
    s.dependency 'UICircularProgressRing'
-   s.dependency 'Cache', '5.3.0'
+#   s.dependency 'Cache', '5.3.0'
    s.dependency 'Alamofire'
 end
