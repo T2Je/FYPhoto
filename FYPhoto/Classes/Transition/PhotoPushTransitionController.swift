@@ -9,17 +9,19 @@ import Foundation
 
 public class PhotoPushTransitionController: NSObject {
     weak var navigationController: UINavigationController?
-
+    let transitionView: (() -> UIImageView?)?
+    
     var initiallyInteractive = false
     var panGestureRecognizer: UIPanGestureRecognizer = UIPanGestureRecognizer()
 
     var pushPopTransitioning: PhotoHideShowAnimator?
     var interactiveTransitioning: PhotoInteractiveAnimator?
-
+    
     fileprivate var currentAnimationTransition: UIViewControllerAnimatedTransitioning? = nil
 
-    @objc public init(navigationController nc: UINavigationController) {
+    @objc public init(navigationController nc: UINavigationController, transitionView: (() -> UIImageView?)?) {
         navigationController = nc
+        self.transitionView = transitionView
         super.init()
 
         nc.delegate = self
@@ -74,16 +76,16 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
         if fromVC is PhotoTransitioning, operation == .push {
             if let transitionToVC = toVC as? PhotoTransitioning {
                 if transitionToVC.enablePhotoTransitionPush() {
-                    result = PhotoHideShowAnimator(isPresenting: operation == .push, isNavigationAnimation: true)
+                    result = PhotoHideShowAnimator(isPresenting: operation == .push, isNavigationAnimation: true, transitionView: transitionView)
                 }
             }
         } else if toVC is PhotoTransitioning, operation == .pop {
             if let transitionFromVC = fromVC as? PhotoTransitioning {
                 if transitionFromVC.enablePhotoTransitionPush() {
                     if initiallyInteractive {
-                        result = PhotoInteractiveAnimator(panGestureRecognizer: panGestureRecognizer, isNavigationDismiss: true)
+                        result = PhotoInteractiveAnimator(panGestureRecognizer: panGestureRecognizer, isNavigationDismiss: true, transitionView: transitionView)
                     } else {
-                        result = PhotoHideShowAnimator(isPresenting: operation == .push, isNavigationAnimation: true)
+                        result = PhotoHideShowAnimator(isPresenting: operation == .push, isNavigationAnimation: true, transitionView: transitionView)
                     }
                 }
             }

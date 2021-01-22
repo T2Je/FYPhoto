@@ -9,9 +9,12 @@ import Foundation
 
 class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningDelegate {
     let panGesture = UIPanGestureRecognizer()
+    let transitionView: (() -> UIImageView?)?
+    
     weak var viewController: UIViewController?
-    init(viewController: UIViewController?) {
+    init(viewController: UIViewController?, transitionView: (() -> UIImageView?)?) {
         self.viewController = viewController
+        self.transitionView = transitionView
         super.init()
         configurePanGestureRecognizer()
     }
@@ -29,14 +32,14 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
     @objc func initiateTransitionInteractively(_ panGesture: UIPanGestureRecognizer) {
         if panGesture.state == .began && interactiveAnimator?.transitionDriver == nil {
             viewController?.dismiss(animated: true) {
-                UIViewController.TransitionHolder.clearViewControllerTransition()
-                self.viewController?.view.removeGestureRecognizer(panGesture)
+//                UIViewController.TransitionHolder.clearViewControllerTransition()
+//                self.viewController?.view.removeGestureRecognizer(panGesture)
             }
         }
     }
     
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        let animator = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: false)
+        let animator = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: false, transitionView: transitionView)
         normalAnimator = animator
         return animator
     }
@@ -46,7 +49,7 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
     }
     
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        let animator = PhotoInteractiveAnimator(panGestureRecognizer: panGesture, isNavigationDismiss: false)
+        let animator = PhotoInteractiveAnimator(panGestureRecognizer: panGesture, isNavigationDismiss: false, transitionView: transitionView)
         interactiveAnimator = animator
         return animator
     }

@@ -9,6 +9,7 @@ import UIKit
 import Photos
 import MobileCoreServices
 
+/// use static method `create(photos:initialIndex:builder:)` to create PhotoBrowser instance
 public class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     public weak var delegate: PhotoBrowserViewControllerDelegate?
 

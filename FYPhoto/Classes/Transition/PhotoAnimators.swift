@@ -13,10 +13,12 @@ class PhotoHideShowAnimator: NSObject, UIViewControllerAnimatedTransitioning {
 
     let isPresenting: Bool
     let isNavigationAnimation: Bool
+    let transitionView: (() -> UIImageView?)?
     
-    init(isPresenting: Bool, isNavigationAnimation: Bool) {
+    init(isPresenting: Bool, isNavigationAnimation: Bool, transitionView: (() -> UIImageView?)?) {
         self.isPresenting = isPresenting
         self.isNavigationAnimation = isNavigationAnimation
+        self.transitionView = transitionView
         super.init()
     }
 
@@ -32,7 +34,8 @@ class PhotoHideShowAnimator: NSObject, UIViewControllerAnimatedTransitioning {
         transitionDriver = PhotoTransitionDriver(isPresenting: isPresenting,
                                                  isNavigationAnimation: isNavigationAnimation,
                                                  context: transitionContext,
-                                                 duration: transitionDuration(using: transitionContext))
+                                                 duration: transitionDuration(using: transitionContext),
+                                                 transitionViewBlock: transitionView)
     }
 
     func animationEnded(_ transitionCompleted: Bool) {
@@ -47,10 +50,12 @@ class PhotoInteractiveAnimator: NSObject, UIViewControllerInteractiveTransitioni
     var transitionDriver: TransitionDriver?
     let panGestureRecognizer: UIPanGestureRecognizer
     let isNavigationDismiss: Bool
+    let transitionView: (() -> UIImageView?)?
     
-    init(panGestureRecognizer: UIPanGestureRecognizer, isNavigationDismiss: Bool) {
+    init(panGestureRecognizer: UIPanGestureRecognizer, isNavigationDismiss: Bool, transitionView: (() -> UIImageView?)?) {
         self.panGestureRecognizer = panGestureRecognizer
         self.isNavigationDismiss = isNavigationDismiss
+        self.transitionView = transitionView
         super.init()
     }
 
@@ -58,7 +63,9 @@ class PhotoInteractiveAnimator: NSObject, UIViewControllerInteractiveTransitioni
         // Create our helper object to manage the transition for the given transitionContext.
         if transitionContext.isInteractive {
             transitionDriver = PhotoInteractiveDismissTransitionDriver(context: transitionContext,
-                                                                       panGestureRecognizer: panGestureRecognizer, isNavigationDismiss: isNavigationDismiss)
+                                                                       panGestureRecognizer: panGestureRecognizer,
+                                                                       isNavigationDismiss: isNavigationDismiss,
+                                                                       transitionViewBlock: transitionView)
         }
     }
 }

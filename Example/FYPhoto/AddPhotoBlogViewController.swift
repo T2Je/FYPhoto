@@ -384,9 +384,16 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
             }
             
             photoBrowser.delegate = self
-            self.fyphoto.present(photoBrowser, animated: true) {
-                print("present photo browser completely")
+            self.fyphoto.present(photoBrowser, animated: true, completion: nil) { [weak self] () -> UIImageView? in
+                guard let indexPath = self?.lastSelectedIndexPath else { return nil }
+                guard let cell = collectionView.cellForItem(at: indexPath) as? AddPhotoCollectionViewCell else {
+                    return nil
+                }
+                return cell.imageView
             }
+//            self.fyphoto.present(photoBrowser, animated: true) {
+//                print("present photo browser completely")
+//            }
 //            self.navigationController?.fyphoto.push(photoBrowser, animated: true)
 //            self.navigationController?.pushViewController(photoBrowser, animated: true)
         }
@@ -461,7 +468,7 @@ extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
     }
 }
 
-extension AddPhotoBlogViewController: PhotoTransitioning {
+extension AddPhotoBlogViewController {
     public func transitionWillStart() {
         guard let indexPath = lastSelectedIndexPath else { return }
         collectionView.cellForItem(at: indexPath)?.isHidden = true

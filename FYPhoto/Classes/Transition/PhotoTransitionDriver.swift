@@ -15,6 +15,7 @@ class PhotoTransitionDriver: TransitionDriver {
     let transitionContext: UIViewControllerContextTransitioning
     let isPresenting: Bool
     let isNavigationAnimation: Bool
+    let transitionViewBlock: (() -> UIImageView?)?
     
     private let duration: TimeInterval
     private var itemFrameAnimator: UIViewPropertyAnimator?
@@ -38,12 +39,16 @@ class PhotoTransitionDriver: TransitionDriver {
 
     // MARK: Initialization
 
-    init(isPresenting: Bool, isNavigationAnimation: Bool, context: UIViewControllerContextTransitioning, duration: TimeInterval) {
+    init(isPresenting: Bool,
+         isNavigationAnimation: Bool,
+         context: UIViewControllerContextTransitioning,
+         duration: TimeInterval,
+         transitionViewBlock: (() -> UIImageView?)?) {
         self.transitionContext = context
         self.isPresenting = isPresenting
         self.duration = duration
         self.isNavigationAnimation = isNavigationAnimation
-        
+        self.transitionViewBlock = transitionViewBlock
         setup(context)
     }
 
@@ -99,12 +104,15 @@ class PhotoTransitionDriver: TransitionDriver {
         // Ensure the toView has the correct size and position
         toView?.frame = context.finalFrame(for: toViewController)
 
-        if let fromImage = fromAssetTransitioning?.referenceImage() {
-            transitionImageView.image = fromImage
-        }
-
-        if let frame = fromAssetTransitioning?.imageFrame() {
-            transitionImageView.frame = frame
+        if let fromTransition = fromAssetTransitioning {
+            transitionImageView.image = fromTransition.referenceImage()
+            transitionImageView.frame = fromTransition.imageFrame() ?? .zero
+        } else {
+            if let block = transitionViewBlock, let transitionView = block() {
+                let frame = transitionView.convert(transitionView.bounds, to: self.toView)
+                transitionImageView.image = transitionView.image
+                transitionImageView.frame = frame
+            }
         }
 
         containerView.addSubview(transitionImageView)
@@ -126,10 +134,18 @@ class PhotoTransitionDriver: TransitionDriver {
 
         if isPresenting {
             transitionAnimator.addAnimations {
+                guard let toView = self.toView else { return }                
                 if let referencedImage = self.fromAssetTransitioning?.referenceImage(),
                     let toView = self.toView {
                     let toReferenceFrame = Self.calculateZoomInImageFrame(image: referencedImage, forView: toView)
                     self.transitionImageView.frame = toReferenceFrame
+                } else {
+                    if let block = self.transitionViewBlock,
+                       let transitionView = block(),
+                       let referencedImage = transitionView.image {
+                        let toReferenceFrame = Self.calculateZoomInImageFrame(image: referencedImage, forView: toView)
+                        self.transitionImageView.frame = toReferenceFrame
+                    }
                 }
             }
         } else {

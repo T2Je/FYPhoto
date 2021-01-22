@@ -30,8 +30,8 @@ extension UIViewController: FYNameSpaceProtocol {
 
 extension TypeWrapperProtocol where WrappedType: UIViewController {
     
-    public func present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)?) {
-        let transition = PhotoPresentTransitionController(viewController: viewControllerToPresent)
+    public func present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)?, transitionView: (() -> UIImageView?)? = nil) {
+        let transition = PhotoPresentTransitionController(viewController: viewControllerToPresent, transitionView: transitionView)
         viewControllerToPresent.modalPresentationStyle = .custom
         viewControllerToPresent.transitioningDelegate = transition
         wrappedValue.present(viewControllerToPresent, animated: animated, completion: {
@@ -44,8 +44,8 @@ extension TypeWrapperProtocol where WrappedType: UIViewController {
 }
 
 extension TypeWrapperProtocol where WrappedType: UINavigationController {
-    public func push(_ viewController: UIViewController, animated: Bool) {
-        let transition = PhotoPushTransitionController(navigationController: wrappedValue)
+    public func push(_ viewController: UIViewController, animated: Bool, transitionView: (() -> UIImageView?)? = nil) {
+        let transition = PhotoPushTransitionController(navigationController: wrappedValue, transitionView: transitionView)
         wrappedValue.delegate = transition
         wrappedValue.pushViewController(viewController, animated: true)
         UIViewController.TransitionHolder.storeNaviTransition(transition)

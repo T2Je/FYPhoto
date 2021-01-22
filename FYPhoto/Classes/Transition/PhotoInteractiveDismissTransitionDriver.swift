@@ -14,6 +14,7 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
     private let transitionContext: UIViewControllerContextTransitioning
     private let panGestureRecognizer: UIPanGestureRecognizer
     private let isNavigationDismiss: Bool
+    private let transitionViewBlock: (() -> UIImageView?)?
     
     private var itemFrameAnimator: UIViewPropertyAnimator?
 
@@ -36,11 +37,13 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
 
     // MARK: Initialization
 
-    init(context: UIViewControllerContextTransitioning, panGestureRecognizer panGesture: UIPanGestureRecognizer, isNavigationDismiss: Bool) {
+    init(context: UIViewControllerContextTransitioning,
+         panGestureRecognizer panGesture: UIPanGestureRecognizer,
+         isNavigationDismiss: Bool, transitionViewBlock: (() -> UIImageView?)?) {
         self.transitionContext = context
         self.panGestureRecognizer = panGesture
         self.isNavigationDismiss = isNavigationDismiss
-        
+        self.transitionViewBlock = transitionViewBlock
         setup(context, isNavigationDismiss: isNavigationDismiss)
     }
 
@@ -94,7 +97,7 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         }
         
         containerView.addSubview(transitionImageView)
-
+                
         if let fromImage = self.fromAssetTransitioning?.referenceImage() {
             transitionImageView.image = fromImage
         }
@@ -180,6 +183,12 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
             if toPosition == .end {
                 if let imageFrame = self.toAssetTransitioning?.imageFrame() {
                     self.transitionImageView.frame = imageFrame
+                } else {
+                    if let viewBlock = self.transitionViewBlock, let transitionView = viewBlock() {
+                        let frame = transitionView.convert(transitionView.bounds, to: self.toView)
+                        self.transitionImageView.frame = frame
+                        self.transitionImageView.image = transitionView.image
+                    }
                 }
             } else { // cancel
                 if let imageFrame = self.fromAssetTransitioning?.imageFrame() {
