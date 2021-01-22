@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import Alamofire
+//import Alamofire
 import SDWebImage
 //import Cache
 
@@ -47,13 +47,17 @@ public class VideoCache {
             return nil
         }
     }
+    private static let movieTypes: [String] = ["mp4", "m4v", "mov"]
     
     public static let shared: VideoCache? = VideoCache()
     
     private var cache: CacheProtocol?
-    private var task: URLSessionDataTask?
     
-    private static let movieTypes: [String] = ["mp4", "m4v", "mov"]
+    // request
+    private var activeTaskMap: [URL: URLSessionDataTask] = [:]
+//    private var activeRequests: Set<URLSessionDataTask> = []
+    private let underlyingQueue = DispatchQueue(label: "com.fyphoto.underlyingQueue")
+    private let requestQueue = DispatchQueue(label: "com.fyphoto.requestQueue")
     
     private init?(cache: CacheProtocol? = VideoCache.diskCache) {
         self.cache = cache
@@ -73,8 +77,8 @@ public class VideoCache {
         if let data = cache?.data(forKey: cKey) {
             completion(.success(data))
         } else {
-            AF.request(key).responseData { (response: DataResponse<Data, AFError>) in
-                switch response.result {
+            request(key) { (result: Result<Data, Error>) in
+                switch result {
                 case .success(let data):
                     self.save(data: data, key: key)
                     completion(.success(data))
@@ -84,7 +88,53 @@ public class VideoCache {
                     }
                 }
             }
+//            AF.request(key).responseData { (response: DataResponse<Data, AFError>) in
+//                switch response.result {
+//                case .success(let data):
+//                    self.save(data: data, key: key)
+//                    completion(.success(data))
+//                case .failure(let error):
+//                    DispatchQueue.main.async {
+//                        completion(.failure(error))
+//                    }
+//                }
+//            }
         }
+    }
+    
+    fileprivate func request(_ url: URL, completion: @escaping ((Result<Data, Error>) -> Void)) {
+        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
+            if let error = error {
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+                self.removeTask(url)
+                return
+            }
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                return
+            }
+            if let _url = httpResponse.url {
+                self.removeTask(_url)
+            }
+            
+            if (200...299).contains(httpResponse.statusCode) {
+                if let data = data {
+                    DispatchQueue.main.async {
+                        completion(.success(data))
+                    }
+                }
+            } else {
+                let domain = HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode)
+                let error = NSError(domain: domain, code: httpResponse.statusCode, userInfo: nil)
+                DispatchQueue.main.async {
+                    completion(.failure(error))
+                }
+            }
+        }
+        task.resume()
+        activeTaskMap[url] = task
     }
     
     public func fetchFilePathWith(key: URL, completion: @escaping ((Swift.Result<URL, Error>) -> Void)) {
@@ -103,11 +153,12 @@ public class VideoCache {
             let url = URL(fileURLWithPath: filePath)
             completion(.success(url))
         } else {
-            AF.request(key).responseData { (response: DataResponse<Data, AFError>) in
-                switch response.result {
+            request(key) { (result: Result<Data, Error>) in
+                switch result {
                 case .success(let data):
                     self.save(data: data, key: key)
-                    if let path = cache.cachePath(forKey: keyString) {
+                    if let path = cache.cachePath(forKey: keyString),
+                       FileManager.default.fileExists(atPath: path) {
                         let url = URL(fileURLWithPath: path)
                         DispatchQueue.main.async {
                             completion(.success(url))
@@ -119,16 +170,33 @@ public class VideoCache {
                     }
                 }
             }
+            
+//            AF.request(key).responseData { (response: DataResponse<Data, AFError>) in
+//                switch response.result {
+//                case .success(let data):
+//                    self.save(data: data, key: key)
+//                    if let path = cache.cachePath(forKey: keyString) {
+//                        let url = URL(fileURLWithPath: path)
+//                        DispatchQueue.main.async {
+//                            completion(.success(url))
+//                        }
+//                    }
+//                case .failure(let error):
+//                    DispatchQueue.main.async {
+//                        completion(.failure(error))
+//                    }
+//                }
+//            }
         }
     }
     
-    func cancelTask() {
-        switch task?.state {
-        case .running, .suspended:
-            task?.cancel()
-        default:
-            break
-        }        
+    func cancelAllTask(completingOnQueue queue: DispatchQueue = .main, completion: (() -> Void)? = nil) {
+        underlyingQueue.async {
+            self.activeTaskMap.values.forEach { $0.cancel() }
+            queue.async {
+                completion?()
+            }
+        }
     }
     
     func getCacheKey(with url: URL) -> String {
@@ -144,6 +212,14 @@ public class VideoCache {
                 return url.absoluteString
             }
         }
+    }
+    
+    func handleServerError(_ response: URLResponse) {
+        print("fetch video failed with system error response: \(response)")
+    }
+    
+    func removeTask(_ url: URL) {
+        activeTaskMap[url] = nil
     }
 }
 

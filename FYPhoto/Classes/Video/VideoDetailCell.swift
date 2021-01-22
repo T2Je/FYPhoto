@@ -98,6 +98,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
         activityIndicator.startAnimating()
         if let videoCache = videoCache {
             videoCache.fetchFilePathWith(key: url) { [weak self] (result) in
+                self?.activityIndicator.stopAnimating()
                 switch result {
                 case .success(let filePath):
                     self?.generateThumnbnail(filePath)

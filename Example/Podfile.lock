@@ -1,5 +1,4 @@
 PODS:
-  - Alamofire (5.2.2)
   - FGBase (4.0.9):
     - FGBase/Category (= 4.0.9)
     - FGBase/Config (= 4.0.9)
@@ -53,7 +52,6 @@ PODS:
     - FGBase/Tips
     - SnapKit
   - FYPhoto (0.2.2):
-    - Alamofire
     - SDWebImage/Core
     - UICircularProgressRing
   - MBProgressHUD (1.2.0)
@@ -70,7 +68,6 @@ SPEC REPOS:
   http://git.feeyo.com/wangkun/specs.git:
     - FGBase
   trunk:
-    - Alamofire
     - MBProgressHUD
     - SDWebImage
     - SnapKit
@@ -82,9 +79,8 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  Alamofire: 814429acc853c6c54ff123fc3d2ef66803823ce0
   FGBase: c36d0311b2f6ea29eb662634f4d8fcf39305dd3c
-  FYPhoto: de15cd1826961d81fd19bf05c88340ca1f90e31c
+  FYPhoto: b6ebc697faa6af1b7a81a565e6af1ca7f6709a4b
   MBProgressHUD: 3ee5efcc380f6a79a7cc9b363dd669c5e1ae7406
   SDWebImage: cf6922231e95550934da2ada0f20f2becf2ceba9
   SnapKit: 97b92857e3df3a0c71833cce143274bf6ef8e5eb

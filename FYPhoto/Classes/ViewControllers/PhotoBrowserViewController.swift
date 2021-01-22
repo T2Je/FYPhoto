@@ -248,7 +248,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         NotificationCenter.default.removeObserver(self)
         playerItemStatusToken?.invalidate()
         player?.pause()
-        videoCache?.cancelTask()
+        videoCache?.cancelAllTask()
     }
     
     public override func viewDidLoad() {

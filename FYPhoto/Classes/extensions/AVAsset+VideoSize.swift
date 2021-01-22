@@ -1,5 +1,5 @@
 //
-//  AVAsset+NaturalSize.swift
+//  AVAsset+VideoSize.swift
 //  FYPhoto
 //
 //  Created by xiaoyang on 2020/12/21.
