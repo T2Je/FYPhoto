@@ -352,7 +352,7 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
         if cell.isAdd {
             // go to grid vc
             if #available(iOS 14, *) {
-                photoLauncher.launchSystemPhotoPicker(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count, mediaOptions: .video)
+                photoLauncher.launchSystemPhotoPicker(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count, mediaOptions: .all)
             } else {
 //                photoLauncher.launchCustomPhotoLibrary(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
                 let photoPicker = PhotoPickerViewController(mediaTypes: .all)
@@ -473,11 +473,12 @@ extension AddPhotoBlogViewController: PhotoTransitioning {
     }
 
     public func referenceImage() -> UIImage? {
-        guard let indexPath = lastSelectedIndexPath else { return nil }
-        guard let cell = collectionView.cellForItem(at: indexPath) as? AddPhotoCollectionViewCell else {
-            return nil
-        }
-        return cell.imageView.image
+//        guard let indexPath = lastSelectedIndexPath else { return nil }
+//        guard let cell = collectionView.cellForItem(at: indexPath) as? AddPhotoCollectionViewCell else {
+//            return nil
+//        }
+//        return cell.imageView.image
+        return nil
     }
 
     public func imageFrame() -> CGRect? {

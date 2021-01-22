@@ -52,13 +52,13 @@ class PhotoBrowserBottomToolView: UIView {
         
         playButton.setImage("icons8-play".photoImage, for: .normal)
         playButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
-        
+        playButton.imageEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         playButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             playButton.centerXAnchor.constraint(equalTo: self.centerXAnchor),
             playButton.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-            playButton.widthAnchor.constraint(equalToConstant: 30),
-            playButton.heightAnchor.constraint(equalToConstant: 30)
+            playButton.widthAnchor.constraint(equalToConstant: 35),
+            playButton.heightAnchor.constraint(equalToConstant: 35)
         ])
     }
     

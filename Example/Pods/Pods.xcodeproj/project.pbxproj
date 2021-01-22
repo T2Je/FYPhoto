@@ -16,7 +16,6 @@
 		02B28395930246C8D69EBC2FF8CD599A /* SegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F45C74FC3FB6D1501D25A08927D0B58 /* SegmentedControl.swift */; };
 		02FC0B529C253472E21705369EDA735B /* SDImageAssetManager.h in Headers */ = {isa = PBXBuildFile; fileRef = CFDE88FDFAAE3D06A932D675C7B56634 /* SDImageAssetManager.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		0357D80AF921CC4AF628D011F1EFE6AA /* UIView+Size.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCAEAAD2D7467401FEDC34E4280915FA /* UIView+Size.swift */; };
-		040A691E369817B1CDAF2BC134101B71 /* PhotoPickerViewController+AssetsCacheAndChange.swift in Sources */ = {isa = PBXBuildFile; fileRef = D167C800BD8C2428B734536543F613C8 /* PhotoPickerViewController+AssetsCacheAndChange.swift */; };
 		0461719A348BBEAC44CE8991AE9A1984 /* ConstraintItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6775DBE0266E0A6D17C3190BDC227195 /* ConstraintItem.swift */; };
 		04A3F8611F546EC1AACA73FB0A185E39 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BC3CC7D0A2281D55206BE7BDD5D25B6A /* Foundation.framework */; };
 		0734BD7D26A690BAB89C2F5B8D8DC4CF /* SDAssociatedObject.h in Headers */ = {isa = PBXBuildFile; fileRef = ECCBEB084F35E0224E17BF8C79A21AA0 /* SDAssociatedObject.h */; settings = {ATTRIBUTES = (Private, ); }; };
@@ -123,7 +122,7 @@
 		50707FA0B87DB5E03747810D5F3DDF05 /* UIImage+Transform.h in Headers */ = {isa = PBXBuildFile; fileRef = 9AA31C55B6FAA584D08BDFB57BAEBC34 /* UIImage+Transform.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		51269FB5249A7B8978A29B373EE2551D /* SlideInPresentationAnimator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F707995D7E9F28DE186BF7DB615F952 /* SlideInPresentationAnimator.swift */; };
 		514FE9EFDAC7B23FA99358A939274DB0 /* SDWebImageTransition.m in Sources */ = {isa = PBXBuildFile; fileRef = E7DB3CC96256580C819812DFC87E61A6 /* SDWebImageTransition.m */; };
-		52C7FE5BCDC256E81B4F867635FDD10B /* PhotoTransitionPushPopDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB77553805FADDC9F171FD00B6B596B /* PhotoTransitionPushPopDriver.swift */; };
+		52C7FE5BCDC256E81B4F867635FDD10B /* PhotoTransitionDriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BB77553805FADDC9F171FD00B6B596B /* PhotoTransitionDriver.swift */; };
 		53FC90DBF5FEFD89F0454CCC307BE015 /* SDWebImage.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DCB9665AF7753E90B3EB905D6D50C24F /* SDWebImage.framework */; };
 		542B095F0AD235A06B6682B247C85203 /* UIImageView+HighlightedWebCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 1CF41642D7BC77E0729E626B83BF2952 /* UIImageView+HighlightedWebCache.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5502D36CA8891472DFC3D0E219275CD8 /* PhotoMetaData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2AC5DE8C46917D26A2E1C6FEE5C7D91B /* PhotoMetaData.swift */; };
@@ -706,7 +705,7 @@
 		8B35FFA566FCDBBDFE0CEA652E5BF8B8 /* SDMemoryCache.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = SDMemoryCache.h; path = SDWebImage/Core/SDMemoryCache.h; sourceTree = "<group>"; };
 		8B77E2AF3A93C76CE3C4DE0F20039708 /* PhotoPickerViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhotoPickerViewController.swift; sourceTree = "<group>"; };
 		8B8FAB0D627B17EDE1366984278705D9 /* MBProgressHUD.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MBProgressHUD.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		8BB77553805FADDC9F171FD00B6B596B /* PhotoTransitionPushPopDriver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhotoTransitionPushPopDriver.swift; sourceTree = "<group>"; };
+		8BB77553805FADDC9F171FD00B6B596B /* PhotoTransitionDriver.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhotoTransitionDriver.swift; sourceTree = "<group>"; };
 		8C6D9DF9EAA6910EFC3B47F6613C5BD9 /* UITableView+SafeReload.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "UITableView+SafeReload.swift"; path = "FGBase/Classes/TableView/UITableView+SafeReload.swift"; sourceTree = "<group>"; };
 		8D4FBB55F704DEC28C8EBA04FE4E4186 /* UIImage+Metadata.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = "UIImage+Metadata.m"; path = "SDWebImage/Core/UIImage+Metadata.m"; sourceTree = "<group>"; };
 		8E3FF62E0FEA97CA894A864B87FA828C /* SDWebImage.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = SDWebImage.h; path = WebImage/SDWebImage.h; sourceTree = "<group>"; };
@@ -820,7 +819,6 @@
 		D04EBC5C2765D1B282EB8E598AC1344C /* LICENSE */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		D15E581BE296B07296D8DF94919A3CDC /* SDAsyncBlockOperation.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; name = SDAsyncBlockOperation.h; path = SDWebImage/Private/SDAsyncBlockOperation.h; sourceTree = "<group>"; };
 		D1602F11C86ABB7D7C1201C8C74A45C4 /* SDWebImageDownloaderResponseModifier.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; name = SDWebImageDownloaderResponseModifier.m; path = SDWebImage/Core/SDWebImageDownloaderResponseModifier.m; sourceTree = "<group>"; };
-		D167C800BD8C2428B734536543F613C8 /* PhotoPickerViewController+AssetsCacheAndChange.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "PhotoPickerViewController+AssetsCacheAndChange.swift"; sourceTree = "<group>"; };
 		D16CC3B4DC9CBBEC059E600843BF7FDE /* SnapKit.modulemap */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.module; path = SnapKit.modulemap; sourceTree = "<group>"; };
 		D19F77D0B5189A79C3A3A9CEEFDAA0CE /* fg_ic_load@2x.png */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = image.png; name = "fg_ic_load@2x.png"; path = "FGBase/Assets/fg_ic_load@2x.png"; sourceTree = "<group>"; };
 		D20B6115BF6BCF2457FE7065A37B9F1B /* PhotoPickerViewController+CameraDelegate.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "PhotoPickerViewController+CameraDelegate.swift"; sourceTree = "<group>"; };
@@ -1173,7 +1171,6 @@
 				4781FD704367A76B107A78FA67F7FA49 /* PhotoBrowserViewController+Builder.swift */,
 				95E220A8EF56DDD5EAFA3771465190D0 /* PhotoBrowserViewControllerDelegate.swift */,
 				8B77E2AF3A93C76CE3C4DE0F20039708 /* PhotoPickerViewController.swift */,
-				D167C800BD8C2428B734536543F613C8 /* PhotoPickerViewController+AssetsCacheAndChange.swift */,
 				20C7E86C4684B5197A8FE6A499949BF9 /* PhotoPickerViewController+AssetTransition.swift */,
 				D20B6115BF6BCF2457FE7065A37B9F1B /* PhotoPickerViewController+CameraDelegate.swift */,
 				20A46AB7FF6EF96ECAFFBFD916C15894 /* PlayVideoForSelectionViewController.swift */,
@@ -1618,7 +1615,7 @@
 				A947232CDEC3C5173405CB1282255A2C /* PhotoPresentTransitionController.swift */,
 				B8BBAACFEB807D9C8A0279D5C735E989 /* PhotoPushTransitionController.swift */,
 				D63B359AFD9C8BBF3AC5A566B5A21DFE /* PhotoTransitioning.swift */,
-				8BB77553805FADDC9F171FD00B6B596B /* PhotoTransitionPushPopDriver.swift */,
+				8BB77553805FADDC9F171FD00B6B596B /* PhotoTransitionDriver.swift */,
 				5B1B2092640A517C1115F4A189DD0B4C /* TransitionDriver.swift */,
 				9A0D95E82A141A940A2A9E02D52E5F85 /* UIViewController+Present.swift */,
 			);
@@ -2423,7 +2420,6 @@
 				0CDB0BDFDD0EBCBE983F9D1AB72FE180 /* PhotoPickerBottomToolView.swift in Sources */,
 				E688F2C53F599AEE4CC7998E6DFED058 /* PhotoPickerError.swift in Sources */,
 				30E4F20921E30FFF4D000458A136EB71 /* PhotoPickerResource.swift in Sources */,
-				040A691E369817B1CDAF2BC134101B71 /* PhotoPickerViewController+AssetsCacheAndChange.swift in Sources */,
 				5D03D4D1D896C5759A1328ECBDE340DB /* PhotoPickerViewController+AssetTransition.swift in Sources */,
 				AA1A21E03A7B840D85C90218EDC1CC0B /* PhotoPickerViewController+CameraDelegate.swift in Sources */,
 				8BB43B3045E8D774D78116131467E3C3 /* PhotoPickerViewController.swift in Sources */,
@@ -2432,7 +2428,7 @@
 				ACA3C48E9B561195075052252F970E66 /* PhotoPushTransitionController.swift in Sources */,
 				72AECE4CD1F1D0EB51AD09B444C93C27 /* PhotosAuthority.swift in Sources */,
 				EE773BC1210847A05F4799481CE34040 /* PhotoTransitioning.swift in Sources */,
-				52C7FE5BCDC256E81B4F867635FDD10B /* PhotoTransitionPushPopDriver.swift in Sources */,
+				52C7FE5BCDC256E81B4F867635FDD10B /* PhotoTransitionDriver.swift in Sources */,
 				A0F7CDF73C4668623AD3328F74E7D627 /* PhotoURL.swift in Sources */,
 				BF1E406CF73D7F7FCE8599249A8D8F1E /* PlayerView.swift in Sources */,
 				1A9991D3D8ED6F1B35E28E505C2F2B8C /* PlayVideoForSelectionViewController.swift in Sources */,

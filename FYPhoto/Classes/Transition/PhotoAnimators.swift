@@ -22,7 +22,7 @@ class PhotoHideShowAnimator: NSObject, UIViewControllerAnimatedTransitioning {
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         if isPresenting {
-            return 0.38
+            return 0.58
         } else {
             return 0.38
         }

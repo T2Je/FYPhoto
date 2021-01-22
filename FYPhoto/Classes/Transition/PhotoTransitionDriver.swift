@@ -114,9 +114,11 @@ class PhotoTransitionDriver: TransitionDriver {
         toAssetTransitioning?.transitionWillStart()
 
         // Create a UIViewPropertyAnimator that lives the lifetime of the transition
-        let spring = CGFloat(0.95)
+        let spring = CGFloat(0.85)
         transitionAnimator = UIViewPropertyAnimator(duration: duration, dampingRatio: spring) {
-            topView?.alpha = topViewTargetAlpha
+            if !self.isPresenting {
+                topView?.alpha = topViewTargetAlpha
+            }
             self.visualEffectView.effect = targetEffect
         }
         
@@ -145,6 +147,10 @@ class PhotoTransitionDriver: TransitionDriver {
         }
 
         transitionAnimator.addCompletion { _ in
+            if self.isPresenting {
+                topView?.alpha = topViewTargetAlpha
+            }
+            
             // Finish the protocol handshake
             self.fromAssetTransitioning?.transitionDidEnd()
             self.toAssetTransitioning?.transitionDidEnd()
