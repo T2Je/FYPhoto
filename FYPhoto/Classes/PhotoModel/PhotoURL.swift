@@ -21,11 +21,11 @@ class PhotoURL: PhotoProtocol {
     
     var url: URL?
     
-    var _cached: URL?
-    
-    var cachedURL: URL? {
-        return _cached
-    }
+//    var _cached: URL?
+//    
+//    var cachedURL: URL? {
+//        return _cached
+//    }
     
     var asset: PHAsset?
     var targetSize: CGSize?
@@ -55,20 +55,6 @@ class PhotoURL: PhotoProtocol {
     
     init(url: URL) {
         self.url = url
-        if isVideo {
-            urlAssetQueue.async {
-                self.cacheVideo(url) { (result) in
-                    switch result {
-                    case .success(let loaction):
-                        self._cached = loaction
-                    case .failure(let error):
-                        #if DEBUG
-                        print("❌ cached video error: \(error)")
-                        #endif
-                    }
-                }
-            }
-        }
     }
     
     static func == (lhs: PhotoURL, rhs: PhotoURL) -> Bool {
@@ -81,38 +67,8 @@ class PhotoURL: PhotoProtocol {
     
     // TODO: 😴zZ Use method in URL+Thumbnail instead
     func generateThumbnail(_ url: URL, size: CGSize, completion: @escaping ((Result<UIImage, Error>) -> Void)) {
-        let cache = URLCache.shared
-        let urlRequest = URLRequest(url: url)
-        if let response = cache.cachedResponse(for: urlRequest), let image = UIImage(data: response.data) {
-            completion(.success(image))
-            return
-        }
-
-        urlAssetQueue.async { // 1
-            let asset = AVURLAsset(url: url) //2
-            let avAssetImageGenerator = AVAssetImageGenerator(asset: asset) //3
-            avAssetImageGenerator.maximumSize = size
-            avAssetImageGenerator.appliesPreferredTrackTransform = true //4
-            let thumnailTime = CMTimeMake(value: 0, timescale: 1) //5
-            do {
-                let cgThumbImage = try avAssetImageGenerator.copyCGImage(at: thumnailTime, actualTime: nil) //6
-                let thumbImage = UIImage(cgImage: cgThumbImage) //7
-                // cache
-                if let response = HTTPURLResponse(url: url, statusCode: 200, httpVersion: nil, headerFields: nil),
-                   let data = thumbImage.pngData() {
-                    let cachedResponse = CachedURLResponse(response: response, data: data)
-                    cache.storeCachedResponse(cachedResponse, for: urlRequest)
-                }
-                DispatchQueue.main.async { //8
-                    self.image = thumbImage
-                    completion(.success(thumbImage)) //9
-                }
-            } catch {
-                print("video thumbnail generated error: \(error.localizedDescription)") //10
-                DispatchQueue.main.async {
-                    completion(.failure(error)) //11
-                }
-            }
+        url.generateThumbnail { (result) in
+            completion(result)
         }
     }
     
@@ -141,48 +97,4 @@ class PhotoURL: PhotoProtocol {
         self.captionSignature = signature
     }
     
-}
-
-extension PhotoURL {
-    func cacheVideo(_ url: URL, completion: @escaping ((Result<URL, Error>) -> Void)) {
-        guard !url.isFileURL else {
-            _cached = url
-            return
-        }
-        
-        URLSession.shared.downloadTask(with: url) { (location, response, error) in
-            guard let location = location else {
-                if let error = error {
-                    completion(.failure(error))
-                }
-                return
-            }
-            do {
-                let temp = try FileManager.tempDirectory(with: "DownloadedVideo")
-                try FileManager.default.moveItem(at: location, to: temp)
-                completion(.success(temp))
-            } catch {
-                completion(.failure(error))
-            }
-        }
-    }
-    
-//    func saveToVideoLibrary(_ url: URL, completion: (Error?) -> Void) {
-//        if #available(iOS 14, *) {
-//            PHPhotoLibrary.requestAuthorization(for: .readWrite) { (status) in
-//                switch status {
-//                case .authorized:
-//                    PHPhotoLibrary.shared().performChanges {
-//                        PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: url)
-//                    } completionHandler: { (completed, error) in
-//                        completion(error)
-//                    }
-//                default:
-//
-//                }
-//            }
-//        } else {
-//            // Fallback on earlier versions
-//        }
-//    }
 }

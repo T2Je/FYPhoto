@@ -13,7 +13,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     public weak var delegate: PhotoBrowserViewControllerDelegate?
 
     // bar item
-//    fileprivate var doneBarItem: UIBarButtonItem!
     fileprivate var addPhotoBarItem: UIBarButtonItem!
     fileprivate var removePhotoBarItem: UIBarButtonItem!
     
@@ -31,18 +30,16 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         return pageCtl
     }()
     
-    lazy var bottomToolView: PhotoBrowserBottomToolView = {
+    fileprivate lazy var bottomToolView: PhotoBrowserBottomToolView = {
         let toolView = PhotoBrowserBottomToolView()
         toolView.delegate = self
         return toolView
     }()
-    var bottomToolViewBottomConstraint: NSLayoutConstraint?
+    fileprivate var bottomToolViewBottomConstraint: NSLayoutConstraint?
     
-//    fileprivate var playBarItemsIsShowed = false
+    fileprivate var videoCache: VideoCache?
 
     fileprivate var initialScrollDone = false
-
-    fileprivate let addLocalizedString = "add".photoTablelocalized
 
     fileprivate var previousNavigationBarHidden: Bool?
     fileprivate var previousToolBarHidden: Bool?
@@ -116,25 +113,21 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 // do nothing when building PhotoBrowserViewController
                 return
             }
-            
             guard let idx = newValue else {
                 thumbnailsCollectionView.reloadData()
                 // 有值 -> 无值， 取消 thumbnail selected 状态
                 // 无值 -> 无值， selectedPhotos 改变
                 return
             }
-            
             guard idx != selectedThumbnailIndexPath else {
                 // 没有选中时，thumbanail collectionView
                 return
             }
-            
             guard !isOperatingMainPhotos else { // 点击 thumbnail
                 // reload thumbnailsCollectionView when scorlling mainCollectionView
                 thumbnailsCollectionView.reloadData()
                 return
             }
-                        
             // scroll mainCollectionView when selecting thumbnail cell
             let thumbnailPhoto = selectedPhotos[idx.item]
             let mainPhoto = photos[currentDisplayedIndexPath.item]
@@ -204,9 +197,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             if !isForSelection {
                 pageControl.numberOfPages = photos.count
                 updatePageControl(withPage: currentDisplayedIndexPath.item)
-//                if canDeletePhotoWhenBrowsing {
-//                    delegate?.photoBrowser(self, photosAfterBrowsing: photos)
-//                }
             }
         }
     }
@@ -258,6 +248,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         NotificationCenter.default.removeObserver(self)
         playerItemStatusToken?.invalidate()
         player?.pause()
+        videoCache?.cancelTask()
     }
     
     public override func viewDidLoad() {
@@ -269,7 +260,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         // Set this value to true to fix a bug: when NavigationBar is opaque, photoBrowser show navigationbar again after hiding it,
         // but photoBrowser view is under a navigationBar height space
         extendedLayoutIncludesOpaqueBars = true
-        
+        setupVideoCache()
         setupCollectionView()
         setupNavigationBar()
         setupBottomToolBar()
@@ -282,25 +273,16 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         try? AVAudioSession.sharedInstance().setCategory(.playback)
         self.navigationController?.interactivePopGestureRecognizer?.isEnabled = false
         self.navigationController?.setNavigationBarHidden(!supportNavigationBar, animated: true)
-//        self.navigationController?.setToolbarHidden(!supportBottomToolBar, animated: false)
-
         originCaptionTransform = captionView.transform
-    }
-
-    public override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-//        print(mainCollectionView.contentOffset)
     }
     
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         stopPlayingIfNeeded()
         restorePreviousNavigationControllerData()
-//        restorePreviousData()
     }
 
     fileprivate func cachePreviousData() {
-//        previousToolBarHidden = self.navigationController?.toolbar.isHidden
         previousNavigationBarHidden = self.navigationController?.navigationBar.isHidden
         previousInteractivePop = self.navigationController?.interactivePopGestureRecognizer?.isEnabled
         previousNavigationTitle = self.navigationController?.navigationItem.title
@@ -441,10 +423,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         if let originalIsNavigationBarHidden = previousNavigationBarHidden {
             navigationController?.setNavigationBarHidden(originalIsNavigationBarHidden, animated: false)
         }
-        // Drag to dismiss quickly canceled, may result in a navigation hide animation bug, FIXME
-//        if let originalToolBarHidden = previousToolBarHidden {
-//            navigationController?.isToolbarHidden = originalToolBarHidden
-//        }
+    }
+    
+    func setupVideoCache() {
+        videoCache = VideoCache.shared
     }
 
     // selected photo thumbnail collectionView
@@ -455,7 +437,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         collectionView.isPagingEnabled = false
         collectionView.delegate = self
         collectionView.dataSource = self
-//        collectionView.backgroundColor = .white
+        collectionView.backgroundColor = UIColor.init(white: 0.1, alpha: 0.9)
         collectionView.contentInsetAdjustmentBehavior = .never
         return collectionView
     }()
@@ -716,15 +698,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             dismiss(animated: true, completion: nil)
         }
     }
-
-    @objc func playVideoBarItemClicked(_ sender: UIBarButtonItem) {
-        guard currentPhoto.isVideo else { return }
-        if isPlaying {
-            pauseVideo()
-        } else {
-            playVideo()
-        }
-    }
     
     func updateBottomViewPlayButton(_ showPlay: Bool) {
         bottomToolView.isPlaying = showPlay
@@ -928,6 +901,7 @@ extension PhotoBrowserViewController {
         guard !isForSelection else {
             return
         }
+        // long press only work for pure browser, not for selection
         if let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? CellWithPhotoProtocol,
            let photo = cell.photo {
             delegate?.photoBrowser(self, longPressedOnPhoto: photo)
@@ -960,32 +934,36 @@ extension PhotoBrowserViewController {
             }
         }
     }
-
+    
     fileprivate func setupPlayer(url: URL, for playerView: PlayerView) {
         if url.isFileURL {
-            // Create asset to be played
-            let asset = AVAsset(url: url)
-            // Create a new AVPlayerItem with the asset and an
-            // array of asset keys to be automatically loaded
-            let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: assetKeys)
-            let player = preparePlayer(with: playerItem)
-            playerView.player = player
-            self.player = player
+            setupPlayerView(url, playerView: playerView)
         } else {
-            VideoCache.fetchURL(key: url) { (filePath) in
-                // Create a new AVPlayerItem with the asset and an
-                // array of asset keys to be automatically loaded
-                let asset = AVAsset(url: filePath)
-                let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: self.assetKeys)
-                let player = self.preparePlayer(with: playerItem)
-                playerView.player = player
-                self.player = player
-            } failed: { (error) in
-                print("FYPhoto fetch url error: \(error)")
+            if let cache = videoCache {
+                cache.fetchFilePathWith(key: url) { (result) in
+                    switch result {
+                    case .success(let filePath):
+                        self.setupPlayerView(filePath, playerView: playerView)
+                    case .failure(let error):
+                        print("FYPhoto fetch url error: \(error)")
+                    }
+                }
+            } else {
+                setupPlayerView(url, playerView: playerView)
             }
         }
     }
-
+    
+    fileprivate func setupPlayerView(_ url: URL, playerView: PlayerView) {
+        // Create a new AVPlayerItem with the asset and an
+        // array of asset keys to be automatically loaded
+        let asset = AVAsset(url: url)
+        let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: self.assetKeys)
+        let player = self.preparePlayer(with: playerItem)
+        playerView.player = player
+        self.player = player
+    }
+    
     fileprivate func preparePlayer(with playerItem: AVPlayerItem) -> AVPlayer {
         if let currentItem = mPlayerItem {
             playerItemStatusToken?.invalidate()

@@ -20,6 +20,8 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
 
     var imageView = UIImageView()
 
+    var videoCache: VideoCache?
+    
     var photo: PhotoProtocol? {
         didSet {
             activityIndicator.isHidden = true
@@ -50,12 +52,12 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
         contentView.addSubview(activityIndicator)
 
         imageView.backgroundColor = .black
-
         imageView.contentMode = .scaleAspectFit
 
         setupActivityIndicator()
 
-
+        videoCache = VideoCache.shared
+        
         let doubleTap = UITapGestureRecognizer(target: self, action: #selector(doubleTapVideoCell(_:)))
         doubleTap.numberOfTapsRequired = 2
         contentView.addGestureRecognizer(doubleTap)
@@ -94,6 +96,24 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
 
     fileprivate func display(url: URL) {
         activityIndicator.startAnimating()
+        if let videoCache = videoCache {
+            videoCache.fetchFilePathWith(key: url) { [weak self] (result) in
+                switch result {
+                case .success(let filePath):
+                    self?.generateThumnbnail(filePath)
+                case .failure(let error):
+                    self?.displayImageFailure()
+                    #if DEBUG
+                    print("❌ cache video error: \(error)")
+                    #endif
+                }
+            }
+        } else {
+            generateThumnbnail(url)
+        }
+    }
+    
+    func generateThumnbnail(_ url: URL) {
         photo?.generateThumbnail(url, size: .zero) { (result) in
             self.activityIndicator.stopAnimating()
             switch result {

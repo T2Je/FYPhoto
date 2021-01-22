@@ -31,7 +31,7 @@ extension FileManager {
             #if DEBUG
             print("temp directory path👉\(temp)👈")
             #endif
-            return temp
+            return compressedDirectory
         } catch {
             throw error
         }

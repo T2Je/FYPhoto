@@ -179,16 +179,18 @@ class ViewController: UIViewController {
 
     @objc func playRemoteVideo(_ sender: UIButton) {
 //        guard let url = URL(string: "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4") else { return }
-        let urlStr = "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4"
-//        let urlStr = "http://client.gsup.sichuanair.com/file.php?9bfc3b16aec233d025c18042e9a2b45a.mp4"
+//        let urlStr = "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4"
+        let urlStr = "http://client.gsup.sichuanair.com/file.php?9bfc3b16aec233d025c18042e9a2b45a.mp4"
 //        let urlStr = "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4"
         guard let url = URL(string: urlStr) else { return }
 
         let photo = Photo.photoWithURL(url)
         
         let photosDetailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0) {
-            $0.buildBottomToolBar()
-        }        
+            $0
+                .buildBottomToolBar()
+                .buildNavigationBar()
+        }
         photosDetailVC.delegate = self
         navigationController?.pushViewController(photosDetailVC, animated: true)
     }

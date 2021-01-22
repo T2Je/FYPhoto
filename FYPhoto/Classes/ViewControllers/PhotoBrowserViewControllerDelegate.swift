@@ -10,7 +10,6 @@ import Photos
 
 public protocol PhotoBrowserViewControllerDelegate: class {
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt indexPath: IndexPath)
-//    func photoBrowser(_ photoBrowser: photoBrowserCollectionViewController, selectedPhotos indexPaths: [IndexPath])
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, selectedAssets identifiers: [String])
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, didCompleteSelected photos: [PhotoProtocol])
  
