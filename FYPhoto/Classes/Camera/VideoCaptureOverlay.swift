@@ -91,7 +91,7 @@ public class VideoCaptureOverlay: UIView {
 
     func setupViews() {
         progressView.outerRingColor = .white
-        progressView.innerRingColor = .orange
+        progressView.innerRingColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
         progressView.style = .ontop
 //        progressView.isHidden = true
         progressView.minValue = 0

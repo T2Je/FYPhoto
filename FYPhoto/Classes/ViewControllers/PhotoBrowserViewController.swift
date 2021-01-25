@@ -245,11 +245,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
     
     deinit {
+        videoCache?.cancelAllTask()
         restoreOtherPreviousData()
         NotificationCenter.default.removeObserver(self)
         playerItemStatusToken?.invalidate()
-        player?.pause()
-        videoCache?.cancelAllTask()
     }
     
     public override func viewDidLoad() {

@@ -90,27 +90,20 @@ public class VideoPreviewController: UIViewController {
     }
     
     func makeConstraints() {
-//        playerView.translatesAutoresizingMaskIntoConstraints = false
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         saveButton.translatesAutoresizingMaskIntoConstraints = false
-                
-//        NSLayoutConstraint.activate([
-//            playerView.topAnchor.constraint(equalTo: view.topAnchor),
-//            playerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-//            playerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-//            playerView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-//        ])
+
         playerView.frame = UIScreen.main.bounds
         NSLayoutConstraint.activate([
             cancelButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
-            cancelButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 25),
+            cancelButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 44),
             cancelButton.widthAnchor.constraint(equalToConstant: 64),
             cancelButton.heightAnchor.constraint(equalToConstant: 32)
         ])
         
         NSLayoutConstraint.activate([
             saveButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
-            saveButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 25),
+            saveButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 44),
             saveButton.widthAnchor.constraint(equalToConstant: 64),
             saveButton.heightAnchor.constraint(equalToConstant: 32)
         ])
