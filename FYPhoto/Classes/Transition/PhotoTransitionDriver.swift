@@ -69,15 +69,13 @@ class PhotoTransitionDriver: TransitionDriver {
             self.toView = toView
         } else {
             let toView = context.view(forKey: .to)
-            self.toView = toView            
+            self.toView = toView
         }
 
         let containerView = context.containerView
 
         // Create a visual effect view and animate the effect in the transition animator
         let effect: UIVisualEffect? = !isPresenting ? UIBlurEffect(style: .extraLight) : nil
-        let targetEffect: UIVisualEffect? = !isPresenting ? nil : UIBlurEffect(style: .light)
-        //        let visualEffectView = UIVisualEffectView(effect: effect)
         visualEffectView.effect = effect
         visualEffectView.frame = containerView.bounds
         visualEffectView.autoresizingMask = [.flexibleWidth,.flexibleHeight]
@@ -126,8 +124,10 @@ class PhotoTransitionDriver: TransitionDriver {
         transitionAnimator = UIViewPropertyAnimator(duration: duration, dampingRatio: spring) {
             if !self.isPresenting {
                 topView?.alpha = topViewTargetAlpha
+                self.visualEffectView.effect = UIBlurEffect(style: .light)
+            } else {
+                self.visualEffectView.backgroundColor = .black
             }
-            self.visualEffectView.effect = targetEffect
         }
         
         transitionAnimator.startAnimation()
