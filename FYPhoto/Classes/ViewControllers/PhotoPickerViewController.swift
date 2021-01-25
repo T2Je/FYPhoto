@@ -204,17 +204,6 @@ public class PhotoPickerViewController: UICollectionViewController {
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel".photoTablelocalized, style: .plain, target: self, action: #selector(backBarButton(_:)))
-//        navigationItem.leftBarButtonItem?.tintColor = .black
-        
-        // There is a UI bug on iOS 14.2 and above, set title to " " to fix this bug.
-//        selectedPhotoCountBarItem = UIBarButtonItem(title: " ", style: .plain, target: nil, action: nil)
-//        selectedPhotoCountBarItem.tintColor = .white
-        
-//        doneBarItem = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.done, target: self, action: #selector(doneBarButton(_:)))
-//        doneBarItem.isEnabled = false
-//        doneBarItem.tintColor = .white
-
-//        navigationItem.rightBarButtonItems = [doneBarItem, selectedPhotoCountBarItem]
         // custom titleview
         customTitleView.tapped = { [weak self] in
             guard let self = self else { return }
@@ -410,8 +399,7 @@ public class PhotoPickerViewController: UICollectionViewController {
         
         let selectedAssetsResult = selectedAssets
         let selectedPhotos = selectedAssetsResult.map { Photo.photoWithPHAsset($0) }
-                
-//        let browserCanSelectPhotosCount = max(maximumCanBeSelected - selectedPhotos.count, 0)
+
         let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: indexPath.item, builder: { builder -> PhotoBrowserViewController.Builder in
             builder
                 .buildForSelection(true)
@@ -424,14 +412,7 @@ public class PhotoPickerViewController: UICollectionViewController {
         })        
 
         photoBrowser.delegate = self
-//        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
-        self.fyphoto.present(photoBrowser, animated: true, completion: nil) { [weak self] () -> UIImageView? in
-            guard let indexPath = self?.lastSelectedIndexPath else { return nil }
-            guard let cell = self?.collectionView.cellForItem(at: indexPath) as? GridViewCell else {
-                return nil
-            }
-            return cell.imageView
-        }
+        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
     }
     
     func browseVideoIfValid(_ asset: PHAsset) {

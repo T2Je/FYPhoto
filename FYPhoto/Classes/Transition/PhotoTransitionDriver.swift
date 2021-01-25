@@ -158,6 +158,15 @@ class PhotoTransitionDriver: TransitionDriver {
                 self.transitionAnimator.addAnimations {
                     if let imageFrame = self.toAssetTransitioning?.imageFrame() {
                         self.transitionImageView.frame = imageFrame
+                    } else {
+                        if let block = self.transitionViewBlock {
+                            if let transitionView = block() {
+                                let frame = transitionView.convert(transitionView.bounds, to: self.fromView)
+                                self.transitionImageView.frame = frame
+                            } else {
+                                self.transitionImageView.frame = .zero
+                            }
+                        }
                     }
                 }
             }
