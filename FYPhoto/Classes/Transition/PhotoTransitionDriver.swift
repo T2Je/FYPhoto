@@ -132,9 +132,10 @@ class PhotoTransitionDriver: TransitionDriver {
         
         transitionAnimator.startAnimation()
 
+        // TODO: 😴zZ To be optimized!
         if isPresenting {
             transitionAnimator.addAnimations {
-                guard let toView = self.toView else { return }                
+                guard let toView = self.toView else { return }
                 if let referencedImage = self.fromAssetTransitioning?.referenceImage(),
                     let toView = self.toView {
                     let toReferenceFrame = Self.calculateZoomInImageFrame(image: referencedImage, forView: toView)

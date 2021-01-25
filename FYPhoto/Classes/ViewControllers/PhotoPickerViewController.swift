@@ -424,7 +424,14 @@ public class PhotoPickerViewController: UICollectionViewController {
         })        
 
         photoBrowser.delegate = self
-        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
+//        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
+        self.fyphoto.present(photoBrowser, animated: true, completion: nil) { [weak self] () -> UIImageView? in
+            guard let indexPath = self?.lastSelectedIndexPath else { return nil }
+            guard let cell = self?.collectionView.cellForItem(at: indexPath) as? GridViewCell else {
+                return nil
+            }
+            return cell.imageView
+        }
     }
     
     func browseVideoIfValid(_ asset: PHAsset) {

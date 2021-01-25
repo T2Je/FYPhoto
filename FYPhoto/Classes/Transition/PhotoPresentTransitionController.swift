@@ -19,6 +19,11 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
         configurePanGestureRecognizer()
     }
     
+    deinit {
+//        UIViewController.TransitionHolder.clearViewControllerTransition()
+//        self.viewController?.view.removeGestureRecognizer(panGesture)
+    }
+    
     var interactiveAnimator: PhotoInteractiveAnimator?
     var normalAnimator: UIViewControllerAnimatedTransitioning?
     
