@@ -211,7 +211,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     var supportNavigationBar = false
     var supportBottomToolBar = false
     /// show delete button for photo browser
-    var canDeletePhotoWhenBrowsing = false
+    var canDeleteWhenPreviewingSelectedPhotos = false
     
     // MARK: - Function
     
@@ -382,7 +382,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             addPhotoBarItem = UIBarButtonItem(customView: addItemButton)
             self.navigationItem.rightBarButtonItem = addPhotoBarItem
         } else {
-            if canDeletePhotoWhenBrowsing {
+            if canDeleteWhenPreviewingSelectedPhotos {
                 removePhotoBarItem = UIBarButtonItem(barButtonSystemItem: .trash,
                                                      target: self,
                                                      action: #selector(removePhotoWhenBrowsingBarItemClicked(_:)))
@@ -405,8 +405,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             bottomToolView.heightAnchor.constraint(equalToConstant: 45)
         ])
         bottomToolView.showPlayButton(currentPhoto.isVideo)
-        if isForSelection {
+        if isForSelection || canDeleteWhenPreviewingSelectedPhotos {
             bottomToolView.addDoneButton()
+            bottomToolView.disableDoneButton(selectedPhotos.isEmpty)
         }
     }
 
@@ -746,7 +747,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             if isForSelection {
                 navigationItem.title = ""
             } else {
-                navigationItem.title = "\(indexPath.item + 1) /\(photos.count)"
+                navigationItem.title = "\(indexPath.item + 1)/\(photos.count)"
             }
         }
     }

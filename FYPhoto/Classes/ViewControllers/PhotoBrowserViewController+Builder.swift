@@ -26,7 +26,7 @@ extension PhotoBrowserViewController {
         var supportBottomToolBar = false
         
         /// show delete button for photo browser
-        var canDeletePhotoWhenBrowsing = false
+        var canDeleteWhenPreviewingSelectedPhotos = false
         
         init() { }
         
@@ -44,7 +44,7 @@ extension PhotoBrowserViewController {
         /// 只浏览照片不选择照片时在照片右上角加删除按钮
         /// - Returns: Builder
         public func showDeleteButtonForBrowser() -> Self {
-            canDeletePhotoWhenBrowsing = true
+            canDeleteWhenPreviewingSelectedPhotos = true
             return self
         }
         
@@ -89,7 +89,7 @@ extension PhotoBrowserViewController {
             supportNavigationBar = true
             supportBottomToolBar = true
             supportCaption = false
-            canDeletePhotoWhenBrowsing = false
+            canDeleteWhenPreviewingSelectedPhotos = false
             self.maximumCanBeSelected = maximumCanBeSelected
             self.selectedPhotos = selected
             return self
@@ -104,7 +104,7 @@ extension PhotoBrowserViewController {
             supportNavigationBar = true
             supportBottomToolBar = true
             supportCaption = true
-            canDeletePhotoWhenBrowsing = false
+            canDeleteWhenPreviewingSelectedPhotos = false
             self.maximumCanBeSelected = 0
             self.selectedPhotos = []
             return self
@@ -118,7 +118,7 @@ extension PhotoBrowserViewController {
             photoBrowser.supportCaption = supportCaption
             photoBrowser.supportNavigationBar = supportNavigationBar
             photoBrowser.supportBottomToolBar = supportBottomToolBar || photoBrowser.photos.contains { $0.isVideo }
-            photoBrowser.canDeletePhotoWhenBrowsing = canDeletePhotoWhenBrowsing
+            photoBrowser.canDeleteWhenPreviewingSelectedPhotos = canDeleteWhenPreviewingSelectedPhotos
         }
     }
 }

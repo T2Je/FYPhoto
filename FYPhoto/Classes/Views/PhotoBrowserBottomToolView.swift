@@ -68,8 +68,8 @@ class PhotoBrowserBottomToolView: UIView {
         doneButton.setTitle("Done".photoTablelocalized, for: .normal)
         doneButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
 //        doneButton.setTitleColor(UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1), for: .normal)
-        doneButton.setTitleColor(.white, for: .normal)
-        doneButton.setTitleColor(UIColor(red: 167/255.0, green: 171/255.0, blue: 177/255.0, alpha: 1), for: .disabled)
+        doneButton.setTitleColor(UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1), for: .normal)
+        doneButton.setTitleColor(UIColor(red: 123/255.0, green: 130/255.0, blue: 141/255.0, alpha: 1), for: .disabled)
         doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
         doneButton.isEnabled = false
         doneButton.layer.cornerRadius = 5

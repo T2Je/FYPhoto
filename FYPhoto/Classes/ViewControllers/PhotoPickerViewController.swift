@@ -763,10 +763,16 @@ extension PhotoPickerViewController: PhotoPickerBottomToolViewDelegate {
     func bottomToolViewPreviewButtonClicked() {
         let photos = selectedAssets.map { Photo.photoWithPHAsset($0) }
         let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: 0) {
-            $0.buildNavigationBar().showDeleteButtonForBrowser()
+            $0
+                .setSelectedPhotos(photos)
+                .buildNavigationBar()
+                .showDeleteButtonForBrowser()
+                .buildBottomToolBar()
+            
         }
         photoBrowser.delegate = self
-        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
+        self.navigationController?.delegate = nil
+        self.navigationController?.pushViewController(photoBrowser, animated: true)
         self.previewVC = photoBrowser
     }
     
