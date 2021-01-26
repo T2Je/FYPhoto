@@ -14,6 +14,7 @@ public protocol VideoPreviewControllerDelegate: class {
     func videoPreviewControllerDidCancel(_ preview: VideoPreviewController)
 }
 
+/// Preview video just token, save or discard it.
 public class VideoPreviewController: UIViewController {
 
     let cancelButton = UIButton()

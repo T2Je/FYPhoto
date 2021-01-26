@@ -101,8 +101,8 @@ extension PhotoBrowserViewController {
         public func quickBuildJustForBrowser() -> Self {
             isForSelection = false
             supportThumbnails = false
-            supportNavigationBar = true
-            supportBottomToolBar = true
+            supportNavigationBar = false
+            supportBottomToolBar = false
             supportCaption = true
             canDeleteWhenPreviewingSelectedPhotos = false
             self.maximumCanBeSelected = 0

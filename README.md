@@ -38,4 +38,5 @@ FYPhoto is available under the MIT license. See the LICENSE file for more info.
 6. Add long press gesture delegate for Image and video ✅
 7. Support preview on PhotoPickerViewController ✅
 8. Function builder
-9. Long press to save photo
+9. Long press to save photo ✅
+10. FYVideoPlayerViewController

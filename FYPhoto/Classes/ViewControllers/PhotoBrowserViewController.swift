@@ -17,7 +17,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     fileprivate var addPhotoBarItem: UIBarButtonItem!
     fileprivate var removePhotoBarItem: UIBarButtonItem!
     
-    fileprivate var mainCollectionView: UICollectionView!
+    fileprivate var mainCollectionView: UIColle ctionView!
 
     /// 底部标题
     fileprivate lazy var captionView = CaptionView()
@@ -504,6 +504,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             pageControl.widthAnchor.constraint(equalToConstant: 200),
             pageControl.heightAnchor.constraint(equalToConstant: 30)
         ])
+        mainCollectionView.showsHorizontalScrollIndicator = false
     }
     func hideCaptionView(_ flag: Bool, animated: Bool = true) {
         if flag { // hide
