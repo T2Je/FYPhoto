@@ -8,6 +8,8 @@
 import Foundation
 
 class PhotoTransitionDriver: TransitionDriver {
+    // TODO: 😴zZ To be optimized!
+    
     var transitionAnimator: UIViewPropertyAnimator!
     var isInteractive: Bool {
         return transitionContext.isInteractive
@@ -124,15 +126,14 @@ class PhotoTransitionDriver: TransitionDriver {
         transitionAnimator = UIViewPropertyAnimator(duration: duration, dampingRatio: spring) {
             if !self.isPresenting {
                 topView?.alpha = topViewTargetAlpha
-                self.visualEffectView.effect = UIBlurEffect(style: .light)
+                self.visualEffectView.effect = nil
             } else {
                 self.visualEffectView.backgroundColor = .black
             }
         }
         
         transitionAnimator.startAnimation()
-
-        // TODO: 😴zZ To be optimized!
+        
         if isPresenting {
             transitionAnimator.addAnimations {
                 guard let toView = self.toView else { return }
