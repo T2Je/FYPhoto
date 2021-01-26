@@ -36,7 +36,7 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
                 if let asset = asset {
                     self.selectedPhotos?([SelectedImage(asset: asset, image: image)])
                 }
-//                self.dismiss(animated: true, completion: nil)                
+                self.dismiss(animated: true, completion: nil)                
             }
         case String(kUTTypeMovie):
             guard let videoURL = info[.mediaURL] as? URL else {
