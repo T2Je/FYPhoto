@@ -17,7 +17,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     fileprivate var addPhotoBarItem: UIBarButtonItem!
     fileprivate var removePhotoBarItem: UIBarButtonItem!
     
-    fileprivate var mainCollectionView: UIColle ctionView!
+    fileprivate var mainCollectionView: UICollectionView!
 
     /// 底部标题
     fileprivate lazy var captionView = CaptionView()
