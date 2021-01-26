@@ -36,7 +36,7 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
                 if let asset = asset {
                     self.selectedPhotos?([SelectedImage(asset: asset, image: image)])
                 }
-                self.dismiss(animated: true, completion: nil)                
+//                self.dismiss(animated: true, completion: nil)                
             }
         case String(kUTTypeMovie):
             guard let videoURL = info[.mediaURL] as? URL else {
@@ -64,7 +64,7 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
 extension PhotoPickerViewController: VideoPreviewControllerDelegate {
     public func videoPreviewController(_ preview: VideoPreviewController, didSaveVideoAt path: URL) {
         preview.delegate = nil
-        print("video path: \(path)\npath.path: \(path.path)")
+//        print("video path: \(path)\npath.path: \(path.path)")
         SaveMediaTool.saveVideoDataToAlbums(path) { [weak self] (error) in
             DispatchQueue.main.async {
                 preview.dismiss(animated: true, completion: {
@@ -79,7 +79,6 @@ extension PhotoPickerViewController: VideoPreviewControllerDelegate {
                             DispatchQueue.main.async {
                                 let selectedVideo = SelectedVideo(url: urlAsset.url)
                                 selectedVideo.briefImage = thumbnail
-//                                selectedVideo.asset = videoAsset
                                 self?.selectedVideo?(.success(selectedVideo))
                                 self?.dismiss(animated: true, completion: nil)
                             }

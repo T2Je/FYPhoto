@@ -107,7 +107,7 @@ class ViewController: UIViewController {
                     let photoPickerVC = PhotoPickerViewController(mediaTypes: .all)
                         .setMaximumPhotosCanBeSelected(6)
                         .setMaximumVideoSizePerMB(40, compressedQuality: .AVAssetExportPreset640x480)
-                        .setPickerWithCamera(false)
+                        .setPickerWithCamera(true)
 
                     photoPickerVC.selectedPhotos = { [weak self] images in
                         print("selected \(images.count) photos: \(images)")

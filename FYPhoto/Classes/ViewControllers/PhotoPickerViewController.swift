@@ -728,20 +728,22 @@ extension PhotoPickerViewController: PHPhotoLibraryChangeObserver {
             // Hang on to the new fetch result.
             self.willBatchUpdated = changes.hasIncrementalChanges
             fetchResult = changes.fetchResultAfterChanges
+            guard let collectionView = self.collectionView else { fatalError() }
             if changes.hasIncrementalChanges {
+                let bias = self.containsCamera ? 1 : 0
                 // If we have incremental diffs, animate them in the collection view.
-                guard let collectionView = self.collectionView else { fatalError() }
                 collectionView.performBatchUpdates({
                     // For indexes to make sense, updates must be in this order:
                     // delete, insert, reload, move
+                    
                     if let removed = changes.removedIndexes, removed.count > 0 {
-                        collectionView.deleteItems(at: removed.map({ IndexPath(item: $0, section: 0) }))
+                        collectionView.deleteItems(at: removed.map({ IndexPath(item: $0 + bias, section: 0) }))
                     }
                     if let inserted = changes.insertedIndexes, inserted.count > 0 {
-                        collectionView.insertItems(at: inserted.map({ IndexPath(item: $0, section: 0) }))
+                        collectionView.insertItems(at: inserted.map({ IndexPath(item: $0 + bias, section: 0) }))
                     }
                     if let changed = changes.changedIndexes, changed.count > 0 {
-                        collectionView.reloadItems(at: changed.map({ IndexPath(item: $0, section: 0) }))
+                        collectionView.reloadItems(at: changed.map({ IndexPath(item: $0 + bias, section: 0) }))
                     }
                     changes.enumerateMoves { fromIndex, toIndex in
                         collectionView.moveItem(at: IndexPath(item: fromIndex, section: 0),
@@ -750,7 +752,7 @@ extension PhotoPickerViewController: PHPhotoLibraryChangeObserver {
                 })
             } else {
                 // Reload the collection view if incremental diffs are not available.
-                collectionView!.reloadData()
+                collectionView.reloadData()
             }
             resetCachedAssets()
         }
