@@ -82,8 +82,8 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
                         result = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: true, transitionView: nil)
                     }
                 }
-            } else if let transitionView = transitionView {
-                result = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: true, transitionView: transitionView)
+            } else {
+                result = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: true, transitionView: self.transitionView)
             }
         } else {
             if toVC is PhotoTransitioning {
@@ -101,7 +101,7 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
                         }
                     }
                 }
-            } else if let transitionView = transitionView { // Alternative transition
+            } else { // Alternative transition
                 if initiallyInteractive {
                     result = PhotoInteractiveAnimator(panGestureRecognizer: panGesture,
                                                       isNavigationDismiss: true,

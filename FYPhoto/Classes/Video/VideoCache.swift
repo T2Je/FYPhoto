@@ -42,7 +42,7 @@ public class VideoCache {
     static var diskCache: SDDiskCache? {
         if let temp = videoCacheTmpDirectory {
             #if DEBUG
-            print("Video cached at: \(temp.path)")
+            print("Video cached path: \(temp.path)")
             #endif
             return SDDiskCache(cachePath: temp.path, config: sdDiskConfig)
         } else {

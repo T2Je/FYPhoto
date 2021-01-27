@@ -17,7 +17,6 @@
 		A44FC3F6B130791A524B5C13 /* Pods_FYPhoto_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44B9530E860271DD96AFAFEC /* Pods_FYPhoto_Example.framework */; };
 		E31043EE25A7EFA500806F77 /* NamSpaceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31043ED25A7EFA500806F77 /* NamSpaceTest.swift */; };
 		E3295DB8250F22BC00A55AEA /* TestAuthority.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3295DB7250F22BC00A55AEA /* TestAuthority.swift */; };
-		E33E1BF1250094CD000212BB /* CustomNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E33E1BF0250094CD000212BB /* CustomNavigationController.swift */; };
 		E343E62E24F7BBA8003341DE /* AddPhotoBlogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */; };
 		E343E62F24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */; };
 		E3C6A6A0256CAC4200F81A33 /* RenderImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3C6A69F256CAC4200F81A33 /* RenderImageViewController.swift */; };
@@ -55,7 +54,6 @@
 		CC84A622A1CD7C7373A2DFE1 /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		E31043ED25A7EFA500806F77 /* NamSpaceTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamSpaceTest.swift; sourceTree = "<group>"; };
 		E3295DB7250F22BC00A55AEA /* TestAuthority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestAuthority.swift; sourceTree = "<group>"; };
-		E33E1BF0250094CD000212BB /* CustomNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomNavigationController.swift; sourceTree = "<group>"; };
 		E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPhotoBlogViewController.swift; sourceTree = "<group>"; };
 		E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPhotoCollectionViewCell.swift; sourceTree = "<group>"; };
 		E3C6A69F256CAC4200F81A33 /* RenderImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderImageViewController.swift; sourceTree = "<group>"; };
@@ -125,7 +123,6 @@
 			children = (
 				E3F5F5A6259431E70044229D /* OCViewController.h */,
 				E3F5F5A7259431E70044229D /* OCViewController.m */,
-				E33E1BF0250094CD000212BB /* CustomNavigationController.swift */,
 				E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */,
 				E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */,
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
@@ -375,7 +372,6 @@
 				E3C6A6A0256CAC4200F81A33 /* RenderImageViewController.swift in Sources */,
 				E343E62E24F7BBA8003341DE /* AddPhotoBlogViewController.swift in Sources */,
 				E3F5F5A8259431E70044229D /* OCViewController.m in Sources */,
-				E33E1BF1250094CD000212BB /* CustomNavigationController.swift in Sources */,
 				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
 				E31043EE25A7EFA500806F77 /* NamSpaceTest.swift in Sources */,
 				E343E62F24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift in Sources */,

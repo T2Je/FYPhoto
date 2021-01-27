@@ -7,8 +7,7 @@
 
 import Foundation
 
-class PhotoTransitionDriver: TransitionDriver {
-    // TODO: 😴zZ To be optimized!
+class PhotoTransitionDriver: TransitionDriver {    
     
     var transitionAnimator: UIViewPropertyAnimator!
     var isInteractive: Bool {
@@ -20,11 +19,8 @@ class PhotoTransitionDriver: TransitionDriver {
     let transitionViewBlock: (() -> UIImageView?)?
     
     private let duration: TimeInterval
-    private var itemFrameAnimator: UIViewPropertyAnimator?
-    var fromAssetTransitioning: PhotoTransitioning?
-    var toAssetTransitioning: PhotoTransitioning?
 
-    var toView: UIView?
+    var toView: UIView!
     var fromView: UIView?
 
     var visualEffectView = UIVisualEffectView()
@@ -38,6 +34,8 @@ class PhotoTransitionDriver: TransitionDriver {
         imageView.accessibilityIgnoresInvertColors = true
         return imageView
     }()
+    
+    var transitionType: TransitionType = .missingInfo        
 
     // MARK: Initialization
 
@@ -55,80 +53,81 @@ class PhotoTransitionDriver: TransitionDriver {
     }
 
     func setup(_ context: UIViewControllerContextTransitioning) {
-        // Setup the transition "chrome"
+        // Setup the transition
         guard
             let fromViewController = context.viewController(forKey: .from),
-            let toViewController = context.viewController(forKey: .to)
+            let toViewController = context.viewController(forKey: .to),
+            let toView = context.view(forKey: .to)
         else {
             return
         }
-        self.fromAssetTransitioning = fromViewController as? PhotoTransitioning
-        self.toAssetTransitioning = toViewController as? PhotoTransitioning
+        self.toView = toView
+        
         if isNavigationAnimation {
-            let fromView = context.view(forKey: .from)
-            self.fromView = fromView
-            let toView = context.view(forKey: .to)
-            self.toView = toView
-        } else {
-            let toView = context.view(forKey: .to)
-            self.toView = toView
+            self.fromView = context.view(forKey: .from)
         }
-
+        
         let containerView = context.containerView
-
-        // Create a visual effect view and animate the effect in the transition animator
-        let effect: UIVisualEffect? = !isPresenting ? UIBlurEffect(style: .extraLight) : nil
-        visualEffectView.effect = effect
-        visualEffectView.frame = containerView.bounds
-        visualEffectView.autoresizingMask = [.flexibleWidth,.flexibleHeight]
-        containerView.addSubview(visualEffectView)
-
+        
+        if let fromTransition = fromViewController as? PhotoTransitioning,
+           let toTransition = toViewController as? PhotoTransitioning {
+            transitionType = .photoTransitionProtocol(from: fromTransition, to: toTransition)
+            addEffectView(on: containerView)
+            containerView.addSubview(transitionImageView)
+            transitionImageView.image = fromTransition.referenceImage()
+            transitionImageView.frame = fromTransition.imageFrame() ?? .zero
+            // Inform the view controller's the transition is about to start
+            fromTransition.transitionWillStart()
+            toTransition.transitionWillStart()
+        } else if let transitionViewBlock = transitionViewBlock {
+            transitionType = .transitionBlock(block: transitionViewBlock)
+            addEffectView(on: containerView)
+            containerView.addSubview(transitionImageView)
+            if let transitionView = transitionViewBlock() {
+                let frame = transitionView.convert(transitionView.bounds, to: self.toView)
+                transitionImageView.image = transitionView.image
+                transitionImageView.frame = frame
+            }
+        } else {
+            transitionType = .missingInfo
+        }
+        
         // Insert the toViewController's view into the transition container view
         var topView: UIView?
         var topViewTargetAlpha: CGFloat = 0.0
         if isPresenting {
             topView = toView
             topViewTargetAlpha = 1.0
-            if let to = toView {
-                to.alpha = 0.0
-                containerView.addSubview(to)
-            }
+            toView.alpha = 0.0
+            containerView.addSubview(toView)
+            // Ensure the toView has the correct size and position
+            toView.frame = context.finalFrame(for: toViewController)
         } else {
             topView = fromView
             topViewTargetAlpha = 0.0
-            if let to = toView {
-                containerView.insertSubview(to, at: 0)
-            }
+            containerView.insertSubview(toView, at: 0)
+            // Ensure the toView has the correct size and position
+            toView.frame = context.finalFrame(for: toViewController)
         }
-
-        // Ensure the toView has the correct size and position
-        toView?.frame = context.finalFrame(for: toViewController)
-
-        if let fromTransition = fromAssetTransitioning {
-            transitionImageView.image = fromTransition.referenceImage()
-            transitionImageView.frame = fromTransition.imageFrame() ?? .zero
-        } else {
-            if let block = transitionViewBlock, let transitionView = block() {
-                let frame = transitionView.convert(transitionView.bounds, to: self.toView)
-                transitionImageView.image = transitionView.image
-                transitionImageView.frame = frame
-            }
-        }
-
-        containerView.addSubview(transitionImageView)
-
-        // Inform the view controller's the transition is about to start
-        fromAssetTransitioning?.transitionWillStart()
-        toAssetTransitioning?.transitionWillStart()
 
         // Create a UIViewPropertyAnimator that lives the lifetime of the transition
         let spring = CGFloat(0.85)
         transitionAnimator = UIViewPropertyAnimator(duration: duration, dampingRatio: spring) {
             if !self.isPresenting {
+                switch self.transitionType {
+                case .missingInfo:
+                    break
+                default:
+                    self.visualEffectView.effect = nil
+                }
                 topView?.alpha = topViewTargetAlpha
-                self.visualEffectView.effect = nil
             } else {
-                self.visualEffectView.backgroundColor = .black
+                switch self.transitionType {
+                case .missingInfo:
+                    break
+                default:
+                    self.visualEffectView.backgroundColor = .black
+                }
             }
         }
         
@@ -136,19 +135,7 @@ class PhotoTransitionDriver: TransitionDriver {
         
         if isPresenting {
             transitionAnimator.addAnimations {
-                guard let toView = self.toView else { return }
-                if let referencedImage = self.fromAssetTransitioning?.referenceImage(),
-                    let toView = self.toView {
-                    let toReferenceFrame = Self.calculateZoomInImageFrame(image: referencedImage, forView: toView)
-                    self.transitionImageView.frame = toReferenceFrame
-                } else {
-                    if let block = self.transitionViewBlock,
-                       let transitionView = block(),
-                       let referencedImage = transitionView.image {
-                        let toReferenceFrame = Self.calculateZoomInImageFrame(image: referencedImage, forView: toView)
-                        self.transitionImageView.frame = toReferenceFrame
-                    }
-                }
+                self.animateTransitionImageViewForPresenting(true)
             }
         } else {
             // HACK: By delaying 0.005s, I get a layout-refresh on the toViewController,
@@ -157,18 +144,7 @@ class PhotoTransitionDriver: TransitionDriver {
             // the device has rotated.
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.005) {
                 self.transitionAnimator.addAnimations {
-                    if let imageFrame = self.toAssetTransitioning?.imageFrame() {
-                        self.transitionImageView.frame = imageFrame
-                    } else {
-                        if let block = self.transitionViewBlock {
-                            if let transitionView = block() {
-                                let frame = transitionView.convert(transitionView.bounds, to: self.fromView)
-                                self.transitionImageView.frame = frame
-                            } else {
-                                self.transitionImageView.frame = .zero
-                            }
-                        }
-                    }
+                    self.animateTransitionImageViewForPresenting(false)
                 }
             }
         }
@@ -179,8 +155,12 @@ class PhotoTransitionDriver: TransitionDriver {
             }
             
             // Finish the protocol handshake
-            self.fromAssetTransitioning?.transitionDidEnd()
-            self.toAssetTransitioning?.transitionDidEnd()
+            switch self.transitionType {
+            case .photoTransitionProtocol(from: let fromTransition, to: let toTransition):
+                fromTransition.transitionDidEnd()
+                toTransition.transitionDidEnd()
+            default: break
+            }
             // Remove transition views
             self.transitionImageView.image = nil
             self.transitionImageView.removeFromSuperview()
@@ -190,4 +170,51 @@ class PhotoTransitionDriver: TransitionDriver {
             self.transitionContext.completeTransition(true)
         }
     }
+    
+    fileprivate func addEffectView(on containerView: UIView) {
+        // Create a visual effect view and animate the effect in the transition animator
+        let effect: UIVisualEffect? = !isPresenting ? UIBlurEffect(style: .extraLight) : nil
+        visualEffectView.effect = effect
+        visualEffectView.frame = containerView.bounds
+        visualEffectView.autoresizingMask = [.flexibleWidth,.flexibleHeight]
+        containerView.addSubview(visualEffectView)
+    }
+    
+    func animateTransitionImageViewForPresenting(_ isPresenting: Bool) {
+        switch transitionType {
+        case .photoTransitionProtocol(from: let fromTransition, to: let toTransition):
+            if isPresenting {
+                if let fromImage = fromTransition.referenceImage() {
+                    let toReferenceFrame = Self.calculateZoomInImageFrame(image: fromImage, forView: self.toView)
+                    self.transitionImageView.frame = toReferenceFrame
+                }
+            } else {
+                if let toImageFrame = toTransition.imageFrame() {
+                    self.transitionImageView.frame = toImageFrame
+                }
+            }
+        case .transitionBlock(block: let block):
+            if isPresenting {
+                if let imageView = block(), let image = imageView.image {
+                    let toReferenceFrame = Self.calculateZoomInImageFrame(image: image, forView: self.toView)
+                    self.transitionImageView.frame = toReferenceFrame
+                }
+            } else {
+                if let imageView = block() {
+                    let frame = imageView.convert(imageView.bounds, to: self.fromView)
+                    self.transitionImageView.frame = frame
+                } else {
+                    self.transitionImageView.frame = .zero
+                }
+            }
+        case .missingInfo:
+            if isPresenting {
+                
+            } else {
+                self.transitionImageView.frame = .zero
+            }
+            break
+        }
+    }
+    
 }

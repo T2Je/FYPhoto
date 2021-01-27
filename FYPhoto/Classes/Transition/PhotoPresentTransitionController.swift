@@ -36,10 +36,7 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
 
     @objc func initiateTransitionInteractively(_ panGesture: UIPanGestureRecognizer) {
         if panGesture.state == .began && interactiveAnimator?.transitionDriver == nil {
-            viewController?.dismiss(animated: true) {
-//                UIViewController.TransitionHolder.clearViewControllerTransition()
-//                self.viewController?.view.removeGestureRecognizer(panGesture)
-            }
+            viewController?.dismiss(animated: true) {}
         }
     }
     

@@ -38,6 +38,8 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         imageView.accessibilityIgnoresInvertColors = true
         return imageView
     }()
+    
+    var transitionType: TransitionType = .missingInfo
 
     // MARK: Initialization
 
@@ -62,17 +64,11 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
             assertionFailure("None of them should be nil")
             return
         }
-        var toViewControllerForNavigation: UIViewController!
+        let toViewController = context.viewController(forKey: .to)
         
+        self.fromView = context.view(forKey: .from)
         if isNavigationDismiss {
-            toViewControllerForNavigation = context.viewController(forKey: .to)
-            self.fromAssetTransitioning = fromViewController as? PhotoTransitioning
-            self.toAssetTransitioning = toViewControllerForNavigation as? PhotoTransitioning
-            self.fromView = context.view(forKey: .from)
             self.toView = context.view(forKey: .to)
-        } else {
-            self.fromAssetTransitioning = fromViewController as? PhotoTransitioning
-            self.fromView = context.view(forKey: .from)
         }
         
         // Add ourselves as a target of the pan gesture
@@ -80,15 +76,44 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         
         let containerView = context.containerView
         
-        // Create a visual effect view and animate the effect in the transition animator
-        let effect: UIVisualEffect? = UIBlurEffect(style: .extraLight)
-        let targetEffect: UIVisualEffect? = nil
+        if let fromTransition = fromViewController as? PhotoTransitioning,
+           let toTransition = toViewController as? PhotoTransitioning {
+            self.fromAssetTransitioning = fromTransition
+            self.toAssetTransitioning = toTransition
+            transitionType = .photoTransitionProtocol(from: fromTransition, to: toTransition)
+            
+            setupEffectView(with: containerView)
+            containerView.addSubview(visualEffectView)
+            containerView.addSubview(transitionImageView)
+            
+            transitionImageView.image = fromTransition.referenceImage()
+            transitionImageView.frame = fromTransition.imageFrame() ?? .zero
+            // Inform the view controller's the transition is about to start
+            fromTransition.transitionWillStart()
+            toTransition.transitionWillStart()
+        } else if let transitionViewBlock = transitionViewBlock {
+            transitionType = .transitionBlock(block: transitionViewBlock)
+            setupEffectView(with: containerView)
+            containerView.addSubview(visualEffectView)
+            containerView.addSubview(transitionImageView)
+            
+            if let transitionView = transitionViewBlock() {
+                let frame = transitionView.convert(transitionView.bounds, to: self.toView)
+                transitionImageView.image = transitionView.image // containerView.frame
+                transitionImageView.frame = frame
+            }
+        } else {
+            transitionType = .missingInfo
+            containerView.addSubview(transitionImageView)
+            if let fromTransition = fromViewController as? PhotoTransitioning, let image = fromTransition.referenceImage() {
+                self.fromAssetTransitioning = fromTransition
+                transitionImageView.image = image
+                transitionImageView.frame = fromTransition.imageFrame() ?? containerView.frame
+            } else {
+                transitionImageView.frame = containerView.frame
+            }
+        }
 
-        visualEffectView.effect = effect
-        visualEffectView.frame = containerView.bounds
-        visualEffectView.autoresizingMask = [.flexibleWidth,.flexibleHeight]
-        containerView.addSubview(visualEffectView)
-        
         let topView = fromView
         let topViewTargetAlpha: CGFloat = 0.0
 
@@ -96,31 +121,17 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
             if let toView = toView {
                 containerView.insertSubview(toView, at: 0)
                 // Ensure the toView has the correct size and position
-                toView.frame = context.finalFrame(for: toViewControllerForNavigation)
+                if let toVC = toViewController {
+                    toView.frame = context.finalFrame(for: toVC)
+                }
             }
         }
-        
-        containerView.addSubview(transitionImageView)
-                
-        if let fromAssetTransitioning = self.fromAssetTransitioning {
-            transitionImageView.image = fromAssetTransitioning.referenceImage()
-            transitionImageView.frame = fromAssetTransitioning.imageFrame() ?? containerView.frame
-        } else {
-            if let alternateTransition = self.transitionViewBlock {
-                self.transitionImageView.frame = containerView.frame
-                self.transitionImageView.image = alternateTransition()?.image
-            }
-        }
-        
-        // Inform the view controller's the transition is about to start
-        self.fromAssetTransitioning?.transitionWillStart()
-        self.toAssetTransitioning?.transitionWillStart()
-
+    
         // Create a UIViewPropertyAnimator that lives the lifetime of the transition
         let spring = CGFloat(0.95)
         transitionAnimator = UIViewPropertyAnimator(duration: 0.38, dampingRatio: spring) {
             topView?.alpha = topViewTargetAlpha
-            self.visualEffectView.effect = targetEffect
+            self.visualEffectView.effect = nil
         }
     }
 
@@ -168,6 +179,15 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         animate(completionPosition)
     }
 
+    func setupEffectView(with container: UIView) {
+        // Create a visual effect view and animate the effect in the transition animator
+        let effect: UIVisualEffect? = UIBlurEffect(style: .extraLight)
+
+        visualEffectView.effect = effect
+        visualEffectView.frame = container.bounds
+        visualEffectView.autoresizingMask = [.flexibleWidth,.flexibleHeight]
+    }
+    
     func animate(_ toPosition: UIViewAnimatingPosition) {
         // Create a property animator to animate each image's frame change
 
@@ -187,12 +207,21 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         let itemFrameAnimator = UIViewPropertyAnimator(duration: completionDuration, dampingRatio: completionDamping) {
             self.transitionImageView.transform = CGAffineTransform.identity
             if toPosition == .end {
-                if let toTranstioning = self.toAssetTransitioning {
-                    self.transitionImageView.frame = toTranstioning.imageFrame() ?? .zero
-                } else if let alternateTransition = self.transitionViewBlock {
-                    if let transitionView = alternateTransition() {
+                switch self.transitionType {
+                case .photoTransitionProtocol(from: _, to: let to):
+                    self.transitionImageView.frame = to.imageFrame() ?? .zero
+                case .transitionBlock(block: let block):
+                    if let transitionView = block() {
                         let frame = transitionView.convert(transitionView.bounds, to: self.fromView)
                         self.transitionImageView.frame = frame
+                    } else {
+                        self.transitionImageView.frame = .zero
+                    }
+                case .missingInfo:
+                    if let fromView = self.fromView {
+                        // transitionImageView disappears at bottom view
+                        let rect = CGRect(x: fromView.frame.size.width / 2, y: fromView.frame.size.height + 100, width: 0, height: 0)
+                        self.transitionImageView.frame = rect
                     } else {
                         self.transitionImageView.frame = .zero
                     }
