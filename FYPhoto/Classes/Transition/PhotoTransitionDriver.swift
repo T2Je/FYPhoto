@@ -79,15 +79,13 @@ class PhotoTransitionDriver: TransitionDriver {
             // Inform the view controller's the transition is about to start
             fromTransition.transitionWillStart()
             toTransition.transitionWillStart()
-        } else if let transitionViewBlock = transitionViewBlock {
+        } else if let transitionViewBlock = transitionViewBlock, let transitionView = transitionViewBlock() {
             transitionType = .transitionBlock(block: transitionViewBlock)
             addEffectView(on: containerView)
             containerView.addSubview(transitionImageView)
-            if let transitionView = transitionViewBlock() {
-                let frame = transitionView.convert(transitionView.bounds, to: self.toView)
-                transitionImageView.image = transitionView.image
-                transitionImageView.frame = frame
-            }
+            let frame = transitionView.convert(transitionView.bounds, to: self.toView)
+            transitionImageView.image = transitionView.image
+            transitionImageView.frame = frame
         } else {
             transitionType = .missingInfo
         }
