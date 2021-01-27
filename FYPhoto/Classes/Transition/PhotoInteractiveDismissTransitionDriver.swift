@@ -18,6 +18,8 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
     /// Alternate transition if viewController doesn't implement PhotoTransition
     private let transitionViewBlock: (() -> UIImageView?)?
     
+    private let completion: ((_ isNavigation: Bool) -> Void)?
+    
     private var itemFrameAnimator: UIViewPropertyAnimator?
 
     var fromAssetTransitioning: PhotoTransitioning?
@@ -42,11 +44,13 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
     init(context: UIViewControllerContextTransitioning,
          panGestureRecognizer panGesture: UIPanGestureRecognizer,
          isNavigationDismiss: Bool,
-         transitionViewBlock: (() -> UIImageView?)?) {
+         transitionViewBlock: (() -> UIImageView?)?,
+         completion: ((_ isNavigation: Bool) -> Void)?) {
         self.transitionContext = context
         self.panGestureRecognizer = panGesture
         self.isNavigationDismiss = isNavigationDismiss
         self.transitionViewBlock = transitionViewBlock
+        self.completion = completion
         setup(context, isNavigationDismiss: isNavigationDismiss)
     }
 
@@ -201,6 +205,7 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         }
 
         itemFrameAnimator.addCompletion { _ in
+            self.completion?(self.isNavigationDismiss)
             // Remove transition views
             self.transitionImageView.image = nil
             self.transitionImageView.removeFromSuperview()

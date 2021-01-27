@@ -51,11 +51,13 @@ class PhotoInteractiveAnimator: NSObject, UIViewControllerInteractiveTransitioni
     let panGestureRecognizer: UIPanGestureRecognizer
     let isNavigationDismiss: Bool
     let transitionView: (() -> UIImageView?)?
+    let completion: ((_ isNavigation: Bool) -> Void)?
     
-    init(panGestureRecognizer: UIPanGestureRecognizer, isNavigationDismiss: Bool, transitionView: (() -> UIImageView?)?) {
+    init(panGestureRecognizer: UIPanGestureRecognizer, isNavigationDismiss: Bool, transitionView: (() -> UIImageView?)?, completion: ((_ isNavigation: Bool) -> Void)?) {
         self.panGestureRecognizer = panGestureRecognizer
         self.isNavigationDismiss = isNavigationDismiss
         self.transitionView = transitionView
+        self.completion = completion
         super.init()
     }
 
@@ -65,7 +67,8 @@ class PhotoInteractiveAnimator: NSObject, UIViewControllerInteractiveTransitioni
             transitionDriver = PhotoInteractiveDismissTransitionDriver(context: transitionContext,
                                                                        panGestureRecognizer: panGestureRecognizer,
                                                                        isNavigationDismiss: isNavigationDismiss,
-                                                                       transitionViewBlock: transitionView)
+                                                                       transitionViewBlock: transitionView,
+                                                                       completion: completion)
         }
     }
 }

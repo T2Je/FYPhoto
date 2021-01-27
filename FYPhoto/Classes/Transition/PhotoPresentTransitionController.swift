@@ -54,11 +54,21 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
     }
     
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        let animator = PhotoInteractiveAnimator(panGestureRecognizer: panGesture, isNavigationDismiss: false, transitionView: transitionView)
+        let animator = PhotoInteractiveAnimator(panGestureRecognizer: panGesture, isNavigationDismiss: false, transitionView: transitionView, completion: { [weak self] isNavigatoin in
+            self?.completeInteractiveDismiss(isNavigatoin)
+        })
         interactiveAnimator = animator
         return animator
     }
-    
+ 
+    func completeInteractiveDismiss(_ isNavi: Bool) {
+        if isNavi {
+            UIViewController.TransitionHolder.clearNaviTransition()
+        } else {
+            UIViewController.TransitionHolder.clearViewControllerTransition()
+        }
+        viewController?.view.removeGestureRecognizer(panGesture)
+    }
 }
 
 extension PhotoPresentTransitionController: UIGestureRecognizerDelegate {

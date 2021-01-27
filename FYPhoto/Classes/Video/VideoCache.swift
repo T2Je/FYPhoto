@@ -41,7 +41,9 @@ public class VideoCache {
     
     static var diskCache: SDDiskCache? {
         if let temp = videoCacheTmpDirectory {
+            #if DEBUG
             print("Video cached at: \(temp.path)")
+            #endif
             return SDDiskCache(cachePath: temp.path, config: sdDiskConfig)
         } else {
             return nil
@@ -55,7 +57,6 @@ public class VideoCache {
     
     // request
     private var activeTaskMap: [URL: URLSessionDataTask] = [:]
-//    private var activeRequests: Set<URLSessionDataTask> = []
     private let underlyingQueue = DispatchQueue(label: "com.fyphoto.underlyingQueue")
     private let requestQueue = DispatchQueue(label: "com.fyphoto.requestQueue")
     
