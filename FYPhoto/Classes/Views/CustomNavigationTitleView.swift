@@ -11,7 +11,7 @@ class CustomNavigationTitleView: UIView {
 
     var title: String = "" {
         willSet {
-            titleLabel.text = String(format: "%@ %@", arguments: [newValue, triangleIcon])
+            titleLabel.text = newValue
             setNeedsDisplay()
         }
     }
@@ -34,20 +34,33 @@ class CustomNavigationTitleView: UIView {
     fileprivate let titleLabel = UILabel()
 //    let imageView = UIImageView()
     fileprivate let triangleIcon = "▾"
-
+    
+    let imageView = UIImageView(image: "albumArrow".photoImage)
+    
     var tapped: (() -> Void)?
 
     override init(frame: CGRect = .zero) {
         super.init(frame: frame)
         titleLabel.textColor = .black
+        titleLabel.font = UIFont.systemFont(ofSize: 17)
+        
+        imageView.transform = CGAffineTransform(rotationAngle: CGFloat.pi)
+        imageView.isUserInteractionEnabled = true
         addSubview(titleLabel)
-
+        addSubview(imageView)
+        
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: self.topAnchor),
-            titleLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             titleLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            titleLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor)
+            titleLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            titleLabel.trailingAnchor.constraint(equalTo: self.imageView.leadingAnchor, constant: -2)
+        ])
+        
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            imageView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            imageView.trailingAnchor.constraint(equalTo: self.trailingAnchor)
         ])
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(CustomNavigationTitleView.tap(_:)))
