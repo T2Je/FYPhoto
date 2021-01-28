@@ -24,7 +24,7 @@ public struct MediaOptions: OptionSet {
     public static let all: MediaOptions = [.image, .video]
 }
 
-/// PhotoPicker need be wrapped by NavigationController
+/// PhotoPicker need be wrapped by NavigationController. Configure with set method.
 public class PhotoPickerViewController: UICollectionViewController {
     // call back for photo, video selections
     public var selectedPhotos: (([SelectedImage]) -> Void)?
@@ -214,7 +214,7 @@ public class PhotoPickerViewController: UICollectionViewController {
             albumsVC.delegate = self
             self.present(albumsVC, animated: true, completion: nil)
         }
-        customTitleView.title = "All photos".photoTablelocalized
+        customTitleView.title = "AllPhotos".photoTablelocalized
         self.navigationItem.titleView = customTitleView
     }
     
@@ -603,7 +603,7 @@ extension PhotoPickerViewController: AlbumsTableViewControllerDelegate {
         switch AlbumsTableViewController.Section(rawValue: indexPath.section)! {
         case .allPhotos:
             fetchResult = allPhotos
-            customTitleView.title = "All photos".photoTablelocalized
+            customTitleView.title = "AllPhotos".photoTablelocalized
         case .smartAlbums:
             let collection = smartAlbums[indexPath.row]
             fetchResult = PHAsset.fetchAssets(in: collection, options: nil)

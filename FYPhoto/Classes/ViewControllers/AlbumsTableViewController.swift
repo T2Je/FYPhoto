@@ -91,7 +91,7 @@ class AlbumsTableViewController: UITableViewController {
         switch Section(rawValue: indexPath.section)! {
         case .allPhotos:
             cell = tableView.dequeueReusableCell(withIdentifier: CellIdentifier.allPhotos.rawValue, for: indexPath)
-            cell.textLabel?.text = "All Photo".photoTablelocalized
+            cell.textLabel?.text = "AllPhotos".photoTablelocalized
         case .smartAlbums:
             let albumCell = tableView.dequeueReusableCell(withIdentifier: CellIdentifier.collection.rawValue, for: indexPath) as! AlbumCell
             albumCell.name = smartAlbums[indexPath.row].localizedTitle
