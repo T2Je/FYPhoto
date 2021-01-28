@@ -64,7 +64,7 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
             assertionFailure("None of them should be nil")
             return
         }
-        let toViewController = context.viewController(forKey: .to)
+        var toViewController = context.viewController(forKey: .to)
         
         self.fromView = context.view(forKey: .from)
         if isNavigationDismiss {
@@ -75,6 +75,12 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         self.panGestureRecognizer.addTarget(self, action: #selector(updateInteraction(_:)))
         
         let containerView = context.containerView
+        
+        if toViewController is UINavigationController {
+            if let naviTopViewController = (toViewController as? UINavigationController)?.topViewController {
+                toViewController = naviTopViewController
+            }
+        }
         
         if let fromTransition = fromViewController as? PhotoTransitioning,
            let toTransition = toViewController as? PhotoTransitioning {

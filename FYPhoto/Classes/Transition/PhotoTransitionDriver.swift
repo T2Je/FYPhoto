@@ -55,7 +55,7 @@ class PhotoTransitionDriver: TransitionDriver {
     func setup(_ context: UIViewControllerContextTransitioning) {
         // Setup the transition
         guard
-            let fromViewController = context.viewController(forKey: .from),
+            var fromViewController = context.viewController(forKey: .from),
             let toViewController = context.viewController(forKey: .to),
             let toView = context.view(forKey: .to)
         else {
@@ -65,9 +65,17 @@ class PhotoTransitionDriver: TransitionDriver {
         
         if isNavigationAnimation {
             self.fromView = context.view(forKey: .from)
+        } else {
+            // from view could be nil and fromViewController could be navigation controller
         }
         
         let containerView = context.containerView
+        
+        if fromViewController is UINavigationController {
+            if let naviTopViewController = (fromViewController as? UINavigationController)?.topViewController {
+                fromViewController = naviTopViewController
+            }
+        }
         
         if let fromTransition = fromViewController as? PhotoTransitioning,
            let toTransition = toViewController as? PhotoTransitioning {
