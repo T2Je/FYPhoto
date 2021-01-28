@@ -71,31 +71,45 @@ public class PhotoPickerResource {
     
     func allImageAlbums() -> [PHAssetCollection] {
         var albums = [PHAssetCollection]()
-        if let selfies = selfies(), selfies.estimatedAssetCount > 0 {
-            albums.append(selfies)
+        if let selfies = selfies() {
+            if selfies.getAssetCount(.image) > 0 {
+                albums.append(selfies)
+            }
         }
-        if let panoramas = panoramas(), panoramas.estimatedAssetCount > 0 {
-            albums.append(panoramas)
+        if let panoramas = panoramas() {
+            if panoramas.getAssetCount(.image) > 0 {
+                albums.append(panoramas)
+            }
         }
-        if let slomos = slomos(), slomos.estimatedAssetCount > 0 {
-            albums.append(slomos)
+        if let slomos = slomos() {
+            if slomos.getAssetCount(.image) > 0 {
+                albums.append(slomos)
+            }
         }
-        if let screenShots = screenShots(), screenShots.estimatedAssetCount > 0 {
-            albums.append(screenShots)
+        if let screenShots = screenShots() {
+            if screenShots.getAssetCount(.image) > 0 {
+                albums.append(screenShots)
+            }
         }
-        if let animated = animated(), animated.estimatedAssetCount > 0 {
-            albums.append(animated)
+        if let animated = animated() {
+            if animated.getAssetCount(.image) > 0 {
+                albums.append(animated)
+            }
         }
-        if let longExposure = longExposure(), longExposure.estimatedAssetCount > 0 {
-            albums.append(longExposure)
+        if let longExposure = longExposure() {
+            if longExposure.getAssetCount(.image) > 0 {
+                albums.append(longExposure)
+            }
         }
         return albums
     }
     
     func allVideoAlbums() -> [PHAssetCollection] {
         var albums = [PHAssetCollection]()
-        if let videos = videos(), videos.estimatedAssetCount > 0 {
-            albums.append(videos)
+        if let videos = videos() {
+            if videos.getAssetCount(.video) > 0 {
+                albums.append(videos)
+            }
         }
         return albums
     }
@@ -104,36 +118,51 @@ public class PhotoPickerResource {
     public func filteredSmartAlbums(isOnlyImage: Bool = false) -> [PHAssetCollection] {
         var albums = [PHAssetCollection]()
 
-        if let favorites = favorites(), !isOnlyImage, favorites.estimatedAssetCount > 0 {
-            albums.append(favorites)
+        if let favorites = favorites(), !isOnlyImage {
+            if favorites.getAssetCount(.image) > 0 || favorites.getAssetCount(.video) > 0 {
+                albums.append(favorites)
+            }
         }
-        if let selfies = selfies(), selfies.estimatedAssetCount > 0 {
-            albums.append(selfies)
+        if let selfies = selfies() {
+            if selfies.getAssetCount(.image) > 0 {
+                albums.append(selfies)
+            }
         }
-        if let live = live(), !isOnlyImage, live.estimatedAssetCount > 0 {
-            albums.append(live)
+        if let live = live(), !isOnlyImage {
+            if live.getAssetCount(.image) > 0 {
+                albums.append(live)
+            }
         }
-        if let panoramas = panoramas(), panoramas.estimatedAssetCount > 0 {
-            albums.append(panoramas)
+        if let panoramas = panoramas() {
+            if panoramas.getAssetCount(.image) > 0 {
+                albums.append(panoramas)
+            }
         }
-        if let slomos = slomos(), slomos.estimatedAssetCount > 0 {
-            albums.append(slomos)
+        if let slomos = slomos() {
+            if slomos.getAssetCount(.image) > 0 {
+                albums.append(slomos)
+            }
         }
-        if let videos = videos(), !isOnlyImage, videos.estimatedAssetCount > 0 {
-            albums.append(videos)
+        if let videos = videos(), !isOnlyImage {
+            if videos.getAssetCount(.video) > 0 {
+                albums.append(videos)
+            }
         }
-        if let screenShots = screenShots(), screenShots.estimatedAssetCount > 0 {
-            albums.append(screenShots)
+        if let screenShots = screenShots() {
+            if screenShots.getAssetCount(.image) > 0 {
+                albums.append(screenShots)
+            }
         }
-        if let animated = animated(), animated.estimatedAssetCount > 0 {
-            albums.append(animated)
+        if let animated = animated() {
+            if animated.getAssetCount(.image) > 0 {
+                albums.append(animated)
+            }
         }
-        if let longExposure = longExposure(), longExposure.estimatedAssetCount > 0 {
-            albums.append(longExposure)
+        if let longExposure = longExposure() {
+            if longExposure.getAssetCount(.image) > 0 {
+                albums.append(longExposure)
+            }
         }
-        //        if let bursts = bursts() {
-        //            albums.append(bursts)
-        //        }
         return albums
     }
 
@@ -186,7 +215,7 @@ public class PhotoPickerResource {
         let keyAssetResult = PHAsset.fetchKeyAssets(in: collection, options: options)
         if let keyAsset = keyAssetResult?.firstObject {
             let imageOptions = PHImageRequestOptions()
-            imageOptions.isNetworkAccessAllowed = false
+            imageOptions.isNetworkAccessAllowed = true
             imageOptions.deliveryMode = .fastFormat
             imageOptions.resizeMode = .fast
             PhotoPickerResource.shared.fetchImage(keyAsset, options: imageOptions, targetSize: targetSize) { (image, _) in
@@ -296,6 +325,18 @@ extension PhotoPickerResource {
             return "00:\(fixedSeconds)"
         } else {
             return String(format: "%d:%d", minutes, seconds)
+        }
+    }
+}
+
+extension PHAssetCollection {
+    func getAssetCount(_ mediaType: PHAssetMediaType) -> Int {
+        if estimatedAssetCount == NSNotFound { // Returns NSNotFound if a count cannot be quickly returned.
+            let fetchOptions = PHFetchOptions()
+            fetchOptions.predicate = NSPredicate(format: "mediaType == %d", mediaType.rawValue)
+            return PHAsset.fetchAssets(in: self, options: fetchOptions).count
+        } else {
+            return estimatedAssetCount
         }
     }
 }
