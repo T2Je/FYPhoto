@@ -59,12 +59,12 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
     func setup(_ context: UIViewControllerContextTransitioning, isNavigationDismiss: Bool) {
         // Setup the transition
         guard
-            let fromViewController = context.viewController(forKey: .from)
+            let fromViewController = context.viewController(forKey: .from) as? PhotoTransitioning
         else {
             assertionFailure("None of them should be nil")
             return
         }
-        var toViewController = context.viewController(forKey: .to)
+        let toViewController = context.viewController(forKey: .to)
         
         self.fromView = context.view(forKey: .from)
         if isNavigationDismiss {
@@ -75,59 +75,39 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         self.panGestureRecognizer.addTarget(self, action: #selector(updateInteraction(_:)))
         
         let containerView = context.containerView
+                
+        // setup transition type, transition image view
+        transitionImageView.image = fromViewController.referenceImage()
+        transitionImageView.frame = fromViewController.imageFrame() ?? containerView.frame
+        // Inform the view controller's the transition is about to start
+        fromViewController.transitionWillStart()
+        self.fromAssetTransitioning = fromViewController
         
-        if toViewController is UINavigationController {
-            if let naviTopViewController = (toViewController as? UINavigationController)?.topViewController {
-                toViewController = naviTopViewController
-            }
-        }
-        
-        if let fromTransition = fromViewController as? PhotoTransitioning,
-           let toTransition = toViewController as? PhotoTransitioning {
-            self.fromAssetTransitioning = fromTransition
+        if let toTransition = toViewController as? PhotoTransitioning {
             self.toAssetTransitioning = toTransition
-            transitionType = .photoTransitionProtocol(from: fromTransition, to: toTransition)
+            transitionType = .photoTransitionProtocol(from: fromViewController, to: toTransition)
             
             setupEffectView(with: containerView)
             containerView.addSubview(visualEffectView)
-            containerView.addSubview(transitionImageView)
             
-            transitionImageView.image = fromTransition.referenceImage()
-            transitionImageView.frame = fromTransition.imageFrame() ?? .zero
-            // Inform the view controller's the transition is about to start
-            fromTransition.transitionWillStart()
             toTransition.transitionWillStart()
         } else if let transitionViewBlock = transitionViewBlock, let transitionView = transitionViewBlock() {
             transitionType = .transitionBlock(block: transitionViewBlock)
             setupEffectView(with: containerView)
             containerView.addSubview(visualEffectView)
-            containerView.addSubview(transitionImageView)
-            
-            let frame = transitionView.convert(transitionView.bounds, to: self.toView)
-            transitionImageView.image = transitionView.image // containerView.frame
-            transitionImageView.frame = frame
         } else {
             transitionType = .missingInfo
-            containerView.addSubview(transitionImageView)
-            if let fromTransition = fromViewController as? PhotoTransitioning, let image = fromTransition.referenceImage() {
-                self.fromAssetTransitioning = fromTransition
-                transitionImageView.image = image
-                transitionImageView.frame = fromTransition.imageFrame() ?? containerView.frame
-            } else {
-                transitionImageView.frame = containerView.frame
-            }
         }
+        containerView.addSubview(transitionImageView)
 
         let topView = fromView
         let topViewTargetAlpha: CGFloat = 0.0
 
-        if isNavigationDismiss {
-            if let toView = toView {
-                containerView.insertSubview(toView, at: 0)
-                // Ensure the toView has the correct size and position
-                if let toVC = toViewController {
-                    toView.frame = context.finalFrame(for: toVC)
-                }
+        if isNavigationDismiss, let toView = toView {
+            containerView.insertSubview(toView, at: 0)
+            // Ensure the toView has the correct size and position
+            if let toVC = toViewController {
+                toView.frame = context.finalFrame(for: toVC)
             }
         }
     

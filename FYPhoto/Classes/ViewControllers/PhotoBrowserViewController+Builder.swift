@@ -45,6 +45,7 @@ extension PhotoBrowserViewController {
         /// - Returns: Builder
         public func showDeleteButtonForBrowser() -> Self {
             canDeleteWhenPreviewingSelectedPhotos = true
+            supportNavigationBar = true
             return self
         }
         
