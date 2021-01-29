@@ -9,6 +9,10 @@
 "add" = "添加";
 "Done" = "完成";
 
+"AccessPhotosFailed" = "无法访问相册中照片";
+"AccessPhotosFailedMessage" = "当前无照片访问权限，建议前往系统设置";
+"GoToSettings" = "前往设置";
+
 "AllPhotos" = "最近项目";
 "Smart Albums" = "分类相簿";
 "User Albums" = "自定义相簿";

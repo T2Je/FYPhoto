@@ -335,6 +335,7 @@
 		E1F29C93788BCEED98FD17F0258C70F2 /* MBProgressHUD.h in Headers */ = {isa = PBXBuildFile; fileRef = 3D15317FBD25EC1E0FF1BD5113828E9F /* MBProgressHUD.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		E2284A040725F6C94F101FCB70A59572 /* UIViewController+BarItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = D01F8F0C062563145A53F68A1B6B60C0 /* UIViewController+BarItem.swift */; };
 		E3550A882077A12972BA070265126B40 /* fg_ic_load@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = D19F77D0B5189A79C3A3A9CEEFDAA0CE /* fg_ic_load@2x.png */; };
+		E36CF4E825C3E62D00EC9BF1 /* WithoutAuthorityAlertView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E36CF4E725C3E62D00EC9BF1 /* WithoutAuthorityAlertView.swift */; };
 		E41C4157336708A63A999441162EE2C7 /* UIImage+Transform.m in Sources */ = {isa = PBXBuildFile; fileRef = 4F273A95F8E9201C5F318C83B86163EA /* UIImage+Transform.m */; };
 		E489C34C45530FD8CB13D831FD2C7DA5 /* FGMouduleBlockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF7B659BDE0FA0F5E26FA18B71088C4D /* FGMouduleBlockView.swift */; };
 		E4C7AD5ABC6ECE1BF245C737B623B987 /* SDImageCoder.m in Sources */ = {isa = PBXBuildFile; fileRef = AE6E20E572A7DC6D879AA7EC33B432FA /* SDImageCoder.m */; };
@@ -852,6 +853,7 @@
 		E2C9BE06A94A0217538B1EE5A18A7882 /* PullToRefreshDefine.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = PullToRefreshDefine.swift; path = FGBase/Classes/FGPullToRefresh/PullToRefreshDefine.swift; sourceTree = "<group>"; };
 		E2E76BA8DB89E800593F59A0BCD9FF49 /* DGRunkeeperSwitch.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DGRunkeeperSwitch.swift; path = FGBase/Classes/Switch/DGRunkeeperSwitch.swift; sourceTree = "<group>"; };
 		E33F2CEAF5940389EE4DF651356D8626 /* FGBaseLocalizable.strings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.strings; name = FGBaseLocalizable.strings; path = "zh-Hant.lproj/FGBaseLocalizable.strings"; sourceTree = "<group>"; };
+		E36CF4E725C3E62D00EC9BF1 /* WithoutAuthorityAlertView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WithoutAuthorityAlertView.swift; sourceTree = "<group>"; };
 		E4F25C295E6419659CBB36D29AF1607F /* UICircularProgressRing-umbrella.h */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.h; path = "UICircularProgressRing-umbrella.h"; sourceTree = "<group>"; };
 		E53DE7CABE4B2A0AD6BC3A4C204F2A2E /* FGBase.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; path = FGBase.release.xcconfig; sourceTree = "<group>"; };
 		E60678C989AC3340E009737CFB76A29C /* UIButton+Border.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = "UIButton+Border.swift"; path = "FGBase/Classes/Category/UIKit/UIButton+Border.swift"; sourceTree = "<group>"; };
@@ -1279,6 +1281,7 @@
 				68A9270E346FBCED46F4EB71CB370496 /* PhotoDetailCell.swift */,
 				130742B0EED911B8F6D6FD5C1378BBDC /* PhotoPickerBottomToolView.swift */,
 				58A877CCF225865D44635D201015F3A9 /* ZoomingScrollView.swift */,
+				E36CF4E725C3E62D00EC9BF1 /* WithoutAuthorityAlertView.swift */,
 			);
 			name = Views;
 			path = FYPhoto/Classes/Views;
@@ -2579,6 +2582,7 @@
 				7EAE40D6D08218961FDC5ECEF74B2825 /* PhotosAuthority.swift in Sources */,
 				DB0CDCEC5D89262F36233930C3268039 /* PhotoTransitionDriver.swift in Sources */,
 				3805D3EEEDDDF29739AD9759C1726229 /* PhotoTransitioning.swift in Sources */,
+				E36CF4E825C3E62D00EC9BF1 /* WithoutAuthorityAlertView.swift in Sources */,
 				9F0B15A424A125C64C4E54E10883ADFC /* PhotoURL.swift in Sources */,
 				0436FA5774F93CFDD5E1A9EFF8AC9A5B /* PlayerView.swift in Sources */,
 				D210F22ACA3CDA2ED773258EE4E2F7D9 /* PlayVideoForSelectionViewController.swift in Sources */,

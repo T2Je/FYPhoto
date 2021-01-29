@@ -100,38 +100,22 @@ class ViewController: UIViewController {
     
 // MARK: - Button action
     @objc func photosViewButtonClicked(_ sender: UIButton) {
-        PHPhotoLibrary.requestAuthorization { (status) in
-            DispatchQueue.main.async {
-                switch status {
-                case .authorized, .limited:
-                    let photoPickerVC = PhotoPickerViewController(mediaTypes: .all)
-                        .setMaximumPhotosCanBeSelected(6)
-                        .setMaximumVideoSizePerMB(40, compressedQuality: .AVAssetExportPreset640x480)
-                        .setPickerWithCamera(true)
+        let photoPickerVC = PhotoPickerViewController(mediaTypes: .all)
+            .setMaximumPhotosCanBeSelected(6)
+            .setMaximumVideoSizePerMB(40, compressedQuality: .AVAssetExportPreset640x480)
+            .setPickerWithCamera(true)
 
-                    photoPickerVC.selectedPhotos = { [weak self] images in
-                        print("selected \(images.count) photos: \(images)")
-                    }
-                    photoPickerVC.selectedVideo = { [weak self] video in
-                        print("selected video: \(video)")
-                    }
-                    
-//                    let navi = CustomNavigationController(rootViewController: gridVC)
-                    let navi = UINavigationController(rootViewController: photoPickerVC)
-                    navi.modalPresentationStyle = .fullScreen
-                    self.present(navi, animated: true, completion: nil)
-//                    self.navigationController?.navigationBar.tintColor = .white
-//                    self.navigationController?.pushViewController(gridVC, animated: true)
-                case .denied, .restricted, .notDetermined:
-                    print("⚠️ without authorization! ⚠️")
-                case .limited:
-                    print("limited")
-                @unknown default:
-                    fatalError()
-                }
-            }
-
+        photoPickerVC.selectedPhotos = { [weak self] images in
+            print("selected \(images.count) photos: \(images)")
         }
+        photoPickerVC.selectedVideo = { [weak self] video in
+            print("selected video: \(video)")
+        }
+        
+//                    let navi = CustomNavigationController(rootViewController: gridVC)
+        let navi = UINavigationController(rootViewController: photoPickerVC)
+        navi.modalPresentationStyle = .fullScreen
+        self.present(navi, animated: true, completion: nil)
     }
 
     @objc func suiShouPaiButtonClicked(_ sender: UIButton) {

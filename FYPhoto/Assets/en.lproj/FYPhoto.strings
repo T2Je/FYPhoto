@@ -8,6 +8,11 @@
 
 "add" = "Add";
 
+"AccessPhotosFailed" = "Unable to access the photos in the album";
+"AccessPhotosFailedMessage" = "No photo access right at present, it is recommended to go to the system Settings";
+"GoToSettings" = "Go to Settings";
+
+
 "AllPhotos" = "Recent Items";
 "Smart Albums" = "Smart Albums";
 "User Albums" = "User Albums";

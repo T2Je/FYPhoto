@@ -79,6 +79,9 @@ public class PhotoPickerViewController: UICollectionViewController {
     
     var willBatchUpdated: Bool = false
     
+    /// photo picker get the right authority to access photos
+    var photosAuthorityPassed = false
+    
     // photo
     fileprivate var maximumCanBeSelected: Int = 0
     
@@ -137,49 +140,66 @@ public class PhotoPickerViewController: UICollectionViewController {
     }
 
     deinit {
-        resetCachedAssets()
-        PHPhotoLibrary.shared().unregisterChangeObserver(self)
+        if photosAuthorityPassed {
+            resetCachedAssets()
+            PHPhotoLibrary.shared().unregisterChangeObserver(self)
+        }
     }
     
     // MARK: UIViewController / Lifecycle
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-        setupCollectionView()
+        self.setupCollectionView()
         requestPhotoAuthority { (isSuccess) in
             if isSuccess {
+                self.photosAuthorityPassed = true
+//                self.setupCollectionView()
                 self.requestAlbumsData()
                 self.setupNavigationBar()
                 self.setupBottomToolView()
                 self.resetCachedAssets()
                 PHPhotoLibrary.shared().register(self)
             } else {
+                self.photosAuthorityPassed = false
+                self.alertPhotosLibraryAuthorityError()
                 // TODO: 😴zZ Can't use photo picker without authority
             }
         }
     }
-
+    
+    func requestPhotoAuthority(_ completion: @escaping (_ isSuccess: Bool) -> Void) {
+        let status = PHPhotoLibrary.authorizationStatus()
+        switch status {
+        case .authorized, .limited:
+            completion(true)
+        case .denied, .restricted:
+            completion(false)
+        case .notDetermined:
+            PHPhotoLibrary.requestAuthorization { (status) in
+                DispatchQueue.main.async {
+                    switch status {
+                    case .authorized, .limited:
+                        completion(true)
+                    case .denied, .restricted, .notDetermined:
+                        completion(false)
+                        print("⚠️ without authorization! ⚠️")
+                    @unknown default:
+                        fatalError()
+                    }
+                }
+            }
+        default:
+            completion(false)
+        }
+        
+    }
+    
     func setupCollectionView() {
         collectionView.backgroundColor = .white
 
         collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: String(describing: GridViewCell.self))
         collectionView.register(GridCameraCell.self, forCellWithReuseIdentifier: String(describing: GridCameraCell.self))
-    }
-    
-    func requestPhotoAuthority(_ completion: @escaping (_ isSuccess: Bool) -> Void) {
-        PHPhotoLibrary.requestAuthorization { (status) in
-            DispatchQueue.main.async {
-                switch status {
-                case .authorized, .limited:
-                    completion(true)
-                case .denied, .restricted, .notDetermined:
-                    completion(false)
-                    print("⚠️ without authorization! ⚠️")
-                @unknown default:
-                    fatalError()
-                }
-            }
-        }
     }
     
     func requestAlbumsData() {
@@ -198,8 +218,23 @@ public class PhotoPickerViewController: UICollectionViewController {
         }
     }
 
+    func alertPhotosLibraryAuthorityError() {
+        let alert = UIAlertController(title: "AccessPhotosFailed".photoTablelocalized, message: "AccessPhotosFailedMessage".photoTablelocalized, preferredStyle: UIAlertController.Style.alert)
+        let action = UIAlertAction(title: "GoToSettings".photoTablelocalized, style: .default) { _ in
+            guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+            UIApplication.shared.open(url, options: [:], completionHandler: nil)
+        }
+        let cancel = UIAlertAction(title: "Cancel".photoTablelocalized, style: .cancel) { _ in
+            self.back()
+        }
+        alert.addAction(action)
+        alert.addAction(cancel)
+        self.present(alert, animated: true, completion: nil)
+    }
+    
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        guard photosAuthorityPassed else { return }
         // Determine the size of the thumbnails to request from the PHCachingImageManager
         let scale = UIScreen.main.scale
         let cellSize = (collectionViewLayout as! UICollectionViewFlowLayout).itemSize
@@ -278,6 +313,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     // MARK: UICollectionView
 
     public override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        guard photosAuthorityPassed else { return 0 }
         return containsCamera ? fetchResult.count + 1 : fetchResult.count
         // + 1, one cell for taking picture or video
     }
@@ -642,6 +678,7 @@ extension PhotoPickerViewController {
     }
 
     fileprivate func updateCachedAssets() {
+        guard photosAuthorityPassed else { return }
         // Update only if the view is visible.
         guard isViewLoaded && view.window != nil else { return }
         guard fetchResult.count > 0 else {
