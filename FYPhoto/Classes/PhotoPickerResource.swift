@@ -119,7 +119,7 @@ public class PhotoPickerResource {
         var albums = [PHAssetCollection]()
 
         if let favorites = favorites(), !isOnlyImage {
-            if favorites.getAssetCount(.image) > 0 || favorites.getAssetCount(.video) > 0 {
+            if favorites.getAssetCount() > 0 {
                 albums.append(favorites)
             }
         }
@@ -330,11 +330,15 @@ extension PhotoPickerResource {
 }
 
 extension PHAssetCollection {
-    func getAssetCount(_ mediaType: PHAssetMediaType) -> Int {
+    func getAssetCount(_ mediaType: PHAssetMediaType? = nil) -> Int {
         if estimatedAssetCount == NSNotFound { // Returns NSNotFound if a count cannot be quickly returned.
-            let fetchOptions = PHFetchOptions()
-            fetchOptions.predicate = NSPredicate(format: "mediaType == %d", mediaType.rawValue)
-            return PHAsset.fetchAssets(in: self, options: fetchOptions).count
+            if let type = mediaType {
+                let fetchOptions = PHFetchOptions()
+                fetchOptions.predicate = NSPredicate(format: "mediaType == %d", type.rawValue)
+                return PHAsset.fetchAssets(in: self, options: fetchOptions).count
+            } else {
+                return PHAsset.fetchAssets(in: self, options: nil).count
+            }
         } else {
             return estimatedAssetCount
         }

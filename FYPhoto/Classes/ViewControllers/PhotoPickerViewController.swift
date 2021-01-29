@@ -29,10 +29,8 @@ public class PhotoPickerViewController: UICollectionViewController {
     // call back for photo, video selections
     public var selectedPhotos: (([SelectedImage]) -> Void)?
     public var selectedVideo: ((Result<SelectedVideo, Error>) -> Void)?
-    
-    static let blueTintColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
+        
     var allPhotos: PHFetchResult<PHAsset>!
-//    var smartAlbums: PHFetchResult<PHAssetCollection>!
     var smartAlbums: [PHAssetCollection]!
     var userCollections: PHFetchResult<PHCollection>!
 
@@ -48,9 +46,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     fileprivate var assetSelectionIdentifierCache = [String]() {
         willSet {
             updateSelectedAssetIsVideo(with: newValue)
-//            updateNavigationBarItems(with: newValue)
             updateSelectedAssetsCount(with: newValue)
-//            updatePreview(with: newValue)
             reachedMaximum = newValue.count >= maximumCanBeSelected
             collectionView.reloadData()
         }
@@ -62,10 +58,6 @@ public class PhotoPickerViewController: UICollectionViewController {
     internal let imageManager = PHCachingImageManager()
     fileprivate var thumbnailSize: CGSize!
     fileprivate var previousPreheatRect = CGRect.zero
-
-//    fileprivate var selectedPhotoCountBarItem: UIBarButtonItem!
-//    fileprivate var doneBarItem: UIBarButtonItem!
-//    fileprivate var previewItem: UIBarButtonItem!
 
     fileprivate lazy var bottomToolView: PhotoPickerBottomToolView = {
         let toolView = PhotoPickerBottomToolView(selectionLimit: maximumCanBeSelected)
@@ -152,38 +144,58 @@ public class PhotoPickerViewController: UICollectionViewController {
     // MARK: UIViewController / Lifecycle
     
     public override func viewDidLoad() {
-        super.viewDidLoad()        
+        super.viewDidLoad()
+        setupCollectionView()
+        requestPhotoAuthority { (isSuccess) in
+            if isSuccess {
+                self.requestAlbumsData()
+                self.setupNavigationBar()
+                self.setupBottomToolView()
+                self.resetCachedAssets()
+                PHPhotoLibrary.shared().register(self)
+            } else {
+                // TODO: 😴zZ Can't use photo picker without authority
+            }
+        }
+    }
+
+    func setupCollectionView() {
         collectionView.backgroundColor = .white
 
         collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: String(describing: GridViewCell.self))
         collectionView.register(GridCameraCell.self, forCellWithReuseIdentifier: String(describing: GridCameraCell.self))
-        
-        requestAlbumsData()
-        initalFetchResult()
-        setupNavigationBar()
-//        setupBottomToolBar()
-        setupBottomToolView()
-        resetCachedAssets()        
-
-        PHPhotoLibrary.shared().register(self)
     }
-
+    
+    func requestPhotoAuthority(_ completion: @escaping (_ isSuccess: Bool) -> Void) {
+        PHPhotoLibrary.requestAuthorization { (status) in
+            DispatchQueue.main.async {
+                switch status {
+                case .authorized, .limited:
+                    completion(true)
+                case .denied, .restricted, .notDetermined:
+                    completion(false)
+                    print("⚠️ without authorization! ⚠️")
+                @unknown default:
+                    fatalError()
+                }
+            }
+        }
+    }
+    
     func requestAlbumsData() {
         allPhotos = PhotoPickerResource.shared.getAssets(withMediaOptions: mediaOptions)
         smartAlbums = PhotoPickerResource.shared.getSmartAlbums(withMediaOptions: mediaOptions)
         userCollections = PhotoPickerResource.shared.userCollection()
         
+        fetchResult = allPhotos
         if #available(iOS 14, *) {
             if PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited {
                 let bundleName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") ?? ""
                 let photosAuthorityRequestText = Bundle.main.object(forInfoDictionaryKey: "NSPhotoLibraryUsageDescription")
-                PhotosAuthority.presentLimitedLibraryPicker(title: "\(bundleName)想访问您的照片", message: photosAuthorityRequestText as? String, from: self)
+                let title = "\(bundleName)" + "AccessPhotoLibraryTitle".photoTablelocalized
+                PhotosAuthority.presentLimitedLibraryPicker(title: title, message: photosAuthorityRequestText as? String, from: self)
             }
         }
-    }
-
-    func initalFetchResult() {
-        fetchResult = allPhotos
     }
 
     public override func viewWillAppear(_ animated: Bool) {
@@ -192,11 +204,6 @@ public class PhotoPickerViewController: UICollectionViewController {
         let scale = UIScreen.main.scale
         let cellSize = (collectionViewLayout as! UICollectionViewFlowLayout).itemSize
         thumbnailSize = CGSize(width: cellSize.width * scale, height: cellSize.height * scale)                
-    }
-
-    public override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-//        navigationController?.isToolbarHidden = true
     }
 
     // MARK: -NavigationBar
@@ -444,9 +451,7 @@ public class PhotoPickerViewController: UICollectionViewController {
         videoPlayer.selectedVideo = { [weak self] url in
             guard let self = self else { return }
             if url.sizePerMB() <= 10 {
-//                let highQualityImage = asset.getHightQualityImageSynchorously()
                 let thumbnailImage = asset.getThumbnailImageSynchorously()
-//                let selectedVideo = SelectedVideo(asset: asset, fullImage: highQualityImage, url: url)
                 let selectedVideo = SelectedVideo(url: url)
                 selectedVideo.briefImage = thumbnailImage
                 self.selectedVideo?(.success(selectedVideo))
@@ -455,9 +460,7 @@ public class PhotoPickerViewController: UICollectionViewController {
                 self.compressVideo(url: url, asset: asset) { (result) in
                     switch result {
                     case .success(let url):
-//                        let highQualityImage = asset.getHightQualityImageSynchorously()
                         let thumbnailImage = asset.getThumbnailImageSynchorously()
-//                        let selectedVideo = SelectedVideo(asset: asset, fullImage: highQualityImage, url: url)
                         let selectedVideo = SelectedVideo(url: url)
                         selectedVideo.briefImage = thumbnailImage
                         self.selectedVideo?(.success(selectedVideo))
@@ -533,7 +536,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     func launchCamera() {
         let cameraVC = CameraViewController()
         cameraVC.captureMode = mediaOptions
-        cameraVC.videoMaximumDuration = videoMaximumDuration ?? 15 //TODO: where to get duration
+        cameraVC.videoMaximumDuration = videoMaximumDuration ?? 15
         cameraVC.moviePathExtension = moviePathExtension
         cameraVC.delegate = self
         cameraVC.modalPresentationStyle = .fullScreen
@@ -769,7 +772,6 @@ extension PhotoPickerViewController: PhotoPickerBottomToolViewDelegate {
                 .buildNavigationBar()
                 .showDeleteButtonForBrowser()
                 .buildBottomToolBar()
-            
         }
         photoBrowser.delegate = self
         self.navigationController?.delegate = nil

@@ -21,6 +21,7 @@
 "Camera" = "Camera";
 "Front/Rear" = "Front/Rear";
 
+"AccessPhotoLibraryTitle" = "Wants to access your photos";
 "SelectMorePhotos" = "Select more photos...";
 "KeepCurrent" = "Keep current selection";
 
