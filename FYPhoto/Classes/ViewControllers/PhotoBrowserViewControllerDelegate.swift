@@ -53,14 +53,24 @@ public extension PhotoBrowserViewControllerDelegate {
     }
     
     func savePhotoToLibrary(_ photo: PhotoProtocol, with viewController: PhotoBrowserViewController) {        
-        if photo.isVideo, let location = photo.cachedURL {
-            SaveMediaTool.saveVideoDataToAlbums(location) { [weak self] (error) in
-                self?.photoBrowser(viewController, saveMediaCompletedWith: error)
-            }
+        if photo.isVideo, let url = photo.url {
+            VideoCache.shared?.fetchFilePathWith(key: url, completion: { [weak self] (result) in
+                guard let self = self else { return }
+                switch result {
+                case .success(let filePath):
+                    SaveMediaTool.saveVideoDataToAlbums(filePath) { (error) in
+                        self.photoBrowser(viewController, saveMediaCompletedWith: error)
+                    }
+                case .failure(let error):
+                    self.photoBrowser(viewController, saveMediaCompletedWith: error)
+                }
+            })
+            
         } else if let image = photo.image {
-            SaveMediaTool.saveImageToAlbums(image) { [weak self] (error) in
-                self?.photoBrowser(viewController, saveMediaCompletedWith: error)
+            SaveMediaTool.saveImageToAlbums(image) { (error) in
+                self.photoBrowser(viewController, saveMediaCompletedWith: error)
             }
         }
     }
+        
 }

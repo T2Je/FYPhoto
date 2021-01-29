@@ -21,12 +21,12 @@ class ZoomingScrollView: UIScrollView {
         didSet {
             circularProgressView.isHidden = true
             if let photo = photo {
-                if let image = photo.image {
-                    displayImage(image)
+                if let url = photo.url {
+                    display(url, placeholder: photo.image)
                 } else if let asset = photo.asset {
                     displayAsset(asset, targetSize: photo.targetSize ?? bounds.size)
-                } else if let url = photo.url {
-                    display(url, placeholder: photo.image)
+                } else if let image = photo.image {
+                    displayImage(image)
                 } else {
                     displayImageFailure()
                 }
