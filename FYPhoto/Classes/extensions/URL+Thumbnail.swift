@@ -9,8 +9,7 @@ import Foundation
 import AVFoundation
 
 extension URL {
-    // TODO: 😴zZ FileURL couldn't get thumbnail by this AVAssetImageGenerator
-    // "The requested URL was not found on this server."
+    
     public func generateThumbnail(maximumSize: CGSize = .zero, completion: @escaping ((Result<UIImage, Error>) -> Void)) {
         let cache = URLCache.shared
         let urlRequest = URLRequest(url: self)

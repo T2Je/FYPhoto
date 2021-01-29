@@ -26,7 +26,7 @@ class ZoomingScrollView: UIScrollView {
                 } else if let asset = photo.asset {
                     displayAsset(asset, targetSize: photo.targetSize ?? bounds.size)
                 } else if let url = photo.url {
-                    display(url)
+                    display(url, placeholder: photo.image)
                 } else {
                     displayImageFailure()
                 }

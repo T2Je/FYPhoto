@@ -21,19 +21,12 @@ class PhotoURL: PhotoProtocol {
     
     var url: URL?
     
-//    var _cached: URL?
-//    
-//    var cachedURL: URL? {
-//        return _cached
-//    }
-    
     var asset: PHAsset?
     var targetSize: CGSize?
     
     private(set) var captionContent: String?
     private(set) var captionSignature: String?
-    
-    private lazy var urlAssetQueue: DispatchQueue = DispatchQueue(label: "com.variflight.urlAssetQueue")
+        
     private let videoTypes = ["mp4", "m4a", "mov"]
     
     var isVideo: Bool {
@@ -57,17 +50,15 @@ class PhotoURL: PhotoProtocol {
         self.url = url
     }
     
-    static func == (lhs: PhotoURL, rhs: PhotoURL) -> Bool {
-        lhs.url! == rhs.url!
-    }
-    
-    func storeImage(_ image: UIImage) {
+    func storeImage(_ image: UIImage?) {
         self.image = image
     }
-    
-    // TODO: 😴zZ Use method in URL+Thumbnail instead
+        
     func generateThumbnail(_ url: URL, size: CGSize, completion: @escaping ((Result<UIImage, Error>) -> Void)) {
         url.generateThumbnail { (result) in
+            if let image = try? result.get() {
+                self.storeImage(image)
+            }            
             completion(result)
         }
     }
@@ -83,10 +74,8 @@ class PhotoURL: PhotoProtocol {
     }
 
     func clearAsset() {
-        urlAssetQueue.async {
-            self.asset = nil
-            self.image = nil
-        }
+        self.asset = nil
+        self.image = nil
     }
     
     func setCaptionContent(_ content: String) {

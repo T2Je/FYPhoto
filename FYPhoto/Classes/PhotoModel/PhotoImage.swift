@@ -18,13 +18,8 @@ class PhotoImage: PhotoProtocol {
     var asset: PHAsset?
     var targetSize: CGSize?
         
-    var isVideo: Bool { return false }
+    private init() { }
     
-//    let resourceType: PhotoResourceType
-    
-    private init() {
-//        resourceType = .pureImage
-    }
     convenience init(image: UIImage) {
         self.init()
         self.image = image

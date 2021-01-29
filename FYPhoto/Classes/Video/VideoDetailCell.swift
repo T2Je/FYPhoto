@@ -118,8 +118,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
         photo?.generateThumbnail(url, size: .zero) { (result) in
             self.activityIndicator.stopAnimating()
             switch result {
-            case .success(let image):
-                self.photo?.storeImage(image)
+            case .success(let image):                
                 self.display(image: image)
             case .failure(_):
                 self.displayErrorThumbnail()

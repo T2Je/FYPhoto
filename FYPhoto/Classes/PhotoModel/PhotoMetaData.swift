@@ -27,10 +27,9 @@ class PhotoMetaData: PhotoProtocol {
     
     init(data: Data) {
         self.metaData = data
-//        self.resourceType = .data
     }
     
-    func storeImage(_ image: UIImage) {
+    func storeImage(_ image: UIImage?) {
         self.image = image
     }
     
