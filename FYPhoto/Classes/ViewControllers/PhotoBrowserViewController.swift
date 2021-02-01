@@ -195,7 +195,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     var photos: [PhotoProtocol] {
         didSet {
             mainCollectionView.reloadData()
-            if !isForSelection {
+            if supportPageControl {
                 pageControl.numberOfPages = photos.count
                 updatePageControl(withPage: currentDisplayedIndexPath.item)
             }
@@ -212,6 +212,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     var supportBottomToolBar = false
     /// show delete button for photo browser
     var canDeleteWhenPreviewingSelectedPhotos = false
+    var supportPageControl = false
+    
     
     // MARK: - Function
     
@@ -320,7 +322,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 addThumbnailCollectionView()
             }
         } else {
-            if photos.count > 1 {
+            if supportPageControl, photos.count > 1 {
                 addPageControl()
             }
             if supportCaption {

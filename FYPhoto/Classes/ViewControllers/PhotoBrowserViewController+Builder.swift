@@ -28,6 +28,8 @@ extension PhotoBrowserViewController {
         /// show delete button for photo browser
         var canDeleteWhenPreviewingSelectedPhotos = false
         
+        var supportPageControl = false
+        
         init() { }
         
         public func setSelectedPhotos(_ selected: [PhotoProtocol]) -> Self {
@@ -78,6 +80,12 @@ extension PhotoBrowserViewController {
             self.supportBottomToolBar = true
             return self
         }
+        
+        public func buildPageControl() -> Self {
+            self.supportPageControl = true
+            return self
+        }
+        
         /// 快速创建一个 builder，用来展示图片并支持选择图片。不包含删除按钮
         /// Quick builder for photo picker to use which mean you can select, unselect photos and submit your selection
         /// - Parameters:
@@ -91,6 +99,7 @@ extension PhotoBrowserViewController {
             supportBottomToolBar = true
             supportCaption = false
             canDeleteWhenPreviewingSelectedPhotos = false
+            supportPageControl = false
             self.maximumCanBeSelected = maximumCanBeSelected
             self.selectedPhotos = selected
             return self
@@ -106,6 +115,7 @@ extension PhotoBrowserViewController {
             supportBottomToolBar = false
             supportCaption = true
             canDeleteWhenPreviewingSelectedPhotos = false
+            supportPageControl = true
             self.maximumCanBeSelected = 0
             self.selectedPhotos = []
             return self
@@ -120,6 +130,7 @@ extension PhotoBrowserViewController {
             photoBrowser.supportNavigationBar = supportNavigationBar
             photoBrowser.supportBottomToolBar = supportBottomToolBar || photoBrowser.photos.contains { $0.isVideo }
             photoBrowser.canDeleteWhenPreviewingSelectedPhotos = canDeleteWhenPreviewingSelectedPhotos
+            photoBrowser.supportPageControl = supportPageControl
         }
     }
 }
