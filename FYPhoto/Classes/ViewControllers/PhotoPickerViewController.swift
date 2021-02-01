@@ -150,11 +150,13 @@ public class PhotoPickerViewController: UICollectionViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-        self.setupCollectionView()
+        
+        collectionView.backgroundColor = .white
         requestPhotoAuthority { (isSuccess) in
             if isSuccess {
                 self.photosAuthorityPassed = true
-//                self.setupCollectionView()
+                self.setupCollectionView()
+                self.thumbnailSize = self.calculateThumbnailSize()
                 self.requestAlbumsData()
                 self.setupNavigationBar()
                 self.setupBottomToolView()
@@ -163,7 +165,6 @@ public class PhotoPickerViewController: UICollectionViewController {
             } else {
                 self.photosAuthorityPassed = false
                 self.alertPhotosLibraryAuthorityError()
-                // TODO: 😴zZ Can't use photo picker without authority
             }
         }
     }
@@ -196,8 +197,6 @@ public class PhotoPickerViewController: UICollectionViewController {
     }
     
     func setupCollectionView() {
-        collectionView.backgroundColor = .white
-
         collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: String(describing: GridViewCell.self))
         collectionView.register(GridCameraCell.self, forCellWithReuseIdentifier: String(describing: GridCameraCell.self))
     }
@@ -223,6 +222,7 @@ public class PhotoPickerViewController: UICollectionViewController {
         let action = UIAlertAction(title: "GoToSettings".photoTablelocalized, style: .default) { _ in
             guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
+            self.back()
         }
         let cancel = UIAlertAction(title: "Cancel".photoTablelocalized, style: .cancel) { _ in
             self.back()
@@ -235,10 +235,14 @@ public class PhotoPickerViewController: UICollectionViewController {
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         guard photosAuthorityPassed else { return }
+        thumbnailSize = calculateThumbnailSize()
+    }
+    
+    func calculateThumbnailSize() -> CGSize {
         // Determine the size of the thumbnails to request from the PHCachingImageManager
         let scale = UIScreen.main.scale
         let cellSize = (collectionViewLayout as! UICollectionViewFlowLayout).itemSize
-        thumbnailSize = CGSize(width: cellSize.width * scale, height: cellSize.height * scale)                
+        return CGSize(width: cellSize.width * scale, height: cellSize.height * scale)
     }
 
     // MARK: -NavigationBar
@@ -453,7 +457,7 @@ public class PhotoPickerViewController: UICollectionViewController {
                 .buildNavigationBar()
                 .buildBottomToolBar()
             
-        })        
+        })
 
         photoBrowser.delegate = self
         self.navigationController?.fyphoto.push(photoBrowser, animated: true)
@@ -540,7 +544,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     fileprivate func compressVideo(url: URL, asset: PHAsset, completion: @escaping ((Result<URL, Error>) -> Void)) {
         let quality = self.compressedQuality ?? .AVAssetExportPreset640x480
         VideoCompressor.compressVideo(url: url,
-                                      quality: quality) { (result) in            
+                                      quality: quality) { (result) in
             switch result {
             case .success(let url):
                 completion(.success(url))
