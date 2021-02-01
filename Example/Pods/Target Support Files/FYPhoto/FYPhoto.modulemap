@@ -1,6 +1,0 @@
-framework module FYPhoto {
-  umbrella header "FYPhoto-umbrella.h"
-
-  export *
-  module * { export * }
-}
