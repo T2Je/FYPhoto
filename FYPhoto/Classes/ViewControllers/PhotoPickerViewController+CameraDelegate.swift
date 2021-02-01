@@ -32,11 +32,12 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
                 }
             }
             cameraViewController.dismiss(animated: true) {
-                guard let image = info[.originalImage] as? UIImage else { return }
-                if let asset = asset {
-                    self.selectedPhotos?([SelectedImage(asset: asset, image: image)])
+                self.dismiss(animated: true) {
+                    guard let image = info[.originalImage] as? UIImage else { return }
+                    if let asset = asset {
+                        self.selectedPhotos?([SelectedImage(asset: asset, image: image)])
+                    }
                 }
-                self.dismiss(animated: true, completion: nil)                
             }
         case String(kUTTypeMovie):
             guard let videoURL = info[.mediaURL] as? URL else {
@@ -45,7 +46,6 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
             }
 
             cameraViewController.dismiss(animated: true) {
-//                 Editor controller
                 let previewVC = VideoPreviewController(videoURL: videoURL)
                 previewVC.delegate = self
                 self.present(previewVC, animated: true, completion: nil)
