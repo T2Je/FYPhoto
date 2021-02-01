@@ -218,7 +218,6 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         }
 
         itemFrameAnimator.addCompletion { _ in
-            self.completion?(self.isNavigationDismiss)
             // Remove transition views
             self.transitionImageView.image = nil
             self.transitionImageView.removeFromSuperview()
@@ -227,6 +226,7 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
             self.fromAssetTransitioning?.transitionDidEnd()
             self.toAssetTransitioning?.transitionDidEnd()
             if toPosition == .end {
+                self.completion?(self.isNavigationDismiss)
                 self.transitionContext.finishInteractiveTransition()
                 self.transitionContext.completeTransition(true)
             } else {
