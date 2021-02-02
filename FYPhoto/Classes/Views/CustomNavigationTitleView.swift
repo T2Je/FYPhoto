@@ -30,12 +30,9 @@ class CustomNavigationTitleView: UIView {
         }
     }
 
-
     fileprivate let titleLabel = UILabel()
-//    let imageView = UIImageView()
-    fileprivate let triangleIcon = "▾"
     
-    let imageView = UIImageView(image: "albumArrow".photoImage)
+    let imageView = UIImageView(image: Asset.albumArrow.image)
     
     var tapped: (() -> Void)?
 

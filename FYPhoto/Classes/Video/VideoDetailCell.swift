@@ -40,7 +40,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     }
 
     var image: UIImage? {
-        return imageView.image ?? "cover_placeholder".photoImage
+        return imageView.image ?? Asset.coverPlaceholder.image
     }
 
     override init(frame: CGRect) {
@@ -150,13 +150,13 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     }
 
     fileprivate func displayImageFailure() {
-        imageView.image = "ImageError".photoImage
+        imageView.image = Asset.imageError.image
         imageView.contentMode = .center
         setNeedsDisplay()
     }
 
     fileprivate func displayErrorThumbnail() {
-        imageView.image = "Browser-ErrorLoading".photoImage
+        imageView.image = Asset.browserErrorLoading.image
         imageView.contentMode = .center
         setNeedsDisplay()
     }

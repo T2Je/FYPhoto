@@ -362,7 +362,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     lazy var addItemButton: UIButton = {
         let button = UIButton()
-        button.setImage("ImageSelectedOff".photoImage, for: .normal)
+        button.setImage(Asset.imageSelectedOff.image, for: .normal)
         button.translatesAutoresizingMaskIntoConstraints = false
         button.widthAnchor.constraint(equalToConstant: 30).isActive = true
         button.heightAnchor.constraint(equalToConstant: 30).isActive = true
@@ -726,7 +726,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 //            addPhotoBarItem.title = " "
             addItemButton.isEnabled = selectedPhotos.count < maximumCanBeSelected
             if addItemButton.backgroundImage(for: .normal) == nil {
-                addItemButton.setImage("ImageSelectedOff".photoImage, for: .normal)
+                addItemButton.setImage(Asset.imageSelectedOff.image, for: .normal)
                 addItemButton.backgroundColor = nil
                 addItemButton.setTitle(nil, for: .normal)
             }
@@ -736,7 +736,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             addItemButton.setTitle(title, for: .normal)
             addItemButton.setImage(nil, for: .normal)
             addItemButton.backgroundColor = .white
-//            addItemButton.backgroundColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
         }
     }
 

@@ -14,7 +14,7 @@ class GridCameraCell: UICollectionViewCell {
         super.init(frame: frame)
         contentView.backgroundColor = UIColor(red: 237/255.0, green: 239/255.0, blue: 241/255.0, alpha: 1)
         imageView.contentMode = .center
-        imageView.image = "photo_image_camera".photoImage
+        imageView.image = Asset.photoImageCamera.image
         contentView.addSubview(imageView)
         imageView.translatesAutoresizingMaskIntoConstraints = false
         

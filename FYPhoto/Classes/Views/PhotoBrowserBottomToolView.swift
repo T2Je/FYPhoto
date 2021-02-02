@@ -42,7 +42,7 @@ class PhotoBrowserBottomToolView: UIView {
     
     var isPlaying: Bool = false {
         willSet {
-            let image = newValue ? "icons8-pause".photoImage : "icons8-play".photoImage
+            let image = newValue ? Asset.icons8Pause.image : Asset.icons8Play.image
             playButton.setImage(image, for: .normal)
         }
     }
@@ -50,7 +50,7 @@ class PhotoBrowserBottomToolView: UIView {
     fileprivate func addPlayButton() {
         addSubview(playButton)
         
-        playButton.setImage("icons8-play".photoImage, for: .normal)
+        playButton.setImage(Asset.icons8Play.image, for: .normal)
         playButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
         playButton.imageEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         playButton.translatesAutoresizingMaskIntoConstraints = false
@@ -67,7 +67,6 @@ class PhotoBrowserBottomToolView: UIView {
         doneButton.backgroundColor = UIColor(red: 249/255.0, green: 249/255.0, blue: 249/255.0, alpha: 1)
         doneButton.setTitle(L10n.done, for: .normal)
         doneButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
-//        doneButton.setTitleColor(UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1), for: .normal)
         doneButton.setTitleColor(UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1), for: .normal)
         doneButton.setTitleColor(UIColor(red: 123/255.0, green: 130/255.0, blue: 141/255.0, alpha: 1), for: .disabled)
         doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)

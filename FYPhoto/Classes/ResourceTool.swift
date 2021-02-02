@@ -30,9 +30,9 @@ extension String {
 //        return string
 //    }
 
-    var photoImage: UIImage? {
-        let image = UIImage(named: self, in: Bundle.photoBundle(), compatibleWith: nil)
-        return image
-    }
+//    var photoImage: UIImage? {
+//        let image = UIImage(named: self, in: Bundle.photoBundle(), compatibleWith: nil)
+//        return image
+//    }
 }
 

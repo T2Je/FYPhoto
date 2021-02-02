@@ -126,7 +126,7 @@ class ZoomingScrollView: UIScrollView {
     }
 
     func displayImageFailure() {
-        imageView.image = "ImageError".photoImage
+        imageView.image = Asset.imageError.image
         imageView.contentMode = .center
         setNeedsDisplay()
     }

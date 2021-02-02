@@ -75,7 +75,7 @@ class GridViewCell: UICollectionViewCell {
 
         imageView.image = nil
         livePhotoBadgeImageView.image = nil
-        selectionButton.setImage("ImageSelectedSmallOff".photoImage, for: .normal)
+        selectionButton.setImage(Asset.imageSelectedSmallOff.image, for: .normal)
         indexPath = nil
         isVideoAsset = false
     }
@@ -87,7 +87,7 @@ class GridViewCell: UICollectionViewCell {
         videoDurationLabel.font = UIFont.systemFont(ofSize: 11, weight: .light)
         videoDurationLabel.textColor =  .white
 
-        selectionButton.setImage("ImageSelectedSmallOff".photoImage, for: .normal)
+        selectionButton.setImage(Asset.imageSelectedSmallOff.image, for: .normal)
         selectionButton.addTarget(self, action: #selector(selectionButtonClicked(_:)), for: .touchUpInside)
 
         selectionButton.layer.masksToBounds = true
@@ -147,7 +147,7 @@ class GridViewCell: UICollectionViewCell {
         if let indexPath = indexPath {
             delegate?.gridCell(self, buttonClickedAt: indexPath, assetIdentifier: representedAssetIdentifier)
         } else {
-            assertionFailure("indexpath cannot be nil!")
+            assertionFailure("indexpath couldn't be nil!")
         }
     }
 
@@ -155,7 +155,7 @@ class GridViewCell: UICollectionViewCell {
     /// - Parameter title: if title is empty, button display cirle image, otherwise, button display number string.
     func displayButtonTitle(_ title: String) {
         if title.isEmpty {
-            selectionButton.setImage("ImageSelectedSmallOff".photoImage, for: .normal)
+            selectionButton.setImage(Asset.imageSelectedSmallOff.image, for: .normal)
             selectionButton.setTitle(title, for: .normal)
             selectionButton.backgroundColor = .clear
         } else {

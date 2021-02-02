@@ -39,7 +39,7 @@ class AlbumsTableViewController: UITableViewController {
     /// 封面
     fileprivate let coverSize = CGSize(width: 50, height: 50)
 
-    fileprivate let coverPlaceholder = "cover_placeholder".photoImage
+    fileprivate let coverPlaceholder = Asset.coverPlaceholder.image
 
 //    <a target="_blank" href="https://icons8.com/icons/set/full-image">Full Image icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
     init(allPhotos: PHFetchResult<PHAsset>,

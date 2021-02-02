@@ -63,7 +63,7 @@ public class VideoCaptureOverlay: UIView {
 
     var flashOn: Bool = true {
         willSet {
-            let image = newValue ? "icons8-flash-on".photoImage : "icons8-flash-off".photoImage
+            let image = newValue ? Asset.icons8FlashOn.image : Asset.icons8FlashOff.image
             flashButton.setImage(image, for: .normal)
         }
     }
@@ -101,12 +101,12 @@ public class VideoCaptureOverlay: UIView {
 
         rearFrontCameraButton.addTarget(self, action: #selector(switchCamera(_:)), for: .touchUpInside)
         
-        rearFrontCameraButton.setImage("FlipCamera".photoImage, for: .normal)
+        rearFrontCameraButton.setImage(Asset.flipCamera.image, for: .normal)
 
         dismissButton.setTitle(L10n.cancel, for: .normal)
         dismissButton.addTarget(self, action: #selector(dismiss(_:)), for: .touchUpInside)
 
-        flashButton.setImage("icons8-flash-on".photoImage, for: .normal)
+        flashButton.setImage(Asset.icons8FlashOn.image, for: .normal)
         flashButton.addTarget(self, action: #selector(switchFlash(_:)), for: .touchUpInside)
     }
 
