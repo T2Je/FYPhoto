@@ -272,11 +272,14 @@ public class PhotoPickerViewController: UICollectionViewController {
     func setupBottomToolView() {
         view.addSubview(bottomToolView)
         bottomToolView.translatesAutoresizingMaskIntoConstraints = false
+        // full screen device has higher bottom bar
+        let safeAreaHasBottomInsets = UIApplication.shared.delegate?.window??.safeAreaInsets.bottom ?? 0 > 0
+        let height: CGFloat = safeAreaHasBottomInsets ? 80 : 45
         NSLayoutConstraint.activate([
             bottomToolView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            bottomToolView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor),
+            bottomToolView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
             bottomToolView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-            bottomToolView.heightAnchor.constraint(equalToConstant: 45)
+            bottomToolView.heightAnchor.constraint(equalToConstant: height)
         ])
     }
     

@@ -37,6 +37,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         return toolView
     }()
     fileprivate var bottomToolViewBottomConstraint: NSLayoutConstraint?
+    fileprivate var bottomToolViewHeight: CGFloat!
     
     fileprivate var videoCache: VideoCache?
 
@@ -227,7 +228,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         self.initialIndex = initialIndex
         currentDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
         currentPhoto = photos[currentDisplayedIndexPath.item]
-//        flowLayout.itemSize = frame.size
+
+        // full screen device has higher bottom bar
+        let safeAreaHasBottomInsets = UIApplication.shared.delegate?.window??.safeAreaInsets.bottom ?? 0 > 0
+        let height: CGFloat = safeAreaHasBottomInsets ? 80 : 45
+        bottomToolViewHeight = height
         super.init(nibName: nil, bundle: nil)
         
         mainCollectionView = generateMainCollectionView()
@@ -399,12 +404,12 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         view.addSubview(bottomToolView)
         bottomToolView.translatesAutoresizingMaskIntoConstraints = false
         
-        bottomToolViewBottomConstraint = bottomToolView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor)
+        bottomToolViewBottomConstraint = bottomToolView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor)
         bottomToolViewBottomConstraint?.isActive = true
         NSLayoutConstraint.activate([
             bottomToolView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
             bottomToolView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-            bottomToolView.heightAnchor.constraint(equalToConstant: 45)
+            bottomToolView.heightAnchor.constraint(equalToConstant: bottomToolViewHeight)
         ])
         bottomToolView.showPlayButton(currentPhoto.isVideo)
         if isForSelection || canDeleteWhenPreviewingSelectedPhotos {
@@ -837,10 +842,10 @@ extension PhotoBrowserViewController {
         if supportNavigationBar {
             self.navigationController?.setNavigationBarHidden(!(self.navigationController?.isNavigationBarHidden ?? true), animated: true)
         }
-
+        
         if supportBottomToolBar {
             let toolViewIsHidden = bottomToolView.isHidden
-            let constant: CGFloat = toolViewIsHidden ? 0 : 45
+            let constant: CGFloat = toolViewIsHidden ? 0 : bottomToolViewHeight
             if toolViewIsHidden {
                 self.bottomToolView.isHidden = false
             }
