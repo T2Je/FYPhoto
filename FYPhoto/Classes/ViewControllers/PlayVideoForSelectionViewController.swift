@@ -63,13 +63,13 @@ class PlayVideoForSelectionViewController: UIViewController {
 
         playerView.backgroundColor = .black
         
-        cancelButton.setTitle("Cancel".photoTablelocalized, for: .normal)
+        cancelButton.setTitle(L10n.cancel, for: .normal)
         cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         cancelButton.layer.masksToBounds = true
         cancelButton.layer.cornerRadius = 5
         cancelButton.addTarget(self, action: #selector(cancelButtonClicked(_:)), for: .touchUpInside)
                 
-        selectButton.setTitle("Select".photoTablelocalized, for: .normal)
+        selectButton.setTitle(L10n.select, for: .normal)
         selectButton.backgroundColor = UIColor(red: 44/255.0, green: 118/255.0, blue: 227/255.0, alpha: 1)
         selectButton.setTitleColor(UIColor.white, for: .normal)
         selectButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)

@@ -48,10 +48,10 @@ import Photos
             return
         }
         let alert = UIAlertController.init(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction.init(title: "SelectMorePhotos".photoTablelocalized, style: .default, handler: { (a) in
+        alert.addAction(UIAlertAction.init(title: L10n.selectMorePhotos, style: .default, handler: { (a) in
             PHPhotoLibrary.shared().presentLimitedLibraryPicker(from: viewController)
         }))
-        alert.addAction(UIAlertAction.init(title: "KeepCurrent".photoTablelocalized, style: .default))
+        alert.addAction(UIAlertAction.init(title: L10n.keepCurrent, style: .default))
         viewController.present(alert, animated: true, completion: nil)
     }
 }

@@ -25,10 +25,10 @@ extension Bundle {
 }
 
 extension String {
-    var photoTablelocalized: String {
-        let string = NSLocalizedString(self, tableName: "FYPhoto", bundle: Bundle.photoBundle(), value: "", comment: "")
-        return string
-    }
+//    var photoTablelocalized: String {
+//        let string = NSLocalizedString(self, tableName: "FYPhoto", bundle: Bundle.photoBundle(), value: "", comment: "")
+//        return string
+//    }
 
     var photoImage: UIImage? {
         let image = UIImage(named: self, in: Bundle.photoBundle(), compatibleWith: nil)

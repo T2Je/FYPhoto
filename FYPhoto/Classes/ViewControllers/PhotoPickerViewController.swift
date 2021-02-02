@@ -210,21 +210,26 @@ public class PhotoPickerViewController: UICollectionViewController {
         if #available(iOS 14, *) {
             if PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited {
                 let bundleName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") ?? ""
-                let photosAuthorityRequestText = Bundle.main.object(forInfoDictionaryKey: "NSPhotoLibraryUsageDescription")
-                let title = "\(bundleName)" + "AccessPhotoLibraryTitle".photoTablelocalized
-                PhotosAuthority.presentLimitedLibraryPicker(title: title, message: photosAuthorityRequestText as? String, from: self)
+                let message = Bundle.main.object(forInfoDictionaryKey: "NSPhotoLibraryUsageDescription") as? String
+                let title = "\(bundleName)" + L10n.accessPhotoLibraryTitle
+                PhotosAuthority.presentLimitedLibraryPicker(title: title, message: message, from: self)
             }
         }
     }
 
     func alertPhotosLibraryAuthorityError() {
-        let alert = UIAlertController(title: "AccessPhotosFailed".photoTablelocalized, message: "AccessPhotosFailedMessage".photoTablelocalized, preferredStyle: UIAlertController.Style.alert)
-        let action = UIAlertAction(title: "GoToSettings".photoTablelocalized, style: .default) { _ in
-            guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
+        let alert = UIAlertController(title: L10n.accessPhotosFailed,
+                                      message: L10n.accessPhotosFailedMessage,
+                                      preferredStyle: UIAlertController.Style.alert)
+        let action = UIAlertAction(title: L10n.goToSettings, style: .default) { _ in
+            guard let url = URL(string: UIApplication.openSettingsURLString) else {
+                self.back()
+                return
+            }
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
             self.back()
         }
-        let cancel = UIAlertAction(title: "Cancel".photoTablelocalized, style: .cancel) { _ in
+        let cancel = UIAlertAction(title: L10n.cancel, style: .cancel) { _ in
             self.back()
         }
         alert.addAction(action)
@@ -249,7 +254,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     func setupNavigationBar() {
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
 
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel".photoTablelocalized, style: .plain, target: self, action: #selector(backBarButton(_:)))
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: L10n.cancel, style: .plain, target: self, action: #selector(backBarButton(_:)))
         // custom titleview
         customTitleView.tapped = { [weak self] in
             guard let self = self else { return }
@@ -260,7 +265,7 @@ public class PhotoPickerViewController: UICollectionViewController {
             albumsVC.delegate = self
             self.present(albumsVC, animated: true, completion: nil)
         }
-        customTitleView.title = "AllPhotos".photoTablelocalized
+        customTitleView.title = L10n.allPhotos
         self.navigationItem.titleView = customTitleView
     }
     
@@ -647,7 +652,7 @@ extension PhotoPickerViewController: AlbumsTableViewControllerDelegate {
         switch AlbumsTableViewController.Section(rawValue: indexPath.section)! {
         case .allPhotos:
             fetchResult = allPhotos
-            customTitleView.title = "AllPhotos".photoTablelocalized
+            customTitleView.title = L10n.allPhotos
         case .smartAlbums:
             let collection = smartAlbums[indexPath.row]
             fetchResult = PHAsset.fetchAssets(in: collection, options: nil)

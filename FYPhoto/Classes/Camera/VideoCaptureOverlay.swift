@@ -100,12 +100,10 @@ public class VideoCaptureOverlay: UIView {
         progressView.valueFormatter = VideoTimerRingValueFormatter()
 
         rearFrontCameraButton.addTarget(self, action: #selector(switchCamera(_:)), for: .touchUpInside)
-        // TODO: TODO Use image instead of title 😴zZ
-//        rearFrontCameraButton.setImage(<#T##image: UIImage?##UIImage?#>, for: <#T##UIControl.State#>)
-//        rearFrontCameraButton.setTitle("Front/Rear".photoTablelocalized, for: .normal)
+        
         rearFrontCameraButton.setImage("FlipCamera".photoImage, for: .normal)
 
-        dismissButton.setTitle("Cancel".photoTablelocalized, for: .normal)
+        dismissButton.setTitle(L10n.cancel, for: .normal)
         dismissButton.addTarget(self, action: #selector(dismiss(_:)), for: .touchUpInside)
 
         flashButton.setImage("icons8-flash-on".photoImage, for: .normal)
@@ -116,7 +114,6 @@ public class VideoCaptureOverlay: UIView {
         tapGesture.addTarget(self, action: #selector(tapped(_:)))
         progressView.addGestureRecognizer(tapGesture)
 
-//        longPressGesture.require(toFail: tapGesture)
         longPressGesture.addTarget(self, action: #selector(longPress(_:)))
         longPressGesture.minimumPressDuration = 0.5
         progressView.addGestureRecognizer(longPressGesture)

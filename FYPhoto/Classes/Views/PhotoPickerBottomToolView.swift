@@ -38,14 +38,14 @@ final class PhotoPickerBottomToolView: UIView {
         addSubview(countLabel)
         addSubview(doneButton)
         
-        previewButton.setTitle("Preview".photoTablelocalized, for: .normal)
+        previewButton.setTitle(L10n.preview, for: .normal)
         previewButton.setTitleColor(UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1), for: .normal)
         previewButton.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .regular)
         previewButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
         previewButton.isEnabled = false
         previewButton.setTitleColor(UIColor(red: 167/255.0, green: 171/255.0, blue: 177/255.0, alpha: 1), for: .disabled)
         
-        doneButton.setTitle("Done".photoTablelocalized, for: .normal)
+        doneButton.setTitle(L10n.done, for: .normal)
         doneButton.setTitleColor(UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1), for: .normal)
         doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .regular)
         doneButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)

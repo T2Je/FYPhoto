@@ -17,11 +17,11 @@ extension PhotoPickerError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .VideoDurationTooLong:
-            return "VideoDurationTooLong".photoTablelocalized
+            return L10n.videoDurationTooLong
         case .VideoMemoryOutOfSize:
-            return "VideoMemoryOutOfSize".photoTablelocalized
+            return L10n.videoMemoryOutOfSize
         case .UnspportedVideoFormat:
-            return "UnspportedVideoFormat".photoTablelocalized
+            return L10n.unspportedVideoFormat
         }
     }
 }

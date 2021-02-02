@@ -32,7 +32,7 @@ class AlbumsTableViewController: UITableViewController {
     let smartAlbums: [PHAssetCollection]!
     let userCollections: PHFetchResult<PHCollection>
 
-    let sectionLocalizedTitles = ["", "Smart Albums".photoTablelocalized, "User Albums".photoTablelocalized]
+    let sectionLocalizedTitles = ["", L10n.smartAlbums, L10n.userAlbums]
 
     var selectedIndexPath: IndexPath
 
@@ -91,7 +91,7 @@ class AlbumsTableViewController: UITableViewController {
         switch Section(rawValue: indexPath.section)! {
         case .allPhotos:
             cell = tableView.dequeueReusableCell(withIdentifier: CellIdentifier.allPhotos.rawValue, for: indexPath)
-            cell.textLabel?.text = "AllPhotos".photoTablelocalized
+            cell.textLabel?.text = L10n.allPhotos
         case .smartAlbums:
             let albumCell = tableView.dequeueReusableCell(withIdentifier: CellIdentifier.collection.rawValue, for: indexPath) as! AlbumCell
             albumCell.name = smartAlbums[indexPath.row].localizedTitle
