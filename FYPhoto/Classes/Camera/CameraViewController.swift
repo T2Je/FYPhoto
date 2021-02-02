@@ -153,15 +153,15 @@ public class CameraViewController: UIViewController {
             case .notAuthorized:
                 let bundleDisplayName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") ?? ""
                 DispatchQueue.main.async {
-                    let changePrivacySetting = "\(bundleDisplayName as? String) \("WithoutCameraPermission".photoTablelocalized)"
+                    let changePrivacySetting = "\(bundleDisplayName as? String) \(L10n.withoutCameraPermission)"
                     let message = NSLocalizedString(changePrivacySetting, comment: "Alert message when the user has denied access to the camera")
                     let alertController = UIAlertController(title: "\(bundleDisplayName)", message: message, preferredStyle: .alert)
 
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString("OK".photoTablelocalized, comment: "Alert OK button"),
+                    alertController.addAction(UIAlertAction(title: NSLocalizedString(L10n.ok, comment: "Alert OK button"),
                                                             style: .cancel,
                                                             handler: nil))
 
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString("Settings".photoTablelocalized, comment: "Alert button to open Settings"),
+                    alertController.addAction(UIAlertAction(title: NSLocalizedString(L10n.settings, comment: "Alert button to open Settings"),
                                                             style: .`default`,
                                                             handler: { _ in
                                                                 UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!,
@@ -175,10 +175,9 @@ public class CameraViewController: UIViewController {
             case .configurationFailed:
                 DispatchQueue.main.async {
                     let alertMsg = "Alert message when something goes wrong during capture session configuration"
-                    let message = NSLocalizedString("CameraConfigurationFailed".photoTablelocalized, comment: alertMsg)
-                    let alertController = UIAlertController(title: "Camera".photoTablelocalized, message: message, preferredStyle: .alert)
-
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString("OK".photoTablelocalized, comment: "Alert OK button"),
+                    let message = NSLocalizedString(L10n.cameraConfigurationFailed, comment: alertMsg)
+                    let alertController = UIAlertController(title: L10n.camera, message: message, preferredStyle: .alert)
+                    alertController.addAction(UIAlertAction(title: NSLocalizedString(L10n.ok, comment: "Alert OK button"),
                                                             style: .cancel,
                                                             handler: nil))
                     self.present(alertController, animated: true, completion: nil)

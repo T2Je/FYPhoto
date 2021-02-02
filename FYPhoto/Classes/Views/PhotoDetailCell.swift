@@ -14,7 +14,7 @@ class PhotoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     let zoomingView = ZoomingScrollView(frame: .zero)    
 
     var image: UIImage? {
-        zoomingView.imageView.image ?? "cover_placeholder".photoImage
+        zoomingView.imageView.image ?? Asset.coverPlaceholder.image
     }
 
     var photo: PhotoProtocol? {

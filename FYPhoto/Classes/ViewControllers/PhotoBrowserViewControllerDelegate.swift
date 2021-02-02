@@ -34,19 +34,20 @@ public extension PhotoBrowserViewControllerDelegate {
     
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, saveMediaCompletedWith error: Error?) {
         if let error = error {
-            SaveMediaTool.alertSaveMediaCompleted("FailedToSaveMedia".photoTablelocalized, error.localizedDescription, on: photoBrowser)
+            
+            SaveMediaTool.alertSaveMediaCompleted(L10n.failedToSaveMedia, error.localizedDescription, on: photoBrowser)
         } else {
-            SaveMediaTool.alertSaveMediaCompleted("SuccessfullySavedMedia".photoTablelocalized, on: photoBrowser)
+            SaveMediaTool.alertSaveMediaCompleted(L10n.successfullySavedMedia, on: photoBrowser)
         }        
     }
     
     func alertSavePhoto(_ photo: PhotoProtocol, on viewController: PhotoBrowserViewController) {
         let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        let actionTitle = photo.isVideo ? "SaveVideo".photoTablelocalized : "SavePhoto".photoTablelocalized
+        let actionTitle = photo.isVideo ? L10n.saveVideo : L10n.savePhoto
         let saveAction = UIAlertAction(title: actionTitle, style: .default) { (_) in
             self.savePhotoToLibrary(photo, with: viewController)
         }
-        let cancelAction = UIAlertAction(title: "Cancel".photoTablelocalized, style: .cancel, handler: nil)
+        let cancelAction = UIAlertAction(title: L10n.cancel, style: .cancel, handler: nil)
         alertController.addAction(saveAction)
         alertController.addAction(cancelAction)
         viewController.present(alertController, animated: true, completion: nil)

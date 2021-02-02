@@ -315,7 +315,7 @@ extension PhotoPickerResource {
         // per_hour == 3600
 
         guard timeInterval / Double(3600) < 1 else {
-            return String(format: "> 1 %@", "hour".photoTablelocalized)
+            return String(format: "> 1 %@", L10n.hour)
         }
         let minutes = Int(timeInterval) / 60
         let seconds = Int(timeInterval) % 60

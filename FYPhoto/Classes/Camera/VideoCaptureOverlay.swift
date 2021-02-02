@@ -63,7 +63,7 @@ public class VideoCaptureOverlay: UIView {
 
     var flashOn: Bool = true {
         willSet {
-            let image = newValue ? "icons8-flash-on".photoImage : "icons8-flash-off".photoImage
+            let image = newValue ? Asset.icons8FlashOn.image : Asset.icons8FlashOff.image
             flashButton.setImage(image, for: .normal)
         }
     }
@@ -100,15 +100,13 @@ public class VideoCaptureOverlay: UIView {
         progressView.valueFormatter = VideoTimerRingValueFormatter()
 
         rearFrontCameraButton.addTarget(self, action: #selector(switchCamera(_:)), for: .touchUpInside)
-        // TODO: TODO Use image instead of title 😴zZ
-//        rearFrontCameraButton.setImage(<#T##image: UIImage?##UIImage?#>, for: <#T##UIControl.State#>)
-//        rearFrontCameraButton.setTitle("Front/Rear".photoTablelocalized, for: .normal)
-        rearFrontCameraButton.setImage("FlipCamera".photoImage, for: .normal)
+        
+        rearFrontCameraButton.setImage(Asset.flipCamera.image, for: .normal)
 
-        dismissButton.setTitle("Cancel".photoTablelocalized, for: .normal)
+        dismissButton.setTitle(L10n.cancel, for: .normal)
         dismissButton.addTarget(self, action: #selector(dismiss(_:)), for: .touchUpInside)
 
-        flashButton.setImage("icons8-flash-on".photoImage, for: .normal)
+        flashButton.setImage(Asset.icons8FlashOn.image, for: .normal)
         flashButton.addTarget(self, action: #selector(switchFlash(_:)), for: .touchUpInside)
     }
 
@@ -116,7 +114,6 @@ public class VideoCaptureOverlay: UIView {
         tapGesture.addTarget(self, action: #selector(tapped(_:)))
         progressView.addGestureRecognizer(tapGesture)
 
-//        longPressGesture.require(toFail: tapGesture)
         longPressGesture.addTarget(self, action: #selector(longPress(_:)))
         longPressGesture.minimumPressDuration = 0.5
         progressView.addGestureRecognizer(longPressGesture)

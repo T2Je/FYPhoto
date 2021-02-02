@@ -13,7 +13,7 @@ class SaveMediaTool {
         public var errorDescription: String? {
             switch self {
             case .withoutAuthourity:
-                return "NoPermissionToSave".photoTablelocalized
+                return L10n.noPermissionToSave
             }
         }
 
@@ -30,8 +30,8 @@ class SaveMediaTool {
                 }, completionHandler: { _, error in
                     if let error = error {
                         print("Error occurred while saving photo to photo library: \(error)")
+                        completion(error)
                     }
-                    completion(error)
                 })
             } else {
                 completion(SaveMediaError.withoutAuthourity)
@@ -91,7 +91,7 @@ class SaveMediaTool {
     
     static func alertSaveMediaCompleted(_ title: String?, _ message: String? = nil, on viewController: UIViewController) {
         let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        let action = UIAlertAction(title: "GotIt".photoTablelocalized, style: .default) { (_) in
+        let action = UIAlertAction(title: L10n.gotIt, style: .default) { (_) in
             alertController.dismiss(animated: true, completion: nil)
         }
         alertController.addAction(action)
@@ -99,8 +99,8 @@ class SaveMediaTool {
     }
     
     static func alertAthorityError(_ error: Error, on viewController: UIViewController) {
-        let alertController = UIAlertController(title: "FailedToSaveMedia".photoTablelocalized, message: error.localizedDescription, preferredStyle: .alert)
-        let action = UIAlertAction(title: "GotIt".photoTablelocalized, style: .default) { (_) in
+        let alertController = UIAlertController(title: L10n.failedToSaveMedia, message: error.localizedDescription, preferredStyle: .alert)
+        let action = UIAlertAction(title: L10n.gotIt, style: .default) { (_) in
             alertController.dismiss(animated: true, completion: nil)
         }
         alertController.addAction(action)
