@@ -10,10 +10,9 @@ import UIKit
 import FYPhoto
 import FGBase
 
-private let cellIdentifier = "AddPhotoCollectionViewCell"
-
 @objc class AddPhotoBlogViewController: BaseViewController {
-
+    private static let cellIdentifier = "AddPhotoCollectionViewCell"
+    
     fileprivate var dataSource = [UIImage]()
 
     var hasAddButton = true
@@ -50,7 +49,6 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
     }()
 
     var collectionView: UICollectionView!
-    var transitionController: PhotoTransitionController?
 
     let photoLauncher = PhotoLauncher()
 
@@ -82,7 +80,7 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         addViews()
         addGestures()
         setupNavigation()
-        setupTransitionController()
+
         photoLauncher.delegate = self
         // Do any additional setup after loading the view.
     }
@@ -90,12 +88,6 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.navigationController?.setNavigationBarHidden(false, animated: animated)
-    }
-
-    func setupTransitionController() {
-        guard let navigationController = self.navigationController else { return }
-        transitionController = PhotoTransitionController(navigationController: navigationController)
-        navigationController.delegate = transitionController
     }
 
     func setupTextView() {
@@ -121,10 +113,10 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
         collectionView.dataSource = self
         collectionView.alwaysBounceVertical = true
         collectionView.backgroundColor = .white
-        collectionView.register(AddPhotoCollectionViewCell.self, forCellWithReuseIdentifier: cellIdentifier)
+        collectionView.register(AddPhotoCollectionViewCell.self, forCellWithReuseIdentifier: Self.cellIdentifier)
     }
 
-    func addViews() {
+    func addViews() {        
         view.addSubview(textView)
         view.addSubview(textCountLabel)
         view.addSubview(collectionView)
@@ -240,8 +232,8 @@ private let cellIdentifier = "AddPhotoCollectionViewCell"
             return
         }
         self.view.endEditing(true)
-        showHUD()
-        let text = textView.text ?? ""
+//        showHUD()
+//        let text = textView.text ?? ""
 //        uploadText(text, images: selectedImageArray, userID: UserManager.shared.user?.uid ?? "", userTrueName: UserManager.shared.user?.trueName ?? "")
     }
 
@@ -337,7 +329,7 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: cellIdentifier, for: indexPath) as? AddPhotoCollectionViewCell else { return UICollectionViewCell() }
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Self.cellIdentifier, for: indexPath) as? AddPhotoCollectionViewCell else { return UICollectionViewCell() }
 
         let image = dataSource[indexPath.row]
         cell.image = image
@@ -360,18 +352,50 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
         if cell.isAdd {
             // go to grid vc
             if #available(iOS 14, *) {
-                photoLauncher.launchSystemPhotoPicker(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
+                photoLauncher.launchSystemPhotoPicker(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count, mediaOptions: .all)
             } else {
-                photoLauncher.launchCustomPhotoLibrary(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
+//                photoLauncher.launchCustomPhotoLibrary(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
+                let photoPicker = PhotoPickerViewController(mediaTypes: .all)
+                    .setPickerWithCamera(true)
+                    .setMaximumPhotosCanBeSelected(photosLimited - selectedImageArray.count)
+                photoPicker.selectedPhotos = { [weak self] selectedImages in
+                    #if DEBUG
+                    print("selected \(photos.count) photos")
+                    #endif
+                    let images = selectedImages.map { $0.image }
+                    self?.selectedImageArray += images
+                }
+                let navi = UINavigationController(rootViewController: photoPicker)
+                navi.modalPresentationStyle = .fullScreen
+                
+                self.present(navi, animated: true, completion: nil)
             }
         } else {
-            var photos = [Photo]()
+            var photos = [PhotoProtocol]()
             for index in 0..<selectedImageArray.count {
-                photos.append(Photo(image: selectedImageArray[index]))
+                let photo = Photo.photoWithUIImage(selectedImageArray[index])
+                photos.append(photo)                
             }
-            let detailVC = PhotoDetailCollectionViewController(photos: photos, initialIndex: indexPath.row)
-            detailVC.delegate = self
-            self.navigationController?.pushViewController(detailVC, animated: true)
+            
+            let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: indexPath.item) {
+//                $0.buildForSelection(false)
+                $0.quickBuildJustForBrowser()
+                    .showDeleteButtonForBrowser()
+            }
+            
+            photoBrowser.delegate = self
+//            self.fyphoto.present(photoBrowser, animated: true, completion: nil) { [weak self] () -> UIImageView? in
+//                guard let indexPath = self?.lastSelectedIndexPath else { return nil }
+//                guard let cell = collectionView.cellForItem(at: indexPath) as? AddPhotoCollectionViewCell else {
+//                    return nil
+//                }
+//                return cell.imageView
+//            }
+            self.fyphoto.present(photoBrowser, animated: true) {
+                print("present photo browser completely")
+            }
+//            self.navigationController?.fyphoto.push(photoBrowser, animated: true)
+//            self.navigationController?.pushViewController(photoBrowser, animated: true)
         }
     }
 
@@ -391,70 +415,77 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
 }
 
 extension AddPhotoBlogViewController: PhotoLauncherDelegate {
-    func selectedPhotosInPhotoLauncher(_ photos: [UIImage]) {
+    func selectedVideoInPhotoLauncher(_ video: Result<SelectedVideo, Error>) {
+        print("Selected video: \(try? video.get())")
+    }
+    
+    func selectedPhotosInPhotoLauncher(_ photos: [SelectedImage]) {
+        #if DEBUG
         print("selected \(photos.count) photos")
-        self.selectedImageArray += photos
+        #endif
+        let images = photos.map { $0.image }
+        self.selectedImageArray += images
     }
 }
 
-extension AddPhotoBlogViewController: PhotoDetailCollectionViewControllerDelegate {
-    func showNavigationBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        true
-    }
+extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
 
-    func showBottomToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        false
-    }
-
-    func canDisplayCaption(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        false
-    }
-
-    public func showNavigationBarToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        return false
-    }
-
-    func canSelectPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        return false
-    }
-
-    func canEditPhoto(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        return false
-    }
-
-    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, scrollAt indexPath: IndexPath) {
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt indexPath: IndexPath) {
         lastSelectedIndexPath = indexPath
     }
 
-    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, selectedAssets identifiers: [String]) {
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, selectedAssets identifiers: [String]) {
 
     }
 
-    func photoDetail(_ photoDetail: PhotoDetailCollectionViewController, didCompleteSelected photos: [PhotoProtocol]) {
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, didCompleteSelected photos: [PhotoProtocol]) {
 
     }
+    
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, deletePhotoAtIndexWhenBrowsing index: Int) {
+        selectedImageArray.remove(at: index)
+    }
 
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, longPressedOnPhoto photo: PhotoProtocol) {
+        alertLongPress(with: photo, on: photoBrowser)
+    }
+    
+    func alertLongPress(with photo: PhotoProtocol, on photoBrowser: PhotoBrowserViewController) {
+        let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let saveTitle = photo.isVideo ? "Save Video" : "Save Image"
+        let saveAction = UIAlertAction(title: saveTitle, style: .default) { _ in
+            if photo.isVideo {
+                print("save video at \(photo.url)")
+            } else {
+                print("save image: \(photo.image)")
+            }
+        }
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alertController.addAction(saveAction)
+        alertController.addAction(cancelAction)
+        photoBrowser.present(alertController, animated: true, completion: nil)
+    }
 }
 
-extension AddPhotoBlogViewController: PhotoTransitioning {
+extension AddPhotoBlogViewController {
     public func transitionWillStart() {
-        print(#file, #function)
         guard let indexPath = lastSelectedIndexPath else { return }
         collectionView.cellForItem(at: indexPath)?.isHidden = true
     }
 
     public func transitionDidEnd() {
-        print(#file, #function)
         guard let indexPath = lastSelectedIndexPath else { return }
         collectionView.cellForItem(at: indexPath)?.isHidden = false
     }
 
     public func referenceImage() -> UIImage? {
-        guard let indexPath = lastSelectedIndexPath else { return nil }
-        guard let cell = collectionView.cellForItem(at: indexPath) as? AddPhotoCollectionViewCell else {
-            return nil
-        }
-        return cell.imageView.image
+//        guard let indexPath = lastSelectedIndexPath else { return nil }
+//        guard let cell = collectionView.cellForItem(at: indexPath) as? AddPhotoCollectionViewCell else {
+//            return nil
+//        }
+//        return cell.imageView.image
+        return nil
     }
 
     public func imageFrame() -> CGRect? {

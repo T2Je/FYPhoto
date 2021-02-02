@@ -11,21 +11,25 @@ import Photos
 import SDWebImage
 import MobileCoreServices
 
-class VideoDetailCell: UICollectionViewCell {
+class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
+    static let reuseIdentifier = "VideoDetailCell"
+    
     var playerView = PlayerView()
 
     var activityIndicator = UIActivityIndicatorView(style: .white)
 
     var imageView = UIImageView()
 
-    var photo: PhotoProtocol! {
+    var videoCache: VideoCache?
+    
+    var photo: PhotoProtocol? {
         didSet {
             activityIndicator.isHidden = true
-            if photo != nil {
-                if let image = photo.underlyingImage {
+            if let photo = self.photo {
+                if let image = photo.image {
                     display(image: image)
                 } else if let asset = photo.asset {
-                    display(asset: asset, targetSize: photo.assetSize ?? bounds.size)
+                    display(asset: asset, targetSize: photo.targetSize ?? bounds.size)
                 } else if let url = photo.url {
                     display(url: url)
                 } else {
@@ -48,12 +52,12 @@ class VideoDetailCell: UICollectionViewCell {
         contentView.addSubview(activityIndicator)
 
         imageView.backgroundColor = .black
-
         imageView.contentMode = .scaleAspectFit
 
         setupActivityIndicator()
 
-
+        videoCache = VideoCache.shared
+        
         let doubleTap = UITapGestureRecognizer(target: self, action: #selector(doubleTapVideoCell(_:)))
         doubleTap.numberOfTapsRequired = 2
         contentView.addGestureRecognizer(doubleTap)
@@ -62,6 +66,9 @@ class VideoDetailCell: UICollectionViewCell {
         tap.require(toFail: doubleTap)
         contentView.addGestureRecognizer(tap)
 
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressed(_:)))
+        contentView.addGestureRecognizer(longPress)
+        
         makeConstraints()
     }
 
@@ -89,11 +96,31 @@ class VideoDetailCell: UICollectionViewCell {
 
     fileprivate func display(url: URL) {
         activityIndicator.startAnimating()
-        photo.generateThumbnail(url, size: .zero) { (image) in
+        if let videoCache = videoCache {
+            videoCache.fetchFilePathWith(key: url) { [weak self] (result) in
+                self?.activityIndicator.stopAnimating()
+                switch result {
+                case .success(let filePath):
+                    self?.generateThumnbnail(filePath)
+                case .failure(let error):
+                    self?.displayImageFailure()
+                    #if DEBUG
+                    print("❌ cache video error: \(error)")
+                    #endif
+                }
+            }
+        } else {
+            generateThumnbnail(url)
+        }
+    }
+    
+    func generateThumnbnail(_ url: URL) {
+        photo?.generateThumbnail(url, size: .zero) { (result) in
             self.activityIndicator.stopAnimating()
-            if let image = image {
-                self.photo.underlyingImage = image
-            } else {
+            switch result {
+            case .success(let image):                
+                self.display(image: image)
+            case .failure(_):
                 self.displayErrorThumbnail()
             }
         }
@@ -114,7 +141,8 @@ class VideoDetailCell: UICollectionViewCell {
                                               contentMode: PHImageContentMode.aspectFit,
                                               options: options) { [weak self] (image, info) in
             if let image = image {
-                self?.photo.underlyingImage = image
+                self?.photo?.storeImage(image)
+                self?.display(image: image)
             } else {
                 self?.displayImageFailure()
             }
@@ -134,15 +162,19 @@ class VideoDetailCell: UICollectionViewCell {
     }
 
     @objc func tapVideoCell(_ gesture: UITapGestureRecognizer) {
-        routerEvent(name: ImageViewTap.singleTap.rawValue, userInfo: nil)
+        routerEvent(name: ImageViewGestureEvent.singleTap.rawValue, userInfo: nil)
     }
 
     @objc func doubleTapVideoCell(_ gesture: UITapGestureRecognizer) {
         var info = [String: Any]()
         info["mediaType"] = kUTTypeVideo
-        routerEvent(name: ImageViewTap.doubleTap.rawValue, userInfo: info)
+        routerEvent(name: ImageViewGestureEvent.doubleTap.rawValue, userInfo: info)
     }
 
+    @objc func longPressed(_ gesture: UILongPressGestureRecognizer) {
+        routerEvent(name: ImageViewGestureEvent.longPress.rawValue, userInfo: nil)
+    }
+    
     fileprivate func makeConstraints() {
         playerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -159,13 +191,7 @@ class VideoDetailCell: UICollectionViewCell {
             imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
             imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
         ])
-//        playButton.translatesAutoresizingMaskIntoConstraints = false
-//        NSLayoutConstraint.activate([
-//            playButton.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-//            playButton.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-//            playButton.widthAnchor.constraint(equalToConstant: 50),
-//            playButton.heightAnchor.constraint(equalToConstant: 50)
-//        ])
+        
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),

@@ -7,6 +7,7 @@
 
 import Foundation
 import MobileCoreServices
+import Photos
 
 @objc public class PhotosAuthority: NSObject {
 
@@ -39,5 +40,18 @@ import MobileCoreServices
 
         guard let sources = UIImagePickerController.availableMediaTypes(for: sourceType) else { return false }
         return sources.contains(paramMediaType)
+    }
+    
+    @available(iOS 14, *)
+    @objc public static func presentLimitedLibraryPicker(title: String, message: String?, from viewController: UIViewController) {
+        guard PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited else {
+            return
+        }
+        let alert = UIAlertController.init(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction.init(title: "SelectMorePhotos".photoTablelocalized, style: .default, handler: { (a) in
+            PHPhotoLibrary.shared().presentLimitedLibraryPicker(from: viewController)
+        }))
+        alert.addAction(UIAlertAction.init(title: "KeepCurrent".photoTablelocalized, style: .default))
+        viewController.present(alert, animated: true, completion: nil)
     }
 }

@@ -48,7 +48,7 @@ class ViewController: UIViewController {
 
         let customCameraBtn = UIButton()
         
-        photosViewBtn.setTitle("浏览全部照片", for: .normal)
+        photosViewBtn.setTitle("浏览全部照片（Custom）", for: .normal)
         suishoupaiBtn.setTitle("随手拍", for: .normal)
         cameraPhotoBtn.setTitle("照片or相机", for: .normal)
         playRemoteVideoBtn.setTitle("Play remote video", for: .normal)
@@ -79,7 +79,7 @@ class ViewController: UIViewController {
             NSLayoutConstraint.activate([
                 stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 stackView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 100),
-                stackView.widthAnchor.constraint(equalToConstant: 200),
+                stackView.widthAnchor.constraint(equalToConstant: 300),
                 stackView.heightAnchor.constraint(equalToConstant: 200)
             ])
         } else {
@@ -87,7 +87,7 @@ class ViewController: UIViewController {
             NSLayoutConstraint.activate([
                 stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
                 stackView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 100),
-                stackView.widthAnchor.constraint(equalToConstant: 200),
+                stackView.widthAnchor.constraint(equalToConstant: 300),
                 stackView.heightAnchor.constraint(equalToConstant: 200)
             ])
         }
@@ -97,34 +97,25 @@ class ViewController: UIViewController {
 //        imageController.cameraCaptureMode = .photo
 //        print("available media types: \(UIImagePickerController.availableMediaTypes(for: .camera))")
     }
-
+    
 // MARK: - Button action
     @objc func photosViewButtonClicked(_ sender: UIButton) {
-        PHPhotoLibrary.requestAuthorization { (status) in
-            DispatchQueue.main.async {
-                switch status {
-                case .authorized:
-                    let gridVC = AssetGridViewController(maximumToSelect: 6, isOnlyImages: false)
-                    gridVC.selectedPhotos = { [weak self] images in
-                        print("selected \(images.count) photos: \(images)")
-                    }
-//                    let navi = CustomNavigationController(rootViewController: gridVC)
-                    let navi = UINavigationController(rootViewController: gridVC)
-                    navi.modalPresentationStyle = .fullScreen
-                    self.present(navi, animated: true, completion: nil)
-//                    self.navigationController?.navigationBar.tintColor = .white
-//                    self.navigationController?.pushViewController(gridVC, animated: true)
+        let photoPickerVC = PhotoPickerViewController(mediaTypes: .all)
+            .setMaximumPhotosCanBeSelected(6)
+            .setMaximumVideoSizePerMB(40, compressedQuality: .AVAssetExportPreset640x480)
+            .setPickerWithCamera(true)
 
-                case .denied, .restricted, .notDetermined:
-                    print("⚠️ without authorization! ⚠️")
-                case .limited:
-                    print("limited")
-                @unknown default:
-                    fatalError()
-                }
-            }
-
+        photoPickerVC.selectedPhotos = { [weak self] images in
+            print("selected \(images.count) photos: \(images)")
         }
+        photoPickerVC.selectedVideo = { [weak self] video in
+            print("selected video: \(video)")
+        }
+        
+//                    let navi = CustomNavigationController(rootViewController: gridVC)
+        let navi = UINavigationController(rootViewController: photoPickerVC)
+        navi.modalPresentationStyle = .fullScreen
+        self.present(navi, animated: true, completion: nil)
     }
 
     @objc func suiShouPaiButtonClicked(_ sender: UIButton) {
@@ -136,7 +127,7 @@ class ViewController: UIViewController {
             PHPhotoLibrary.requestAuthorization { (status) in
                 DispatchQueue.main.async {
                     switch status {
-                    case .authorized:
+                    case .authorized, .limited:
                         let addPhotoVC = AddPhotoBlogViewController()
                         addPhotoVC.selectedImageArray = []
                         self.navigationController?.pushViewController(addPhotoVC, animated: true)
@@ -159,7 +150,7 @@ class ViewController: UIViewController {
     @objc func cameraPhotoButtonClicked(_ sender: UIButton) {
         var config = PhotoLauncher.PhotoLauncherConfig()
         config.maximumNumberCanChoose = 6
-        config.isOnlyImages = false
+        config.mediaOptions = [.image, .video]
         config.sourceRect = sender.frame
         config.videoPathExtension = "mp4"
         config.videoMaximumDuration = 15
@@ -175,22 +166,32 @@ class ViewController: UIViewController {
         let urlStr = "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4"
 //        let urlStr = "http://client.gsup.sichuanair.com/file.php?9bfc3b16aec233d025c18042e9a2b45a.mp4"
 //        let urlStr = "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4"
+//        let urlStr = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
         guard let url = URL(string: urlStr) else { return }
 
-        let photo = Photo(url: url)
-        let photosDetailVC = PhotoDetailCollectionViewController(photos: [photo], initialIndex: 0)
+        let photo = Photo.photoWithURL(url)
+        
+        let photosDetailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0) {
+            $0
+                .buildBottomToolBar()
+                .buildNavigationBar()
+        }
         photosDetailVC.delegate = self
         navigationController?.pushViewController(photosDetailVC, animated: true)
     }
 
     @objc func launchCustomCamera(_ sender: UIButton) {
-        photoLanucher.launchCamera(in: self, captureModes: [.image, .movie])
+        photoLanucher.launchCamera(in: self, captureMode: [.image, .video])
     }
 
 }
 
 extension ViewController: PhotoLauncherDelegate {
-    func selectedPhotosInPhotoLauncher(_ photos: [UIImage]) {
+    func selectedVideoInPhotoLauncher(_ video: Result<SelectedVideo, Error>) {
+        print("Selected video: \(try? video.get())")
+    }
+    
+    func selectedPhotosInPhotoLauncher(_ photos: [SelectedImage]) {
         print("selected \(photos.count) images")
     }
 }
@@ -205,8 +206,9 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
             guard let image = info[.originalImage] as? UIImage else { return }
             UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
             picker.dismiss(animated: true) {
-                let photo = Photo(image: image)
-                let detailVC = PhotoDetailCollectionViewController(photos: [photo], initialIndex: 0)
+                let photo = Photo.photoWithUIImage(image)
+                let detailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0, builder: nil)
+//                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
                 detailVC.delegate = self
                 self.navigationController?.pushViewController(detailVC, animated: true)
             }
@@ -281,10 +283,8 @@ extension ViewController: VideoPreviewControllerDelegate {
     }
 }
 
-extension ViewController: PhotoDetailCollectionViewControllerDelegate {
-    func showBottomToolBar(in photoDetail: PhotoDetailCollectionViewController) -> Bool {
-        true
-    }
+extension ViewController: PhotoBrowserViewControllerDelegate {
+    
 }
 
 extension ViewController: CameraViewControllerDelegate {
@@ -323,6 +323,7 @@ extension ViewController: CameraViewControllerDelegate {
 //                }
 //
 //            }
+            // watermark
             guard let image = info[.watermarkImage] as? UIImage else { return }
 //            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
             CameraViewController.saveImageToAlbums(image) { (error) in
@@ -333,8 +334,8 @@ extension ViewController: CameraViewControllerDelegate {
                 }
             }
             cameraViewController.dismiss(animated: true) {
-                let photo = Photo(image: image)
-                let detailVC = PhotoDetailCollectionViewController(photos: [photo], initialIndex: 0)
+                let photo = Photo.photoWithUIImage(image)
+                let detailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0, builder: nil)
                 detailVC.delegate = self
                 self.navigationController?.pushViewController(detailVC, animated: true)
             }
@@ -347,19 +348,9 @@ extension ViewController: CameraViewControllerDelegate {
             }
 
             cameraViewController.dismiss(animated: true) {
-//                 Editor controller
                 let previewVC = VideoPreviewController(videoURL: videoURL)
                 previewVC.delegate = self
                 self.present(previewVC, animated: true, completion: nil)
-                
-//                guard UIVideoEditorController.canEditVideo(atPath: videoURL.absoluteString) else { return }
-//                let videoEditorController = UIVideoEditorController()
-//                videoEditorController.videoPath = videoURL.path
-//                videoEditorController.delegate = self
-//                videoEditorController.videoMaximumDuration = 15
-//                videoEditorController.modalPresentationStyle = .fullScreen
-//                videoEditorController.videoQuality = .typeHigh
-//                self.present(videoEditorController, animated: true, completion: nil)
             }
         default:
             break

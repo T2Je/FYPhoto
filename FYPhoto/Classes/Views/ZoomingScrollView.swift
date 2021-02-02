@@ -10,23 +10,23 @@ import Photos
 import UICircularProgressRing
 import MobileCoreServices
 
-enum ImageViewTap: String {
+enum ImageViewGestureEvent: String {
     case singleTap = "single_tap"
-    case doubleTap = "doubel_tap"
+    case doubleTap = "double_tap"
+    case longPress = "long_press"
 }
 
 class ZoomingScrollView: UIScrollView {
-
-    var photo: PhotoProtocol! {
+    var photo: PhotoProtocol? {
         didSet {
             circularProgressView.isHidden = true
-            if photo != nil {
-                if let image = photo.underlyingImage {
-                    displayImage(image)
+            if let photo = photo {
+                if let url = photo.url {
+                    display(url, placeholder: photo.image)
                 } else if let asset = photo.asset {
-                    displayAsset(asset, targetSize: photo.assetSize ?? bounds.size)
-                } else if let url = photo.url {
-                    display(url)
+                    displayAsset(asset, targetSize: photo.targetSize ?? bounds.size)
+                } else if let image = photo.image {
+                    displayImage(image)
                 } else {
                     displayImageFailure()
                 }
@@ -34,31 +34,28 @@ class ZoomingScrollView: UIScrollView {
         }
     }
 
-    var imageView = PhotosDetectingImageView()
+    var imageView = PhotoAnimatedImageView()
 
     var circularProgressView = UICircularProgressRing()
 
-    let settingOptions: PhotoPickerSettingsOptions
-
-    init(frame: CGRect, settingOptions: PhotoPickerSettingsOptions = .default) {
-        self.settingOptions = settingOptions
+    override init(frame: CGRect) {        
         super.init(frame: frame)
         setup()
     }
 
     func setup() {
 //        backgroundColor = .clear
-        imageView.delegate = self
+        imageView.gestureDelegate = self
         imageView.contentMode = .scaleAspectFit
 
-        circularProgressView.outerRingColor = .gray
-        circularProgressView.innerRingColor = .orange
+        circularProgressView.outerRingColor = .white
+        circularProgressView.innerRingColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
         circularProgressView.style = .ontop
         circularProgressView.startAngle = 270
         circularProgressView.isHidden = true
         circularProgressView.minValue = 0
-        circularProgressView.maxValue = 1
-        circularProgressView.innerRingWidth = 3
+        circularProgressView.maxValue = 100
+        circularProgressView.innerRingWidth = 5
 
         addSubview(imageView)
         addSubview(circularProgressView)
@@ -73,7 +70,6 @@ class ZoomingScrollView: UIScrollView {
             imageView.heightAnchor.constraint(equalTo: self.heightAnchor)
         ])
 
-
         circularProgressView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             circularProgressView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
@@ -81,9 +77,6 @@ class ZoomingScrollView: UIScrollView {
             circularProgressView.widthAnchor.constraint(equalToConstant: 130),
             circularProgressView.heightAnchor.constraint(equalToConstant: 130)
         ])
-
-        showsHorizontalScrollIndicator = settingOptions.contains(.displayHorizontalScrollIndicator)
-        showsVerticalScrollIndicator = settingOptions.contains(.displayVerticalScrollIndicator)
     }
 
     required init?(coder: NSCoder) {
@@ -97,41 +90,37 @@ class ZoomingScrollView: UIScrollView {
     }
 
     func displayAsset(_ asset: PHAsset, targetSize: CGSize) {
-        let options = PHImageRequestOptions()
-        options.deliveryMode = .highQualityFormat
-        options.resizeMode = .exact
-
-        PHImageManager.default().requestImage(for: asset, targetSize: targetSize, contentMode: PHImageContentMode.aspectFit, options: options) { [weak self] (image, info) in
+        imageView.setAsset(asset, targeSize: targetSize) { [weak self] (image) in
             if let image = image {
-                self?.photo.underlyingImage = image
+//                self?.photo.storeImage(image)  Avoid out of memory
+                self?.displayImage(image)
             } else {
                 self?.displayImageFailure()
             }
         }
     }
 
-    func display(_ url: URL) {
-        if url.isFileURL {
-            self.photo.underlyingImage = loadLocalImage(url)
-        } else {
-            circularProgressView.value = 0
-            loadWebImage(url, progress: { (progress) in
-                DispatchQueue.main.async {
-                    if self.circularProgressView.isHidden == true {
-                        self.circularProgressView.isHidden = false
-                    }
-                    self.circularProgressView.value = CGFloat(progress)
+    func display(_ url: URL, placeholder: UIImage? = nil) {
+        circularProgressView.value = 0
+        imageView.setImage(url: url, placeholder: placeholder) { (recieved, expected, _) in
+            let progress = recieved / expected
+            DispatchQueue.main.async {
+                if self.circularProgressView.isHidden == true {
+                    self.circularProgressView.isHidden = false
                 }
-
-            }) { (image, error) in
-                DispatchQueue.main.async {
-                    self.circularProgressView.isHidden = true
-                    if let image = image {
-                        self.photo.underlyingImage = image
-                    } else if error != nil {
-                        self.displayImageFailure()
-                    }
-                }
+                self.circularProgressView.value = CGFloat(progress * 100)
+            }
+        } completed: { [weak self] (result) in
+            self?.circularProgressView.isHidden = true
+            switch result {
+            case .failure(let error):
+                #if DEBUG
+                print("❌ \(error) in ",  #file)
+                #endif
+                self?.displayImageFailure()
+            case .success(let image):
+                self?.photo?.storeImage(image)
+                self?.displayImage(image)
             }
         }
     }
@@ -143,16 +132,19 @@ class ZoomingScrollView: UIScrollView {
     }
 }
 
-extension ZoomingScrollView: PhotosDetectingImageViewDelegate {
-    func handleImageViewSingleTap(_ touchPoint: CGPoint) {
-        routerEvent(name: ImageViewTap.singleTap.rawValue, userInfo: nil)
+extension ZoomingScrollView: DetectingGestureViewDelegate {
+    func handleSingleTap(_ touchPoint: CGPoint) {
+        routerEvent(name: ImageViewGestureEvent.singleTap.rawValue, userInfo: nil)
     }
-
-    func handleImageViewDoubleTap(_ touchPoint: CGPoint) {
+    
+    func handleDoubleTap(_ touchPoint: CGPoint) {
         var info = [String: Any]()
         info["touchPoint"] = touchPoint
         info["mediaType"] = kUTTypeImage
-        routerEvent(name: ImageViewTap.doubleTap.rawValue, userInfo: info)
+        routerEvent(name: ImageViewGestureEvent.doubleTap.rawValue, userInfo: info)
     }
-
+    
+    func handleLongPress() {
+        routerEvent(name: ImageViewGestureEvent.longPress.rawValue, userInfo: nil)
+    }
 }

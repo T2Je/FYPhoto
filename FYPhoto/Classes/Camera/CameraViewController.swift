@@ -40,7 +40,8 @@ public class CameraViewController: UIViewController {
     public weak var delegate: CameraViewControllerDelegate?
 
     /// capture mode. Default is image.
-    public var captureModes: [CaptureMode] = [CaptureMode.image]
+    public var captureMode: MediaOptions = .image
+    
     public var cameraOverlayView: VideoCaptureOverlay!
     public var moviePathExtension = "mov"
     /// maximum video capture duration. Default 15s
@@ -73,11 +74,6 @@ public class CameraViewController: UIViewController {
     // Movie
     private var movieFileOutput: AVCaptureMovieFileOutput?
     private var backgroundRecordingID: UIBackgroundTaskIdentifier?
-
-    // location
-    private let locationManager = CLLocationManager()
-    private var currentLocation: CLLocation?
-
     
     var windowOrientation: UIInterfaceOrientation {
         if #available(iOS 13.0, *) {
@@ -91,11 +87,6 @@ public class CameraViewController: UIViewController {
         videoDeviceInput != nil
     }
     
-    func setupLocationManager() {
-        locationManager.delegate = self
-        locationManager.requestWhenInUseAuthorization()
-    }
-
     public init() {
         super.init(nibName: nil, bundle: nil)
         initVideoDeviceDiscoverySession()
@@ -104,7 +95,7 @@ public class CameraViewController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
+    
     override public func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
@@ -115,35 +106,15 @@ public class CameraViewController: UIViewController {
         view.addSubview(cameraOverlayView)
         makeConstraints()
 
-        cameraOverlayView.captureModes = captureModes
+        cameraOverlayView.captureMode = captureMode
         cameraOverlayView.delegate = self
 
         previewView.session = session
-
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
-        case .authorized:
-            // The user has previously granted access to the camera.
-            break
-        case .notDetermined:
-            /*
-             The user has not yet been presented with the option to grant
-             video access. Suspend the session queue to delay session
-             setup until the access request has completed.
-
-             Note that audio access will be implicitly requested when we
-             create an AVCaptureDeviceInput for audio during session setup.
-             */
-            sessionQueue.suspend()
-            AVCaptureDevice.requestAccess(for: .video, completionHandler: { granted in
-                if !granted {
-                    self.setupResult = .notAuthorized
-                }
-                self.sessionQueue.resume()
-            })
-        default:
-            // The user has previously denied access.
-            setupResult = .notAuthorized
+                
+        if captureMode.contains(.video) {
+            requestVideoAuthority()
         }
+        
 
         /*
          Setup the capture session.
@@ -180,16 +151,17 @@ public class CameraViewController: UIViewController {
                 self.isSessionRunning = self.session.isRunning
 
             case .notAuthorized:
+                let bundleDisplayName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") ?? ""
                 DispatchQueue.main.async {
-                    let changePrivacySetting = "AVCam doesn't have permission to use the camera, please change privacy settings"
+                    let changePrivacySetting = "\(bundleDisplayName as? String) \("WithoutCameraPermission".photoTablelocalized)"
                     let message = NSLocalizedString(changePrivacySetting, comment: "Alert message when the user has denied access to the camera")
-                    let alertController = UIAlertController(title: "AVCam", message: message, preferredStyle: .alert)
+                    let alertController = UIAlertController(title: "\(bundleDisplayName)", message: message, preferredStyle: .alert)
 
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Alert OK button"),
+                    alertController.addAction(UIAlertAction(title: NSLocalizedString("OK".photoTablelocalized, comment: "Alert OK button"),
                                                             style: .cancel,
                                                             handler: nil))
 
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString("Settings", comment: "Alert button to open Settings"),
+                    alertController.addAction(UIAlertAction(title: NSLocalizedString("Settings".photoTablelocalized, comment: "Alert button to open Settings"),
                                                             style: .`default`,
                                                             handler: { _ in
                                                                 UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!,
@@ -203,10 +175,10 @@ public class CameraViewController: UIViewController {
             case .configurationFailed:
                 DispatchQueue.main.async {
                     let alertMsg = "Alert message when something goes wrong during capture session configuration"
-                    let message = NSLocalizedString("Unable to capture media", comment: alertMsg)
-                    let alertController = UIAlertController(title: "Camera", message: message, preferredStyle: .alert)
+                    let message = NSLocalizedString("CameraConfigurationFailed".photoTablelocalized, comment: alertMsg)
+                    let alertController = UIAlertController(title: "Camera".photoTablelocalized, message: message, preferredStyle: .alert)
 
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString("OK", comment: "Alert OK button"),
+                    alertController.addAction(UIAlertAction(title: NSLocalizedString("OK".photoTablelocalized, comment: "Alert OK button"),
                                                             style: .cancel,
                                                             handler: nil))
                     self.present(alertController, animated: true, completion: nil)
@@ -220,7 +192,6 @@ public class CameraViewController: UIViewController {
         //                self.session.commitConfiguration()
         sessionQueue.async {
             if self.setupResult == .success {
-
                 self.session.stopRunning()
                 self.isSessionRunning = self.session.isRunning
                 self.removeObservers()
@@ -249,14 +220,16 @@ public class CameraViewController: UIViewController {
     }
 
     func makeConstraints() {
+        previewView.frame = UIScreen.main.bounds
+        
         let safeArea = self.view.safeAreaLayoutGuide
-        previewView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            previewView.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            previewView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
-            previewView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
-            previewView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
-        ])
+//        previewView.translatesAutoresizingMaskIntoConstraints = false
+//        NSLayoutConstraint.activate([
+//            previewView.topAnchor.constraint(equalTo: view.topAnchor),
+//            previewView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+//            previewView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+//            previewView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+//        ])
 
         cameraOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -266,7 +239,34 @@ public class CameraViewController: UIViewController {
             cameraOverlayView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor)
         ])
     }
-
+    
+    fileprivate func requestVideoAuthority() {
+        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        case .authorized:
+            // The user has previously granted access to the camera.
+            break
+        case .notDetermined:
+            /*
+             The user has not yet been presented with the option to grant
+             video access. Suspend the session queue to delay session
+             setup until the access request has completed.
+             
+             Note that audio access will be implicitly requested when we
+             create an AVCaptureDeviceInput for audio during session setup.
+             */
+            sessionQueue.suspend()
+            AVCaptureDevice.requestAccess(for: .video, completionHandler: { granted in
+                if !granted {
+                    self.setupResult = .notAuthorized
+                }
+                self.sessionQueue.resume()
+            })
+        default:
+            // The user has previously denied access.
+            setupResult = .notAuthorized
+        }
+    }
+    
     // MARK: Session Management
 
     // Call this on the session queue.
@@ -288,25 +288,14 @@ public class CameraViewController: UIViewController {
             var defaultVideoDevice: AVCaptureDevice?
 
             // Choose the back dual camera, if available, otherwise default to a wide angle camera.
-
-            if #available(iOS 10.2, *) {
-                if let dualCameraDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
-                    defaultVideoDevice = dualCameraDevice
-                } else if let backCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
-                    // If a rear dual camera is not available, default to the rear wide angle camera.
-                    defaultVideoDevice = backCameraDevice
-                } else if let frontCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
-                    // If the rear wide angle camera isn't available, default to the front wide angle camera.
-                    defaultVideoDevice = frontCameraDevice
-                }
-            } else {
-                if let backCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
-                    // If a rear dual camera is not available, default to the rear wide angle camera.
-                    defaultVideoDevice = backCameraDevice
-                } else if let frontCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
-                    // If the rear wide angle camera isn't available, default to the front wide angle camera.
-                    defaultVideoDevice = frontCameraDevice
-                }
+            if let dualCameraDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
+                defaultVideoDevice = dualCameraDevice
+            } else if let backCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
+                // If a rear dual camera is not available, default to the rear wide angle camera.
+                defaultVideoDevice = backCameraDevice
+            } else if let frontCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
+                // If the rear wide angle camera isn't available, default to the front wide angle camera.
+                defaultVideoDevice = frontCameraDevice
             }
             guard let videoDevice = defaultVideoDevice else {
                 print("Default video device is unavailable.")
@@ -348,23 +337,25 @@ public class CameraViewController: UIViewController {
             session.commitConfiguration()
             return
         }
-
-        // Add an audio input device.
-        do {
-            guard let audioDevice = AVCaptureDevice.default(for: .audio) else {
-                print("Default audio device is unavailable.")
-                return
+        
+        if captureMode.contains(.video) {
+            // Add an audio input device.
+            do {
+                guard let audioDevice = AVCaptureDevice.default(for: .audio) else {
+                    print("Default audio device is unavailable.")
+                    return
+                }
+                let audioDeviceInput = try AVCaptureDeviceInput(device: audioDevice)
+                if session.canAddInput(audioDeviceInput) {
+                    session.addInput(audioDeviceInput)
+                } else {
+                    print("Could not add audio device input to the session")
+                }
+            } catch {
+                print("Could not create audio device input: \(error)")
             }
-            let audioDeviceInput = try AVCaptureDeviceInput(device: audioDevice)
-            if session.canAddInput(audioDeviceInput) {
-                session.addInput(audioDeviceInput)
-            } else {
-                print("Could not add audio device input to the session")
-            }
-        } catch {
-            print("Could not create audio device input: \(error)")
         }
-
+        
         // Add the photo output
         if session.canAddOutput(photoOutput) {
             session.addOutput(photoOutput)
@@ -647,21 +638,7 @@ public class CameraViewController: UIViewController {
             self.rawValue = rawValue
         }
     }
-
-    public struct CaptureMode : Hashable, Equatable, RawRepresentable {
-        public let rawValue: Int8
-        public init(rawValue: Int8) {
-            self.rawValue = rawValue
-        }
-    }
 }
-
-public extension CameraViewController.CaptureMode {
-    static let image: CameraViewController.CaptureMode = CameraViewController.CaptureMode(rawValue: 0)
-    static let movie: CameraViewController.CaptureMode = CameraViewController.CaptureMode(rawValue: 1)
-//    static let live: CameraViewController.CaptureMode = CameraViewController.CaptureMode(rawValue: 3)
-}
-
 
 extension CameraViewController: VideoCaptureOverlayDelegate {
     public func flashSwitch() {
@@ -873,11 +850,6 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                     })
                 }
                 
-//                if let location = self.currentLocation {
-//                    let item = self.locationMetaDataItem(location)
-//                    movieFileOutput.metadata?.append(item)
-//                }
-                
                 // Update the orientation on the movie file output video connection before recording.
                 let movieFileOutputConnection = movieFileOutput.connection(with: .video)
                 movieFileOutputConnection?.videoOrientation = videoPreviewLayerOrientation!
@@ -1082,7 +1054,7 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         
         guard
             let assetExport = AVAssetExportSession(asset: mixComposition,
-                                                     presetName: AVAssetExportPresetHighestQuality) else {
+                                                   presetName: AVAssetExportPresetHighestQuality) else {
             completion(url)
             return
         }
@@ -1106,8 +1078,6 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
                     let endDate = Date()
                     let distance = startDate.distance(to: endDate)
                     print("It took \(distance) to create water mark for \(videoAsset.duration.seconds) seconds video")
-                } else {
-                    
                 }
                 #endif
             case .failed:
@@ -1169,30 +1139,6 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
                 completion(outputURL)
             }
         }
-    }
-}
-
-extension CameraViewController: CLLocationManagerDelegate {
-    public func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        currentLocation = locations.last
-    }
-    
-    public func locationManager(_ manager: CLLocationManager, didChangeAuthorization status: CLAuthorizationStatus) {
-        switch status {
-        case .authorizedWhenInUse:
-            manager.startUpdatingLocation()
-        default:
-            manager.stopUpdatingLocation()
-        }
-    }
-    
-    func locationMetaDataItem(_ location: CLLocation) -> AVMetadataItem {
-        let metadataItem = AVMutableMetadataItem()
-        metadataItem.keySpace = AVMetadataKeySpace.common
-        metadataItem.key = AVMetadataKey.commonKeyLocation as NSCopying & NSObjectProtocol
-        
-        metadataItem.value = NSString(format: "+08.4lf%+09.4lf/", location.coordinate.latitude, location.coordinate.longitude)
-        return metadataItem
     }
 }
 

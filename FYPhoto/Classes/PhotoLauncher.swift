@@ -12,8 +12,8 @@ import MobileCoreServices
 import PhotosUI
 
 public protocol PhotoLauncherDelegate: class {
-    func selectedPhotosInPhotoLauncher(_ photos: [UIImage])
-//    func selectedPhotosInPhotoLauncher(_ photos: [Photo])
+    func selectedPhotosInPhotoLauncher(_ photos: [SelectedImage])
+    func selectedVideoInPhotoLauncher(_ video: Result<SelectedVideo, Error>)
 }
 
 /// A helper class to launch photo picker and camera.
@@ -23,18 +23,16 @@ public protocol PhotoLauncherDelegate: class {
         public var sourceRect: CGRect = .zero
         /// You can choose the maximum number of photos, default 6.
         public var maximumNumberCanChoose: Int = 6
-        /// true => image, false => image & video. If camera action is choosed,
-        /// this flag determines whether camera can capture video.
+        /// mediaOptions contain image, video. If camera action is choosed,
+        /// this value determines camera can either capture video or image or both.
         /// Default video format is mp4.
-        public var isOnlyImages: Bool = true
+        public var mediaOptions: MediaOptions = .image
         /// maximum video capture duration. Default 15s
         public var videoMaximumDuration: TimeInterval = 15
         /// url extension, e.g., xxx.mp4
         public var videoPathExtension: String = "mp4"
 
-        public init() {
-
-        }
+        public init() {}
     }
 
     public typealias CameraContainer = UIViewController & UINavigationControllerDelegate & CameraViewControllerDelegate
@@ -51,6 +49,7 @@ public protocol PhotoLauncherDelegate: class {
         super.init()
     }
 
+    @available(swift, deprecated: 0.3, message: "Use PhotoPickerViewController instead")
     /// Show PhotoPicker or Camera action sheet. This is for CUSTOM photo picker, if you want to use SYSTEM photo picker,
     /// use
     /// `showSystemPhotoPickerAletSheet(in:, sourceRect:, maximumNumberCanChoose:, isOnlyImages:)`
@@ -62,17 +61,22 @@ public protocol PhotoLauncherDelegate: class {
     ///     sourceRect = .zero, maximumNumberCanChoose = 6, isOnlyImages = true, videoMaximumDuration = 15, videoPathExtension = mp4
     public func showCustomPhotoPickerCameraAlertSheet(in container: CameraContainer, config: PhotoLauncherConfig = PhotoLauncherConfig()) {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        let photo = UIAlertAction(title: "photo".photoTablelocalized, style: .default) { (_) in
-            self.launchCustomPhotoLibrary(in: container, maximumNumberCanChoose: config.maximumNumberCanChoose, isOnlyImages: config.isOnlyImages)
+        let photo = UIAlertAction(title: "Photo".photoTablelocalized, style: .default) { (_) in
+            self.launchCustomPhotoLibrary(in: container, maximumNumberCanChoose: config.maximumNumberCanChoose, mediaOptions: config.mediaOptions)
         }
-        let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
-            if config.isOnlyImages {
+        let camera = UIAlertAction(title: "Camera".photoTablelocalized, style: .default) { (_) in
+            if config.mediaOptions == .image {
                 self.launchCamera(in: container,
-                                  captureModes: [CameraViewController.CaptureMode.image],
+                                  captureMode: .image,
+                                  videoMaximumDuration: config.videoMaximumDuration)
+            } else if config.mediaOptions == .video {
+                self.launchCamera(in: container,
+                                  captureMode: .video,
+                                  moviePathExtension: config.videoPathExtension,
                                   videoMaximumDuration: config.videoMaximumDuration)
             } else {
                 self.launchCamera(in: container,
-                                  captureModes: [.image, .movie],
+                                  captureMode: [.image, .video],
                                   moviePathExtension: config.videoPathExtension,
                                   videoMaximumDuration: config.videoMaximumDuration)
             }
@@ -95,11 +99,11 @@ public protocol PhotoLauncherDelegate: class {
     ///   - moviePathExtension: movie extension, default is mp4.
     ///   - videoMaximumDuration: video capture duration. Default 15s
     public func launchCamera(in viewController: CameraContainer,
-                             captureModes: [CameraViewController.CaptureMode] = [.image],
+                             captureMode: MediaOptions = .image,
                              moviePathExtension: String? = nil,
                              videoMaximumDuration: TimeInterval = 15) {
         let cameraVC = CameraViewController()
-        cameraVC.captureModes = captureModes
+        cameraVC.captureMode = captureMode
         cameraVC.videoMaximumDuration = videoMaximumDuration
         cameraVC.moviePathExtension = moviePathExtension ?? "mp4"
         cameraVC.delegate = viewController
@@ -108,17 +112,17 @@ public protocol PhotoLauncherDelegate: class {
     }
 
     public func launchCustomPhotoLibrary(in viewController: UIViewController,
-                                            maximumNumberCanChoose: Int,
-                                            isOnlyImages: Bool = true) {
+                                         maximumNumberCanChoose: Int,
+                                         mediaOptions: MediaOptions = .image) {
         switch PHPhotoLibrary.authorizationStatus() {
-        case .authorized:
-            launchPhotoLibrary(in: viewController, maximumNumberCanChoose, isOnlyImages: isOnlyImages)
+        case .authorized, .limited:
+            launchPhotoLibrary(in: viewController, maximumNumberCanChoose, mediaOptions: mediaOptions)
         case .notDetermined:
             PHPhotoLibrary.requestAuthorization { (status) in
                 switch status {
                 case .authorized:
                     DispatchQueue.main.async {
-                        self.launchPhotoLibrary(in: viewController, maximumNumberCanChoose, isOnlyImages: isOnlyImages)
+                        self.launchPhotoLibrary(in: viewController, maximumNumberCanChoose, mediaOptions: mediaOptions)
                     }
                 default: break
                 }
@@ -127,12 +131,16 @@ public protocol PhotoLauncherDelegate: class {
         }
     }
 
-    func launchPhotoLibrary(in viewController: UIViewController, _ maximumNumberCanChoose: Int, isOnlyImages: Bool) {
-        let gridVC = AssetGridViewController(maximumToSelect: maximumNumberCanChoose, isOnlyImages: isOnlyImages)
+    func launchPhotoLibrary(in viewController: UIViewController, _ maximumNumberCanChoose: Int, mediaOptions: MediaOptions) {
+        let gridVC = PhotoPickerViewController(mediaTypes: mediaOptions)
+            .setMaximumPhotosCanBeSelected(maximumNumberCanChoose)
+            .setPickerWithCamera(false)
         gridVC.selectedPhotos = { [weak self] images in
             self?.delegate?.selectedPhotosInPhotoLauncher(images)
         }
-
+        gridVC.selectedVideo = { [weak self] video in
+            self?.delegate?.selectedVideoInPhotoLauncher(video)
+        }
         let navi = UINavigationController(rootViewController: gridVC)
         navi.modalPresentationStyle = .fullScreen
         viewController.present(navi, animated: true, completion: nil)
@@ -163,18 +171,20 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
     public func showSystemPhotoPickerCameraAlertSheet(in container: CameraContainer,
                                                       config: PhotoLauncherConfig = PhotoLauncherConfig()) {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        let photo = UIAlertAction(title: "photo".photoTablelocalized, style: .default) { (_) in
-            self.launchSystemPhotoPicker(in: container, maximumNumberCanChoose: config.maximumNumberCanChoose, isOnlyImages: config.isOnlyImages)
+        let photo = UIAlertAction(title: "Photo".photoTablelocalized, style: .default) { (_) in
+            self.launchSystemPhotoPicker(in: container, maximumNumberCanChoose: config.maximumNumberCanChoose, mediaOptions: config.mediaOptions)
         }
-        let camera = UIAlertAction(title: "camera".photoTablelocalized, style: .default) { (_) in
-            if config.isOnlyImages {
-                self.launchCamera(in: container, captureModes: [.image], videoMaximumDuration: config.videoMaximumDuration)
+        let camera = UIAlertAction(title: "Camera".photoTablelocalized, style: .default) { (_) in
+            if config.mediaOptions == .image {
+                self.launchCamera(in: container, captureMode: .image, videoMaximumDuration: config.videoMaximumDuration)
+            } else if config.mediaOptions == .video {
+                self.launchCamera(in: container, captureMode: .video, moviePathExtension: config.videoPathExtension, videoMaximumDuration: config.videoMaximumDuration)
             } else {
-                self.launchCamera(in: container, captureModes: [.image, .movie], moviePathExtension: config.videoPathExtension, videoMaximumDuration: config.videoMaximumDuration)
+                self.launchCamera(in: container, captureMode: [.image, .video], moviePathExtension: config.videoPathExtension, videoMaximumDuration: config.videoMaximumDuration)
             }
         }
 
-        let cancel = UIAlertAction(title: "cancel".photoTablelocalized, style: .cancel, handler: nil)
+        let cancel = UIAlertAction(title: "Cancel".photoTablelocalized, style: .cancel, handler: nil)
 
         alert.addAction(photo)
         alert.addAction(camera)
@@ -183,57 +193,130 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
         alert.popoverPresentationController?.sourceRect = config.sourceRect
         container.present(alert, animated: true, completion: nil)
     }
-
-    public func launchSystemPhotoPicker(in viewController: UIViewController, maximumNumberCanChoose: Int = 6, isOnlyImages: Bool = true) {
+    
+    /// Launch system PhotoPicker with selectionLimit, mediaOptions in viewcontroller
+    /// mediaOptions parameter should be ethier `.image` or `.video`.
+    ///
+    /// - Parameters:
+    ///   - viewController: presenting viewController
+    ///   - maximumNumberCanChoose: selectionLimit. For `.video` media, 1 always as the selectionLimit
+    ///   - mediaOptions: ethier `.image` or `.video`. `.all` value will be reset to `.image`
+    public func launchSystemPhotoPicker(in viewController: UIViewController, maximumNumberCanChoose: Int = 6, mediaOptions: MediaOptions = .image) {
         var configuration = PHPickerConfiguration()
         let filter: PHPickerFilter
-        if isOnlyImages {
+        if mediaOptions == .image {
             filter = PHPickerFilter.images
+            configuration.selectionLimit = maximumNumberCanChoose
+        } else if mediaOptions == .video {
+            filter = PHPickerFilter.videos
+            configuration.selectionLimit = 1
         } else {
-            filter = PHPickerFilter.any(of: [.images, .videos])
+            filter = PHPickerFilter.images
+            configuration.selectionLimit = maximumNumberCanChoose
+//            filter = PHPickerFilter.any(of: [.images, .videos])
         }
         configuration.filter = filter
-        configuration.selectionLimit = maximumNumberCanChoose
+        
         let pickerController = PHPickerViewController(configuration: configuration)
         pickerController.delegate = self
         viewController.present(pickerController, animated: true, completion: nil)
     }
 
     public func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-        parsePickerFetchResults(results) { (images) in
-            self.delegate?.selectedPhotosInPhotoLauncher(images)
+        if picker.configuration.filter == PHPickerFilter.images {
+            loadItemFromFetchResults(results) { (images: [SelectedImage]) in
+                self.delegate?.selectedPhotosInPhotoLauncher(images)
+            }
+        } else if picker.configuration.filter == PHPickerFilter.videos {
+            loadItemFromFetchResults(results) { (videos: [SelectedVideo]) in
+                guard !videos.isEmpty else { return }
+                let result = Result<SelectedVideo, Error>.success(videos[0])
+                self.delegate?.selectedVideoInPhotoLauncher(result)
+            }
         }
+        
         picker.dismiss(animated: true, completion: nil)
     }
 
-    func parsePickerFetchResults(_ results: [PHPickerResult], completion: @escaping (([UIImage]) -> Void)) {
+    func loadItemFromFetchResults<T>(_ results: [PHPickerResult], completion: @escaping (([T]) -> Void)) {
         guard !results.isEmpty else {
             completion([])
             return
         }
 
-        var images: [UIImage] = []
+        var items: [T] = []
         let group = DispatchGroup()
-
+        
         results.forEach { result in
             if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
                 group.enter()
                 result.itemProvider.loadObject(ofClass: UIImage.self) { image, error in
                     if let image = image as? UIImage {
-                        images.append(image)
-                    } else {
-                        if let placeholder = "cover_placeholder".photoImage {
-                            images.append(placeholder)
+                        var asset: PHAsset?
+                        if let id = result.assetIdentifier {
+                            asset = PHAsset.fetchAssets(withLocalIdentifiers: [id], options: nil).firstObject
                         }
+                        if let image = SelectedImage(asset: asset, image: image) as? T {
+                            items.append(image)
+                        }
+                    } else {
+                        //TODO: what's the use of the code below?
+//                        if let placeholder = "cover_placeholder".photoImage {
+//                            images.append(placeholder)
+//                        }
                         print("Couldn't load image with error: \(error?.localizedDescription ?? "unknown error")")
                     }
                     group.leave()
                 }
+            } else if result.itemProvider.hasRepresentationConforming(toTypeIdentifier: AVFileType.mp4.rawValue, fileOptions: []) {
+                group.enter()
+                result.itemProvider.loadFileRepresentation(forTypeIdentifier: AVFileType.mp4.rawValue) { (url, error) in
+                    if let error = error {
+                        #if DEBUG
+                        print("❌ Couldn't load video with error: \(error)")
+                        #endif
+                    } else {
+                        guard let url = url else { return }
+                        print("selected video url: \(url)")
+                        print("url exsisted \(FileManager.default.fileExists(atPath: url.path))")
+                        let video = SelectedVideo(url: url)
+                        if let t = video as? T {
+                            url.generateThumbnail(completion: { (result) in
+                                video.briefImage = try? result.get()
+                            })
+                            items.append(t)
+                        }
+                    }
+                    group.leave()
+                }
+            } else if result.itemProvider.hasRepresentationConforming(toTypeIdentifier: AVFileType.mov.rawValue, fileOptions: []){
+                group.enter()
+                result.itemProvider.loadFileRepresentation(forTypeIdentifier: AVFileType.mov.rawValue) { (url, error) in
+                    if let error = error {
+                        #if DEBUG
+                        print("❌ Couldn't load video with error: \(error)")
+                        #endif
+                    } else {
+                        guard let url = url else { return }
+                        print("selected video url: \(url)")
+                        print("url exsisted \(FileManager.default.fileExists(atPath: url.path))")
+                        let video = SelectedVideo(url: url)
+                        if let t = video as? T {
+                            url.generateThumbnail(completion: { (result) in
+                                video.briefImage = try? result.get()
+                            })
+                            items.append(t)
+                        }
+                    }
+                    group.leave()
+                }
+            } else {
+                print("couldn't load item")
             }
         }
 
         group.notify(queue: .main) {
-            completion(images)
+            completion(items)
         }
     }
 

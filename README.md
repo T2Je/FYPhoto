@@ -27,3 +27,16 @@ t2je, xiaoyang@variflight.com
 ## License
 
 FYPhoto is available under the MIT license. See the LICENSE file for more info.
+
+## TODO
+
+1. add progress bar when playing video
+2. use SDWebImage cache instead of Cache
+3. support Present animation ✅
+4. AVPlayer restore previous state ✅
+5. Camera caputre view frame ✅
+6. Add long press gesture delegate for Image and video ✅
+7. Support preview on PhotoPickerViewController ✅
+8. Function builder
+9. Long press to save photo ✅
+10. FYVideoPlayerViewController

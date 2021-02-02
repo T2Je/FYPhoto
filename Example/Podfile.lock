@@ -1,71 +1,68 @@
 PODS:
-  - Alamofire (5.2.2)
-  - Cache (5.3.0)
-  - FGBase (4.0.9):
-    - FGBase/Category (= 4.0.9)
-    - FGBase/Config (= 4.0.9)
-    - FGBase/FGPullToRefresh (= 4.0.9)
-    - FGBase/Grid (= 4.0.9)
-    - FGBase/Menu (= 4.0.9)
-    - FGBase/NavigationBar (= 4.0.9)
-    - FGBase/Picker (= 4.0.9)
-    - FGBase/Popup (= 4.0.9)
-    - FGBase/Progress (= 4.0.9)
-    - FGBase/SegmentControl (= 4.0.9)
-    - FGBase/SwipeView (= 4.0.9)
-    - FGBase/Switch (= 4.0.9)
-    - FGBase/TableView (= 4.0.9)
-    - FGBase/Text (= 4.0.9)
-    - FGBase/Tips (= 4.0.9)
-    - FGBase/ViewKit (= 4.0.9)
-  - FGBase/Category (4.0.9):
+  - FGBase (4.1.9):
+    - FGBase/Category (= 4.1.9)
+    - FGBase/Config (= 4.1.9)
+    - FGBase/FGPullToRefresh (= 4.1.9)
+    - FGBase/Grid (= 4.1.9)
+    - FGBase/Menu (= 4.1.9)
+    - FGBase/NavigationBar (= 4.1.9)
+    - FGBase/Picker (= 4.1.9)
+    - FGBase/Popup (= 4.1.9)
+    - FGBase/Progress (= 4.1.9)
+    - FGBase/SegmentControl (= 4.1.9)
+    - FGBase/SwipeView (= 4.1.9)
+    - FGBase/Switch (= 4.1.9)
+    - FGBase/TableView (= 4.1.9)
+    - FGBase/Text (= 4.1.9)
+    - FGBase/Tips (= 4.1.9)
+    - FGBase/ViewKit (= 4.1.9)
+  - FGBase/Category (4.1.9):
     - FGBase/Config
-  - FGBase/Config (4.0.9)
-  - FGBase/FGPullToRefresh (4.0.9):
+  - FGBase/Config (4.1.9)
+  - FGBase/FGPullToRefresh (4.1.9):
     - FGBase/Category
-  - FGBase/Grid (4.0.9):
-    - FGBase/Category
-    - SnapKit
-  - FGBase/Menu (4.0.9):
+  - FGBase/Grid (4.1.9):
     - FGBase/Category
     - SnapKit
-  - FGBase/NavigationBar (4.0.9):
+  - FGBase/Menu (4.1.9):
     - FGBase/Category
-  - FGBase/Picker (4.0.9):
+    - SnapKit
+  - FGBase/NavigationBar (4.1.9):
     - FGBase/Category
-  - FGBase/Popup (4.0.9)
-  - FGBase/Progress (4.0.9):
+  - FGBase/Picker (4.1.9):
     - FGBase/Category
-  - FGBase/SegmentControl (4.0.9)
-  - FGBase/SwipeView (4.0.9)
-  - FGBase/Switch (4.0.9)
-  - FGBase/TableView (4.0.9):
+    - SnapKit
+  - FGBase/Popup (4.1.9)
+  - FGBase/Progress (4.1.9):
     - FGBase/Category
-  - FGBase/Text (4.0.9):
+  - FGBase/SegmentControl (4.1.9)
+  - FGBase/SwipeView (4.1.9)
+  - FGBase/Switch (4.1.9)
+  - FGBase/TableView (4.1.9):
     - FGBase/Category
-  - FGBase/Tips (4.0.9):
+  - FGBase/Text (4.1.9):
+    - FGBase/Category
+  - FGBase/Tips (4.1.9):
     - FGBase/Category
     - MBProgressHUD
+    - SnapKit
     - Toast-Swift
-  - FGBase/ViewKit (4.0.9):
+  - FGBase/ViewKit (4.1.9):
     - FGBase/Category
     - FGBase/Config
     - FGBase/NavigationBar
     - FGBase/Tips
     - SnapKit
   - FYPhoto (0.2.2):
-    - Alamofire
-    - Cache (= 5.3.0)
     - SDWebImage/Core
     - UICircularProgressRing
   - MBProgressHUD (1.2.0)
-  - SDWebImage/Core (5.8.4)
+  - SDWebImage/Core (5.10.3)
   - SnapKit (5.0.1)
   - Toast-Swift (5.0.1)
   - UICircularProgressRing (7.0.0)
 
 DEPENDENCIES:
-  - Cache (= 5.3.0)
   - FGBase
   - FYPhoto (from `../`)
 
@@ -73,8 +70,6 @@ SPEC REPOS:
   http://git.feeyo.com/wangkun/specs.git:
     - FGBase
   trunk:
-    - Alamofire
-    - Cache
     - MBProgressHUD
     - SDWebImage
     - SnapKit
@@ -86,16 +81,14 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  Alamofire: 814429acc853c6c54ff123fc3d2ef66803823ce0
-  Cache: 48762993ec44e1d93483c4d4a13edd18452326f4
-  FGBase: c36d0311b2f6ea29eb662634f4d8fcf39305dd3c
-  FYPhoto: e9dd9a0791dedcc864fda487c2c0119b14aa59d1
+  FGBase: a7318323ec4fd2ca51c4aeb792b281b898189a5a
+  FYPhoto: b6ebc697faa6af1b7a81a565e6af1ca7f6709a4b
   MBProgressHUD: 3ee5efcc380f6a79a7cc9b363dd669c5e1ae7406
-  SDWebImage: cf6922231e95550934da2ada0f20f2becf2ceba9
+  SDWebImage: e378178472b735e84b007bfb55514c97948a0598
   SnapKit: 97b92857e3df3a0c71833cce143274bf6ef8e5eb
   Toast-Swift: 9b6a70f28b3bf0b96c40d46c0c4b9d6639846711
   UICircularProgressRing: 738b48db0ec1fbbd8482d727979392bb8c272e8d
 
-PODFILE CHECKSUM: 5bac7b6fad4d997d7cfcba79eeba9152e83561d8
+PODFILE CHECKSUM: ab52a93876a781552e0e74b1a724bc198b97845e
 
 COCOAPODS: 1.10.0

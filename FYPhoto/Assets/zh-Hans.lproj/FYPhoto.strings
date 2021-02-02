@@ -7,8 +7,13 @@
 */
 
 "add" = "添加";
+"Done" = "完成";
 
-"All Photos" = "全部照片";
+"AccessPhotosFailed" = "无法访问相册中照片";
+"AccessPhotosFailedMessage" = "当前无照片访问权限，建议前往系统设置";
+"GoToSettings" = "前往设置";
+
+"AllPhotos" = "最近项目";
 "Smart Albums" = "分类相簿";
 "User Albums" = "自定义相簿";
 
@@ -17,7 +22,37 @@
 
 "Save" = "保存";
 
+"Select" = "选择";
+
 "photo" = "照片";
-"camera" = "相机";
+"Camera" = "相机";
 
 "Front/Rear" = "前置/后置";
+
+"AccessPhotoLibraryTitle" = "想访问您的照片";
+
+"SelectMorePhotos" = "选择更多照片...";
+"KeepCurrent" = "保留当前所选内容";
+
+"VideoDurationTooLong" = "视频时间过长，请重新选择";
+"UnspportedVideoFormat" = "不支持的文件格式";
+"VideoMemoryOutOfSize" = "文件过大，请重新选择";
+
+"WithoutCameraPermission" = "没有使用相机的权限，请修改权限设置";
+
+"OK" = "好的";
+"Settings" = "设置";
+
+"CameraConfigurationFailed" = "无法拍摄视频";
+
+"NoPermissionToSave" = "没有权限将照片存储到相册中";
+
+"Preview" = "预览";
+
+"SavePhoto" = "保存图片";
+"SaveVideo" = "保存视频";
+
+"FailedToSaveMedia" = "保存失败";
+"SuccessfullySavedMedia" = "已保存到相册";
+
+"GotIt" = "知道了";

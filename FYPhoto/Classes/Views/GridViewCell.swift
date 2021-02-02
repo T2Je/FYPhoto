@@ -37,15 +37,23 @@ class GridViewCell: UICollectionViewCell {
     var livePhotoBadgeImage: UIImage! {
         didSet {
             livePhotoBadgeImageView.image = livePhotoBadgeImage
+            isVideoAsset = false
         }
     }
 
     var videoDuration: String! {
         didSet {
             videoDurationLabel.text = videoDuration
+            isVideoAsset = true
         }
     }
 
+    var isVideoAsset: Bool = false {
+        didSet {
+            selectionButton.isHidden = isVideoAsset
+        }
+    }
+    
     var isEnable: Bool = false {
         willSet {
             overlayView.isHidden = newValue
@@ -69,6 +77,7 @@ class GridViewCell: UICollectionViewCell {
         livePhotoBadgeImageView.image = nil
         selectionButton.setImage("ImageSelectedSmallOff".photoImage, for: .normal)
         indexPath = nil
+        isVideoAsset = false
     }
     
     func setupUI() {
@@ -82,7 +91,7 @@ class GridViewCell: UICollectionViewCell {
         selectionButton.addTarget(self, action: #selector(selectionButtonClicked(_:)), for: .touchUpInside)
 
         selectionButton.layer.masksToBounds = true
-        selectionButton.layer.cornerRadius = 20
+        selectionButton.layer.cornerRadius = 16
 
         overlayView.backgroundColor = UIColor(white: 0, alpha: 0.5)
         overlayView.isHidden = true
@@ -119,10 +128,10 @@ class GridViewCell: UICollectionViewCell {
         ])
 
         NSLayoutConstraint.activate([
-            selectionButton.topAnchor.constraint(equalTo: topAnchor, constant: 0),
-            selectionButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0),
-            selectionButton.widthAnchor.constraint(equalToConstant: 40),
-            selectionButton.heightAnchor.constraint(equalToConstant: 40)
+            selectionButton.topAnchor.constraint(equalTo: topAnchor, constant: 7),
+            selectionButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -7),
+            selectionButton.widthAnchor.constraint(equalToConstant: 32),
+            selectionButton.heightAnchor.constraint(equalToConstant: 32)
         ])
 
         NSLayoutConstraint.activate([
@@ -152,7 +161,8 @@ class GridViewCell: UICollectionViewCell {
         } else {
             selectionButton.setImage(nil, for: .normal)
             selectionButton.setTitle(title, for: .normal)
-            selectionButton.backgroundColor = .green
+            selectionButton.backgroundColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
         }
     }
+    
 }

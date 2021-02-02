@@ -7,6 +7,12 @@
 
 import Foundation
 
+enum TransitionType {
+    case photoTransitionProtocol(from: PhotoTransitioning, to: PhotoTransitioning)
+    case transitionBlock(block: (() -> UIImageView?))
+    case missingInfo // lack of transition info
+}
+
 protocol TransitionDriver {
     var transitionAnimator: UIViewPropertyAnimator! { get set }
     var isInteractive: Bool { get }

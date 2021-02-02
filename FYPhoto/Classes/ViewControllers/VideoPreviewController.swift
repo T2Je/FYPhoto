@@ -14,6 +14,7 @@ public protocol VideoPreviewControllerDelegate: class {
     func videoPreviewControllerDidCancel(_ preview: VideoPreviewController)
 }
 
+/// Preview video just token, save or discard it.
 public class VideoPreviewController: UIViewController {
 
     let cancelButton = UIButton()
@@ -28,7 +29,7 @@ public class VideoPreviewController: UIViewController {
     public weak var delegate: VideoPreviewControllerDelegate?
     
     let playerItem: AVPlayerItem
-    
+
     public init(videoURL: URL) {
         self.videoURL = videoURL
         playerItem = AVPlayerItem(url: videoURL)
@@ -48,12 +49,18 @@ public class VideoPreviewController: UIViewController {
         view.addSubview(cancelButton)
         view.addSubview(saveButton)
         
+        playerView.backgroundColor = .black
+        
         cancelButton.setTitle("Cancel".photoTablelocalized, for: .normal)
+        cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         cancelButton.layer.masksToBounds = true
         cancelButton.layer.cornerRadius = 5
         cancelButton.addTarget(self, action: #selector(cancelButtonClicked(_:)), for: .touchUpInside)
-        
+                
         saveButton.setTitle("Save".photoTablelocalized, for: .normal)
+        saveButton.backgroundColor = UIColor(red: 44/255.0, green: 118/255.0, blue: 227/255.0, alpha: 1)
+        saveButton.setTitleColor(UIColor.white, for: .normal)
+        saveButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         saveButton.layer.masksToBounds = true
         saveButton.layer.cornerRadius = 5
         saveButton.addTarget(self, action: #selector(saveButtonClicked(_:)), for: .touchUpInside)
@@ -69,6 +76,11 @@ public class VideoPreviewController: UIViewController {
         player.play()
     }
     
+    public override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        player.pause()
+    }
+    
     @objc func cancelButtonClicked(_ sender: UIButton) {
         try? FileManager.default.removeItem(at: videoURL)
         delegate?.videoPreviewControllerDidCancel(self)
@@ -79,34 +91,25 @@ public class VideoPreviewController: UIViewController {
     }
     
     func makeConstraints() {
-        playerView.translatesAutoresizingMaskIntoConstraints = false
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         saveButton.translatesAutoresizingMaskIntoConstraints = false
-        
-        let safeLayoutGuide = view.safeAreaLayoutGuide
+
+        playerView.frame = UIScreen.main.bounds
         NSLayoutConstraint.activate([
-            playerView.topAnchor.constraint(equalTo: safeLayoutGuide.topAnchor),
-            playerView.leadingAnchor.constraint(equalTo: safeLayoutGuide.leadingAnchor),
-            playerView.bottomAnchor.constraint(equalTo: safeLayoutGuide.bottomAnchor),
-            playerView.trailingAnchor.constraint(equalTo: safeLayoutGuide.trailingAnchor)
+            cancelButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
+            cancelButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 44),
+            cancelButton.widthAnchor.constraint(equalToConstant: 64),
+            cancelButton.heightAnchor.constraint(equalToConstant: 32)
         ])
         
         NSLayoutConstraint.activate([
-            cancelButton.leadingAnchor.constraint(equalTo: safeLayoutGuide.leadingAnchor, constant: 10),
-            cancelButton.topAnchor.constraint(equalTo: safeLayoutGuide.topAnchor, constant: 25),
-            cancelButton.widthAnchor.constraint(equalToConstant: 60),
-            cancelButton.heightAnchor.constraint(equalToConstant: 35)
-        ])
-        
-        NSLayoutConstraint.activate([
-            saveButton.trailingAnchor.constraint(equalTo: safeLayoutGuide.trailingAnchor, constant: -10),
-            saveButton.topAnchor.constraint(equalTo: safeLayoutGuide.topAnchor, constant: 25),
-            saveButton.widthAnchor.constraint(equalToConstant: 60),
-            saveButton.heightAnchor.constraint(equalToConstant: 35)
+            saveButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
+            saveButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 44),
+            saveButton.widthAnchor.constraint(equalToConstant: 64),
+            saveButton.heightAnchor.constraint(equalToConstant: 32)
         ])
         
     }
-
     /*
     // MARK: - Navigation
 

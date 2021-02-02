@@ -20,7 +20,7 @@ public protocol VideoCaptureOverlayDelegate: class {
 public class VideoCaptureOverlay: UIView {
     weak var delegate: VideoCaptureOverlayDelegate?
     /// capture mode. Default is photo.
-    public var captureModes: [CameraViewController.CaptureMode] = [CameraViewController.CaptureMode.image]
+    public var captureMode: MediaOptions = .image
 
     let progressView = UICircularProgressRing()
     let rearFrontCameraButton = UIButton()
@@ -41,12 +41,12 @@ public class VideoCaptureOverlay: UIView {
 
     var enableTakePicture = true {
         willSet {
-            tapGesture.isEnabled = newValue && captureModes.contains(.image)
+            tapGesture.isEnabled = newValue && captureMode.contains(.image)
         }
     }
     var enableTakeVideo = true {
         willSet {
-            longPressGesture.isEnabled = newValue && captureModes.contains(.movie)
+            longPressGesture.isEnabled = newValue && captureMode.contains(.video)
         }
     }
     var enableSwitchCamera = true {
@@ -91,7 +91,7 @@ public class VideoCaptureOverlay: UIView {
 
     func setupViews() {
         progressView.outerRingColor = .white
-        progressView.innerRingColor = .orange
+        progressView.innerRingColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
         progressView.style = .ontop
 //        progressView.isHidden = true
         progressView.minValue = 0
@@ -132,9 +132,8 @@ public class VideoCaptureOverlay: UIView {
     }
 
     @objc func longPress(_ gesture:UILongPressGestureRecognizer) {
-        guard captureModes.contains(.movie) else {
-            return
-        }
+        guard captureMode == .video || captureMode == .all else { return }
+        
         switch gesture.state {
         case .began:
             delegate?.startVideoCapturing()
@@ -156,7 +155,7 @@ public class VideoCaptureOverlay: UIView {
     }
 
     @objc func tapped(_ gesture: UITapGestureRecognizer) {
-        guard captureModes.contains(.image) else {
+        guard captureMode.contains(.image) else {
             return
         }
         delegate?.takePicture()

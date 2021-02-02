@@ -8,13 +8,21 @@
 import UIKit
 import Photos
 
-class PhotoDetailCell: UICollectionViewCell {
-    let zoomingView = ZoomingScrollView(frame: .zero, settingOptions: PhotoPickerSettingsOptions.default)    
+class PhotoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
+    static let reuseIdentifier = "PhotoDetailCell"
+    
+    let zoomingView = ZoomingScrollView(frame: .zero)    
 
     var image: UIImage? {
-        return zoomingView.imageView.image ?? "cover_placeholder".photoImage
+        zoomingView.imageView.image ?? "cover_placeholder".photoImage
     }
 
+    var photo: PhotoProtocol? {
+        didSet {
+            zoomingView.photo = photo
+        }
+    }
+    
     var maximumZoomScale: CGFloat = 1 {
         willSet {
             zoomingView.maximumZoomScale = newValue
@@ -43,10 +51,6 @@ class PhotoDetailCell: UICollectionViewCell {
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-
-    func setPhoto(_ photo: PhotoProtocol) {
-        zoomingView.photo = photo
     }
 
     override func prepareForReuse() {

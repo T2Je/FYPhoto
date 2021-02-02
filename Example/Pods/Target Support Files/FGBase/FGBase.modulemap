@@ -1,6 +1,0 @@
-framework module FGBase {
-  umbrella header "FGBase-umbrella.h"
-
-  export *
-  module * { export * }
-}
