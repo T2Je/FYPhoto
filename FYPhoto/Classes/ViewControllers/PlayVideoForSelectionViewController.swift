@@ -90,17 +90,17 @@ class PlayVideoForSelectionViewController: UIViewController {
     
     func makeConstraints() {
         // playerView 使用约束会导致视频没法全屏展示
-//        playerView.translatesAutoresizingMaskIntoConstraints = false
+        playerView.translatesAutoresizingMaskIntoConstraints = false
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         selectButton.translatesAutoresizingMaskIntoConstraints = false
         
 //        let safeLayoutGuide = view.safeAreaLayoutGuide
-//        NSLayoutConstraint.activate([
-//            playerView.topAnchor.constraint(equalTo: view.topAnchor),
-//            playerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-//            playerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-//            playerView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-//        ])
+        NSLayoutConstraint.activate([
+            playerView.topAnchor.constraint(equalTo: view.topAnchor),
+            playerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            playerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            playerView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
         
         NSLayoutConstraint.activate([
             cancelButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),

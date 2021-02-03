@@ -40,3 +40,4 @@ FYPhoto is available under the MIT license. See the LICENSE file for more info.
 8. Function builder
 9. Long press to save photo ✅
 10. FYVideoPlayerViewController
+11. BarTintColor

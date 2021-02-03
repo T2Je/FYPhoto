@@ -32,12 +32,19 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }()
     
     fileprivate lazy var bottomToolView: PhotoBrowserBottomToolView = {
-        let toolView = PhotoBrowserBottomToolView()
+        let toolView = PhotoBrowserBottomToolView(safeAreaInsetsBottom: safeAreaInsetsBottom)
         toolView.delegate = self
         return toolView
     }()
+    
     fileprivate var bottomToolViewBottomConstraint: NSLayoutConstraint?
-    fileprivate var bottomToolViewHeight: CGFloat!
+    fileprivate var bottomToolViewHeight: CGFloat {
+        return 45 + safeAreaInsetsBottom
+    }
+    
+    var safeAreaInsetsBottom: CGFloat {
+        return UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 0
+    }
     
     fileprivate var videoCache: VideoCache?
 
@@ -228,11 +235,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         self.initialIndex = initialIndex
         currentDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
         currentPhoto = photos[currentDisplayedIndexPath.item]
-
-        // full screen device has higher bottom bar
-        let safeAreaHasBottomInsets = UIApplication.shared.delegate?.window??.safeAreaInsets.bottom ?? 0 > 0
-        let height: CGFloat = safeAreaHasBottomInsets ? 80 : 45
-        bottomToolViewHeight = height
+                
         super.init(nibName: nil, bundle: nil)
         
         mainCollectionView = generateMainCollectionView()

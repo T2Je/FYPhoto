@@ -59,7 +59,7 @@ public class CameraViewController: UIViewController {
     fileprivate let session = AVCaptureSession()
     private var isSessionRunning = false
     // Communicate with the session and other session objects on this queue.
-    private let sessionQueue = DispatchQueue(label: "session queue")
+    private let sessionQueue = DispatchQueue(label: "com.fyphoto.camera.sessionQueue")
     private var setupResult: SessionSetupResult = .success
     @objc dynamic var videoDeviceInput: AVCaptureDeviceInput!
 
@@ -115,7 +115,6 @@ public class CameraViewController: UIViewController {
             requestVideoAuthority()
         }
         
-
         /*
          Setup the capture session.
          In general, it's not safe to mutate an AVCaptureSession or any of its
@@ -219,17 +218,15 @@ public class CameraViewController: UIViewController {
     }
 
     func makeConstraints() {
-        previewView.frame = UIScreen.main.bounds
-        
         let safeArea = self.view.safeAreaLayoutGuide
-//        previewView.translatesAutoresizingMaskIntoConstraints = false
-//        NSLayoutConstraint.activate([
-//            previewView.topAnchor.constraint(equalTo: view.topAnchor),
-//            previewView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-//            previewView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-//            previewView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-//        ])
-
+        previewView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            previewView.topAnchor.constraint(equalTo: view.topAnchor),
+            previewView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            previewView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            previewView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+        
         cameraOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             cameraOverlayView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
