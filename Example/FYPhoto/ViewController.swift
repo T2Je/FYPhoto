@@ -100,6 +100,9 @@ class ViewController: UIViewController {
     
 // MARK: - Button action
     @objc func photosViewButtonClicked(_ sender: UIButton) {
+        var pickerConfig = FYPhotoPickerConfiguration()
+        pickerConfig.selectionLimit = 6
+        
         let photoPickerVC = PhotoPickerViewController(mediaTypes: .all)
             .setMaximumPhotosCanBeSelected(6)
             .setMaximumVideoSizePerMB(40, compressedQuality: .AVAssetExportPreset640x480)
@@ -149,7 +152,7 @@ class ViewController: UIViewController {
 
     @objc func cameraPhotoButtonClicked(_ sender: UIButton) {
         var config = PhotoLauncher.PhotoLauncherConfig()
-        config.maximumNumberCanChoose = 6
+        config.maximumNumberCanChoose = 1
         config.mediaOptions = [.image, .video]
         config.sourceRect = sender.frame
         config.videoPathExtension = "mp4"

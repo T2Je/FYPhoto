@@ -201,7 +201,7 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
     ///   - viewController: presenting viewController
     ///   - maximumNumberCanChoose: selectionLimit. For `.video` media, 1 always as the selectionLimit
     ///   - mediaOptions: ethier `.image` or `.video`. `.all` value will be reset to `.image`
-    public func launchSystemPhotoPicker(in viewController: UIViewController, maximumNumberCanChoose: Int = 6, mediaOptions: MediaOptions = .image) {
+    public func launchSystemPhotoPicker(in viewController: UIViewController, maximumNumberCanChoose: Int = 1, mediaOptions: MediaOptions = .image) {
         var configuration = PHPickerConfiguration()
         let filter: PHPickerFilter
         if mediaOptions == .image {
