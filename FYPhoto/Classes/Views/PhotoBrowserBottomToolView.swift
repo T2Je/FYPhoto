@@ -22,8 +22,10 @@ class PhotoBrowserBottomToolView: UIView {
     
     let playButton = UIButton()
     let doneButton = UIButton()
+    private let safeAreaInsetsBottom: CGFloat
     
-    override init(frame: CGRect = .zero) {
+    init(_ frame: CGRect = .zero, safeAreaInsetsBottom: CGFloat = 0) {
+        self.safeAreaInsetsBottom = safeAreaInsetsBottom
         super.init(frame: frame)
         backgroundColor = UIColor(white: 0.1, alpha: 0.9)
         self.layer.masksToBounds = true
@@ -56,7 +58,7 @@ class PhotoBrowserBottomToolView: UIView {
         playButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             playButton.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            playButton.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            playButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -(safeAreaInsetsBottom/2-5)),
             playButton.widthAnchor.constraint(equalToConstant: 35),
             playButton.heightAnchor.constraint(equalToConstant: 35)
         ])
@@ -76,7 +78,7 @@ class PhotoBrowserBottomToolView: UIView {
         doneButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             doneButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -15),
-            doneButton.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            doneButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -(safeAreaInsetsBottom/2-5)),
             doneButton.widthAnchor.constraint(equalToConstant: 75),
             doneButton.heightAnchor.constraint(equalToConstant: 35)
         ])

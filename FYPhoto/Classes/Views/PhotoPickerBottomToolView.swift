@@ -28,9 +28,11 @@ final class PhotoPickerBottomToolView: UIView {
     }
     
     private let selectionLimit: Int
+    private let safeAreaInsetsBottom: CGFloat
     
-    init(selectionLimit: Int, frame: CGRect = .zero) {
-        self.selectionLimit = selectionLimit        
+    init(selectionLimit: Int, frame: CGRect = .zero, safeAreaInsetsBottom: CGFloat = 0) {
+        self.selectionLimit = selectionLimit
+        self.safeAreaInsetsBottom = safeAreaInsetsBottom
         super.init(frame: frame)
         backgroundColor = UIColor(red: 249/255.0, green: 249/255.0, blue: 249/255.0, alpha: 1)
         
@@ -60,23 +62,25 @@ final class PhotoPickerBottomToolView: UIView {
         makeConstraints()
     }
     
-    func makeConstraints() {
+    func makeConstraints() {        
         previewButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        previewButton.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
         NSLayoutConstraint.activate([
             previewButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 15),
-            previewButton.centerYAnchor.constraint(equalTo: self.centerYAnchor)
+            previewButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -safeAreaInsetsBottom/2)
         ])
         
         doneButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             doneButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -15),
-            doneButton.centerYAnchor.constraint(equalTo: self.centerYAnchor)
+            doneButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -safeAreaInsetsBottom/2)
         ])
         
         countLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             countLabel.trailingAnchor.constraint(equalTo: self.doneButton.leadingAnchor, constant: -10),
-            countLabel.centerYAnchor.constraint(equalTo: self.centerYAnchor)
+            countLabel.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -safeAreaInsetsBottom/2)
         ])
     }
     

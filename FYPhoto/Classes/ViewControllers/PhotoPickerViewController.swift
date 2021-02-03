@@ -52,6 +52,10 @@ public class PhotoPickerViewController: UICollectionViewController {
         }
     }
 
+    var safeAreaInsetsBottom: CGFloat {
+        return UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 0
+    }
+    
     /// if true, unable to select more photos
     fileprivate var reachedMaximum: Bool = false
 
@@ -60,7 +64,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     fileprivate var previousPreheatRect = CGRect.zero
 
     fileprivate lazy var bottomToolView: PhotoPickerBottomToolView = {
-        let toolView = PhotoPickerBottomToolView(selectionLimit: maximumCanBeSelected)
+        let toolView = PhotoPickerBottomToolView(selectionLimit: maximumCanBeSelected, safeAreaInsetsBottom: safeAreaInsetsBottom)
         toolView.delegate = self
         return toolView
     }()
@@ -169,6 +173,12 @@ public class PhotoPickerViewController: UICollectionViewController {
         }
     }
     
+    public override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        guard photosAuthorityPassed else { return }
+        thumbnailSize = calculateThumbnailSize()
+    }
+    
     func requestPhotoAuthority(_ completion: @escaping (_ isSuccess: Bool) -> Void) {
         let status = PHPhotoLibrary.authorizationStatus()
         switch status {
@@ -237,12 +247,6 @@ public class PhotoPickerViewController: UICollectionViewController {
         self.present(alert, animated: true, completion: nil)
     }
     
-    public override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        guard photosAuthorityPassed else { return }
-        thumbnailSize = calculateThumbnailSize()
-    }
-    
     func calculateThumbnailSize() -> CGSize {
         // Determine the size of the thumbnails to request from the PHCachingImageManager
         let scale = UIScreen.main.scale
@@ -273,8 +277,8 @@ public class PhotoPickerViewController: UICollectionViewController {
         view.addSubview(bottomToolView)
         bottomToolView.translatesAutoresizingMaskIntoConstraints = false
         // full screen device has higher bottom bar
-        let safeAreaHasBottomInsets = UIApplication.shared.delegate?.window??.safeAreaInsets.bottom ?? 0 > 0
-        let height: CGFloat = safeAreaHasBottomInsets ? 80 : 45
+                
+        let height: CGFloat = safeAreaInsetsBottom + 45
         NSLayoutConstraint.activate([
             bottomToolView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
             bottomToolView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
