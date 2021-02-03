@@ -49,7 +49,7 @@ public protocol PhotoLauncherDelegate: class {
         super.init()
     }
 
-    @available(swift, deprecated: 0.3, message: "Use PhotoPickerViewController instead")
+    @available(swift, deprecated: 1.0.0, message: "Use PhotoPickerViewController instead")
     /// Show PhotoPicker or Camera action sheet. This is for CUSTOM photo picker, if you want to use SYSTEM photo picker,
     /// use
     /// `showSystemPhotoPickerAletSheet(in:, sourceRect:, maximumNumberCanChoose:, isOnlyImages:)`
