@@ -118,7 +118,7 @@ class ViewController: UIViewController {
         photoPickerVC.selectedVideo = { [weak self] video in
             print("selected video: \(video)")
         }
-//        photoPickerVC.modalPresentationStyle
+        photoPickerVC.modalPresentationStyle = .fullScreen
         self.present(photoPickerVC, animated: true, completion: nil)
         
 //        let navi = UINavigationController(rootViewController: photoPickerVC)

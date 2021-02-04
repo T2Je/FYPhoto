@@ -196,7 +196,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-        
+        view.backgroundColor = .white
         collectionView.backgroundColor = .white
         requestPhotoAuthority { (isSuccess) in
             if isSuccess {
@@ -209,14 +209,17 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 PHPhotoLibrary.shared().register(self)
             } else {
                 self.photosAuthorityPassed = false
-                self.alertPhotosLibraryAuthorityError()
             }
         }
     }
     
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        guard photosAuthorityPassed else { return }
+        
+        guard photosAuthorityPassed else {
+            self.alertPhotosLibraryAuthorityError()
+            return
+        }
         thumbnailSize = calculateThumbnailSize()
     }
     
@@ -538,7 +541,10 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         })
 
         photoBrowser.delegate = self
-        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
+        let navi = UINavigationController(rootViewController: photoBrowser)
+        navi.modalPresentationStyle = .fullScreen
+        self.fyphoto.present(navi, animated: true, completion: nil)
+//        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
     }
     
     func browseVideoIfValid(_ asset: PHAsset) {

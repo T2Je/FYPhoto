@@ -51,7 +51,7 @@ class PhotoPickerTopBar: UIView {
         NSLayoutConstraint.activate([
             titleView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
             titleView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            titleView.widthAnchor.constraint(equalToConstant: 90),
+            titleView.widthAnchor.constraint(equalToConstant: 100),
             titleView.heightAnchor.constraint(equalToConstant: 40)
         ])
     }

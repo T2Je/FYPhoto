@@ -8,7 +8,7 @@
 import Foundation
 
 enum TransitionType {
-    case photoTransitionProtocol(from: PhotoTransitioning, to: PhotoTransitioning)
+    case photoTransitionProtocol(from: PhotoTransitioning?, to: PhotoTransitioning)
     case transitionBlock(block: (() -> UIImageView?))
     case missingInfo // lack of transition info
 }

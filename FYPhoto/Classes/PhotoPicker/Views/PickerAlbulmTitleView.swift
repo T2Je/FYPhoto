@@ -40,9 +40,12 @@ class PickerAlbulmTitleView: UIView {
         super.init(frame: frame)
         titleLabel.textColor = .black
         titleLabel.font = UIFont.systemFont(ofSize: 17)
+        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.textAlignment = .center
         
         imageView.transform = CGAffineTransform(rotationAngle: CGFloat.pi)
         imageView.isUserInteractionEnabled = true
+        imageView.contentMode = .scaleAspectFit
         addSubview(titleLabel)
         addSubview(imageView)
         
@@ -57,7 +60,9 @@ class PickerAlbulmTitleView: UIView {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             imageView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-            imageView.trailingAnchor.constraint(equalTo: self.trailingAnchor)
+            imageView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            imageView.widthAnchor.constraint(equalToConstant: 15),
+            imageView.heightAnchor.constraint(equalToConstant: 15)
         ])
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(PickerAlbulmTitleView.tap(_:)))

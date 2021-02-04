@@ -163,7 +163,7 @@ class PhotoTransitionDriver: TransitionDriver {
             // Finish the protocol handshake
             switch self.transitionType {
             case .photoTransitionProtocol(from: let fromTransition, to: let toTransition):
-                fromTransition.transitionDidEnd()
+                fromTransition?.transitionDidEnd()
                 toTransition.transitionDidEnd()
             default: break
             }
@@ -190,7 +190,7 @@ class PhotoTransitionDriver: TransitionDriver {
         switch transitionType {
         case .photoTransitionProtocol(from: let fromTransition, to: let toTransition):
             if isPresenting {
-                if let fromImage = fromTransition.referenceImage() {
+                if let fromImage = fromTransition?.referenceImage() {
                     let toReferenceFrame = Self.calculateZoomInImageFrame(image: fromImage, forView: self.toView)
                     self.transitionImageView.frame = toReferenceFrame
                 }

@@ -59,7 +59,7 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
     func setup(_ context: UIViewControllerContextTransitioning, isNavigationDismiss: Bool) {
         // Setup the transition
         guard
-            let fromViewController = context.viewController(forKey: .from) as? PhotoTransitioning
+            let fromViewController = context.viewController(forKey: .from)
         else {
             assertionFailure("None of them should be nil")
             return
@@ -75,23 +75,27 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         self.panGestureRecognizer.addTarget(self, action: #selector(updateInteraction(_:)))
         
         let containerView = context.containerView
-                
+        if let navi = fromViewController as? UINavigationController, let topViewController = navi.topViewController {
+            fromAssetTransitioning = topViewController as? PhotoTransitioning
+        } else {
+            fromAssetTransitioning = fromViewController as? PhotoTransitioning
+        }
+        
         // setup transition type, transition image view
-        transitionImageView.image = fromViewController.referenceImage()
-        transitionImageView.frame = fromViewController.imageFrame() ?? containerView.frame
+        transitionImageView.image = fromAssetTransitioning?.referenceImage()
+        transitionImageView.frame = fromAssetTransitioning?.imageFrame() ?? containerView.frame
         // Inform the view controller's the transition is about to start
-        fromViewController.transitionWillStart()
-        self.fromAssetTransitioning = fromViewController
+        fromAssetTransitioning?.transitionWillStart()
         
         if let toTransition = toViewController as? PhotoTransitioning {
             self.toAssetTransitioning = toTransition
-            transitionType = .photoTransitionProtocol(from: fromViewController, to: toTransition)
+            transitionType = .photoTransitionProtocol(from: fromAssetTransitioning, to: toTransition)
             
             setupEffectView(with: containerView)
             containerView.addSubview(visualEffectView)
             
             toTransition.transitionWillStart()
-        } else if let transitionViewBlock = transitionViewBlock, let transitionView = transitionViewBlock() {
+        } else if let transitionViewBlock = transitionViewBlock {
             transitionType = .transitionBlock(block: transitionViewBlock)
             setupEffectView(with: containerView)
             containerView.addSubview(visualEffectView)
