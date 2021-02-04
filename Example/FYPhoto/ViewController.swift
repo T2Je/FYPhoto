@@ -118,10 +118,12 @@ class ViewController: UIViewController {
         photoPickerVC.selectedVideo = { [weak self] video in
             print("selected video: \(video)")
         }
+//        photoPickerVC.modalPresentationStyle
+        self.present(photoPickerVC, animated: true, completion: nil)
         
-        let navi = UINavigationController(rootViewController: photoPickerVC)
-        navi.modalPresentationStyle = .fullScreen
-        self.present(navi, animated: true, completion: nil)
+//        let navi = UINavigationController(rootViewController: photoPickerVC)
+//        navi.modalPresentationStyle = .fullScreen
+//        self.present(navi, animated: true, completion: nil)
     }
 
     @objc func suiShouPaiButtonClicked(_ sender: UIButton) {

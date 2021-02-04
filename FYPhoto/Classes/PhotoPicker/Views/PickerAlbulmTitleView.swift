@@ -7,7 +7,7 @@
 
 import UIKit
 
-class PickerNavigationTitleView: UIView {
+class PickerAlbulmTitleView: UIView {
 
     var title: String = "" {
         willSet {
@@ -60,7 +60,7 @@ class PickerNavigationTitleView: UIView {
             imageView.trailingAnchor.constraint(equalTo: self.trailingAnchor)
         ])
 
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(PickerNavigationTitleView.tap(_:)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(PickerAlbulmTitleView.tap(_:)))
         addGestureRecognizer(tapGesture)
     }
 
