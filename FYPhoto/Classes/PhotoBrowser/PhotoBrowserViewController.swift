@@ -698,15 +698,12 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
         
     @objc func back() {
-        if let naviController = navigationController {
-            if naviController.isBeingPresented {
-                dismiss(animated: true, completion: nil)
-            } else {
-                navigationController?.popViewController(animated: true)
-            }
-        } else {
+        if presentingViewController != nil {
             dismiss(animated: true, completion: nil)
+        } else {
+            navigationController?.popViewController(animated: true)
         }
+        
     }
     
     func updateBottomViewPlayButton(_ showPlay: Bool) {

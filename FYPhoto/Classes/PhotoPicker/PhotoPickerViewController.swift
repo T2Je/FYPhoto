@@ -537,7 +537,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 .buildThumbnailsForSelection()
                 .buildNavigationBar()
                 .buildBottomToolBar()
-            
         })
 
         photoBrowser.delegate = self

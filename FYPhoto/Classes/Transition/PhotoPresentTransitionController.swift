@@ -11,6 +11,8 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
     let panGesture = UIPanGestureRecognizer()
     let transitionView: (() -> UIImageView?)?
     
+    var isInteractive: Bool = false
+    
     weak var viewController: UIViewController?
     init(viewController: UIViewController?, transitionView: (() -> UIImageView?)?) {
         self.viewController = viewController
@@ -36,6 +38,7 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
 
     @objc func initiateTransitionInteractively(_ panGesture: UIPanGestureRecognizer) {
         if panGesture.state == .began && interactiveAnimator?.transitionDriver == nil {
+            isInteractive = true
             viewController?.dismiss(animated: true) {}
         }
     }
@@ -51,10 +54,18 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
     }
     
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        let animator = PhotoInteractiveAnimator(panGestureRecognizer: panGesture, isNavigationDismiss: false, transitionView: transitionView, completion: { [weak self] isNavigatoin in
-            self?.completeInteractiveDismiss(isNavigatoin)
-        })
-        interactiveAnimator = animator
+        let animator: UIViewControllerAnimatedTransitioning
+        if isInteractive {
+            let interactiveAnimator = PhotoInteractiveAnimator(panGestureRecognizer: panGesture, isNavigationDismiss: false, transitionView: transitionView, completion: { [weak self] isNavigatoin in
+                self?.completeInteractiveDismiss(isNavigatoin)
+            })
+            self.interactiveAnimator = interactiveAnimator
+            animator = interactiveAnimator
+        } else {
+            animator = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: false, transitionView: transitionView)
+            normalAnimator = animator            
+        }
+        
         return animator
     }
  

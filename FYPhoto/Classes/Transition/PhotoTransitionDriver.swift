@@ -20,7 +20,7 @@ class PhotoTransitionDriver: TransitionDriver {
     
     private let duration: TimeInterval
 
-    var toView: UIView!
+    var toView: UIView? // toView is nil when dismissing
     var fromView: UIView?
 
     var visualEffectView = UIVisualEffectView()
@@ -54,19 +54,20 @@ class PhotoTransitionDriver: TransitionDriver {
 
     func setup(_ context: UIViewControllerContextTransitioning) {
         // Setup the transition
+        
         guard
             var fromViewController = context.viewController(forKey: .from),
-            let toViewController = context.viewController(forKey: .to),
-            let toView = context.view(forKey: .to)
+            var toViewController = context.viewController(forKey: .to)
         else {
             return
         }
-        self.toView = toView
-        
-        if isNavigationAnimation {
-            self.fromView = context.view(forKey: .from)
+        if isPresenting {
+            self.toView = context.view(forKey: .to)
+            if isNavigationAnimation {
+                self.fromView = context.view(forKey: .from)
+            }
         } else {
-            // from view could be nil and fromViewController could be navigation controller
+            self.fromView = context.view(forKey: .from)
         }
         
         let containerView = context.containerView
@@ -74,6 +75,12 @@ class PhotoTransitionDriver: TransitionDriver {
         if fromViewController is UINavigationController {
             if let naviTopViewController = (fromViewController as? UINavigationController)?.topViewController {
                 fromViewController = naviTopViewController
+            }
+        }
+        
+        if toViewController is UINavigationController {
+            if let naviTopViewController = (toViewController as? UINavigationController)?.topViewController {
+                toViewController = naviTopViewController
             }
         }
         
@@ -104,36 +111,42 @@ class PhotoTransitionDriver: TransitionDriver {
         if isPresenting {
             topView = toView
             topViewTargetAlpha = 1.0
-            toView.alpha = 0.0
-            containerView.addSubview(toView)
+            if let toView = self.toView {
+                toView.alpha = 0.0
+                containerView.addSubview(toView)
+            }
             // Ensure the toView has the correct size and position
-            toView.frame = context.finalFrame(for: toViewController)
+//            toView.frame = context.finalFrame(for: toViewController)
         } else {
             topView = fromView
-            topViewTargetAlpha = 0.0
-            containerView.insertSubview(toView, at: 0)
-            // Ensure the toView has the correct size and position
-            toView.frame = context.finalFrame(for: toViewController)
+            if isNavigationAnimation {
+                topViewTargetAlpha = 0.0
+                if let toView = self.toView {
+                    containerView.insertSubview(toView, at: 0)
+                    // Ensure the toView has the correct size and position
+                    toView.frame = context.finalFrame(for: toViewController)
+                }
+            }
         }
 
         // Create a UIViewPropertyAnimator that lives the lifetime of the transition
         let spring = CGFloat(0.85)
         transitionAnimator = UIViewPropertyAnimator(duration: duration, dampingRatio: spring) {
-            if !self.isPresenting {
-                switch self.transitionType {
-                case .missingInfo:
-                    break
-                default:
-                    self.visualEffectView.effect = nil
-                }
-                topView?.alpha = topViewTargetAlpha
-            } else {
+            if self.isPresenting {
                 switch self.transitionType {
                 case .missingInfo:
                     break
                 default:
                     self.visualEffectView.backgroundColor = .black
                 }
+            } else {
+                switch self.transitionType {
+                case .missingInfo:
+                    break
+                default:
+                    self.visualEffectView.effect = nil                    
+                }
+                topView?.alpha = topViewTargetAlpha
             }
         }
         
@@ -190,8 +203,8 @@ class PhotoTransitionDriver: TransitionDriver {
         switch transitionType {
         case .photoTransitionProtocol(from: let fromTransition, to: let toTransition):
             if isPresenting {
-                if let fromImage = fromTransition?.referenceImage() {
-                    let toReferenceFrame = Self.calculateZoomInImageFrame(image: fromImage, forView: self.toView)
+                if let fromImage = fromTransition?.referenceImage(), let toView = toView {
+                    let toReferenceFrame = Self.calculateZoomInImageFrame(image: fromImage, forView: toView)
                     self.transitionImageView.frame = toReferenceFrame
                 }
             } else {
@@ -201,8 +214,8 @@ class PhotoTransitionDriver: TransitionDriver {
             }
         case .transitionBlock(block: let block):
             if isPresenting {
-                if let imageView = block(), let image = imageView.image {
-                    let toReferenceFrame = Self.calculateZoomInImageFrame(image: image, forView: self.toView)
+                if let imageView = block(), let image = imageView.image, let toView = toView {
+                    let toReferenceFrame = Self.calculateZoomInImageFrame(image: image, forView: toView)
                     self.transitionImageView.frame = toReferenceFrame
                 }
             } else {
