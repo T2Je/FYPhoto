@@ -16,7 +16,7 @@ public struct FYPhotoPickerConfiguration {
     
     /// Filter the media types PhotoPickerController can display. Default are video and image.
     public var filterdMedia: MediaOptions = .all
-    
+        
     /// Maximum video duration can pick. Default is 15.
     public var maximumVideoDuration: Double = 15
     
@@ -25,6 +25,12 @@ public struct FYPhotoPickerConfiguration {
     
     /// Video compressed quality. Default is 640x480.
     public var compressedQuality: VideoCompressor.QualityLevel = .AVAssetExportPreset640x480
+    
+    /// Captured movie path extension
+    public var moviePathExtension: String = "mp4"
+        
+    public var supportCamera: Bool = true
+//    public var navigationBarTintColor: UIColor
     
     public init() {
         

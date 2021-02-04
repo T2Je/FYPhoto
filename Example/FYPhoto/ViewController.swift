@@ -102,11 +102,15 @@ class ViewController: UIViewController {
     @objc func photosViewButtonClicked(_ sender: UIButton) {
         var pickerConfig = FYPhotoPickerConfiguration()
         pickerConfig.selectionLimit = 6
+        pickerConfig.maximumVideoMemorySize = 40
+        pickerConfig.compressedQuality = .AVAssetExportPreset640x480
+        pickerConfig.supportCamera = true
+        let photoPickerVC = PhotoPickerViewController(configuration: pickerConfig)
         
-        let photoPickerVC = PhotoPickerViewController(mediaTypes: .all)
-            .setMaximumPhotosCanBeSelected(6)
-            .setMaximumVideoSizePerMB(40, compressedQuality: .AVAssetExportPreset640x480)
-            .setPickerWithCamera(true)
+//        let photoPickerVC = PhotoPickerViewController(mediaTypes: .all)
+//            .setMaximumPhotosCanBeSelected(6)
+//            .setMaximumVideoSizePerMB(40, compressedQuality: .AVAssetExportPreset640x480)
+//            .setPickerWithCamera(true)
 
         photoPickerVC.selectedPhotos = { [weak self] images in
             print("selected \(images.count) photos: \(images)")
@@ -115,7 +119,6 @@ class ViewController: UIViewController {
             print("selected video: \(video)")
         }
         
-//                    let navi = CustomNavigationController(rootViewController: gridVC)
         let navi = UINavigationController(rootViewController: photoPickerVC)
         navi.modalPresentationStyle = .fullScreen
         self.present(navi, animated: true, completion: nil)

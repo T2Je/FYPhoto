@@ -1,5 +1,5 @@
 //
-//  CustomNavigationTitleView.swift
+//  PickerNavigationTitleView.swift
 //  FYPhotoPicker
 //
 //  Created by xiaoyang on 2020/7/30.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-class CustomNavigationTitleView: UIView {
+class PickerNavigationTitleView: UIView {
 
     var title: String = "" {
         willSet {
@@ -60,7 +60,7 @@ class CustomNavigationTitleView: UIView {
             imageView.trailingAnchor.constraint(equalTo: self.trailingAnchor)
         ])
 
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(CustomNavigationTitleView.tap(_:)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(PickerNavigationTitleView.tap(_:)))
         addGestureRecognizer(tapGesture)
     }
 

@@ -24,8 +24,11 @@ public struct MediaOptions: OptionSet {
     public static let all: MediaOptions = [.image, .video]
 }
 
-/// PhotoPicker need be wrapped by NavigationController. Configure with set method.
-public class PhotoPickerViewController: UICollectionViewController {
+
+/// A picker that manages the custom interfaces for choosing assets from the user's photos library and delivers the results of those interactions to closures.
+/// Picker need be wrapped by NavigationController.
+/// @discussion \c PhotoPickerViewController is intended to be used as-is and does not support subclassing
+public final class PhotoPickerViewController: UICollectionViewController {
     // call back for photo, video selections
     public var selectedPhotos: (([SelectedImage]) -> Void)?
     public var selectedVideo: ((Result<SelectedVideo, Error>) -> Void)?
@@ -40,7 +43,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     /// Grid cell indexPath
     internal var lastSelectedIndexPath: IndexPath?
 
-    fileprivate let customTitleView = CustomNavigationTitleView()
+    fileprivate let customTitleView = PickerNavigationTitleView()
 
     /// identify selected assets
     fileprivate var assetSelectionIdentifierCache = [String]() {
@@ -64,7 +67,8 @@ public class PhotoPickerViewController: UICollectionViewController {
     fileprivate var previousPreheatRect = CGRect.zero
 
     fileprivate lazy var bottomToolView: PhotoPickerBottomToolView = {
-        let toolView = PhotoPickerBottomToolView(selectionLimit: maximumCanBeSelected, safeAreaInsetsBottom: safeAreaInsetsBottom)
+        let toolView = PhotoPickerBottomToolView(selectionLimit: maximumCanBeSelected,
+                                                 safeAreaInsetsBottom: safeAreaInsetsBottom)
         toolView.delegate = self
         return toolView
     }()
@@ -86,21 +90,56 @@ public class PhotoPickerViewController: UICollectionViewController {
     /// photo picker get the right authority to access photos
     var photosAuthorityPassed = false
     
+    fileprivate var containsCamera: Bool {
+        configuration.supportCamera
+    }
+    
     // photo
-    fileprivate var maximumCanBeSelected: Int = 0
+    fileprivate var maximumCanBeSelected: Int {
+        configuration.selectionLimit
+    }
     
     // video
-    fileprivate var videoMaximumDuration: TimeInterval?
-    fileprivate var maximumVideoSize: Double?// MB
-    fileprivate var compressedQuality: VideoCompressor.QualityLevel?
-    fileprivate var moviePathExtension = "mp4"
+    fileprivate var videoMaximumDuration: TimeInterval? {
+        configuration.maximumVideoDuration
+    }
     
-    fileprivate let mediaOptions: MediaOptions
+    fileprivate var maximumVideoSize: Double? {
+        configuration.maximumVideoMemorySize
+    }
+    fileprivate var compressedQuality: VideoCompressor.QualityLevel? {
+        configuration.compressedQuality
+    }
+    fileprivate var moviePathExtension: String {
+        configuration.moviePathExtension
+    }
+    
+    fileprivate var mediaOptions: MediaOptions {
+        configuration.filterdMedia
+    }
+    
+    var configuration: FYPhotoPickerConfiguration
+        
+    /// Initializes new picker with the `configuration` the picker should use.
+    public init(configuration: FYPhotoPickerConfiguration) {
+        self.configuration = configuration
+
+        let flowLayout = UICollectionViewFlowLayout()
+        let screenSize = UIScreen.main.bounds.size
+        let width = floor((screenSize.width - 5) / 3)
+        flowLayout.itemSize = CGSize(width: width, height: width)
+        flowLayout.minimumInteritemSpacing = 2.5
+        flowLayout.minimumLineSpacing = 2.5
+        flowLayout.scrollDirection = .vertical
+        super.init(collectionViewLayout: flowLayout)
+    }
     
     /// Initialize PhotoPicker with media types: image, video or both. Use the setting method below to config it.
     /// - Parameter mediaTypes: image, video, both
+    @available(swift, deprecated: 1.1.0, message: "Use init(configuration:) instead")
     public init(mediaTypes: MediaOptions) {
-        self.mediaOptions = mediaTypes
+        configuration = FYPhotoPickerConfiguration()
+        configuration.filterdMedia = mediaTypes
         let flowLayout = UICollectionViewFlowLayout()
         let screenSize = UIScreen.main.bounds.size
         let width = floor((screenSize.width - 5) / 3)
@@ -117,29 +156,27 @@ public class PhotoPickerViewController: UICollectionViewController {
     
     @discardableResult
     public func setMaximumPhotosCanBeSelected(_ maximum: Int) -> Self {
-        self.maximumCanBeSelected = maximum
+        configuration.selectionLimit = maximum
         return self
     }
     
     @discardableResult
     public func setMaximumVideoDuration(_ duration: Double) -> Self {
-        self.videoMaximumDuration = duration
+        configuration.maximumVideoDuration = duration
         return self
     }
     
     @discardableResult
     public func setMaximumVideoSizePerMB(_ size: Double,
                                          compressedQuality: VideoCompressor.QualityLevel = .AVAssetExportPreset640x480) -> Self {
-        self.maximumVideoSize = size
-        self.compressedQuality = compressedQuality
+        configuration.maximumVideoMemorySize = size
+        configuration.compressedQuality = compressedQuality
         return self
     }
     
-    fileprivate var containsCamera: Bool = true
-    
     @discardableResult
     public func setPickerWithCamera(_ containsCamera: Bool) -> Self {
-        self.containsCamera = containsCamera
+        configuration.supportCamera = containsCamera
         return self
     }
 
