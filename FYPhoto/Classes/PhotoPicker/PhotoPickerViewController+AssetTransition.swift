@@ -8,7 +8,7 @@
 import Foundation
 import Photos
 
-extension PhotoPickerViewController: PhotoTransitioning {
+extension PhotoPickerViewController {
 
     public func transitionWillStart() {
         guard let indexPath = lastSelectedIndexPath else { return }

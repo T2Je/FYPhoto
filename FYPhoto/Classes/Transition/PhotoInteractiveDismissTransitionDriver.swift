@@ -16,9 +16,9 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
     private let isNavigationDismiss: Bool
     
     /// Alternate transition if viewController doesn't implement PhotoTransition
-    private let transitionViewBlock: (() -> UIImageView?)?
+    private let transitionEssential: TransitionEssentialClosure?
     
-    private let completion: ((_ isNavigation: Bool) -> Void)?
+    private let completion: ((_ isCancelled: Bool,_ isNavigation: Bool) -> Void)?
     
     private var itemFrameAnimator: UIViewPropertyAnimator?
 
@@ -39,19 +39,19 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         return imageView
     }()
     
-    var transitionType: TransitionType = .missingInfo
-
+    var transitionType: TransitionType = .noTransitionAnimation
+    
     // MARK: Initialization
 
     init(context: UIViewControllerContextTransitioning,
          panGestureRecognizer panGesture: UIPanGestureRecognizer,
          isNavigationDismiss: Bool,
-         transitionViewBlock: (() -> UIImageView?)?,
-         completion: ((_ isNavigation: Bool) -> Void)?) {
+         transitionEssential: TransitionEssentialClosure?,
+         completion: ((_ isCancelled: Bool,_ isNavigation: Bool) -> Void)?) {
         self.transitionContext = context
         self.panGestureRecognizer = panGesture
         self.isNavigationDismiss = isNavigationDismiss
-        self.transitionViewBlock = transitionViewBlock
+        self.transitionEssential = transitionEssential
         self.completion = completion
         setup(context, isNavigationDismiss: isNavigationDismiss)
     }
@@ -59,7 +59,7 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
     func setup(_ context: UIViewControllerContextTransitioning, isNavigationDismiss: Bool) {
         // Setup the transition
         guard
-            let fromViewController = context.viewController(forKey: .from)
+            var fromViewController = context.viewController(forKey: .from)
         else {
             assertionFailure("None of them should be nil")
             return
@@ -76,9 +76,13 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         
         let containerView = context.containerView
         if let navi = fromViewController as? UINavigationController, let topViewController = navi.topViewController {
-            fromAssetTransitioning = topViewController as? PhotoTransitioning
-        } else {
-            fromAssetTransitioning = fromViewController as? PhotoTransitioning
+            fromViewController = topViewController
+        }
+        fromAssetTransitioning = fromViewController as? PhotoTransitioning
+        
+        var currentPage: Int = 0
+        if let photoBrowser = fromViewController as? PhotoBrowserCurrentPage{
+            currentPage = photoBrowser.currentPage
         }
         
         // setup transition type, transition image view
@@ -87,20 +91,20 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         // Inform the view controller's the transition is about to start
         fromAssetTransitioning?.transitionWillStart()
         
-        if let toTransition = toViewController as? PhotoTransitioning {
+        if let fromTransition = fromAssetTransitioning, let toTransition = toViewController as? PhotoTransitioning {
             self.toAssetTransitioning = toTransition
-            transitionType = .photoTransitionProtocol(from: fromAssetTransitioning, to: toTransition)
+            transitionType = .photoTransitionProtocol(from: fromTransition, to: toTransition)
             
             setupEffectView(with: containerView)
             containerView.addSubview(visualEffectView)
             
             toTransition.transitionWillStart()
-        } else if let transitionViewBlock = transitionViewBlock {
-            transitionType = .transitionBlock(block: transitionViewBlock)
+        } else if let transitionEssential = transitionEssential, let essential = transitionEssential(currentPage) {
+            transitionType = .transitionBlock(essential: essential)
             setupEffectView(with: containerView)
             containerView.addSubview(visualEffectView)
         } else {
-            transitionType = .missingInfo
+            transitionType = .noTransitionAnimation
         }
         containerView.addSubview(transitionImageView)
 
@@ -158,7 +162,6 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
     func endInteraction() {
         // Ensure the context is currently interactive
         guard transitionContext.isInteractive else { return }
-        // TODO: 😴zZ remove pan gesture
         
         // Inform the transition context of whether we are finishing or cancelling the transition
         let completionPosition = self.completionPosition()
@@ -169,7 +172,7 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
 
     func setupEffectView(with container: UIView) {
         // Create a visual effect view and animate the effect in the transition animator
-        let effect: UIVisualEffect? = UIBlurEffect(style: .extraLight)
+        let effect: UIVisualEffect? = UIBlurEffect(style: .dark)
 
         visualEffectView.effect = effect
         visualEffectView.frame = container.bounds
@@ -198,14 +201,9 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
                 switch self.transitionType {
                 case .photoTransitionProtocol(from: _, to: let to):
                     self.transitionImageView.frame = to.imageFrame() ?? .zero
-                case .transitionBlock(block: let block):
-                    if let transitionView = block() {
-                        let frame = transitionView.convert(transitionView.bounds, to: self.fromView)
-                        self.transitionImageView.frame = frame
-                    } else {
-                        self.transitionImageView.frame = .zero
-                    }
-                case .missingInfo:
+                case .transitionBlock(essential: let essential):
+                    self.transitionImageView.frame = essential.convertedFrame
+                case .noTransitionAnimation:
                     if let fromView = self.fromView {
                         // transitionImageView disappears at bottom view
                         let rect = CGRect(x: fromView.frame.size.width / 2, y: fromView.frame.size.height + 100, width: 0, height: 0)
@@ -229,11 +227,13 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
             // Finish the protocol handshake
             self.fromAssetTransitioning?.transitionDidEnd()
             self.toAssetTransitioning?.transitionDidEnd()
+            
             if toPosition == .end {
-                self.completion?(self.isNavigationDismiss)
+                self.completion?(false, self.isNavigationDismiss)
                 self.transitionContext.finishInteractiveTransition()
                 self.transitionContext.completeTransition(true)
             } else {
+                self.completion?(true, self.isNavigationDismiss)
                 self.transitionContext.cancelInteractiveTransition()
                 self.transitionContext.completeTransition(false)
             }

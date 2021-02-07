@@ -13,12 +13,12 @@ class PhotoHideShowAnimator: NSObject, UIViewControllerAnimatedTransitioning {
 
     let isPresenting: Bool
     let isNavigationAnimation: Bool
-    let transitionView: (() -> UIImageView?)?
+    let transitionEssential: TransitionEssentialClosure?
     
-    init(isPresenting: Bool, isNavigationAnimation: Bool, transitionView: (() -> UIImageView?)?) {
+    init(isPresenting: Bool, isNavigationAnimation: Bool, transitionEssential: TransitionEssentialClosure?) {
         self.isPresenting = isPresenting
         self.isNavigationAnimation = isNavigationAnimation
-        self.transitionView = transitionView
+        self.transitionEssential = transitionEssential
         super.init()
     }
 
@@ -35,7 +35,7 @@ class PhotoHideShowAnimator: NSObject, UIViewControllerAnimatedTransitioning {
                                                  isNavigationAnimation: isNavigationAnimation,
                                                  context: transitionContext,
                                                  duration: transitionDuration(using: transitionContext),
-                                                 transitionViewBlock: transitionView)
+                                                 transitionEssential: transitionEssential)
     }
 
     func animationEnded(_ transitionCompleted: Bool) {
@@ -50,13 +50,13 @@ class PhotoInteractiveAnimator: NSObject, UIViewControllerInteractiveTransitioni
     var transitionDriver: TransitionDriver?
     let panGestureRecognizer: UIPanGestureRecognizer
     let isNavigationDismiss: Bool
-    let transitionView: (() -> UIImageView?)?
-    let completion: ((_ isNavigation: Bool) -> Void)?
+    let transitionEssential: TransitionEssentialClosure?
+    let completion: ((_ isCancelled: Bool,_ isNavigation: Bool) -> Void)?
     
-    init(panGestureRecognizer: UIPanGestureRecognizer, isNavigationDismiss: Bool, transitionView: (() -> UIImageView?)?, completion: ((_ isNavigation: Bool) -> Void)?) {
+    init(panGestureRecognizer: UIPanGestureRecognizer, isNavigationDismiss: Bool, transitionEssential: TransitionEssentialClosure?, completion: ((_ isCancelled: Bool, _ isNavigation: Bool) -> Void)?) {
         self.panGestureRecognizer = panGestureRecognizer
         self.isNavigationDismiss = isNavigationDismiss
-        self.transitionView = transitionView
+        self.transitionEssential = transitionEssential
         self.completion = completion
         super.init()
     }
@@ -67,7 +67,7 @@ class PhotoInteractiveAnimator: NSObject, UIViewControllerInteractiveTransitioni
             transitionDriver = PhotoInteractiveDismissTransitionDriver(context: transitionContext,
                                                                        panGestureRecognizer: panGestureRecognizer,
                                                                        isNavigationDismiss: isNavigationDismiss,
-                                                                       transitionViewBlock: transitionView,
+                                                                       transitionEssential: transitionEssential,
                                                                        completion: completion)
         }
     }

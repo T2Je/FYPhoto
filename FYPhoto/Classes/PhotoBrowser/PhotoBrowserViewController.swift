@@ -97,6 +97,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             currentPhoto = photos[newValue.item]
             if currentDisplayedIndexPath != newValue {
                 delegate?.photoBrowser(self, scrollAt: newValue)
+                delegate?.photoBrowser(self, scrollAt: newValue.item)
             }
             if isForSelection {
                 updateAddBarItem(at: newValue)
@@ -1094,5 +1095,11 @@ extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
     func browserBottomToolViewDoneButtonClicked() {
         assert(!selectedPhotos.isEmpty, "photos shouldn't be empty")
         delegate?.photoBrowser(self, didCompleteSelected: selectedPhotos)
+    }
+}
+
+extension PhotoBrowserViewController: PhotoBrowserCurrentPage {
+    var currentPage: Int {
+        currentDisplayedIndexPath.item
     }
 }

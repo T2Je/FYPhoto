@@ -37,8 +37,8 @@ extension TypeWrapperProtocol where WrappedType: UIViewController {
     ///   - completion: The block to execute after the presentation finishes. This block has no return value and takes no parameters. You may specify nil for this parameter.
     ///   - transitionView: A block to generate a imageView when animating. It's a alternate plan for viewController
     ///   that do not implement PhotoTransition protocol.
-    public func present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)?, transitionView: (() -> UIImageView?)? = nil) {
-        let transition = PhotoPresentTransitionController(viewController: viewControllerToPresent, transitionView: transitionView)
+    public func present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)?, transitionEssential: ((_ page: Int) -> PresentingVCTransitionEssential?)? = nil) {
+        let transition = PhotoPresentTransitionController(viewController: viewControllerToPresent, transitionEssential: transitionEssential)
         viewControllerToPresent.modalPresentationStyle = .custom
         viewControllerToPresent.transitioningDelegate = transition
         wrappedValue.present(viewControllerToPresent, animated: animated, completion: {
@@ -56,8 +56,8 @@ extension TypeWrapperProtocol where WrappedType: UINavigationController {
     ///   - animated: Specify true to animate the fyphoto transition or false if you do not want the transition to be animated. You might specify false if you are setting up the navigation controller at launch time.
     ///   - transitionView: A block to generate a imageView when animating. It's a alternate plan for viewController
     ///   that do not implement PhotoTransition protocol.
-    public func push(_ viewController: UIViewController, animated: Bool, transitionView: (() -> UIImageView?)? = nil) {
-        let transition = PhotoPushTransitionController(navigationController: wrappedValue, transitionView: transitionView)
+    public func push(_ viewController: UIViewController, animated: Bool, transitionEssential: ((_ page: Int) -> PresentingVCTransitionEssential)? = nil) {
+        let transition = PhotoPushTransitionController(navigationController: wrappedValue, transitionEssential: transitionEssential)
         wrappedValue.delegate = transition
         wrappedValue.pushViewController(viewController, animated: true)
         UIViewController.TransitionHolder.storeNaviTransition(transition)

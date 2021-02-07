@@ -7,11 +7,11 @@
 
 import Foundation
 
-public class PhotoPushTransitionController: NSObject {
+class PhotoPushTransitionController: NSObject {
     weak var navigationController: UINavigationController?
     
     /// An alternative way when viewController doesn't conform to PhotoTransition
-    let transitionView: (() -> UIImageView?)?
+    let transitionEssential: TransitionEssentialClosure?
     
     var initiallyInteractive = false
     var panGesture: UIPanGestureRecognizer = UIPanGestureRecognizer()
@@ -21,9 +21,9 @@ public class PhotoPushTransitionController: NSObject {
     
     fileprivate var currentAnimationTransition: UIViewControllerAnimatedTransitioning? = nil
 
-    @objc public init(navigationController nc: UINavigationController, transitionView: (() -> UIImageView?)?) {
+    init(navigationController nc: UINavigationController, transitionEssential: TransitionEssentialClosure?) {
         navigationController = nc
-        self.transitionView = transitionView
+        self.transitionEssential = transitionEssential
         super.init()
 
         nc.delegate = self
@@ -79,11 +79,11 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
             if fromVC is PhotoTransitioning {
                 if let transitionToVC = toVC as? PhotoTransitioning {
                     if transitionToVC.enablePhotoTransitionPush() {
-                        result = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: true, transitionView: nil)
+                        result = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: true, transitionEssential: nil)
                     }
                 }
             } else {
-                result = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: true, transitionView: self.transitionView)
+                result = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: true, transitionEssential: self.transitionEssential)
             }
         } else {
             if toVC is PhotoTransitioning {
@@ -92,12 +92,14 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
                         if initiallyInteractive {
                             result = PhotoInteractiveAnimator(panGestureRecognizer: panGesture,
                                                               isNavigationDismiss: true,
-                                                              transitionView: nil,
-                                                              completion: { [weak self] isNavigation in
-                                self?.completeInteractiveDismiss(isNavigation)
+                                                              transitionEssential: nil,
+                                                              completion: { [weak self] (isCancelled, isNavigation) in
+                                                                if !isCancelled {
+                                                                    self?.completeInteractiveDismiss(isNavigation)
+                                                                }
                             })
                         } else {
-                            result = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: true, transitionView: nil)
+                            result = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: true, transitionEssential: nil)
                         }
                     }
                 }
@@ -105,12 +107,14 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
                 if initiallyInteractive {
                     result = PhotoInteractiveAnimator(panGestureRecognizer: panGesture,
                                                       isNavigationDismiss: true,
-                                                      transitionView: transitionView,
-                                                      completion: { [weak self] isNavigation in
-                        self?.completeInteractiveDismiss(isNavigation)
+                                                      transitionEssential: transitionEssential,
+                                                      completion: { [weak self] (isCancelled, isNavigation) in
+                                                        if !isCancelled {
+                                                            self?.completeInteractiveDismiss(isNavigation)
+                                                        }                        
                     })
                 } else {
-                    result = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: true, transitionView: transitionView)
+                    result = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: true, transitionEssential: transitionEssential)
                 }
             }
         }

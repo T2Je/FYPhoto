@@ -411,10 +411,9 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     ///   - indexPath: origin indexPath
     ///   - purePhotos: is this indexPath for pure photos browsing. If true, indexPath item minus one, else indexPath item plus one.
     /// - Returns: regenerated indexPath
-    func regenerate(indexPath: IndexPath, for purePhotos: Bool) -> IndexPath {
+    func regenerate(indexPath: IndexPath, if containsCamera: Bool) -> IndexPath {
         if containsCamera {
-            let para = purePhotos ? -1 : 1
-            return IndexPath(item: indexPath.item + para, section: indexPath.section)
+            return IndexPath(item: indexPath.item - 1, section: indexPath.section)
         } else {
             return indexPath
         }
@@ -478,14 +477,14 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             } else {
                 // Dequeue a GridViewCell.
                 if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridViewCell.self), for: indexPath) as? GridViewCell {
-                    let asset = fetchResult.object(at: regenerate(indexPath: indexPath, for: true).item)
+                    let asset = fetchResult.object(at: regenerate(indexPath: indexPath, if: containsCamera).item)
                     configureAssetCell(cell, asset: asset, at: indexPath)
                     return cell
                 }
             }
         } else {
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridViewCell.self), for: indexPath) as? GridViewCell {
-                let asset = fetchResult.object(at: regenerate(indexPath: indexPath, for: true).item)
+                let asset = fetchResult.object(at: regenerate(indexPath: indexPath, if: containsCamera).item)
                 configureAssetCell(cell, asset: asset, at: indexPath)
                 return cell
             }
@@ -500,7 +499,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 launchCamera()
             } else {
                 // due to the placeholder camera cell
-                let fixedIndexPath = regenerate(indexPath: indexPath, for: true)
+                let fixedIndexPath = regenerate(indexPath: indexPath, if: containsCamera)
                 let selectedAsset = fetchResult[fixedIndexPath.item]
                 if selectedAsset.mediaType == .video {
                     browseVideoIfValid(selectedAsset)
@@ -509,7 +508,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 }
             }
         } else {
-            let fixedIndexPath = regenerate(indexPath: indexPath, for: true)
+            let fixedIndexPath = regenerate(indexPath: indexPath, if: containsCamera)
             let selectedAsset = fetchResult[fixedIndexPath.item]
             if selectedAsset.mediaType == .video {
                 browseVideoIfValid(selectedAsset)
@@ -542,7 +541,20 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         photoBrowser.delegate = self
         let navi = UINavigationController(rootViewController: photoBrowser)
         navi.modalPresentationStyle = .fullScreen
-        self.fyphoto.present(navi, animated: true, completion: nil)
+        self.fyphoto.present(navi, animated: true, completion: nil) { [weak self] (page) -> PresentingVCTransitionEssential? in
+            return nil
+            print("current page: \(page)")
+            guard let self = self else { return nil }
+            let itemInPhotoPicker = self.containsCamera ? page - 1 : page
+            let indexPath = IndexPath(item: itemInPhotoPicker, section: 0)
+            self.lastSelectedIndexPath = indexPath
+            guard let cell = self.collectionView.cellForItem(at: indexPath) as? GridViewCell else {
+                return nil
+            }
+            let rect = cell.convert(cell.bounds, to: self.view)
+            
+            return PresentingVCTransitionEssential(transitionImage: cell.imageView.image, convertedFrame: rect)
+        }
 //        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
     }
     
@@ -701,7 +713,9 @@ extension PhotoPickerViewController: GridViewCellDelegate {
 // MARK: - PhotoDetailCollectionViewControllerDelegate
 extension PhotoPickerViewController: PhotoBrowserViewControllerDelegate {
     public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt indexPath: IndexPath) {
-        lastSelectedIndexPath = regenerate(indexPath: indexPath, for: false)
+        let itemFromBrowser = indexPath.item
+        let itemInPhotoPicker = containsCamera ? itemFromBrowser - 1 : itemFromBrowser
+        lastSelectedIndexPath = IndexPath(item: itemInPhotoPicker, section: 0)
     }
 
     public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, selectedAssets identifiers: [String]) {
