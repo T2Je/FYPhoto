@@ -47,6 +47,27 @@ extension TypeWrapperProtocol where WrappedType: UIViewController {
         UIViewController.TransitionHolder.storeViewControllerTransition(transition)
     }
     
+    @available(swift, deprecated: 1.1.0, message: "Use present(_ viewControllerToPresent:, animated:, completion:, transitionEssential:) instead")
+    public func present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)?, transitionView: (() -> UIImageView?)? = nil) {
+        
+        let transition = PhotoPresentTransitionController(viewController: viewControllerToPresent) { (_) -> PresentingVCTransitionEssential? in
+            let essential: PresentingVCTransitionEssential?
+            if let closure = transitionView, let imageView = closure() {
+                let frame = imageView.convert(imageView.bounds, to: wrappedValue.view)
+                essential = PresentingVCTransitionEssential(transitionImage: imageView.image, convertedFrame: frame)
+            } else {
+                essential = nil
+            }
+            return essential
+        }
+        viewControllerToPresent.modalPresentationStyle = .custom
+        viewControllerToPresent.transitioningDelegate = transition
+        wrappedValue.present(viewControllerToPresent, animated: animated, completion: {
+            completion?()
+        })
+        UIViewController.TransitionHolder.storeViewControllerTransition(transition)
+    }
+    
 }
 
 extension TypeWrapperProtocol where WrappedType: UINavigationController {
@@ -58,6 +79,23 @@ extension TypeWrapperProtocol where WrappedType: UINavigationController {
     ///   that do not implement PhotoTransition protocol.
     public func push(_ viewController: UIViewController, animated: Bool, transitionEssential: ((_ page: Int) -> PresentingVCTransitionEssential)? = nil) {
         let transition = PhotoPushTransitionController(navigationController: wrappedValue, transitionEssential: transitionEssential)
+        wrappedValue.delegate = transition
+        wrappedValue.pushViewController(viewController, animated: true)
+        UIViewController.TransitionHolder.storeNaviTransition(transition)
+    }
+    
+    @available(swift, deprecated: 1.1.0, message: "Use push(_ viewController:, animated:, transitionEssential:) instead")
+    public func push(_ viewController: UIViewController, animated: Bool, transitionView: (() -> UIImageView?)? = nil) {
+        let transition = PhotoPushTransitionController(navigationController: wrappedValue) { (_) -> PresentingVCTransitionEssential? in
+            let essential: PresentingVCTransitionEssential?
+            if let closure = transitionView, let imageView = closure() {
+                let frame = imageView.convert(imageView.bounds, to: wrappedValue.view)
+                essential = PresentingVCTransitionEssential(transitionImage: imageView.image, convertedFrame: frame)
+            } else {
+                essential = nil
+            }
+            return essential
+        }
         wrappedValue.delegate = transition
         wrappedValue.pushViewController(viewController, animated: true)
         UIViewController.TransitionHolder.storeNaviTransition(transition)
