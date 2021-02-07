@@ -48,7 +48,7 @@ extension TypeWrapperProtocol where WrappedType: UIViewController {
     }
     
     @available(swift, deprecated: 1.1.0, message: "Use present(_ viewControllerToPresent:, animated:, completion:, transitionEssential:) instead")
-    public func present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)?, transitionView: (() -> UIImageView?)? = nil) {
+    public func present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)?, transitionView: (() -> UIImageView?)?) {
         
         let transition = PhotoPresentTransitionController(viewController: viewControllerToPresent) { (_) -> PresentingVCTransitionEssential? in
             let essential: PresentingVCTransitionEssential?
@@ -85,7 +85,7 @@ extension TypeWrapperProtocol where WrappedType: UINavigationController {
     }
     
     @available(swift, deprecated: 1.1.0, message: "Use push(_ viewController:, animated:, transitionEssential:) instead")
-    public func push(_ viewController: UIViewController, animated: Bool, transitionView: (() -> UIImageView?)? = nil) {
+    public func push(_ viewController: UIViewController, animated: Bool, transitionView: (() -> UIImageView?)?) {
         let transition = PhotoPushTransitionController(navigationController: wrappedValue) { (_) -> PresentingVCTransitionEssential? in
             let essential: PresentingVCTransitionEssential?
             if let closure = transitionView, let imageView = closure() {

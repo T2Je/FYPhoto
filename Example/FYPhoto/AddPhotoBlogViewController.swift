@@ -392,6 +392,7 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
 //                }
 //                return cell.imageView
 //            }
+//            self.fyphoto.present
             self.fyphoto.present(photoBrowser, animated: true) {
                 print("present photo browser completely")
             }
