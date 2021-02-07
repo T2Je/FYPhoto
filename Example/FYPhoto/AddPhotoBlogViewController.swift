@@ -392,10 +392,7 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
 //                }
 //                return cell.imageView
 //            }
-//            self.fyphoto.present
-            self.fyphoto.present(photoBrowser, animated: true) {
-                print("present photo browser completely")
-            }
+            self.fyphoto.present(photoBrowser, animated: true, completion: nil)
 //            self.navigationController?.fyphoto.push(photoBrowser, animated: true)
 //            self.navigationController?.pushViewController(photoBrowser, animated: true)
         }
@@ -470,7 +467,7 @@ extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
     }
 }
 
-extension AddPhotoBlogViewController {
+extension AddPhotoBlogViewController: PhotoTransitioning {
     public func transitionWillStart() {
         guard let indexPath = lastSelectedIndexPath else { return }
         collectionView.cellForItem(at: indexPath)?.isHidden = true
@@ -482,12 +479,12 @@ extension AddPhotoBlogViewController {
     }
 
     public func referenceImage() -> UIImage? {
-//        guard let indexPath = lastSelectedIndexPath else { return nil }
-//        guard let cell = collectionView.cellForItem(at: indexPath) as? AddPhotoCollectionViewCell else {
-//            return nil
-//        }
-//        return cell.imageView.image
-        return nil
+        guard let indexPath = lastSelectedIndexPath else { return nil }
+        guard let cell = collectionView.cellForItem(at: indexPath) as? AddPhotoCollectionViewCell else {
+            return nil
+        }
+        return cell.imageView.image
+//        return nil
     }
 
     public func imageFrame() -> CGRect? {
@@ -497,6 +494,7 @@ extension AddPhotoBlogViewController {
         else {
             return nil
         }
+        return cell.convert(cell.bounds, to: self.view)
         return collectionView.convert(cell.frame, to: self.view)
     }
 }

@@ -14,8 +14,8 @@ public struct PresentingVCTransitionEssential {
     /// frame coverted to viewController view
     let convertedFrame: CGRect
     
-//    public init(transitionImage: UIImage, convertedFrame: CGRect) {
-//        self.transitionImage = transitionImage
-//        self.convertedFrame = convertedFrame
-//    }
+    public init(transitionImage: UIImage?, convertedFrame: CGRect) {
+        self.transitionImage = transitionImage
+        self.convertedFrame = convertedFrame
+    }
 }
