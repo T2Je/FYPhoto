@@ -30,11 +30,16 @@ class SaveMediaTool {
                 }, completionHandler: { _, error in
                     if let error = error {
                         print("Error occurred while saving photo to photo library: \(error)")
+//                        completion(error)
+                    }
+                    DispatchQueue.main.async {
                         completion(error)
                     }
                 })
             } else {
-                completion(SaveMediaError.withoutAuthourity)
+                DispatchQueue.main.async {
+                    completion(SaveMediaError.withoutAuthourity)
+                }
             }
         }
     }
@@ -53,12 +58,15 @@ class SaveMediaTool {
                     if let error = error {
                         print("Error occurred while saving photo to photo library: \(error)")
                     }
-                    completion(error)
-                }
-
-                )
+                    DispatchQueue.main.async {
+                        completion(error)
+                    }                    
+                })
             } else {
-                completion(SaveMediaError.withoutAuthourity)
+                DispatchQueue.main.async {
+                    completion(SaveMediaError.withoutAuthourity)
+                }
+                
             }
         }
     }

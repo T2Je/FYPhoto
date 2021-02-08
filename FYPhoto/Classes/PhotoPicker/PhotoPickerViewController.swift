@@ -380,8 +380,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 selectedArr.append(SelectedImage(asset: asset, image: image))
             }
             
-            self.selectedPhotos?(selectedArr)
             self.back()
+            self.selectedPhotos?(selectedArr)
         }
     }
 
@@ -583,12 +583,14 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 let thumbnailImage = asset.getThumbnailImageSynchorously()
                 let selectedVideo = SelectedVideo(url: url)
                 selectedVideo.briefImage = thumbnailImage
-                self.selectedVideo?(.success(selectedVideo))
+                
                 self.back()
+                self.selectedVideo?(.success(selectedVideo))
             } else {
                 self.compressVideo(url: url, asset: asset) { (result) in
                     switch result {
                     case .success(let url):
+                        self.back()
                         let thumbnailImage = asset.getThumbnailImageSynchorously()
                         let selectedVideo = SelectedVideo(url: url)
                         selectedVideo.briefImage = thumbnailImage
@@ -596,7 +598,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                     case .failure(let error):
                         self.selectedVideo?(.failure(error))
                     }
-                    self.back()
+                    
                 }
             }
         }

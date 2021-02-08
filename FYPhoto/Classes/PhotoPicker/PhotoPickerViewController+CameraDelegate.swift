@@ -17,27 +17,26 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
 //        case "public.image":
         case String(kUTTypeImage):
             guard let data = info[.mediaMetadata] as? Data else { return }
-            
-            var asset: PHAsset?
-            
-            SaveMediaTool.saveImageDataToAlbums(data) { (error) in
-                if let error = error {
-                    print("🤢\(error)🤮")
-                } else {
-                    print("image saved")
-                    let fetchOptions = PHFetchOptions()
-                    fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-                    let result = PHAsset.fetchAssets(with: fetchOptions)
-                    asset = result.firstObject
-                }
-            }
+                        
             cameraViewController.dismiss(animated: true) {
-                self.dismiss(animated: true) {
-                    guard let image = info[.originalImage] as? UIImage else { return }
-                    if let asset = asset {
-                        self.selectedPhotos?([SelectedImage(asset: asset, image: image)])
+                SaveMediaTool.saveImageDataToAlbums(data) { (error) in
+                    var asset: PHAsset?
+                    
+                    if let error = error {
+                        print("🤢\(error)🤮")
+                    } else {
+                        print("image saved")
+                        let fetchOptions = PHFetchOptions()
+                        fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+                        let result = PHAsset.fetchAssets(with: fetchOptions)
+                        asset = result.firstObject
                     }
+                    self.dismiss(animated: true) {
+                        guard let image = info[.originalImage] as? UIImage else { return }
+                        self.selectedPhotos?([SelectedImage(asset: asset, image: image)])
+                    }                    
                 }
+                
             }
         case String(kUTTypeMovie):
             guard let videoURL = info[.mediaURL] as? URL else {

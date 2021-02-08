@@ -105,7 +105,7 @@ class ViewController: UIViewController {
         pickerConfig.maximumVideoMemorySize = 40
         pickerConfig.compressedQuality = .AVAssetExportPreset640x480
         pickerConfig.supportCamera = true
-//        pickerConfig.filterdMedia = .image
+        pickerConfig.filterdMedia = .image
         let photoPickerVC = PhotoPickerViewController(configuration: pickerConfig)
     
         photoPickerVC.selectedPhotos = { [weak self] images in
