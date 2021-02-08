@@ -25,9 +25,10 @@ public struct MediaOptions: OptionSet {
 }
 
 
-/// A picker that manages the custom interfaces for choosing assets from the user's photos library and delivers the results of those interactions to closures.
-/// Picker need be wrapped by NavigationController.
-/// @discussion \c PhotoPickerViewController is intended to be used as-is and does not support subclassing
+/// A picker that manages the custom interfaces for choosing assets from the user's photos library and delivers the results of those interactions to closures. Presents picker should be better.
+///
+/// Initializes new picker with the `configuration` the picker should use.
+/// PhotoPickerViewController is intended to be used as-is and does not support subclassing
 public final class PhotoPickerViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     // call back for photo, video selections
     public var selectedPhotos: (([SelectedImage]) -> Void)?
@@ -44,8 +45,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     internal var lastSelectedIndexPath: IndexPath?
 
     fileprivate let topBar = PhotoPickerTopBar()
-    
-//    fileprivate let customTitleView = PickerAlbulmTitleView()
 
     /// identify selected assets
     fileprivate var assetSelectionIdentifierCache = [String]() {
@@ -391,7 +390,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
 
     func back() {
-        // TODO: 😴zZ popup
         self.dismiss(animated: true, completion: nil)
     }
 

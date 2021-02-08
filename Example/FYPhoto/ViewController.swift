@@ -106,12 +106,7 @@ class ViewController: UIViewController {
         pickerConfig.compressedQuality = .AVAssetExportPreset640x480
         pickerConfig.supportCamera = false
         let photoPickerVC = PhotoPickerViewController(configuration: pickerConfig)
-        
-//        let photoPickerVC = PhotoPickerViewController(mediaTypes: .all)
-//            .setMaximumPhotosCanBeSelected(6)
-//            .setMaximumVideoSizePerMB(40, compressedQuality: .AVAssetExportPreset640x480)
-//            .setPickerWithCamera(true)
-
+    
         photoPickerVC.selectedPhotos = { [weak self] images in
             print("selected \(images.count) photos: \(images)")
         }
@@ -119,8 +114,8 @@ class ViewController: UIViewController {
             print("selected video: \(video)")
         }
         photoPickerVC.modalPresentationStyle = .fullScreen
-        self.present(photoPickerVC, animated: true, completion: nil)
-        
+//        self.present(photoPickerVC, animated: true, completion: nil)
+        self.navigationController?.pushViewController(photoPickerVC, animated: true)
 //        let navi = UINavigationController(rootViewController: photoPickerVC)
 //        navi.modalPresentationStyle = .fullScreen
 //        self.present(navi, animated: true, completion: nil)
