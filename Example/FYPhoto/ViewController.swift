@@ -101,7 +101,7 @@ class ViewController: UIViewController {
 // MARK: - Button action
     @objc func photosViewButtonClicked(_ sender: UIButton) {
         var pickerConfig = FYPhotoPickerConfiguration()
-        pickerConfig.selectionLimit = 6
+        pickerConfig.selectionLimit = 1
         pickerConfig.maximumVideoMemorySize = 40
         pickerConfig.compressedQuality = .AVAssetExportPreset640x480
         pickerConfig.supportCamera = false
@@ -114,8 +114,8 @@ class ViewController: UIViewController {
             print("selected video: \(video)")
         }
         photoPickerVC.modalPresentationStyle = .fullScreen
-//        self.present(photoPickerVC, animated: true, completion: nil)
-        self.navigationController?.pushViewController(photoPickerVC, animated: true)
+        self.present(photoPickerVC, animated: true, completion: nil)
+//        self.navigationController?.pushViewController(photoPickerVC, animated: true)
 //        let navi = UINavigationController(rootViewController: photoPickerVC)
 //        navi.modalPresentationStyle = .fullScreen
 //        self.present(navi, animated: true, completion: nil)

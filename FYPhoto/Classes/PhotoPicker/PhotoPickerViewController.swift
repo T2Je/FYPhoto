@@ -354,11 +354,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             bottomToolBar.heightAnchor.constraint(equalToConstant: height)
         ])
     }
-    
-    @objc func backBarButton(_ sender: UIBarButtonItem) {
-        back()
-    }
-    
+
     fileprivate var selectedAssets: [PHAsset] {
         // The order of Assets fetched with identifiers maybe different from input identifiers order.
         let selectedFetchResults: [PHFetchResult<PHAsset>] = assetSelectionIdentifierCache.map {
@@ -686,6 +682,7 @@ extension PhotoPickerViewController: GridViewCellDelegate {
             cell.displayButtonTitle("")
         }
         collectionView.reloadData()
+        quickCompletionForSingleSelection()
     }
 
     func updateSelectedAssetIsVideo(with assetIdentifiers: [String]) {
@@ -703,6 +700,13 @@ extension PhotoPickerViewController: GridViewCellDelegate {
     
     func updateSelectedAssetsCount(with assetIdentifiers: [String]) {
         bottomToolBar.updateCount(assetIdentifiers.count)
+    }
+    
+    func quickCompletionForSingleSelection() {
+        guard maximumCanBeSelected == 1, assetSelectionIdentifierCache.count == 1 else {
+            return
+        }
+        selectionCompleted(assets: selectedAssets, animated: true)
     }
 }
 
