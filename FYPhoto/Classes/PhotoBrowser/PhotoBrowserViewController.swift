@@ -700,11 +700,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         
     @objc func back() {
         if presentingViewController != nil {
-            dismiss(animated: true, completion: nil)
+            if presentingViewController is UINavigationController {
+                navigationController?.popViewController(animated: true)
+            } else {
+                dismiss(animated: true, completion: nil)
+            }
         } else {
             navigationController?.popViewController(animated: true)
         }
-        
     }
     
     func updateBottomViewPlayButton(_ showPlay: Bool) {
@@ -1095,7 +1098,7 @@ extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
     func browserBottomToolViewDoneButtonClicked() {
         assert(!selectedPhotos.isEmpty, "photos shouldn't be empty")
         back()
-        delegate?.photoBrowser(self, didCompleteSelected: selectedPhotos)        
+        delegate?.photoBrowser(self, didCompleteSelected: selectedPhotos)
     }
 }
 
