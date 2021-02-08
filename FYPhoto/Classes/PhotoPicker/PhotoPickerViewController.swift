@@ -539,7 +539,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         navi.modalPresentationStyle = .fullScreen
         self.fyphoto.present(navi, animated: true, completion: nil) { [weak self] (page) -> PresentingVCTransitionEssential? in
             guard let self = self else { return nil }
-            let itemInPhotoPicker = self.containsCamera ? page - 1 : page
+            let itemInPhotoPicker = self.containsCamera ? page + 1 : page
             let indexPath = IndexPath(item: itemInPhotoPicker, section: 0)
             self.lastSelectedIndexPath = indexPath
             guard let cell = self.collectionView.cellForItem(at: indexPath) as? GridViewCell else {
