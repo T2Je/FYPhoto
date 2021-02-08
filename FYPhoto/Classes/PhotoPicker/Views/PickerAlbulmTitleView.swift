@@ -1,5 +1,5 @@
 //
-//  CustomNavigationTitleView.swift
+//  PickerNavigationTitleView.swift
 //  FYPhotoPicker
 //
 //  Created by xiaoyang on 2020/7/30.
@@ -7,7 +7,7 @@
 
 import UIKit
 
-class CustomNavigationTitleView: UIView {
+class PickerAlbulmTitleView: UIView {
 
     var title: String = "" {
         willSet {
@@ -40,9 +40,12 @@ class CustomNavigationTitleView: UIView {
         super.init(frame: frame)
         titleLabel.textColor = .black
         titleLabel.font = UIFont.systemFont(ofSize: 17)
+        titleLabel.adjustsFontSizeToFitWidth = true
+        titleLabel.textAlignment = .center
         
         imageView.transform = CGAffineTransform(rotationAngle: CGFloat.pi)
         imageView.isUserInteractionEnabled = true
+        imageView.contentMode = .scaleAspectFit
         addSubview(titleLabel)
         addSubview(imageView)
         
@@ -57,10 +60,12 @@ class CustomNavigationTitleView: UIView {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             imageView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-            imageView.trailingAnchor.constraint(equalTo: self.trailingAnchor)
+            imageView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            imageView.widthAnchor.constraint(equalToConstant: 15),
+            imageView.heightAnchor.constraint(equalToConstant: 15)
         ])
 
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(CustomNavigationTitleView.tap(_:)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(PickerAlbulmTitleView.tap(_:)))
         addGestureRecognizer(tapGesture)
     }
 

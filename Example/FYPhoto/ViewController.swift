@@ -100,22 +100,25 @@ class ViewController: UIViewController {
     
 // MARK: - Button action
     @objc func photosViewButtonClicked(_ sender: UIButton) {
-        let photoPickerVC = PhotoPickerViewController(mediaTypes: .all)
-            .setMaximumPhotosCanBeSelected(6)
-            .setMaximumVideoSizePerMB(40, compressedQuality: .AVAssetExportPreset640x480)
-            .setPickerWithCamera(true)
-
+        var pickerConfig = FYPhotoPickerConfiguration()
+        pickerConfig.selectionLimit = 6
+        pickerConfig.maximumVideoMemorySize = 40
+        pickerConfig.compressedQuality = .AVAssetExportPreset640x480
+        pickerConfig.supportCamera = false
+        let photoPickerVC = PhotoPickerViewController(configuration: pickerConfig)
+    
         photoPickerVC.selectedPhotos = { [weak self] images in
             print("selected \(images.count) photos: \(images)")
         }
         photoPickerVC.selectedVideo = { [weak self] video in
             print("selected video: \(video)")
         }
-        
-//                    let navi = CustomNavigationController(rootViewController: gridVC)
-        let navi = UINavigationController(rootViewController: photoPickerVC)
-        navi.modalPresentationStyle = .fullScreen
-        self.present(navi, animated: true, completion: nil)
+        photoPickerVC.modalPresentationStyle = .fullScreen
+//        self.present(photoPickerVC, animated: true, completion: nil)
+        self.navigationController?.pushViewController(photoPickerVC, animated: true)
+//        let navi = UINavigationController(rootViewController: photoPickerVC)
+//        navi.modalPresentationStyle = .fullScreen
+//        self.present(navi, animated: true, completion: nil)
     }
 
     @objc func suiShouPaiButtonClicked(_ sender: UIButton) {
@@ -149,7 +152,7 @@ class ViewController: UIViewController {
 
     @objc func cameraPhotoButtonClicked(_ sender: UIButton) {
         var config = PhotoLauncher.PhotoLauncherConfig()
-        config.maximumNumberCanChoose = 6
+        config.maximumNumberCanChoose = 1
         config.mediaOptions = [.image, .video]
         config.sourceRect = sender.frame
         config.videoPathExtension = "mp4"

@@ -31,6 +31,7 @@ internal enum Asset {
   internal static let uiBarButtonItemArrowLeft = ImageAsset(name: "UIBarButtonItemArrowLeft")
   internal static let uiBarButtonItemArrowRight = ImageAsset(name: "UIBarButtonItemArrowRight")
   internal static let albumArrow = ImageAsset(name: "albumArrow")
+  internal static let back = ImageAsset(name: "back")
   internal static let coverPlaceholder = ImageAsset(name: "cover_placeholder")
   internal static let icons8FlashOff = ImageAsset(name: "icons8-flash-off")
   internal static let icons8FlashOn = ImageAsset(name: "icons8-flash-on")

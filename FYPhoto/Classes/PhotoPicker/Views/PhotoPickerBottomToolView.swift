@@ -64,8 +64,7 @@ final class PhotoPickerBottomToolView: UIView {
     
     func makeConstraints() {        
         previewButton.translatesAutoresizingMaskIntoConstraints = false
-        
-        previewButton.centerYAnchor.constraint(equalTo: self.centerYAnchor).isActive = true
+                
         NSLayoutConstraint.activate([
             previewButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 15),
             previewButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -safeAreaInsetsBottom/2)

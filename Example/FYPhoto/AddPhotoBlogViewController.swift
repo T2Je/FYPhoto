@@ -351,13 +351,16 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
         guard let cell = collectionView.cellForItem(at: indexPath) as? AddPhotoCollectionViewCell else { return }
         if cell.isAdd {
             // go to grid vc
-            if #available(iOS 14, *) {
+            if #available(iOS 15, *) {
                 photoLauncher.launchSystemPhotoPicker(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count, mediaOptions: .all)
             } else {
 //                photoLauncher.launchCustomPhotoLibrary(in: self, maximumNumberCanChoose: photosLimited - selectedImageArray.count)
-                let photoPicker = PhotoPickerViewController(mediaTypes: .all)
-                    .setPickerWithCamera(true)
-                    .setMaximumPhotosCanBeSelected(photosLimited - selectedImageArray.count)
+                var configuration = FYPhotoPickerConfiguration()
+                configuration.supportCamera = true
+                configuration.selectionLimit = photosLimited - selectedImageArray.count
+                configuration.filterdMedia = .all
+                let photoPicker = PhotoPickerViewController(configuration: configuration)
+                
                 photoPicker.selectedPhotos = { [weak self] selectedImages in
                     #if DEBUG
                     print("selected \(photos.count) photos")
@@ -365,10 +368,8 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
                     let images = selectedImages.map { $0.image }
                     self?.selectedImageArray += images
                 }
-                let navi = UINavigationController(rootViewController: photoPicker)
-                navi.modalPresentationStyle = .fullScreen
-                
-                self.present(navi, animated: true, completion: nil)
+                photoPicker.modalPresentationStyle = .fullScreen
+                self.present(photoPicker, animated: true, completion: nil)
             }
         } else {
             var photos = [PhotoProtocol]()
@@ -391,9 +392,7 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
 //                }
 //                return cell.imageView
 //            }
-            self.fyphoto.present(photoBrowser, animated: true) {
-                print("present photo browser completely")
-            }
+            self.fyphoto.present(photoBrowser, animated: true, completion: nil)
 //            self.navigationController?.fyphoto.push(photoBrowser, animated: true)
 //            self.navigationController?.pushViewController(photoBrowser, animated: true)
         }
@@ -468,7 +467,7 @@ extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
     }
 }
 
-extension AddPhotoBlogViewController {
+extension AddPhotoBlogViewController: PhotoTransitioning {
     public func transitionWillStart() {
         guard let indexPath = lastSelectedIndexPath else { return }
         collectionView.cellForItem(at: indexPath)?.isHidden = true
@@ -480,12 +479,12 @@ extension AddPhotoBlogViewController {
     }
 
     public func referenceImage() -> UIImage? {
-//        guard let indexPath = lastSelectedIndexPath else { return nil }
-//        guard let cell = collectionView.cellForItem(at: indexPath) as? AddPhotoCollectionViewCell else {
-//            return nil
-//        }
-//        return cell.imageView.image
-        return nil
+        guard let indexPath = lastSelectedIndexPath else { return nil }
+        guard let cell = collectionView.cellForItem(at: indexPath) as? AddPhotoCollectionViewCell else {
+            return nil
+        }
+        return cell.imageView.image
+//        return nil
     }
 
     public func imageFrame() -> CGRect? {
@@ -495,6 +494,7 @@ extension AddPhotoBlogViewController {
         else {
             return nil
         }
+        return cell.convert(cell.bounds, to: self.view)
         return collectionView.convert(cell.frame, to: self.view)
     }
 }

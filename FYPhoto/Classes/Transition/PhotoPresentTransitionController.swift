@@ -9,12 +9,14 @@ import Foundation
 
 class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningDelegate {
     let panGesture = UIPanGestureRecognizer()
-    let transitionView: (() -> UIImageView?)?
+    let transitionEssential: TransitionEssentialClosure?
+    
+    var isInteractive: Bool = false
     
     weak var viewController: UIViewController?
-    init(viewController: UIViewController?, transitionView: (() -> UIImageView?)?) {
+    init(viewController: UIViewController?, transitionEssential: TransitionEssentialClosure?) {
         self.viewController = viewController
-        self.transitionView = transitionView
+        self.transitionEssential = transitionEssential
         super.init()
         configurePanGestureRecognizer()
     }
@@ -36,12 +38,13 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
 
     @objc func initiateTransitionInteractively(_ panGesture: UIPanGestureRecognizer) {
         if panGesture.state == .began && interactiveAnimator?.transitionDriver == nil {
+            isInteractive = true
             viewController?.dismiss(animated: true) {}
         }
     }
     
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        let animator = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: false, transitionView: transitionView)
+        let animator = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: false, transitionEssential: transitionEssential)
         normalAnimator = animator
         return animator
     }
@@ -51,14 +54,27 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
     }
     
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        let animator = PhotoInteractiveAnimator(panGestureRecognizer: panGesture, isNavigationDismiss: false, transitionView: transitionView, completion: { [weak self] isNavigatoin in
-            self?.completeInteractiveDismiss(isNavigatoin)
-        })
-        interactiveAnimator = animator
+        let animator: UIViewControllerAnimatedTransitioning
+        if isInteractive {
+            let interactiveAnimator = PhotoInteractiveAnimator(panGestureRecognizer: panGesture, isNavigationDismiss: false, transitionEssential: transitionEssential, completion: { [weak self] (isCancelled, isNavi) in
+                self?.interactiveAnimator = nil
+                self?.isInteractive = false
+                if !isCancelled {
+                    self?.completeInteractiveDismiss(isNavi)
+                }
+            })
+            self.interactiveAnimator = interactiveAnimator
+            animator = interactiveAnimator
+        } else {
+            animator = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: false, transitionEssential: transitionEssential)
+            normalAnimator = animator            
+        }
+        
         return animator
     }
- 
+
     func completeInteractiveDismiss(_ isNavi: Bool) {
+        self.isInteractive = false
         if isNavi {
             UIViewController.TransitionHolder.clearNaviTransition()
         } else {

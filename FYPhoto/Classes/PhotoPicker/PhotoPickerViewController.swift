@@ -24,8 +24,12 @@ public struct MediaOptions: OptionSet {
     public static let all: MediaOptions = [.image, .video]
 }
 
-/// PhotoPicker need be wrapped by NavigationController. Configure with set method.
-public class PhotoPickerViewController: UICollectionViewController {
+
+/// A picker that manages the custom interfaces for choosing assets from the user's photos library and delivers the results of those interactions to closures. Presents picker should be better.
+///
+/// Initializes new picker with the `configuration` the picker should use.
+/// PhotoPickerViewController is intended to be used as-is and does not support subclassing
+public final class PhotoPickerViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     // call back for photo, video selections
     public var selectedPhotos: (([SelectedImage]) -> Void)?
     public var selectedVideo: ((Result<SelectedVideo, Error>) -> Void)?
@@ -40,7 +44,7 @@ public class PhotoPickerViewController: UICollectionViewController {
     /// Grid cell indexPath
     internal var lastSelectedIndexPath: IndexPath?
 
-    fileprivate let customTitleView = CustomNavigationTitleView()
+    fileprivate let topBar = PhotoPickerTopBar()
 
     /// identify selected assets
     fileprivate var assetSelectionIdentifierCache = [String]() {
@@ -60,11 +64,12 @@ public class PhotoPickerViewController: UICollectionViewController {
     fileprivate var reachedMaximum: Bool = false
 
     internal let imageManager = PHCachingImageManager()
-    fileprivate var thumbnailSize: CGSize!
+    fileprivate var thumbnailSize: CGSize = .zero
     fileprivate var previousPreheatRect = CGRect.zero
 
-    fileprivate lazy var bottomToolView: PhotoPickerBottomToolView = {
-        let toolView = PhotoPickerBottomToolView(selectionLimit: maximumCanBeSelected, safeAreaInsetsBottom: safeAreaInsetsBottom)
+    fileprivate lazy var bottomToolBar: PhotoPickerBottomToolView = {
+        let toolView = PhotoPickerBottomToolView(selectionLimit: maximumCanBeSelected,
+                                                 safeAreaInsetsBottom: safeAreaInsetsBottom)
         toolView.delegate = self
         return toolView
     }()
@@ -86,21 +91,40 @@ public class PhotoPickerViewController: UICollectionViewController {
     /// photo picker get the right authority to access photos
     var photosAuthorityPassed = false
     
+    fileprivate var containsCamera: Bool {
+        configuration.supportCamera
+    }
+    
     // photo
-    fileprivate var maximumCanBeSelected: Int = 0
+    fileprivate var maximumCanBeSelected: Int {
+        configuration.selectionLimit
+    }
     
     // video
-    fileprivate var videoMaximumDuration: TimeInterval?
-    fileprivate var maximumVideoSize: Double?// MB
-    fileprivate var compressedQuality: VideoCompressor.QualityLevel?
-    fileprivate var moviePathExtension = "mp4"
+    fileprivate var videoMaximumDuration: TimeInterval? {
+        configuration.maximumVideoDuration
+    }
     
-    fileprivate let mediaOptions: MediaOptions
+    fileprivate var maximumVideoSize: Double? {
+        configuration.maximumVideoMemorySize
+    }
+    fileprivate var compressedQuality: VideoCompressor.QualityLevel? {
+        configuration.compressedQuality
+    }
+    fileprivate var moviePathExtension: String {
+        configuration.moviePathExtension
+    }
     
-    /// Initialize PhotoPicker with media types: image, video or both. Use the setting method below to config it.
-    /// - Parameter mediaTypes: image, video, both
-    public init(mediaTypes: MediaOptions) {
-        self.mediaOptions = mediaTypes
+    fileprivate var mediaOptions: MediaOptions {
+        configuration.filterdMedia
+    }
+    
+    private(set) var configuration: FYPhotoPickerConfiguration
+        
+    let collectionView: UICollectionView
+    
+    private init() {
+        self.configuration = FYPhotoPickerConfiguration()
         let flowLayout = UICollectionViewFlowLayout()
         let screenSize = UIScreen.main.bounds.size
         let width = floor((screenSize.width - 5) / 3)
@@ -108,38 +132,55 @@ public class PhotoPickerViewController: UICollectionViewController {
         flowLayout.minimumInteritemSpacing = 2.5
         flowLayout.minimumLineSpacing = 2.5
         flowLayout.scrollDirection = .vertical
-        super.init(collectionViewLayout: flowLayout)
+        self.collectionView = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    /// Initializes new picker with the `configuration` the picker should use.
+    public convenience init(configuration: FYPhotoPickerConfiguration) {
+        self.init()
+        self.configuration = configuration
+    }
+    
+    /// Initialize PhotoPicker with media types: image, video or both. Use the setting method below to config it.
+    /// - Parameter mediaTypes: image, video, both
+    @available(swift, deprecated: 1.1.0, message: "Use init(configuration:) instead")
+    public convenience init(mediaTypes: MediaOptions) {
+        self.init()
+        configuration.filterdMedia = mediaTypes
     }
 
     public required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    @available(swift, deprecated: 1.1.0, message: "Use configuration instead")
     @discardableResult
     public func setMaximumPhotosCanBeSelected(_ maximum: Int) -> Self {
-        self.maximumCanBeSelected = maximum
+        configuration.selectionLimit = maximum
         return self
     }
     
+    @available(swift, deprecated: 1.1.0, message: "Use configuration instead")
     @discardableResult
     public func setMaximumVideoDuration(_ duration: Double) -> Self {
-        self.videoMaximumDuration = duration
+        configuration.maximumVideoDuration = duration
         return self
     }
     
+    @available(swift, deprecated: 1.1.0, message: "Use configuration instead")
     @discardableResult
     public func setMaximumVideoSizePerMB(_ size: Double,
                                          compressedQuality: VideoCompressor.QualityLevel = .AVAssetExportPreset640x480) -> Self {
-        self.maximumVideoSize = size
-        self.compressedQuality = compressedQuality
+        configuration.maximumVideoMemorySize = size
+        configuration.compressedQuality = compressedQuality
         return self
     }
     
-    fileprivate var containsCamera: Bool = true
-    
+    @available(swift, deprecated: 1.1.0, message: "Use configuration instead")
     @discardableResult
     public func setPickerWithCamera(_ containsCamera: Bool) -> Self {
-        self.containsCamera = containsCamera
+        configuration.supportCamera = containsCamera
         return self
     }
 
@@ -154,28 +195,30 @@ public class PhotoPickerViewController: UICollectionViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-        
+        view.backgroundColor = .white
         collectionView.backgroundColor = .white
         requestPhotoAuthority { (isSuccess) in
             if isSuccess {
                 self.photosAuthorityPassed = true
-                self.setupCollectionView()
                 self.thumbnailSize = self.calculateThumbnailSize()
                 self.requestAlbumsData()
-                self.setupNavigationBar()
-                self.setupBottomToolView()
+                self.setupSubViews()
+                self.addSubViews()
                 self.resetCachedAssets()
                 PHPhotoLibrary.shared().register(self)
             } else {
                 self.photosAuthorityPassed = false
-                self.alertPhotosLibraryAuthorityError()
             }
         }
     }
     
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        guard photosAuthorityPassed else { return }
+        
+        guard photosAuthorityPassed else {
+            self.alertPhotosLibraryAuthorityError()
+            return
+        }
         thumbnailSize = calculateThumbnailSize()
     }
     
@@ -204,11 +247,6 @@ public class PhotoPickerViewController: UICollectionViewController {
             completion(false)
         }
         
-    }
-    
-    func setupCollectionView() {
-        collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: String(describing: GridViewCell.self))
-        collectionView.register(GridCameraCell.self, forCellWithReuseIdentifier: String(describing: GridCameraCell.self))
     }
     
     func requestAlbumsData() {
@@ -250,17 +288,23 @@ public class PhotoPickerViewController: UICollectionViewController {
     func calculateThumbnailSize() -> CGSize {
         // Determine the size of the thumbnails to request from the PHCachingImageManager
         let scale = UIScreen.main.scale
-        let cellSize = (collectionViewLayout as! UICollectionViewFlowLayout).itemSize
+        let cellSize = (collectionView.collectionViewLayout as? UICollectionViewFlowLayout)?.itemSize ?? CGSize(width: 110, height: 110)
         return CGSize(width: cellSize.width * scale, height: cellSize.height * scale)
     }
 
     // MARK: -NavigationBar
+    func setupSubViews() {
+        setupNavigationBar()
+        setupCollectionView()
+    }
+    
     func setupNavigationBar() {
-        self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: L10n.cancel, style: .plain, target: self, action: #selector(backBarButton(_:)))
         // custom titleview
-        customTitleView.tapped = { [weak self] in
+        topBar.backgroundColor = .white
+        topBar.dismiss = { [weak self] in
+            self?.back()
+        }
+        topBar.albulmTitleTapped = { [weak self] in
             guard let self = self else { return }
             let albumsVC = AlbumsTableViewController(allPhotos: self.allPhotos,
                                                      smartAlbums: self.smartAlbums,
@@ -269,21 +313,45 @@ public class PhotoPickerViewController: UICollectionViewController {
             albumsVC.delegate = self
             self.present(albumsVC, animated: true, completion: nil)
         }
-        customTitleView.title = L10n.allPhotos
-        self.navigationItem.titleView = customTitleView
+        topBar.setTitle(L10n.allPhotos)
     }
     
-    func setupBottomToolView() {
-        view.addSubview(bottomToolView)
-        bottomToolView.translatesAutoresizingMaskIntoConstraints = false
-        // full screen device has higher bottom bar
-                
+    func setupCollectionView() {
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: String(describing: GridViewCell.self))
+        collectionView.register(GridCameraCell.self, forCellWithReuseIdentifier: String(describing: GridCameraCell.self))
+    }
+    
+    func addSubViews() {
+        view.addSubview(topBar)
+        view.addSubview(collectionView)
+        view.addSubview(bottomToolBar)
+        
+        let safeArea = self.view.safeAreaLayoutGuide
+        topBar.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            topBar.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            topBar.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+            topBar.heightAnchor.constraint(equalToConstant: 44),
+            topBar.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
+        ])
+        
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            collectionView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor),
+            collectionView.topAnchor.constraint(equalTo: self.topBar.bottomAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: self.bottomToolBar.topAnchor)
+        ])
+        
+        bottomToolBar.translatesAutoresizingMaskIntoConstraints = false
         let height: CGFloat = safeAreaInsetsBottom + 45
         NSLayoutConstraint.activate([
-            bottomToolView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            bottomToolView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
-            bottomToolView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-            bottomToolView.heightAnchor.constraint(equalToConstant: height)
+            bottomToolBar.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+            bottomToolBar.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+            bottomToolBar.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            bottomToolBar.heightAnchor.constraint(equalToConstant: height)
         ])
     }
     
@@ -322,13 +390,12 @@ public class PhotoPickerViewController: UICollectionViewController {
     }
 
     func back() {
-        // TODO: 😴zZ popup
         self.dismiss(animated: true, completion: nil)
     }
 
     // MARK: UICollectionView
 
-    public override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         guard photosAuthorityPassed else { return 0 }
         return containsCamera ? fetchResult.count + 1 : fetchResult.count
         // + 1, one cell for taking picture or video
@@ -342,10 +409,9 @@ public class PhotoPickerViewController: UICollectionViewController {
     ///   - indexPath: origin indexPath
     ///   - purePhotos: is this indexPath for pure photos browsing. If true, indexPath item minus one, else indexPath item plus one.
     /// - Returns: regenerated indexPath
-    func regenerate(indexPath: IndexPath, for purePhotos: Bool) -> IndexPath {
+    func regenerate(indexPath: IndexPath, if containsCamera: Bool) -> IndexPath {
         if containsCamera {
-            let para = purePhotos ? -1 : 1
-            return IndexPath(item: indexPath.item + para, section: indexPath.section)
+            return IndexPath(item: indexPath.item - 1, section: indexPath.section)
         } else {
             return indexPath
         }
@@ -402,21 +468,21 @@ public class PhotoPickerViewController: UICollectionViewController {
         })
     }
     
-    public override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+    public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if containsCamera {
             if indexPath.item == 0 {// camera
                 return collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridCameraCell.self), for: indexPath)
             } else {
                 // Dequeue a GridViewCell.
                 if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridViewCell.self), for: indexPath) as? GridViewCell {
-                    let asset = fetchResult.object(at: regenerate(indexPath: indexPath, for: true).item)
+                    let asset = fetchResult.object(at: regenerate(indexPath: indexPath, if: containsCamera).item)
                     configureAssetCell(cell, asset: asset, at: indexPath)
                     return cell
                 }
             }
         } else {
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridViewCell.self), for: indexPath) as? GridViewCell {
-                let asset = fetchResult.object(at: regenerate(indexPath: indexPath, for: true).item)
+                let asset = fetchResult.object(at: regenerate(indexPath: indexPath, if: containsCamera).item)
                 configureAssetCell(cell, asset: asset, at: indexPath)
                 return cell
             }
@@ -424,14 +490,14 @@ public class PhotoPickerViewController: UICollectionViewController {
         return UICollectionViewCell()
     }
 
-    public override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+    public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         lastSelectedIndexPath = indexPath
         if containsCamera {
             if indexPath.item == 0 { // camera
                 launchCamera()
             } else {
                 // due to the placeholder camera cell
-                let fixedIndexPath = regenerate(indexPath: indexPath, for: true)
+                let fixedIndexPath = regenerate(indexPath: indexPath, if: containsCamera)
                 let selectedAsset = fetchResult[fixedIndexPath.item]
                 if selectedAsset.mediaType == .video {
                     browseVideoIfValid(selectedAsset)
@@ -440,7 +506,7 @@ public class PhotoPickerViewController: UICollectionViewController {
                 }
             }
         } else {
-            let fixedIndexPath = regenerate(indexPath: indexPath, for: true)
+            let fixedIndexPath = regenerate(indexPath: indexPath, if: containsCamera)
             let selectedAsset = fetchResult[fixedIndexPath.item]
             if selectedAsset.mediaType == .video {
                 browseVideoIfValid(selectedAsset)
@@ -468,11 +534,24 @@ public class PhotoPickerViewController: UICollectionViewController {
                 .buildThumbnailsForSelection()
                 .buildNavigationBar()
                 .buildBottomToolBar()
-            
         })
 
         photoBrowser.delegate = self
-        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
+        let navi = UINavigationController(rootViewController: photoBrowser)
+        navi.modalPresentationStyle = .fullScreen
+        self.fyphoto.present(navi, animated: true, completion: nil) { [weak self] (page) -> PresentingVCTransitionEssential? in
+            guard let self = self else { return nil }
+            let itemInPhotoPicker = self.containsCamera ? page - 1 : page
+            let indexPath = IndexPath(item: itemInPhotoPicker, section: 0)
+            self.lastSelectedIndexPath = indexPath
+            guard let cell = self.collectionView.cellForItem(at: indexPath) as? GridViewCell else {
+                return nil
+            }
+            let rect = cell.convert(cell.bounds, to: self.view)
+            
+            return PresentingVCTransitionEssential(transitionImage: cell.imageView.image, convertedFrame: rect)
+        }
+//        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
     }
     
     func browseVideoIfValid(_ asset: PHAsset) {
@@ -579,11 +658,6 @@ public class PhotoPickerViewController: UICollectionViewController {
         }
         return url.sizePerMB() <= limit
     }
-
-    // MARK: UIScrollView
-    public override func scrollViewDidScroll(_ scrollView: UIScrollView) {
-         updateCachedAssets()
-    }
     
     func launchCamera() {
         let cameraVC = CameraViewController()
@@ -628,14 +702,16 @@ extension PhotoPickerViewController: GridViewCellDelegate {
     }
     
     func updateSelectedAssetsCount(with assetIdentifiers: [String]) {
-        bottomToolView.updateCount(assetIdentifiers.count)
+        bottomToolBar.updateCount(assetIdentifiers.count)
     }
 }
 
 // MARK: - PhotoDetailCollectionViewControllerDelegate
 extension PhotoPickerViewController: PhotoBrowserViewControllerDelegate {
     public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt indexPath: IndexPath) {
-        lastSelectedIndexPath = regenerate(indexPath: indexPath, for: false)
+        let itemFromBrowser = indexPath.item
+        let itemInPhotoPicker = containsCamera ? itemFromBrowser - 1 : itemFromBrowser
+        lastSelectedIndexPath = IndexPath(item: itemInPhotoPicker, section: 0)
     }
 
     public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, selectedAssets identifiers: [String]) {
@@ -659,18 +735,18 @@ extension PhotoPickerViewController: AlbumsTableViewControllerDelegate {
         switch AlbumsTableViewController.Section(rawValue: indexPath.section)! {
         case .allPhotos:
             fetchResult = allPhotos
-            customTitleView.title = L10n.allPhotos
+            topBar.setTitle(L10n.allPhotos)
         case .smartAlbums:
             let collection = smartAlbums[indexPath.row]
             fetchResult = PHAsset.fetchAssets(in: collection, options: nil)
-            customTitleView.title = collection.localizedTitle ?? ""
+            topBar.setTitle(collection.localizedTitle ?? "")
         case .userCollections:
             let collection: PHCollection = userCollections.object(at: indexPath.row)
             guard let assetCollection = collection as? PHAssetCollection else {
                 assertionFailure("Expected an asset collection.")
                 return
             }
-            customTitleView.title = collection.localizedTitle ?? ""
+            topBar.setTitle(collection.localizedTitle ?? "")
             if mediaOptions == .image {
                 let fetchOptions = PHFetchOptions()
                 fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue)
@@ -687,7 +763,12 @@ extension PhotoPickerViewController: AlbumsTableViewControllerDelegate {
 }
 
 // MARK: - Asset Caching
-extension PhotoPickerViewController {
+extension PhotoPickerViewController: UIScrollViewDelegate {
+    // MARK: UIScrollView
+    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+         updateCachedAssets()
+    }
+    
     fileprivate func resetCachedAssets() {
         imageManager.stopCachingImagesForAllAssets()
         previousPreheatRect = .zero
@@ -704,18 +785,17 @@ extension PhotoPickerViewController {
             return
         }
         // The preheat window is twice the height of the visible rect.
-        let visibleRect = CGRect(origin: collectionView!.contentOffset, size: collectionView!.bounds.size)
+        let visibleRect = CGRect(origin: collectionView.contentOffset, size: collectionView.bounds.size)
         let preheatRect = visibleRect.insetBy(dx: 0, dy: -0.5 * visibleRect.height)
 
         // Update only if the visible area is significantly different from the last preheated area.
         let delta = abs(preheatRect.midY - previousPreheatRect.midY)
         guard delta > view.bounds.height / 3 else { return }
-
         
         // Compute the assets to start caching and to stop caching.
         let (addedRects, removedRects) = differencesBetweenRects(previousPreheatRect, preheatRect)
         let addedAssets = addedRects
-            .flatMap { rect in collectionView!.indexPathsForElements(in: rect)}
+            .flatMap { rect in collectionView.indexPathsForElements(in: rect)}
             .compactMap { indexPath -> PHAsset? in
             if indexPath.item == 0 {
                 return nil
@@ -726,7 +806,7 @@ extension PhotoPickerViewController {
         }
                 
         let removedAssets = removedRects
-            .flatMap { rect in collectionView!.indexPathsForElements(in: rect) }
+            .flatMap { rect in collectionView.indexPathsForElements(in: rect) }
             .compactMap { indexPath -> PHAsset? in
                 if indexPath.item == 0 {
                     return nil
@@ -785,7 +865,6 @@ extension PhotoPickerViewController: PHPhotoLibraryChangeObserver {
             // Hang on to the new fetch result.
             self.willBatchUpdated = changes.hasIncrementalChanges
             fetchResult = changes.fetchResultAfterChanges
-            guard let collectionView = self.collectionView else { fatalError() }
             if changes.hasIncrementalChanges {
                 let bias = self.containsCamera ? 1 : 0
                 // If we have incremental diffs, animate them in the collection view.
@@ -803,7 +882,7 @@ extension PhotoPickerViewController: PHPhotoLibraryChangeObserver {
                         collectionView.reloadItems(at: changed.map({ IndexPath(item: $0 + bias, section: 0) }))
                     }
                     changes.enumerateMoves { fromIndex, toIndex in
-                        collectionView.moveItem(at: IndexPath(item: fromIndex, section: 0),
+                        self.collectionView.moveItem(at: IndexPath(item: fromIndex, section: 0),
                                                 to: IndexPath(item: toIndex, section: 0))
                     }
                 })

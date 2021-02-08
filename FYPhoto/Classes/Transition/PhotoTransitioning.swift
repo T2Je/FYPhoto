@@ -32,6 +32,8 @@ public protocol PhotoTransitioning {
 }
 
 extension PhotoTransitioning {
+    public func transitionWillStart() {}
+    public func transitionDidEnd() {}
     public func enablePhotoTransitionPush() -> Bool {
         true
     }

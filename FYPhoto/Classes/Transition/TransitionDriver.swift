@@ -7,10 +7,12 @@
 
 import Foundation
 
+typealias TransitionEssentialClosure = ((Int) -> PresentingVCTransitionEssential?)
+
 enum TransitionType {
     case photoTransitionProtocol(from: PhotoTransitioning, to: PhotoTransitioning)
-    case transitionBlock(block: (() -> UIImageView?))
-    case missingInfo // lack of transition info
+    case transitionBlock(essential: PresentingVCTransitionEssential)
+    case noTransitionAnimation // lack of transition info
 }
 
 protocol TransitionDriver {

@@ -97,6 +97,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             currentPhoto = photos[newValue.item]
             if currentDisplayedIndexPath != newValue {
                 delegate?.photoBrowser(self, scrollAt: newValue)
+                delegate?.photoBrowser(self, scrollAt: newValue.item)
             }
             if isForSelection {
                 updateAddBarItem(at: newValue)
@@ -382,12 +383,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }()
     
     func setupNavigationBar() {
-        self.navigationController?.navigationBar.tintColor = .white
-        let backItem = UIBarButtonItem(title: "",
-                                       style: .plain,
-                                       target: nil,
-                                       action: nil)
-        self.navigationController?.navigationBar.topItem?.backBarButtonItem = backItem
+//        self.navigationController?.navigationBar.tintColor = .white
+        self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: Asset.back.image, style: .plain, target: self, action: #selector(back))
+        
         if isForSelection {
             addPhotoBarItem = UIBarButtonItem(customView: addItemButton)
             self.navigationItem.rightBarButtonItem = addPhotoBarItem
@@ -516,6 +514,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         ])
         mainCollectionView.showsHorizontalScrollIndicator = false
     }
+    
     func hideCaptionView(_ flag: Bool, animated: Bool = true) {
         if flag { // hide
             let transition = CGAffineTransform(translationX: 0, y: captionView.bounds.height)
@@ -698,17 +697,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             back()
         }
     }
-    
-    func back() {
-        if let naviController = navigationController {
-            if naviController.isBeingPresented {
-                dismiss(animated: true, completion: nil)
-            } else {
-                navigationController?.popViewController(animated: true)
-            }
-        } else {
+        
+    @objc func back() {
+        if presentingViewController != nil {
             dismiss(animated: true, completion: nil)
+        } else {
+            navigationController?.popViewController(animated: true)
         }
+        
     }
     
     func updateBottomViewPlayButton(_ showPlay: Bool) {
@@ -1099,5 +1095,11 @@ extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
     func browserBottomToolViewDoneButtonClicked() {
         assert(!selectedPhotos.isEmpty, "photos shouldn't be empty")
         delegate?.photoBrowser(self, didCompleteSelected: selectedPhotos)
+    }
+}
+
+extension PhotoBrowserViewController: PhotoBrowserCurrentPage {
+    var currentPage: Int {
+        currentDisplayedIndexPath.item
     }
 }
