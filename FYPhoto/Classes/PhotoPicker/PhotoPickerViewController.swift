@@ -542,8 +542,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         let navi = UINavigationController(rootViewController: photoBrowser)
         navi.modalPresentationStyle = .fullScreen
         self.fyphoto.present(navi, animated: true, completion: nil) { [weak self] (page) -> PresentingVCTransitionEssential? in
-            return nil
-            print("current page: \(page)")
             guard let self = self else { return nil }
             let itemInPhotoPicker = self.containsCamera ? page - 1 : page
             let indexPath = IndexPath(item: itemInPhotoPicker, section: 0)
