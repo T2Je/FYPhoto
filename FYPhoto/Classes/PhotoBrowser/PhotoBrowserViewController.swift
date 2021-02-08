@@ -1094,7 +1094,8 @@ extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
     
     func browserBottomToolViewDoneButtonClicked() {
         assert(!selectedPhotos.isEmpty, "photos shouldn't be empty")
-        delegate?.photoBrowser(self, didCompleteSelected: selectedPhotos)
+        back()
+        delegate?.photoBrowser(self, didCompleteSelected: selectedPhotos)        
     }
 }
 

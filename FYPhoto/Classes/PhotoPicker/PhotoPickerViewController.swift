@@ -386,7 +386,9 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
 
     func back() {
-        self.dismiss(animated: true, completion: nil)
+        self.dismiss(animated: true, completion: {
+            print("photo picker dismissed")
+        })
     }
 
     // MARK: UICollectionView
@@ -910,8 +912,9 @@ extension PhotoPickerViewController: PhotoPickerBottomToolViewDelegate {
                 .buildBottomToolBar()
         }
         photoBrowser.delegate = self
-        self.navigationController?.delegate = nil
-        self.navigationController?.pushViewController(photoBrowser, animated: true)
+        let navi = UINavigationController(rootViewController: photoBrowser)
+//        navi.modalPresentationStyle= .fullScreen
+        self.present(navi, animated: true, completion: nil)
         self.previewVC = photoBrowser
     }
     

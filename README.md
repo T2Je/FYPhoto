@@ -41,4 +41,6 @@ FYPhoto is available under the MIT license. See the LICENSE file for more info.
 9. Long press to save photo ✅
 10. FYVideoPlayerViewController
 11. BarTintColor
-12. Quick completion for single selection on PhotoPicker
+12. Quick completion for single selection on PhotoPicker ✅
+13. Crop video
+14. Photo editor
