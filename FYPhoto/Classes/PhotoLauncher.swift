@@ -16,6 +16,11 @@ public protocol PhotoLauncherDelegate: class {
     func selectedVideoInPhotoLauncher(_ video: Result<SelectedVideo, Error>)
 }
 
+public extension PhotoLauncherDelegate {
+    func selectedPhotosInPhotoLauncher(_ photos: [SelectedImage]) {}
+    func selectedVideoInPhotoLauncher(_ video: Result<SelectedVideo, Error>) {}
+}
+
 /// A helper class to launch photo picker and camera.
 @objc public class PhotoLauncher: NSObject {
     public struct PhotoLauncherConfig {
@@ -132,18 +137,21 @@ public protocol PhotoLauncherDelegate: class {
     }
 
     func launchPhotoLibrary(in viewController: UIViewController, _ maximumNumberCanChoose: Int, mediaOptions: MediaOptions) {
-        let gridVC = PhotoPickerViewController(mediaTypes: mediaOptions)
-            .setMaximumPhotosCanBeSelected(maximumNumberCanChoose)
-            .setPickerWithCamera(false)
-        gridVC.selectedPhotos = { [weak self] images in
+        var configuration = FYPhotoPickerConfiguration()
+        configuration.selectionLimit = maximumNumberCanChoose
+        configuration.supportCamera = false
+        configuration.filterdMedia = mediaOptions
+        
+        let photoPicker = PhotoPickerViewController(configuration: configuration)
+        
+        photoPicker.selectedPhotos = { [weak self] images in
             self?.delegate?.selectedPhotosInPhotoLauncher(images)
         }
-        gridVC.selectedVideo = { [weak self] video in
+        photoPicker.selectedVideo = { [weak self] video in
             self?.delegate?.selectedVideoInPhotoLauncher(video)
         }
-        let navi = UINavigationController(rootViewController: gridVC)
-        navi.modalPresentationStyle = .fullScreen
-        viewController.present(navi, animated: true, completion: nil)
+        
+        viewController.present(photoPicker, animated: true, completion: nil)
     }
 
     @objc public func previousDeniedCaptureAuthorization() -> Bool {
