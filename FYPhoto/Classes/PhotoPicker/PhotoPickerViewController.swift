@@ -119,6 +119,10 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         configuration.filterdMedia
     }
     
+    fileprivate var isSingleSelection: Bool {
+        configuration.selectionLimit <= 1
+    }
+    
     private(set) var configuration: FYPhotoPickerConfiguration
         
     let collectionView: UICollectionView
@@ -454,10 +458,17 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                     }
                     cell.isVideoAsset = false
                 }
-                if let exsist = self.assetSelectionIdentifierCache.firstIndex(of: asset.localIdentifier) {
-                    cell.displayButtonTitle("\(exsist + 1)") // display selected asset order
+                if !self.isSingleSelection {
+                    if let exsist = self.assetSelectionIdentifierCache.firstIndex(of: asset.localIdentifier) {
+                        cell.displayButtonTitle("\(exsist + 1)") // display selected asset order
+                    } else {
+                        cell.displayButtonTitle("")
+                    }
+//                    // hide multiple usage views
+//                    cell.hideUselessViewsForSingleSelection(false)
                 } else {
-                    cell.displayButtonTitle("")
+                    // show icons
+                    cell.hideUselessViewsForSingleSelection(true)
                 }
                 
                 if self.reachedMaximum {
@@ -505,7 +516,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 if selectedAsset.mediaType == .video {
                     browseVideoIfValid(selectedAsset)
                 } else {
-                    browseImages(at: fixedIndexPath)
+                    didSelectImage(at: fixedIndexPath)
                 }
             }
         } else {
@@ -514,8 +525,27 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             if selectedAsset.mediaType == .video {
                 browseVideoIfValid(selectedAsset)
             } else {
-                browseImages(at: fixedIndexPath)
+                didSelectImage(at: fixedIndexPath)
             }
+        }
+    }
+    
+    func didSelectImage(at indexPath: IndexPath) {
+        if isSingleSelection {
+            completeSingleSelection(at: indexPath)
+        } else {
+            browseImages(at: indexPath)
+        }
+    }
+    // Single selection just return selected image without entering PhotoBrowser
+    func completeSingleSelection(at indexPath: IndexPath) {
+        guard let cell = collectionView.cellForItem(at: indexPath) as? GridViewCell,
+              let identifier = cell.representedAssetIdentifier
+        else { return }
+        
+        let assets = PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: nil)
+        if let first = assets.firstObject {
+            selectionCompleted(assets: [first], animated: true)
         }
     }
     

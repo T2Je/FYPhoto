@@ -167,4 +167,16 @@ class GridViewCell: UICollectionViewCell {
         }
     }
     
+    func hideUselessViewsForSingleSelection(_ isSingleSelection: Bool) {
+        if isSingleSelection {
+            selectionButton.isHidden = true
+            overlayView.isHidden = true
+            livePhotoBadgeImageView.isHidden = true
+        } else {
+            selectionButton.isHidden = false
+            overlayView.isHidden = false
+            livePhotoBadgeImageView.isHidden = false
+        }
+    }
+    
 }
