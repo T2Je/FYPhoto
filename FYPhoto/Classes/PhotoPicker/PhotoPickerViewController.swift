@@ -44,7 +44,11 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     /// Grid cell indexPath
     internal var lastSelectedIndexPath: IndexPath?
 
-    fileprivate let topBar = PhotoPickerTopBar()
+    fileprivate lazy var topBar: PhotoPickerTopBar = {
+        let bar = PhotoPickerTopBar(colorStyle: configuration.uiConfiguration.topBarColorStyle,
+                                    safeAreaInsetsTop: safeAreaInsets.top)
+        return bar
+    }()
 
     /// identify selected assets
     fileprivate var assetSelectionIdentifierCache = [String]() {
@@ -56,8 +60,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         }
     }
 
-    var safeAreaInsetsBottom: CGFloat {
-        return UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 0
+    var safeAreaInsets: UIEdgeInsets {
+        return UIApplication.shared.keyWindow?.safeAreaInsets ?? .zero
     }
     
     /// if true, unable to select more photos
@@ -69,7 +73,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
 
     fileprivate lazy var bottomToolBar: PhotoPickerBottomToolView = {
         let toolView = PhotoPickerBottomToolView(selectionLimit: maximumCanBeSelected,
-                                                 safeAreaInsetsBottom: safeAreaInsetsBottom)
+                                                 safeAreaInsetsBottom: safeAreaInsets.bottom)
         toolView.delegate = self
         return toolView
     }()
@@ -304,7 +308,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     
     func setupNavigationBar() {
         // custom titleview
-        topBar.backgroundColor = .white
         topBar.dismiss = { [weak self] in
             self?.back()
         }
@@ -335,9 +338,9 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         let safeArea = self.view.safeAreaLayoutGuide
         topBar.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            topBar.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            topBar.topAnchor.constraint(equalTo: view.topAnchor),
             topBar.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
-            topBar.heightAnchor.constraint(equalToConstant: 44),
+            topBar.heightAnchor.constraint(equalToConstant: safeAreaInsets.top + 44),
             topBar.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
         ])
         
@@ -350,7 +353,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         ])
         
         bottomToolBar.translatesAutoresizingMaskIntoConstraints = false
-        let height: CGFloat = safeAreaInsetsBottom + 45
+        let height: CGFloat = safeAreaInsets.bottom + 45
         NSLayoutConstraint.activate([
             bottomToolBar.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
             bottomToolBar.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),

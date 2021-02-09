@@ -19,17 +19,20 @@ class PhotoPickerTopBar: UIView {
         }
     }
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(colorStyle: FYUIConfiguration.BarColorSytle, safeAreaInsetsTop: CGFloat) {
+        super.init(frame: .zero)
+        backgroundColor = colorStyle.backgroundColor
+        cancelButton.backgroundColor = colorStyle.itemBackgroundColor
         cancelButton.setTitle(L10n.cancel, for: .normal)
-        cancelButton.setTitleColor(UIColor.systemBlue, for: .normal)
+        cancelButton.setTitleColor(colorStyle.itemTintColor, for: .normal)
         cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
         cancelButton.addTarget(self, action: #selector(cancelButtonClicked(_:)), for: .touchUpInside)
         
         addSubview(cancelButton)
         addSubview(titleView)
+        titleView.imageColor = colorStyle.itemTintColor
         
-        makeConstraints()
+        makeConstraints(safeAreaInsetsTop: safeAreaInsetsTop)
     }
     
     required init?(coder: NSCoder) {
@@ -40,16 +43,16 @@ class PhotoPickerTopBar: UIView {
         titleView.title = title
     }
     
-    fileprivate func makeConstraints() {
+    fileprivate func makeConstraints(safeAreaInsetsTop: CGFloat) {
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            cancelButton.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            cancelButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: safeAreaInsetsTop/2),
             cancelButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 15)
         ])
         
         titleView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            titleView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
+            titleView.centerYAnchor.constraint(equalTo: cancelButton.centerYAnchor),
             titleView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
             titleView.widthAnchor.constraint(equalToConstant: 100),
             titleView.heightAnchor.constraint(equalToConstant: 40)

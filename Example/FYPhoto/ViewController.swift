@@ -106,6 +106,10 @@ class ViewController: UIViewController {
         pickerConfig.compressedQuality = .AVAssetExportPreset640x480
         pickerConfig.supportCamera = false
         pickerConfig.filterdMedia = .image
+        let uiConfig = FYUIConfiguration()
+        uiConfig.topBarColorStyle = FYUIConfiguration.BarColorSytle(itemTintColor: .red,
+                                                                    itemBackgroundColor: .black, backgroundColor: .blue)
+        pickerConfig.uiConfiguration = uiConfig
         let photoPickerVC = PhotoPickerViewController(configuration: pickerConfig)
     
         photoPickerVC.selectedPhotos = { [weak self] images in
