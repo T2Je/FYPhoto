@@ -221,7 +221,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         }
         thumbnailSize = calculateThumbnailSize()
     }
-    
+
     func requestPhotoAuthority(_ completion: @escaping (_ isSuccess: Bool) -> Void) {
         let status = PHPhotoLibrary.authorizationStatus()
         switch status {
@@ -319,8 +319,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     func setupCollectionView() {
         collectionView.delegate = self
         collectionView.dataSource = self
-        collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: String(describing: GridViewCell.self))
-        collectionView.register(GridCameraCell.self, forCellWithReuseIdentifier: String(describing: GridCameraCell.self))
+        collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: GridViewCell.reuseIdentifier)
+        collectionView.register(GridCameraCell.self, forCellWithReuseIdentifier: GridCameraCell.reuseIdentifier)
     }
     
     func addSubViews() {
@@ -427,7 +427,12 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         // Request an image for the asset from the PHCachingImageManager.
         cell.representedAssetIdentifier = asset.localIdentifier
         
-        imageManager.requestImage(for: asset, targetSize: thumbnailSize, contentMode: .aspectFill, options: nil, resultHandler: { image, info in
+        let options = PHImageRequestOptions()
+        options.deliveryMode = .highQualityFormat
+        options.resizeMode = .fast
+        options.isNetworkAccessAllowed = true
+        options.isSynchronous = false
+        imageManager.requestImage(for: asset, targetSize: thumbnailSize, contentMode: .aspectFit, options: options, resultHandler: { image, info in
             // The cell may have been recycled by the time this handler gets called;
             // set the cell's thumbnail image only if it's still showing the same asset.
             if cell.representedAssetIdentifier == asset.localIdentifier {
@@ -469,17 +474,17 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if containsCamera {
             if indexPath.item == 0 {// camera
-                return collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridCameraCell.self), for: indexPath)
+                return collectionView.dequeueReusableCell(withReuseIdentifier: GridCameraCell.reuseIdentifier, for: indexPath)
             } else {
                 // Dequeue a GridViewCell.
-                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridViewCell.self), for: indexPath) as? GridViewCell {
+                if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GridViewCell.reuseIdentifier, for: indexPath) as? GridViewCell {
                     let asset = fetchResult.object(at: regenerate(indexPath: indexPath, if: containsCamera).item)
                     configureAssetCell(cell, asset: asset, at: indexPath)
                     return cell
                 }
             }
         } else {
-            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: String(describing: GridViewCell.self), for: indexPath) as? GridViewCell {
+            if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GridViewCell.reuseIdentifier, for: indexPath) as? GridViewCell {
                 let asset = fetchResult.object(at: regenerate(indexPath: indexPath, if: containsCamera).item)
                 configureAssetCell(cell, asset: asset, at: indexPath)
                 return cell

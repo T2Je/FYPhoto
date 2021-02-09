@@ -44,3 +44,4 @@ FYPhoto is available under the MIT license. See the LICENSE file for more info.
 12. Quick completion for single selection on PhotoPicker ✅
 13. Crop video
 14. Photo editor
+15. PhotoBrowser back callBack

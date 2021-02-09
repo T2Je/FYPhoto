@@ -8,6 +8,7 @@
 import UIKit
 
 class GridCameraCell: UICollectionViewCell {
+    static let reuseIdentifier = "GridCameraCell"
     let imageView = UIImageView()
         
     override init(frame: CGRect = .zero) {

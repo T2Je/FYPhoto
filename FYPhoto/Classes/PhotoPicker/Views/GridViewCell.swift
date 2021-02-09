@@ -14,7 +14,8 @@ protocol GridViewCellDelegate: class {
 }
 
 class GridViewCell: UICollectionViewCell {
-
+    static let reuseIdentifier = "GridViewCell"
+    
     var imageView = UIImageView()
     var livePhotoBadgeImageView = UIImageView()
     var videoDurationLabel = UILabel()
@@ -82,6 +83,7 @@ class GridViewCell: UICollectionViewCell {
     
     func setupUI() {
 //        contentView.backgroundColor = .white
+        contentView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         videoDurationLabel.font = UIFont.systemFont(ofSize: 11, weight: .light)
