@@ -469,10 +469,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                     } else {
                         cell.displayButtonTitle("")
                     }
-//                    // hide multiple usage views
-//                    cell.hideUselessViewsForSingleSelection(false)
                 } else {
-                    // show icons
+                    // hide multiple usage views
                     cell.hideUselessViewsForSingleSelection(true)
                 }
                 
@@ -725,8 +723,8 @@ extension PhotoPickerViewController: GridViewCellDelegate {
         } else {
             cell.displayButtonTitle("")
         }
-        collectionView.reloadData()
-        quickCompletionForSingleSelection()
+//        collectionView.reloadData()
+//        quickCompletionForSingleSelection()
     }
 
     func updateSelectedAssetIsVideo(with assetIdentifiers: [String]) {
