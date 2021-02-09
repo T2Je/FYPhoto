@@ -32,11 +32,13 @@ class PBSelectedPhotosThumbnailCell: UICollectionViewCell {
             }
         }
     }
+
+    var cellBorderColor: UIColor = UIColor.systemBlue
     
     var thumbnailIsSelected: Bool = false {
         willSet {
             if newValue {
-                contentView.layer.borderColor = UIColor(red: 0/255.0, green: 122/255.0, blue: 255/255.0, alpha: 1).cgColor
+                contentView.layer.borderColor = cellBorderColor.cgColor
                 contentView.layer.borderWidth = 2
             } else {
                 contentView.layer.borderColor = UIColor.clear.cgColor
@@ -47,6 +49,8 @@ class PBSelectedPhotosThumbnailCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        contentView.layer.cornerRadius = 4
+        contentView.layer.masksToBounds = true
         contentView.addSubview(imageView)
         imageView.frame = contentView.frame
         imageView.contentMode = .scaleAspectFill

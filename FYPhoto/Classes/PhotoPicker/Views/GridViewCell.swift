@@ -35,6 +35,9 @@ class GridViewCell: UICollectionViewCell {
         }
     }
 
+    var selectionButtonTitleColor = UIColor.white
+    var selectionButtonBackgroundColor = UIColor.systemBlue
+
     var livePhotoBadgeImage: UIImage! {
         didSet {
             livePhotoBadgeImageView.image = livePhotoBadgeImage
@@ -163,7 +166,8 @@ class GridViewCell: UICollectionViewCell {
         } else {
             selectionButton.setImage(nil, for: .normal)
             selectionButton.setTitle(title, for: .normal)
-            selectionButton.backgroundColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
+            selectionButton.setTitleColor(selectionButtonTitleColor, for: .normal)
+            selectionButton.backgroundColor = selectionButtonBackgroundColor
         }
     }
     

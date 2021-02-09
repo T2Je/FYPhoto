@@ -22,6 +22,9 @@ class PhotoPickerTopBar: UIView {
     init(colorStyle: FYUIConfiguration.BarColorSytle, safeAreaInsetsTop: CGFloat) {
         super.init(frame: .zero)
         backgroundColor = colorStyle.backgroundColor
+        cancelButton.layer.cornerRadius = 4
+        cancelButton.layer.masksToBounds = true
+        cancelButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         cancelButton.backgroundColor = colorStyle.itemBackgroundColor
         cancelButton.setTitle(L10n.cancel, for: .normal)
         cancelButton.setTitleColor(colorStyle.itemTintColor, for: .normal)
@@ -30,6 +33,7 @@ class PhotoPickerTopBar: UIView {
         
         addSubview(cancelButton)
         addSubview(titleView)
+        titleView.titleColor = colorStyle.itemTintColor
         titleView.imageColor = colorStyle.itemTintColor
         
         makeConstraints(safeAreaInsetsTop: safeAreaInsetsTop)

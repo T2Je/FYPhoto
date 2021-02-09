@@ -38,20 +38,39 @@ public struct FYPhotoPickerConfiguration {
     }
 }
 
+fileprivate extension UIColor {
+    static let fyBlueTintColor = UIColor(red: 24/255.0,
+                                       green: 135/255.0,
+                                       blue: 251/255.0,
+                                       alpha: 1)
+
+    static let fyItemDisableColor = UIColor(red: 167/255.0,
+                                            green: 171/255.0,
+                                            blue: 177/255.0,
+                                            alpha: 1)
+
+    static let fyGrayBackgroundColor = UIColor(red: 249/255.0,
+                                               green: 249/255.0,
+                                               blue: 249/255.0,
+                                               alpha: 1)
+}
 
 
 public class FYUIConfiguration {
     public class BarColorSytle {
 
         public let itemTintColor: UIColor
+        public let itemDisableColor: UIColor
         public let itemBackgroundColor: UIColor
         // bar backgroundColor
         public let backgroundColor: UIColor
 
         public init(itemTintColor: UIColor,
+                    itemDisableColor: UIColor,
                     itemBackgroundColor: UIColor,
                     backgroundColor: UIColor) {
             self.itemTintColor = itemTintColor
+            self.itemDisableColor = itemDisableColor
             self.itemBackgroundColor = itemBackgroundColor
             self.backgroundColor = backgroundColor
         }
@@ -59,33 +78,25 @@ public class FYUIConfiguration {
 
     public init() {}
 
-    public var topBarColorStyle = BarColorSytle(itemTintColor: UIColor(red: 24/255.0,
-                                                                green: 135/255.0,
-                                                                blue: 251/255.0,
-                                                                alpha: 1),
-                                         itemBackgroundColor: .white,
-                                         backgroundColor: .white)
+    public var selectionTitleColor: UIColor = .white
+    public var selectionBackgroudColor: UIColor = .fyBlueTintColor
+
+    public var topBarColorStyle =
+        BarColorSytle(itemTintColor: UIColor.fyBlueTintColor,
+                      itemDisableColor: .systemGray,
+                      itemBackgroundColor: .white,
+                      backgroundColor: .white)
 
 
     public var pickerBottomBarColorStyle =
-        BarColorSytle(itemTintColor: UIColor(red: 24/255.0,
-                                             green: 135/255.0,
-                                             blue: 251/255.0,
-                                             alpha: 1),
-                      itemBackgroundColor: UIColor(red: 249/255.0,
-                                                   green: 249/255.0,
-                                                   blue: 249/255.0,
-                                                   alpha: 1),
-                      backgroundColor: UIColor(red: 249/255.0,
-                                               green: 249/255.0,
-                                               blue: 249/255.0,
-                                               alpha: 1))
+        BarColorSytle(itemTintColor: UIColor.fyBlueTintColor,
+                      itemDisableColor: .fyItemDisableColor,
+                      itemBackgroundColor: .fyGrayBackgroundColor,
+                      backgroundColor: .fyGrayBackgroundColor)
 
     public var browserBottomBarColorStyle =
-        BarColorSytle(itemTintColor: UIColor(red: 24/255.0,
-                                             green: 135/255.0,
-                                             blue: 251/255.0,
-                                             alpha: 1),
+        BarColorSytle(itemTintColor: UIColor.fyBlueTintColor,
+                      itemDisableColor: .fyItemDisableColor,
                       itemBackgroundColor: .white,
                       backgroundColor: UIColor(white: 0.1, alpha: 0.9))
 }

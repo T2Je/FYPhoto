@@ -23,11 +23,13 @@ class PhotoBrowserBottomToolView: UIView {
     let playButton = UIButton()
     let doneButton = UIButton()
     private let safeAreaInsetsBottom: CGFloat
-    
-    init(_ frame: CGRect = .zero, safeAreaInsetsBottom: CGFloat = 0) {
+    private let colorStyle: FYUIConfiguration.BarColorSytle
+
+    init(colorStyle: FYUIConfiguration.BarColorSytle, safeAreaInsetsBottom: CGFloat = 0) {
+        self.colorStyle = colorStyle
         self.safeAreaInsetsBottom = safeAreaInsetsBottom
-        super.init(frame: frame)
-        backgroundColor = UIColor(white: 0.1, alpha: 0.9)
+        super.init(frame: .zero)
+        backgroundColor = colorStyle.backgroundColor
         self.layer.masksToBounds = true
         addPlayButton()
     }
@@ -66,21 +68,20 @@ class PhotoBrowserBottomToolView: UIView {
     
     func addDoneButton() {
         addSubview(doneButton)
-        doneButton.backgroundColor = UIColor(red: 249/255.0, green: 249/255.0, blue: 249/255.0, alpha: 1)
+        doneButton.backgroundColor = colorStyle.itemBackgroundColor
         doneButton.setTitle(L10n.done, for: .normal)
         doneButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
-        doneButton.setTitleColor(UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1), for: .normal)
-        doneButton.setTitleColor(UIColor(red: 123/255.0, green: 130/255.0, blue: 141/255.0, alpha: 1), for: .disabled)
+        doneButton.setTitleColor(colorStyle.itemTintColor, for: .normal)
+        doneButton.setTitleColor(colorStyle.itemDisableColor, for: .disabled)
         doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
         doneButton.isEnabled = false
-        doneButton.layer.cornerRadius = 5
+        doneButton.layer.cornerRadius = 4
         doneButton.layer.masksToBounds = true
+        doneButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         doneButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             doneButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -15),
             doneButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -(safeAreaInsetsBottom/2-5)),
-            doneButton.widthAnchor.constraint(equalToConstant: 75),
-            doneButton.heightAnchor.constraint(equalToConstant: 35)
         ])
     }
     

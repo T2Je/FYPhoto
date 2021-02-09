@@ -22,6 +22,11 @@ final class PhotoPickerBottomToolView: UIView {
     var count: Int = 0 {
         willSet {
             countLabel.text = "\(newValue)/\(selectionLimit)"
+            if newValue > 0 {
+                countLabel.textColor = previewButton.titleColor(for: .normal)
+            } else {
+                countLabel.textColor = previewButton.titleColor(for: .disabled)
+            }
             previewButton.isEnabled = newValue > 0
             doneButton.isEnabled = newValue > 0
         }
@@ -30,31 +35,39 @@ final class PhotoPickerBottomToolView: UIView {
     private let selectionLimit: Int
     private let safeAreaInsetsBottom: CGFloat
     
-    init(selectionLimit: Int, frame: CGRect = .zero, safeAreaInsetsBottom: CGFloat = 0) {
+    init(selectionLimit: Int, colorStyle: FYUIConfiguration.BarColorSytle, safeAreaInsetsBottom: CGFloat = 0) {
         self.selectionLimit = selectionLimit
         self.safeAreaInsetsBottom = safeAreaInsetsBottom
-        super.init(frame: frame)
-        backgroundColor = UIColor(red: 249/255.0, green: 249/255.0, blue: 249/255.0, alpha: 1)
+        super.init(frame: .zero)
+        backgroundColor = colorStyle.backgroundColor
         
         addSubview(previewButton)
         addSubview(countLabel)
         addSubview(doneButton)
         
         previewButton.setTitle(L10n.preview, for: .normal)
-        previewButton.setTitleColor(UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1), for: .normal)
-        previewButton.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .regular)
+        previewButton.layer.cornerRadius = 4
+        previewButton.layer.masksToBounds = true
+        previewButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        previewButton.backgroundColor = colorStyle.itemBackgroundColor
+        previewButton.setTitleColor(colorStyle.itemTintColor, for: .normal)
+        previewButton.titleLabel?.font = .systemFont(ofSize: 15, weight: .regular)
         previewButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
         previewButton.isEnabled = false
-        previewButton.setTitleColor(UIColor(red: 167/255.0, green: 171/255.0, blue: 177/255.0, alpha: 1), for: .disabled)
+        previewButton.setTitleColor(colorStyle.itemDisableColor, for: .disabled)
         
         doneButton.setTitle(L10n.done, for: .normal)
-        doneButton.setTitleColor(UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1), for: .normal)
+        doneButton.layer.cornerRadius = 4
+        doneButton.layer.masksToBounds = true
+        doneButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        doneButton.backgroundColor = colorStyle.itemBackgroundColor
+        doneButton.setTitleColor(colorStyle.itemTintColor, for: .normal)
         doneButton.titleLabel?.font = UIFont.systemFont(ofSize: 15, weight: .regular)
         doneButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
         doneButton.isEnabled = false
-        doneButton.setTitleColor(UIColor(red: 167/255.0, green: 171/255.0, blue: 177/255.0, alpha: 1), for: .disabled)
-        
-        countLabel.textColor = UIColor(red: 123/255.0, green: 130/255.0, blue: 141/255.0, alpha: 1)
+        doneButton.setTitleColor(colorStyle.itemDisableColor, for: .disabled)
+
+        countLabel.textColor = colorStyle.itemDisableColor
         countLabel.font = UIFont.systemFont(ofSize: 13, weight: .thin)
         countLabel.textAlignment = .right
         countLabel.text = "0/\(selectionLimit)"
