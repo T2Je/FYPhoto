@@ -89,7 +89,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     var willBatchUpdated: Bool = false
     
     /// photo picker get the right authority to access photos
-    var photosAuthorityPassed = false
+    var photosAuthorityPassed: Bool?
     
     fileprivate var containsCamera: Bool {
         configuration.supportCamera
@@ -189,7 +189,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
 
     deinit {
-        if photosAuthorityPassed {
+        if let isPassed = photosAuthorityPassed, isPassed {
             resetCachedAssets()
             PHPhotoLibrary.shared().unregisterChangeObserver(self)
         }
@@ -219,11 +219,13 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        guard photosAuthorityPassed else {
-            self.alertPhotosLibraryAuthorityError()
-            return
+        if let isPassed = photosAuthorityPassed {
+            if !isPassed {
+                self.alertPhotosLibraryAuthorityError()
+            } else {
+                thumbnailSize = calculateThumbnailSize()
+            }
         }
-        thumbnailSize = calculateThumbnailSize()
     }
 
     func requestPhotoAuthority(_ completion: @escaping (_ isSuccess: Bool) -> Void) {
@@ -398,7 +400,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     // MARK: UICollectionView
 
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        guard photosAuthorityPassed else { return 0 }
+        guard let isPassed = photosAuthorityPassed, isPassed else { return 0 }
         return containsCamera ? fetchResult.count + 1 : fetchResult.count
         // + 1, one cell for taking picture or video
     }
@@ -818,7 +820,7 @@ extension PhotoPickerViewController: UIScrollViewDelegate {
     }
 
     fileprivate func updateCachedAssets() {
-        guard photosAuthorityPassed else { return }
+        guard let isPassed = photosAuthorityPassed, isPassed else { return }
         // Update only if the view is visible.
         guard isViewLoaded && view.window != nil else { return }
         guard fetchResult.count > 0 else {
