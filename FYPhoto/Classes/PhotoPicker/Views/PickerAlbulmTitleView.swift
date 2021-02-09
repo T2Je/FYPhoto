@@ -30,6 +30,13 @@ class PickerAlbulmTitleView: UIView {
         }
     }
 
+    var imageColor: UIColor = .systemBlue {
+        didSet {
+            imageView.tintColor = imageColor
+            imageView.image = imageView.image?.withRenderingMode(.alwaysTemplate)
+        }
+    }
+
     fileprivate let titleLabel = UILabel()
     
     let imageView = UIImageView(image: Asset.albumArrow.image)

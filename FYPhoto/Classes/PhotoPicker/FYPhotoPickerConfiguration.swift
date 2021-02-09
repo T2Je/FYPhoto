@@ -30,9 +30,62 @@ public struct FYPhotoPickerConfiguration {
     public var moviePathExtension: String = "mp4"
         
     public var supportCamera: Bool = true
-//    public var navigationBarTintColor: UIColor
+
+    public var uiConfiguration = FYUIConfiguration()
     
     public init() {
         
     }
+}
+
+
+
+public class FYUIConfiguration {
+    public class BarColorSytle {
+
+        public let itemTintColor: UIColor
+        public let itemBackgroundColor: UIColor
+        // bar backgroundColor
+        public let backgroundColor: UIColor
+
+        public init(itemTintColor: UIColor,
+                    itemBackgroundColor: UIColor,
+                    backgroundColor: UIColor) {
+            self.itemTintColor = itemTintColor
+            self.itemBackgroundColor = itemBackgroundColor
+            self.backgroundColor = backgroundColor
+        }
+    }
+
+    public init() {}
+
+    public var topBarColorStyle = BarColorSytle(itemTintColor: UIColor(red: 24/255.0,
+                                                                green: 135/255.0,
+                                                                blue: 251/255.0,
+                                                                alpha: 1),
+                                         itemBackgroundColor: .white,
+                                         backgroundColor: .white)
+
+
+    public var pickerBottomBarColorStyle =
+        BarColorSytle(itemTintColor: UIColor(red: 24/255.0,
+                                             green: 135/255.0,
+                                             blue: 251/255.0,
+                                             alpha: 1),
+                      itemBackgroundColor: UIColor(red: 249/255.0,
+                                                   green: 249/255.0,
+                                                   blue: 249/255.0,
+                                                   alpha: 1),
+                      backgroundColor: UIColor(red: 249/255.0,
+                                               green: 249/255.0,
+                                               blue: 249/255.0,
+                                               alpha: 1))
+
+    public var browserBottomBarColorStyle =
+        BarColorSytle(itemTintColor: UIColor(red: 24/255.0,
+                                             green: 135/255.0,
+                                             blue: 251/255.0,
+                                             alpha: 1),
+                      itemBackgroundColor: .white,
+                      backgroundColor: UIColor(white: 0.1, alpha: 0.9))
 }
