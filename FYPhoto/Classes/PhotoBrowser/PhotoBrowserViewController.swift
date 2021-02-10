@@ -32,7 +32,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }()
     
     fileprivate lazy var bottomToolView: PhotoBrowserBottomToolView = {
-        let toolView = PhotoBrowserBottomToolView(safeAreaInsetsBottom: safeAreaInsetsBottom)
+        let toolView = PhotoBrowserBottomToolView(colorStyle: uiConfiguration.browserBottomBarColorStyle,
+                                                  safeAreaInsetsBottom: safeAreaInsetsBottom)
         toolView.delegate = self
         return toolView
     }()
@@ -222,6 +223,12 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     /// show delete button for photo browser
     var canDeleteWhenPreviewingSelectedPhotos = false
     var supportPageControl = false
+
+    public var uiConfiguration = FYUIConfiguration() {
+        didSet {
+            thumbnailsCollectionView.backgroundColor = uiConfiguration.browserBottomBarColorStyle.backgroundColor
+        }
+    }
     
     
     // MARK: - Function
@@ -378,12 +385,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         button.layer.cornerRadius = 15
         button.layer.masksToBounds = true
         button.addTarget(self, action: #selector(addPhotoBarItemClicked(_:)), for: .touchUpInside)
-        button.setTitleColor(UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1), for: .normal)
+        button.backgroundColor = uiConfiguration.topBarColorStyle.itemBackgroundColor
+        button.setTitleColor(uiConfiguration.topBarColorStyle.itemTintColor, for: .normal)
         return button
     }()
     
     func setupNavigationBar() {
-//        self.navigationController?.navigationBar.tintColor = .white
+        let config = uiConfiguration.topBarColorStyle
+        self.navigationController?.navigationBar.tintColor = config.itemTintColor
         self.navigationItem.leftBarButtonItem = UIBarButtonItem(image: Asset.back.image, style: .plain, target: self, action: #selector(back))
         
         if isForSelection {
@@ -446,14 +455,13 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         collectionView.isPagingEnabled = false
         collectionView.delegate = self
         collectionView.dataSource = self
-        collectionView.backgroundColor = UIColor.init(white: 0.1, alpha: 0.9)
+        collectionView.backgroundColor = uiConfiguration.browserBottomBarColorStyle.backgroundColor
         collectionView.contentInsetAdjustmentBehavior = .never
         return collectionView
     }()
         
     func addThumbnailCollectionView() {
         view.addSubview(thumbnailsCollectionView)
-        thumbnailsCollectionView.backgroundColor = UIColor(white: 0.1, alpha: 0.9)
         let safeAreaLayoutGuide = self.view.safeAreaLayoutGuide
         thumbnailsCollectionView.translatesAutoresizingMaskIntoConstraints = false
         if supportBottomToolBar {
@@ -573,6 +581,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         } else { // thumbnails
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PBSelectedPhotosThumbnailCell.reuseIdentifier,
                                                              for: indexPath) as? PBSelectedPhotosThumbnailCell {
+                cell.cellBorderColor = uiConfiguration.browserBottomBarColorStyle.itemTintColor
                 cell.photo = selectedPhotos[indexPath.item]
                 if let selectedIdx = selectedThumbnailIndexPath {
                     cell.thumbnailIsSelected = indexPath == selectedIdx

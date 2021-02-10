@@ -73,6 +73,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
 
     fileprivate lazy var bottomToolBar: PhotoPickerBottomToolView = {
         let toolView = PhotoPickerBottomToolView(selectionLimit: maximumCanBeSelected,
+                                                 colorStyle: configuration.uiConfiguration.pickerBottomBarColorStyle,
                                                  safeAreaInsetsBottom: safeAreaInsets.bottom)
         toolView.delegate = self
         return toolView
@@ -440,6 +441,9 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         
         // Request an image for the asset from the PHCachingImageManager.
         cell.representedAssetIdentifier = asset.localIdentifier
+
+        cell.selectionButtonBackgroundColor = configuration.uiConfiguration.selectionBackgroudColor
+        cell.selectionButtonTitleColor = configuration.uiConfiguration.selectionTitleColor
         
         let options = PHImageRequestOptions()
         options.deliveryMode = .highQualityFormat
@@ -578,7 +582,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 .buildNavigationBar()
                 .buildBottomToolBar()
         })
-
+        photoBrowser.uiConfiguration = configuration.uiConfiguration
         photoBrowser.delegate = self
         let navi = UINavigationController(rootViewController: photoBrowser)
         navi.modalPresentationStyle = .fullScreen
@@ -705,7 +709,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
     
     func launchCamera() {
-        let cameraVC = CameraViewController()
+        let cameraVC = CameraViewController(tintColor: configuration.uiConfiguration.topBarColorStyle.itemTintColor)
         cameraVC.captureMode = mediaOptions
         cameraVC.videoMaximumDuration = videoMaximumDuration ?? 15
         cameraVC.moviePathExtension = moviePathExtension

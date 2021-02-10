@@ -86,8 +86,11 @@ public class CameraViewController: UIViewController {
     public var captureDeviceIsAvailable: Bool {
         videoDeviceInput != nil
     }
+
+    private let tintColor: UIColor
     
-    public init() {
+    public init(tintColor: UIColor = .systemBlue) {
+        self.tintColor = tintColor
         super.init(nibName: nil, bundle: nil)
         initVideoDeviceDiscoverySession()
     }
@@ -100,7 +103,7 @@ public class CameraViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .black
 
-        cameraOverlayView = VideoCaptureOverlay(videoMaximumDuration: videoMaximumDuration)
+        cameraOverlayView = VideoCaptureOverlay(videoMaximumDuration: videoMaximumDuration, tintColor: tintColor)
 
         view.addSubview(previewView)
         view.addSubview(cameraOverlayView)

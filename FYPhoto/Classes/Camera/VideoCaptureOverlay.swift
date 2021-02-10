@@ -71,9 +71,10 @@ public class VideoCaptureOverlay: UIView {
     let tapGesture = UITapGestureRecognizer()
     let longPressGesture = UILongPressGestureRecognizer()
 
-    init(videoMaximumDuration: TimeInterval, frame: CGRect = .zero) {
+    init(videoMaximumDuration: TimeInterval, tintColor: UIColor) {
         self.videoMaximumDuration = videoMaximumDuration
-        super.init(frame: frame)
+        super.init(frame: .zero)
+        self.tintColor = tintColor
         addSubview(progressView)
         addSubview(rearFrontCameraButton)
         addSubview(dismissButton)
@@ -91,7 +92,7 @@ public class VideoCaptureOverlay: UIView {
 
     func setupViews() {
         progressView.outerRingColor = .white
-        progressView.innerRingColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
+        progressView.innerRingColor = self.tintColor
         progressView.style = .ontop
 //        progressView.isHidden = true
         progressView.minValue = 0
