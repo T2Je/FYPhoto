@@ -101,7 +101,11 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     
     // photo
     fileprivate var maximumCanBeSelected: Int {
-        configuration.selectionLimit
+        if configuration.selectionLimit == 0 {
+            return fetchResult.count
+        } else {
+            return configuration.selectionLimit
+        }
     }
     
     // video
@@ -123,8 +127,9 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         configuration.filterdMedia
     }
     
+    /// single selection has different interactions
     fileprivate var isSingleSelection: Bool {
-        configuration.selectionLimit <= 1
+        configuration.selectionLimit == 1
     }
     
     private(set) var configuration: FYPhotoPickerConfiguration
@@ -380,7 +385,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         guard !assets.isEmpty else {
             return
         }
-        
+         
         PhotoPickerResource.shared.fetchHighQualityImages(assets) { images in
             var selectedArr = [SelectedImage]()
             for index in 0..<images.count {
@@ -400,7 +405,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         })
     }
 
-    // MARK: UICollectionView
+    // MARK: UICollectionView Delegate
 
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         guard let isPassed = photosAuthorityPassed, isPassed else { return 0 }
@@ -514,32 +519,34 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 launchCamera()
             } else {
                 // due to the placeholder camera cell
-                let fixedIndexPath = regenerate(indexPath: indexPath, if: containsCamera)
-                let selectedAsset = fetchResult[fixedIndexPath.item]
+                let indexPathWithoutCamera = regenerate(indexPath: indexPath, if: containsCamera)
+                let selectedAsset = fetchResult[indexPathWithoutCamera.item]
                 if selectedAsset.mediaType == .video {
                     browseVideoIfValid(selectedAsset)
                 } else {
-                    didSelectImage(at: fixedIndexPath)
+                    if isSingleSelection {
+                        completeSingleSelection(at: indexPath)
+                    } else {
+                        browseImages(at: indexPathWithoutCamera)
+                    }
                 }
             }
         } else {
-            let fixedIndexPath = regenerate(indexPath: indexPath, if: containsCamera)
-            let selectedAsset = fetchResult[fixedIndexPath.item]
+            let indexPathWithoutCamera = regenerate(indexPath: indexPath, if: containsCamera)
+            let selectedAsset = fetchResult[indexPathWithoutCamera.item]
             if selectedAsset.mediaType == .video {
                 browseVideoIfValid(selectedAsset)
             } else {
-                didSelectImage(at: fixedIndexPath)
+                if isSingleSelection {
+                    completeSingleSelection(at: indexPath)
+                } else {
+                    browseImages(at: indexPathWithoutCamera)
+                }
             }
         }
     }
     
-    func didSelectImage(at indexPath: IndexPath) {
-        if isSingleSelection {
-            completeSingleSelection(at: indexPath)
-        } else {
-            browseImages(at: indexPath)
-        }
-    }
+    
     // Single selection just return selected image without entering PhotoBrowser
     func completeSingleSelection(at indexPath: IndexPath) {
         guard let cell = collectionView.cellForItem(at: indexPath) as? GridViewCell,
@@ -743,13 +750,7 @@ extension PhotoPickerViewController: GridViewCellDelegate {
     func updateSelectedAssetsCount(with assetIdentifiers: [String]) {
         bottomToolBar.updateCount(assetIdentifiers.count)
     }
-    
-    func quickCompletionForSingleSelection() {
-        guard maximumCanBeSelected == 1, assetSelectionIdentifierCache.count == 1 else {
-            return
-        }
-        selectionCompleted(assets: selectedAssets, animated: true)
-    }
+
 }
 
 // MARK: - PhotoDetailCollectionViewControllerDelegate

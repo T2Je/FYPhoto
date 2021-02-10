@@ -101,10 +101,10 @@ class ViewController: UIViewController {
 // MARK: - Button action
     @objc func photosViewButtonClicked(_ sender: UIButton) {
         var pickerConfig = FYPhotoPickerConfiguration()
-        pickerConfig.selectionLimit = 6
+        pickerConfig.selectionLimit = 0
         pickerConfig.maximumVideoMemorySize = 40
         pickerConfig.compressedQuality = .AVAssetExportPreset640x480
-        pickerConfig.supportCamera = false
+        pickerConfig.supportCamera = true
         pickerConfig.filterdMedia = .image
         let uiConfig = FYUIConfiguration()
         uiConfig.topBarColorStyle = FYUIConfiguration.BarColorSytle(itemTintColor: .red,
