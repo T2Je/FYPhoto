@@ -105,9 +105,9 @@ class ViewController: UIViewController {
         pickerConfig.maximumVideoMemorySize = 40
         pickerConfig.compressedQuality = .AVAssetExportPreset640x480
         pickerConfig.supportCamera = true
-        pickerConfig.filterdMedia = .image
+        pickerConfig.filterdMedia = .all
         let uiConfig = FYUIConfiguration()
-        uiConfig.topBarColorStyle = FYUIConfiguration.BarColorSytle(itemTintColor: .red,
+        uiConfig.topBarColorStyle = FYUIConfiguration.BarColorSytle(itemTintColor: .red, itemDisableColor: .gray,
                                                                     itemBackgroundColor: .black, backgroundColor: .blue)
         pickerConfig.uiConfiguration = uiConfig
         let photoPickerVC = PhotoPickerViewController(configuration: pickerConfig)

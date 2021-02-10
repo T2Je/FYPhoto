@@ -55,8 +55,9 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         willSet {
             updateSelectedAssetIsVideo(with: newValue)
             updateSelectedAssetsCount(with: newValue)
+            updateVisibleCells(with: newValue)
             reachedMaximum = newValue.count >= maximumCanBeSelected
-            collectionView.reloadData()
+//            collectionView.reloadData()
         }
     }
 
@@ -81,7 +82,13 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     
     var previewVC: PhotoBrowserViewController?
     
-    fileprivate var selectedAssetIsVideo: Bool? = nil
+    fileprivate var selectedAssetIsVideo: Bool? = nil {
+        willSet {
+            if newValue != selectedAssetIsVideo {
+                reloadVisibleVideoCellsState()
+            }
+        }
+    }
 
     internal private(set) var fetchResult: PHFetchResult<PHAsset>! {
         willSet {
@@ -721,6 +728,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
 
 extension PhotoPickerViewController: GridViewCellDelegate {
     func gridCell(_ cell: GridViewCell, buttonClickedAt indexPath: IndexPath, assetIdentifier: String) {
+        collectionView.reloadItems(at: [indexPath])
+        
         if let exsist = assetSelectionIdentifierCache.firstIndex(of: assetIdentifier) {
             assetSelectionIdentifierCache.remove(at: exsist)
         } else {
@@ -753,6 +762,17 @@ extension PhotoPickerViewController: GridViewCellDelegate {
     
     func updateSelectedAssetsCount(with assetIdentifiers: [String]) {
         bottomToolBar.updateCount(assetIdentifiers.count)
+    }
+    
+    // MARK: Reload Visible Cells
+    func updateVisibleCells(with identifiers: [String]) {
+        let visibleCellIndexPaths = collectionView.visibleCells.compactMap{ $0 as? GridViewCell }.compactMap { $0.indexPath }
+        collectionView.reloadItems(at: visibleCellIndexPaths)
+    }
+    
+    func reloadVisibleVideoCellsState() {
+        let visibleVideoCellIndexPaths = collectionView.visibleCells.compactMap{ $0 as? GridViewCell }.filter { $0.isVideoAsset }.compactMap { $0.indexPath }
+        collectionView.reloadItems(at: visibleVideoCellIndexPaths)
     }
 
 }
