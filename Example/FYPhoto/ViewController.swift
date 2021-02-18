@@ -109,15 +109,15 @@ class ViewController: UIViewController {
         pickerConfig.mediaFilter = .all
         let colorConfig = FYColorConfiguration()
         colorConfig.topBarColor = FYColorConfiguration.BarColor(itemTintColor: .red, itemDisableColor: .gray, itemBackgroundColor: .black, backgroundColor: .blue)
-//        let uiConfig = FYUIConfiguration()
-//        uiConfig.topBarColorStyle = FYUIConfiguration.BarColorSytle(itemTintColor: .red, itemDisableColor: .gray,
-//                                                                    itemBackgroundColor: .black, backgroundColor: .blue)
-//        pickerConfig.uiConfiguration = uiConfig
+
         pickerConfig.colorConfiguration = colorConfig
         let photoPickerVC = PhotoPickerViewController(configuration: pickerConfig)
     
         photoPickerVC.selectedPhotos = { [weak self] images in
             print("selected \(images.count) photos: \(images)")
+            let photos = images.map { Photo.photoWithUIImage($0.image) }
+            let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: 0)
+            self?.fyphoto.present(photoBrowser, animated: true, completion: nil)
         }
         photoPickerVC.selectedVideo = { [weak self] video in
             print("selected video: \(video)")

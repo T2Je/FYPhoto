@@ -14,7 +14,6 @@ public struct FYPhotoPickerConfiguration {
     /// Setting `selectionLimit` to 0 means maximum supported by the system.
     public var selectionLimit: Int = 1
     
-    
     @available(swift, deprecated: 1.2.0, message: "use mediaFilter instead")
     public var filterdMedia: MediaOptions = .all
     
