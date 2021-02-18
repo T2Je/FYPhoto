@@ -85,8 +85,6 @@ class GridViewCell: UICollectionViewCell {
     }
     
     func setupUI() {
-//        contentView.backgroundColor = .white
-        contentView.clipsToBounds = true
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         videoDurationLabel.font = UIFont.systemFont(ofSize: 11, weight: .light)
@@ -135,8 +133,8 @@ class GridViewCell: UICollectionViewCell {
         NSLayoutConstraint.activate([
             selectionButton.topAnchor.constraint(equalTo: topAnchor, constant: 7),
             selectionButton.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -7),
-            selectionButton.widthAnchor.constraint(equalToConstant: 32),
-            selectionButton.heightAnchor.constraint(equalToConstant: 32)
+            selectionButton.widthAnchor.constraint(equalToConstant: 34),
+            selectionButton.heightAnchor.constraint(equalToConstant: 34)
         ])
 
         NSLayoutConstraint.activate([
