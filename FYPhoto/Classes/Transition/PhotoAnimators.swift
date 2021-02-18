@@ -14,17 +14,19 @@ class PhotoHideShowAnimator: NSObject, UIViewControllerAnimatedTransitioning {
     let isPresenting: Bool
     let isNavigationAnimation: Bool
     let transitionEssential: TransitionEssentialClosure?
+    let completion: (() -> Void)?
     
-    init(isPresenting: Bool, isNavigationAnimation: Bool, transitionEssential: TransitionEssentialClosure?) {
+    init(isPresenting: Bool, isNavigationAnimation: Bool, transitionEssential: TransitionEssentialClosure?, completion: (() -> Void)?) {
         self.isPresenting = isPresenting
         self.isNavigationAnimation = isNavigationAnimation
         self.transitionEssential = transitionEssential
+        self.completion = completion
         super.init()
     }
 
     func transitionDuration(using transitionContext: UIViewControllerContextTransitioning?) -> TimeInterval {
         if isPresenting {
-            return 0.58
+            return 0.48
         } else {
             return 0.38
         }
@@ -40,6 +42,7 @@ class PhotoHideShowAnimator: NSObject, UIViewControllerAnimatedTransitioning {
 
     func animationEnded(_ transitionCompleted: Bool) {
         transitionDriver = nil
+        completion?()
     }
 }
 

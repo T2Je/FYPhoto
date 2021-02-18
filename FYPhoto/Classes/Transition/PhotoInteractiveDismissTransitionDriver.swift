@@ -85,6 +85,15 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
             currentPage = photoBrowser.currentPage
         }
         
+        if isNavigationDismiss, let toView = toView {
+            containerView.addSubview(toView)
+            // Ensure the toView has the correct size and position
+            if let toVC = toViewController {
+                toView.frame = context.finalFrame(for: toVC)
+            }
+        }
+        
+        // transitionImageView should be the top view of containerView
         // setup transition type, transition image view
         transitionImageView.image = fromAssetTransitioning?.referenceImage()
         transitionImageView.frame = fromAssetTransitioning?.imageFrame() ?? containerView.frame
@@ -111,14 +120,6 @@ class PhotoInteractiveDismissTransitionDriver: TransitionDriver {
         let topView = fromView
         let topViewTargetAlpha: CGFloat = 0.0
 
-        if isNavigationDismiss, let toView = toView {
-            containerView.insertSubview(toView, at: 0)
-            // Ensure the toView has the correct size and position
-            if let toVC = toViewController {
-                toView.frame = context.finalFrame(for: toVC)
-            }
-        }
-    
         // Create a UIViewPropertyAnimator that lives the lifetime of the transition
         let spring = CGFloat(0.95)
         transitionAnimator = UIViewPropertyAnimator(duration: 0.38, dampingRatio: spring) {

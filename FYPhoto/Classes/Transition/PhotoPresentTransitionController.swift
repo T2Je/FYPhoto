@@ -44,7 +44,7 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
     }
     
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        let animator = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: false, transitionEssential: transitionEssential)
+        let animator = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: false, transitionEssential: transitionEssential, completion: nil)
         normalAnimator = animator
         return animator
     }
@@ -60,26 +60,23 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
                 self?.interactiveAnimator = nil
                 self?.isInteractive = false
                 if !isCancelled {
-                    self?.completeInteractiveDismiss(isNavi)
+                    self?.completePresentationTransition()
                 }
             })
             self.interactiveAnimator = interactiveAnimator
             animator = interactiveAnimator
         } else {
-            animator = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: false, transitionEssential: transitionEssential)
+            animator = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: false, transitionEssential: transitionEssential, completion: { [weak self] in
+                self?.completePresentationTransition()
+            })
             normalAnimator = animator            
         }
         
         return animator
     }
 
-    func completeInteractiveDismiss(_ isNavi: Bool) {
-        self.isInteractive = false
-        if isNavi {
-            UIViewController.TransitionHolder.clearNaviTransition()
-        } else {
-            UIViewController.TransitionHolder.clearViewControllerTransition()
-        }
+    func completePresentationTransition() {
+        UIViewController.TransitionHolder.clearViewControllerTransition()
         viewController?.view.removeGestureRecognizer(panGesture)
     }
 }

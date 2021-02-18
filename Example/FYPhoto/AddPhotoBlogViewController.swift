@@ -205,7 +205,8 @@ import FGBase
     @objc func backBarButton(_ sender: UIButton) {
         self.view.endEditing(true)
         guard !textView.text.isEmpty || !selectedImageArray.isEmpty else {
-            self.dismiss(animated: true, completion: nil)
+//            self.dismiss(animated: true, completion: nil)
+            self.navigationController?.popViewController(animated: true)
             return
         }
         let alert = UIAlertController(
@@ -213,7 +214,8 @@ import FGBase
             message: NSLocalizedString("DoQuitFromAddPhotoBlog", comment: ""),
             preferredStyle: .alert)
         let doneAction = UIAlertAction(title: NSLocalizedString("Done", comment: ""), style: .default, handler: { _ in
-            self.dismiss(animated: true, completion: nil)
+//            self.dismiss(animated: true, completion: nil)
+            self.navigationController?.popViewController(animated: true)
         })
         alert.addAction(doneAction)
 
@@ -392,7 +394,8 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
 //                }
 //                return cell.imageView
 //            }
-            self.fyphoto.present(photoBrowser, animated: true, completion: nil)
+            navigationController?.fyphoto.push(photoBrowser, animated: true)
+//            self.fyphoto.present(photoBrowser, animated: true, completion: nil)
 //            self.navigationController?.fyphoto.push(photoBrowser, animated: true)
 //            self.navigationController?.pushViewController(photoBrowser, animated: true)
         }

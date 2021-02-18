@@ -63,9 +63,8 @@ class PhotoTransitionDriver: TransitionDriver {
         else {
             return
         }
-        if isPresenting {
-            self.toView = context.view(forKey: .to)
-        } else {
+        self.toView = context.view(forKey: .to)
+        if !isPresenting {
             self.fromView = context.view(forKey: .from)
         }
         
@@ -95,6 +94,14 @@ class PhotoTransitionDriver: TransitionDriver {
             }
         }
         
+        if let toView = self.toView {
+            toView.alpha = 0.0
+            containerView.addSubview(toView)
+            // Ensure the toView has the correct size and position
+            // toView.frame = context.finalFrame(for: toViewController)
+        }
+        
+        // transitionImageView should be the top view of containerView
         if let fromTransition = fromAssetTransitioning, let toTransition = toViewController as? PhotoTransitioning {
             transitionType = .photoTransitionProtocol(from: fromTransition, to: toTransition)
             if isPresenting {
@@ -152,13 +159,6 @@ class PhotoTransitionDriver: TransitionDriver {
                 topViewTargetAlpha = 0.0
             }
         }
-        
-        if let toView = self.toView {
-            toView.alpha = 0.0
-            containerView.addSubview(toView)
-            // Ensure the toView has the correct size and position
-            // toView.frame = context.finalFrame(for: toViewController)
-        }
 
         // Create a UIViewPropertyAnimator that lives the lifetime of the transition
         let spring = CGFloat(0.85)
@@ -176,10 +176,13 @@ class PhotoTransitionDriver: TransitionDriver {
                 case .noTransitionAnimation:
                     self.animateTransitionImageViewForPresenting(false)
                 default:
-                    self.visualEffectView.effect = nil
+//                    self.visualEffectView.effect = nil
                     self.animateTransitionImageViewForPresenting(false)
                 }
-                topView?.alpha = topViewTargetAlpha
+                topView?.alpha = topViewTargetAlpha // topView is fromView
+                if self.isNavigationAnimation {
+                    self.toView?.alpha = 1
+                }
             }
         }
         
@@ -188,6 +191,9 @@ class PhotoTransitionDriver: TransitionDriver {
         transitionAnimator.addCompletion { _ in
             if self.isPresenting {
                 topView?.alpha = topViewTargetAlpha
+            }
+            if self.isNavigationAnimation {
+                self.toView?.alpha = 1
             }
             
             // Finish the protocol handshake
@@ -249,7 +255,6 @@ class PhotoTransitionDriver: TransitionDriver {
                     self.transitionImageView.frame = .zero
                 }
             }
-            break
         }
     }
     

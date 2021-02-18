@@ -79,11 +79,11 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
             if fromVC is PhotoTransitioning {
                 if let transitionToVC = toVC as? PhotoTransitioning {
                     if transitionToVC.enablePhotoTransitionPush() {
-                        result = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: true, transitionEssential: nil)
+                        result = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: true, transitionEssential: nil, completion: nil)
                     }
                 }
             } else {
-                result = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: true, transitionEssential: self.transitionEssential)
+                result = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: true, transitionEssential: self.transitionEssential, completion: nil)
             }
         } else {
             if toVC is PhotoTransitioning {
@@ -94,12 +94,15 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
                                                               isNavigationDismiss: true,
                                                               transitionEssential: nil,
                                                               completion: { [weak self] (isCancelled, isNavigation) in
+                                                                self?.initiallyInteractive = false
                                                                 if !isCancelled {
-                                                                    self?.completeInteractiveDismiss(isNavigation)
+                                                                    self?.completePopTransition()
                                                                 }
                             })
                         } else {
-                            result = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: true, transitionEssential: nil)
+                            result = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: true, transitionEssential: nil, completion: { [weak self] in
+                                self?.completePopTransition()
+                            })
                         }
                     }
                 }
@@ -109,12 +112,15 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
                                                       isNavigationDismiss: true,
                                                       transitionEssential: transitionEssential,
                                                       completion: { [weak self] (isCancelled, isNavigation) in
+                                                        self?.initiallyInteractive = false
                                                         if !isCancelled {
-                                                            self?.completeInteractiveDismiss(isNavigation)
+                                                            self?.completePopTransition()
                                                         }                        
                     })
                 } else {
-                    result = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: true, transitionEssential: transitionEssential)
+                    result = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: true, transitionEssential: transitionEssential, completion: { [weak self] in
+                        self?.completePopTransition()
+                    })
                 }
             }
         }
@@ -132,12 +138,10 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
         return currentAnimationTransition as? UIViewControllerInteractiveTransitioning
     }
     
-    func completeInteractiveDismiss(_ isNavi: Bool) {
-        if isNavi {
-            UIViewController.TransitionHolder.clearNaviTransition()
-        } else {
-            UIViewController.TransitionHolder.clearViewControllerTransition()
-        }
+    func completePopTransition() {
+        UIViewController.TransitionHolder.clearViewControllerTransition()
         navigationController?.view.removeGestureRecognizer(panGesture)
+        navigationController?.delegate = nil
     }
+    
 }
