@@ -23,9 +23,9 @@ class PhotoBrowserBottomToolView: UIView {
     let playButton = UIButton()
     let doneButton = UIButton()
     private let safeAreaInsetsBottom: CGFloat
-    private let colorStyle: FYUIConfiguration.BarColorSytle
+    private let colorStyle: FYColorConfiguration.BarColor
 
-    init(colorStyle: FYUIConfiguration.BarColorSytle, safeAreaInsetsBottom: CGFloat = 0) {
+    init(colorStyle: FYColorConfiguration.BarColor, safeAreaInsetsBottom: CGFloat = 0) {
         self.colorStyle = colorStyle
         self.safeAreaInsetsBottom = safeAreaInsetsBottom
         super.init(frame: .zero)

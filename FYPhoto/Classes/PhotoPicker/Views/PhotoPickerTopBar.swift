@@ -19,7 +19,7 @@ class PhotoPickerTopBar: UIView {
         }
     }
     
-    init(colorStyle: FYUIConfiguration.BarColorSytle, safeAreaInsetsTop: CGFloat) {
+    init(colorStyle: FYColorConfiguration.BarColor, safeAreaInsetsTop: CGFloat) {
         super.init(frame: .zero)
         backgroundColor = colorStyle.backgroundColor
         cancelButton.layer.cornerRadius = 4

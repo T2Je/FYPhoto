@@ -951,23 +951,23 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
     }
     
     func getVideoSize(with assetTrack: AVAssetTrack) -> CGSize {
-        var videoAssetOrientation = UIImage.Orientation.up
+//        var videoAssetOrientation = UIImage.Orientation.up
         var isVideoAssetPortrait = false
         let videoTransform = assetTrack.preferredTransform
 
         if videoTransform.a == 0 && videoTransform.b == 1.0 && videoTransform.c == -1.0 && videoTransform.d == 0 {
-            videoAssetOrientation = .right
+//            videoAssetOrientation = .right
             isVideoAssetPortrait = true
         }
         if videoTransform.a == 0 && videoTransform.b == -1.0 && videoTransform.c == 1.0 && videoTransform.d == 0 {
-            videoAssetOrientation = .left
+//            videoAssetOrientation = .left
             isVideoAssetPortrait = true
         }
         if videoTransform.a == 1.0 && videoTransform.b == 0 && videoTransform.c == 0 && videoTransform.d == 1.0 {
-            videoAssetOrientation = .up
+//            videoAssetOrientation = .up
         }
         if videoTransform.a == -1.0 && videoTransform.b == 0 && videoTransform.c == 0 && videoTransform.d == -1.0 {
-            videoAssetOrientation = .down
+//            videoAssetOrientation = .down
         }
 
         let videoSize: CGSize

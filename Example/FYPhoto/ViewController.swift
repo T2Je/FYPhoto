@@ -107,10 +107,13 @@ class ViewController: UIViewController {
         pickerConfig.supportCamera = true
 //        pickerConfig.filterdMedia = .all
         pickerConfig.mediaFilter = .all
-        let uiConfig = FYUIConfiguration()
-        uiConfig.topBarColorStyle = FYUIConfiguration.BarColorSytle(itemTintColor: .red, itemDisableColor: .gray,
-                                                                    itemBackgroundColor: .black, backgroundColor: .blue)
-        pickerConfig.uiConfiguration = uiConfig
+        let colorConfig = FYColorConfiguration()
+        colorConfig.topBarColor = FYColorConfiguration.BarColor(itemTintColor: .red, itemDisableColor: .gray, itemBackgroundColor: .black, backgroundColor: .blue)
+//        let uiConfig = FYUIConfiguration()
+//        uiConfig.topBarColorStyle = FYUIConfiguration.BarColorSytle(itemTintColor: .red, itemDisableColor: .gray,
+//                                                                    itemBackgroundColor: .black, backgroundColor: .blue)
+//        pickerConfig.uiConfiguration = uiConfig
+        pickerConfig.colorConfiguration = colorConfig
         let photoPickerVC = PhotoPickerViewController(configuration: pickerConfig)
     
         photoPickerVC.selectedPhotos = { [weak self] images in

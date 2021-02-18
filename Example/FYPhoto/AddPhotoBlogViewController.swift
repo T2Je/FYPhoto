@@ -498,6 +498,6 @@ extension AddPhotoBlogViewController: PhotoTransitioning {
             return nil
         }
         return cell.convert(cell.bounds, to: self.view)
-        return collectionView.convert(cell.frame, to: self.view)
+//        return collectionView.convert(cell.frame, to: self.view)
     }
 }

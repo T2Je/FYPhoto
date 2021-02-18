@@ -140,7 +140,8 @@ public extension PhotoLauncherDelegate {
         var configuration = FYPhotoPickerConfiguration()
         configuration.selectionLimit = maximumNumberCanChoose
         configuration.supportCamera = false
-        configuration.filterdMedia = mediaOptions
+//        configuration.filterdMedia = mediaOptions
+        configuration.mediaFilter = mediaOptions
         
         let photoPicker = PhotoPickerViewController(configuration: configuration)
         

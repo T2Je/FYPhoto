@@ -32,34 +32,21 @@ public struct FYPhotoPickerConfiguration {
     
     /// Captured movie path extension
     public var moviePathExtension: String = "mp4"
-        
+    
+    /// whether first cell is camera cell or not
     public var supportCamera: Bool = true
 
+    @available(swift, deprecated: 1.2.0, message: "custom color with colorConfiguration")
     public var uiConfiguration = FYUIConfiguration()
+    
+    public var colorConfiguration = FYColorConfiguration()
     
     public init() {
         
     }
 }
 
-fileprivate extension UIColor {
-    static let fyBlueTintColor = UIColor(red: 24/255.0,
-                                       green: 135/255.0,
-                                       blue: 251/255.0,
-                                       alpha: 1)
-
-    static let fyItemDisableColor = UIColor(red: 167/255.0,
-                                            green: 171/255.0,
-                                            blue: 177/255.0,
-                                            alpha: 1)
-
-    static let fyGrayBackgroundColor = UIColor(red: 249/255.0,
-                                               green: 249/255.0,
-                                               blue: 249/255.0,
-                                               alpha: 1)
-}
-
-
+@available(swift, deprecated: 1.2.0, message: "Use FYColorConfiguration instead")
 public class FYUIConfiguration {
     public class BarColorSytle {
 

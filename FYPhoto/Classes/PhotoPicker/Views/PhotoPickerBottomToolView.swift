@@ -35,7 +35,7 @@ final class PhotoPickerBottomToolView: UIView {
     private let selectionLimit: Int
     private let safeAreaInsetsBottom: CGFloat
     
-    init(selectionLimit: Int, colorStyle: FYUIConfiguration.BarColorSytle, safeAreaInsetsBottom: CGFloat = 0) {
+    init(selectionLimit: Int, colorStyle: FYColorConfiguration.BarColor, safeAreaInsetsBottom: CGFloat = 0) {
         self.selectionLimit = selectionLimit
         self.safeAreaInsetsBottom = safeAreaInsetsBottom
         super.init(frame: .zero)
