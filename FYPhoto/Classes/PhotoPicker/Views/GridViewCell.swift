@@ -156,17 +156,41 @@ class GridViewCell: UICollectionViewCell {
 
     /// change button style: image or number
     /// - Parameter title: if title is empty, button display cirle image, otherwise, button display number string.
-    func displayButtonTitle(_ title: String) {
+    fileprivate func displayButtonTitle(_ title: String) {
         if title.isEmpty {
             selectionButton.setImage(Asset.imageSelectedSmallOff.image, for: .normal)
             selectionButton.setTitle(title, for: .normal)
             selectionButton.backgroundColor = .clear
+            selectionButton.transform = CGAffineTransform(scaleX: 1, y: 1)
         } else {
             selectionButton.setImage(nil, for: .normal)
             selectionButton.setTitle(title, for: .normal)
             selectionButton.setTitleColor(selectionButtonTitleColor, for: .normal)
             selectionButton.backgroundColor = selectionButtonBackgroundColor
+            selectionButton.transform = CGAffineTransform(scaleX: 0.7, y: 0.7)
         }
+    }
+    
+    func updateSelectionButtonTitle(_ title: String, _ isAnimated: Bool) {
+        let isSelected = !title.isEmpty
+        displayButtonTitle(title)
+        if isAnimated {
+            selectionButtonAnimation(isSelected: isSelected)
+        }
+    }
+    
+    func selectionButtonAnimation(isSelected: Bool) {
+        let animationValues: [CGFloat]
+        if isSelected {
+            animationValues = [1.0, 0.7, 0.9, 0.8, 0.7]
+        } else {
+            animationValues = [1.2, 0.8, 1.1, 0.9, 1.0]
+        }
+        selectionButton.layer.removeAnimation(forKey: "selectionButtonAnimation")
+        let keyAnimation = CAKeyframeAnimation.init(keyPath: "transform.scale")
+        keyAnimation.duration = 0.3
+        keyAnimation.values = animationValues
+        selectionButton.layer.add(keyAnimation, forKey: "selectionButtonAnimation")
     }
     
     func hideUselessViewsForSingleSelection(_ isSingleSelection: Bool) {

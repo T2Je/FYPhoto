@@ -52,11 +52,11 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
 
     /// identify selected assets
     fileprivate var assetSelectionIdentifierCache = [String]() {
-        willSet {
-            updateSelectedAssetIsVideo(with: newValue)
-            updateSelectedAssetsCount(with: newValue)
-            updateVisibleCells(with: newValue)
-            reachedMaximum = newValue.count >= maximumCanBeSelected
+        didSet {
+            updateSelectedAssetIsVideo(with: assetSelectionIdentifierCache)
+            updateSelectedAssetsCount(with: assetSelectionIdentifierCache)
+            updateVisibleCells(with: assetSelectionIdentifierCache)
+            reachedMaximum = assetSelectionIdentifierCache.count >= maximumCanBeSelected
 //            collectionView.reloadData()
         }
     }
@@ -462,43 +462,47 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             // set the cell's thumbnail image only if it's still showing the same asset.
             if cell.representedAssetIdentifier == asset.localIdentifier {
                 cell.thumbnailImage = image
-                if asset.mediaType == .video {
-                    cell.videoDuration = PhotoPickerResource.shared.time(of: asset.duration)
-                    if let isVideo = self.selectedAssetIsVideo {
-                        cell.isEnable = isVideo
-                    } else {
-                        cell.isEnable = true
-                    }
-                    cell.isVideoAsset = true
-                } else {
-                    cell.videoDuration = ""
-                    if let isVideo = self.selectedAssetIsVideo {
-                        cell.isEnable = !isVideo
-                    } else {
-                        cell.isEnable = true
-                    }
-                    cell.isVideoAsset = false
-                }
-                if !self.isSingleSelection {
-                    if let exsist = self.assetSelectionIdentifierCache.firstIndex(of: asset.localIdentifier) {
-                        cell.displayButtonTitle("\(exsist + 1)") // display selected asset order
-                    } else {
-                        cell.displayButtonTitle("")
-                    }
-                } else {
-                    // hide multiple usage views
-                    cell.hideUselessViewsForSingleSelection(true)
-                }
-                
-                if self.reachedMaximum {
-                    if self.assetSelectionIdentifierCache.contains(asset.localIdentifier) {
-                        cell.isEnable = true
-                    } else {
-                        cell.isEnable = false
-                    }
-                }
+                self.setupCell(cell, asset: asset)
             }
         })
+    }
+    
+    func setupCell(_ cell: GridViewCell, asset: PHAsset) {
+        if asset.mediaType == .video {
+            cell.videoDuration = PhotoPickerResource.shared.time(of: asset.duration)
+            if let isVideo = self.selectedAssetIsVideo {
+                cell.isEnable = isVideo
+            } else {
+                cell.isEnable = true
+            }
+            cell.isVideoAsset = true
+        } else {
+            cell.videoDuration = ""
+            if let isVideo = self.selectedAssetIsVideo {
+                cell.isEnable = !isVideo
+            } else {
+                cell.isEnable = true
+            }
+            cell.isVideoAsset = false
+        }
+        if !self.isSingleSelection {
+            if let exsist = self.assetSelectionIdentifierCache.firstIndex(of: asset.localIdentifier) {
+                cell.updateSelectionButtonTitle("\(exsist + 1)", false) // display selected asset order
+            } else {
+                cell.updateSelectionButtonTitle("", false)
+            }
+        } else {
+            // hide multiple usage views
+            cell.hideUselessViewsForSingleSelection(true)
+        }
+        
+        if self.reachedMaximum {
+            if self.assetSelectionIdentifierCache.contains(asset.localIdentifier) {
+                cell.isEnable = true
+            } else {
+                cell.isEnable = false
+            }
+        }
     }
     
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -739,12 +743,10 @@ extension PhotoPickerViewController: GridViewCellDelegate {
         // update cell selection button
         if let added = assetSelectionIdentifierCache.firstIndex(of: assetIdentifier) {
             // button display the order number of selected photos
-            cell.displayButtonTitle("\(added + 1)")
+            cell.updateSelectionButtonTitle("\(added + 1)", false)
         } else {
-            cell.displayButtonTitle("")
+            cell.updateSelectionButtonTitle("", false)
         }
-//        collectionView.reloadData()
-//        quickCompletionForSingleSelection()
     }
 
     func updateSelectedAssetIsVideo(with assetIdentifiers: [String]) {
@@ -766,8 +768,18 @@ extension PhotoPickerViewController: GridViewCellDelegate {
     
     // MARK: Reload Visible Cells
     func updateVisibleCells(with identifiers: [String]) {
-        let visibleCellIndexPaths = collectionView.visibleCells.compactMap{ $0 as? GridViewCell }.compactMap { $0.indexPath }
-        collectionView.reloadItems(at: visibleCellIndexPaths)
+        let cells = collectionView.visibleCells.compactMap{ $0 as? GridViewCell }.filter { $0.indexPath != nil }
+        for cell in cells {
+            let asset = fetchResult.object(at: regenerate(indexPath: cell.indexPath!, if: containsCamera).item)
+            setupCell(cell, asset: asset)
+//            if let exsist = self.assetSelectionIdentifierCache.firstIndex(of: asset.localIdentifier) {
+//                cell.updateSelectionButtonTitle("\(exsist + 1)", false)
+//            } else {
+//                cell.updateSelectionButtonTitle("", false)
+//            }
+        }
+//        let visibleCellIndexPaths = collectionView.visibleCells.compactMap{ $0 as? GridViewCell }.compactMap { $0.indexPath }
+//        collectionView.reloadItems(at: visibleCellIndexPaths)
     }
     
     func reloadVisibleVideoCellsState() {
