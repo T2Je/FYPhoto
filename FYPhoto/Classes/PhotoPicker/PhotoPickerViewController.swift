@@ -740,13 +740,13 @@ extension PhotoPickerViewController: GridViewCellDelegate {
             assetSelectionIdentifierCache.append(assetIdentifier)
         }
 
-        // update cell selection button
-        if let added = assetSelectionIdentifierCache.firstIndex(of: assetIdentifier) {
-            // button display the order number of selected photos
-            cell.updateSelectionButtonTitle("\(added + 1)", false)
-        } else {
-            cell.updateSelectionButtonTitle("", false)
-        }
+//        // update cell selection button
+//        if let added = assetSelectionIdentifierCache.firstIndex(of: assetIdentifier) {
+//            // button display the order number of selected photos
+//            cell.updateSelectionButtonTitle("\(added + 1)", false)
+//        } else {
+//            cell.updateSelectionButtonTitle("", false)
+//        }
     }
 
     func updateSelectedAssetIsVideo(with assetIdentifiers: [String]) {

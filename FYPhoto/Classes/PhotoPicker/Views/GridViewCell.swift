@@ -20,7 +20,7 @@ class GridViewCell: UICollectionViewCell {
     var livePhotoBadgeImageView = UIImageView()
     var videoDurationLabel = UILabel()
 
-    var selectionButton = UIButton()
+    var selectionButton = SelectionButton()
     var overlayView = UIView()
 
     var representedAssetIdentifier: String!
