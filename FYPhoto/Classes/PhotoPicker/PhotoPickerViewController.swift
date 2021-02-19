@@ -33,7 +33,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     // call back for photo, video selections
     public var selectedPhotos: (([SelectedImage]) -> Void)?
     public var selectedVideo: ((Result<SelectedVideo, Error>) -> Void)?
-        
+    
     var allPhotos: PHFetchResult<PHAsset>!
     var smartAlbums: [PHAssetCollection]!
     var userCollections: PHFetchResult<PHCollection>!
@@ -241,6 +241,18 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 self.alertPhotosLibraryAuthorityError()
             } else {
                 thumbnailSize = calculateThumbnailSize()
+                alertLimitedStatus()
+            }
+        }
+    }
+    
+    func alertLimitedStatus() {
+        if #available(iOS 14, *) {
+            if PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited {
+                let bundleName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") ?? ""
+                let message = Bundle.main.object(forInfoDictionaryKey: "NSPhotoLibraryUsageDescription") as? String
+                let title = "\(bundleName)" + L10n.accessPhotoLibraryTitle
+                PhotosAuthority.presentLimitedLibraryPicker(title: title, message: message, from: self)
             }
         }
     }
@@ -278,14 +290,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         userCollections = PhotoPickerResource.shared.userCollection()
         
         fetchResult = allPhotos
-        if #available(iOS 14, *) {
-            if PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited {
-                let bundleName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") ?? ""
-                let message = Bundle.main.object(forInfoDictionaryKey: "NSPhotoLibraryUsageDescription") as? String
-                let title = "\(bundleName)" + L10n.accessPhotoLibraryTitle
-                PhotosAuthority.presentLimitedLibraryPicker(title: title, message: message, from: self)
-            }
-        }
     }
 
     func alertPhotosLibraryAuthorityError() {
