@@ -772,14 +772,7 @@ extension PhotoPickerViewController: GridViewCellDelegate {
         for cell in cells {
             let asset = fetchResult.object(at: regenerate(indexPath: cell.indexPath!, if: containsCamera).item)
             setupCell(cell, asset: asset)
-//            if let exsist = self.assetSelectionIdentifierCache.firstIndex(of: asset.localIdentifier) {
-//                cell.updateSelectionButtonTitle("\(exsist + 1)", false)
-//            } else {
-//                cell.updateSelectionButtonTitle("", false)
-//            }
         }
-//        let visibleCellIndexPaths = collectionView.visibleCells.compactMap{ $0 as? GridViewCell }.compactMap { $0.indexPath }
-//        collectionView.reloadItems(at: visibleCellIndexPaths)
     }
     
     func reloadVisibleVideoCellsState() {
