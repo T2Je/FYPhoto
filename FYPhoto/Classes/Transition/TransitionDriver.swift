@@ -7,11 +7,11 @@
 
 import Foundation
 
-typealias TransitionEssentialClosure = ((Int) -> PresentingVCTransitionEssential?)
+typealias TransitionEssentialClosure = ((Int) -> TransitionEssential?)
 
 enum TransitionType {
     case photoTransitionProtocol(from: PhotoTransitioning, to: PhotoTransitioning)
-    case transitionBlock(essential: PresentingVCTransitionEssential)
+    case transitionBlock(essential: TransitionEssential)
     case noTransitionAnimation // lack of transition info
 }
 

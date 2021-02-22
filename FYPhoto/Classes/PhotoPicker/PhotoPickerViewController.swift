@@ -601,7 +601,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         photoBrowser.delegate = self
         let navi = UINavigationController(rootViewController: photoBrowser)
         navi.modalPresentationStyle = .fullScreen
-        self.fyphoto.present(navi, animated: true, completion: nil) { [weak self] (page) -> PresentingVCTransitionEssential? in
+        self.fyphoto.present(navi, animated: true, completion: nil) { [weak self] (page) -> TransitionEssential? in
             guard let self = self else { return nil }
             let itemInPhotoPicker = self.containsCamera ? page + 1 : page
             let indexPath = IndexPath(item: itemInPhotoPicker, section: 0)
@@ -611,7 +611,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             }
             let rect = cell.convert(cell.bounds, to: self.view)
             
-            return PresentingVCTransitionEssential(transitionImage: cell.imageView.image, convertedFrame: rect)
+            return TransitionEssential(transitionImage: cell.imageView.image, convertedFrame: rect)
         }
 //        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
     }
