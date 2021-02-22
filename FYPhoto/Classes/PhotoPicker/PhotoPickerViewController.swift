@@ -413,7 +413,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
 
     func back() {
         self.dismiss(animated: true, completion: {
-            print("photo picker dismissed")
+//            print("photo picker dismissed")
         })
     }
 
