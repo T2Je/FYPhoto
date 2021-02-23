@@ -39,6 +39,9 @@ public class RangeSlider: UIControl {
     var previousLocation: CGPoint = .zero
     
     let handleWidth: CGFloat = 13
+    lazy var gapBetweenHandle: Double = {
+        return 0.6 * Double(handleWidth) * (maximumValue - minimumValue) / Double(bounds.width)
+    }()
     
     let leftHandleLayer = CAShapeLayer()
     let rightHandleLayer = CAShapeLayer()
@@ -69,18 +72,24 @@ public class RangeSlider: UIControl {
         let leftCenter = positionForValue(leftHandleValue)
         let rightCenter = positionForValue(rightHandleValue)
         
-        let leftFrame = CGRect(x: leftCenter - handleWidth/2.0, y: 0, width: handleWidth, height: 50)
-//        let leftFrame = CGRect(x: 128, y: 0, width: 12, height: 50)
+        let leftFrame = CGRect(x: leftCenter - handleWidth/2.0, y: 5, width: handleWidth, height: 50)
+                                    
+        let rightFrame = CGRect(x: rightCenter - handleWidth/2.0, y: 5, width: handleWidth, height: 50)
+        
+        
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        
         drawHandle(leftHandleLayer, withFrame: leftFrame)
-                            
-        let rightFrame = CGRect(x: rightCenter - handleWidth/2.0, y: 0, width: handleWidth, height: 50)
         drawHandle(rightHandleLayer, withFrame: rightFrame)
-        print("left frame : \(leftHandleLayer.frame)")
-//        print("right frame : \(rightHandleLayer.frame)")
+        CATransaction.commit()
+        
     }
     
     func drawHandle(_ handle: CAShapeLayer, withFrame layerFrame: CGRect) {
+        
         handle.frame = layerFrame
+        
         let handleFrame = handle.bounds.insetBy(dx: 2.0, dy: 2.0) // should use bounds
         let cornerRadius = handleFrame.height * 0.5
 
@@ -92,7 +101,6 @@ public class RangeSlider: UIControl {
     
     public override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
         previousLocation = touch.location(in: self)
-        print("touch location: \(previousLocation)")
         if leftHandleLayer.frame.contains(previousLocation) {
             leftHandleIsSelected = true
             return true
@@ -108,17 +116,15 @@ public class RangeSlider: UIControl {
         let location = touch.location(in: self)
         
         let deltaLocation = Double(location.x - previousLocation.x)
-        let deltaValue = (maximumValue - minimumValue) * deltaLocation / Double(bounds.width - handleWidth*2)
-        print("delta location = \(deltaLocation)")
+        let deltaValue = deltaLocation * (maximumValue - minimumValue) / Double(bounds.width - handleWidth)
         
         previousLocation = location
         
         if leftHandleIsSelected {
-            leftHandleValue = boundValue(leftHandleValue + deltaValue, toLower: minimumValue, upperValue: rightHandleValue - Double(handleWidth))
+            leftHandleValue = boundValue(leftHandleValue + deltaValue, toLower: minimumValue, upperValue: rightHandleValue - gapBetweenHandle)
         } else {
-            rightHandleValue = boundValue(rightHandleValue + deltaValue, toLower: leftHandleValue + Double(handleWidth), upperValue: maximumValue)
+            rightHandleValue = boundValue(rightHandleValue + deltaValue, toLower: leftHandleValue + gapBetweenHandle, upperValue: maximumValue)
         }
-        print("delta value: \(deltaValue)")
 
         sendActions(for: .valueChanged)
         return true
@@ -136,9 +142,5 @@ public class RangeSlider: UIControl {
     
     func boundValue(_ value: Double, toLower lowerValue: Double, upperValue: Double) -> Double {
         return min(upperValue, max(value, lowerValue))
-    }
-    
-    var gapBetweenThumbs: Double {
-        return 0.6 * Double(handleWidth) * (maximumValue - minimumValue) / Double(bounds.width)
     }
 }
