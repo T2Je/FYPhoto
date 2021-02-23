@@ -59,8 +59,8 @@ public class VideoTrimmerViewController: UIViewController {
         confirmButton.setTitleColor(.white, for: .normal)
         confirmButton.addTarget(self, action: #selector(confirmButtonClicked(_:)), for: .touchUpInside)
         
-        pauseButton.setImage(Asset.icons8Pause.image, for: .normal)
-        pauseButton.tintColor = .white
+        pauseButton.setImage(Asset.icons8Pause.image.withRenderingMode(.alwaysTemplate), for: .normal)
+        pauseButton.tintColor = .white        
         pauseButton.addTarget(self, action: #selector(pauseButtonClicked(_:)), for: .touchUpInside)
         
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
