@@ -115,12 +115,16 @@ class ViewController: UIViewController {
     
         photoPickerVC.selectedPhotos = { [weak self] images in
             print("selected \(images.count) photos: \(images)")
-            let photos = images.map { Photo.photoWithUIImage($0.image) }
-            let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: 0)
-            self?.fyphoto.present(photoBrowser, animated: true, completion: nil)
+            self?.presentSelectedPhotos(images)
         }
-        photoPickerVC.selectedVideo = { [weak self] video in
-            print("selected video: \(video)")
+        
+        photoPickerVC.selectedVideo = { [weak self] selectedResult in
+            switch selectedResult {
+            case .success(let video):
+                self?.presentSelectedVideo(video.url)
+            case .failure(let error):
+                print("selected video error: \(error)")
+            }
         }
         photoPickerVC.modalPresentationStyle = .fullScreen
         self.present(photoPickerVC, animated: true, completion: nil)
@@ -194,6 +198,21 @@ class ViewController: UIViewController {
 
     @objc func launchCustomCamera(_ sender: UIButton) {
         photoLanucher.launchCamera(in: self, captureMode: [.image, .video])
+    }
+    
+    // MARK: PRESENT SELECTED
+    func presentSelectedPhotos(_ images: [SelectedImage]) {
+        let photos = images.map { Photo.photoWithUIImage($0.image) }
+        let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: 0)
+        self.fyphoto.present(photoBrowser, animated: true, completion: nil)
+    }
+    
+    func presentSelectedVideo(_ url: URL) {
+        let avasset = AVAsset(url: url)
+        let videoTrimmer = VideoTrimmerViewController(asset: avasset)
+        videoTrimmer.modalPresentationStyle = .fullScreen
+        videoTrimmer.delegate = self
+        self.present(videoTrimmer, animated: true, completion: nil)
     }
 
 }
@@ -406,5 +425,15 @@ extension ViewController: CameraViewControllerDelegate {
             
         }
         return WatermarkImage(image: renderedImage, frame: CGRect(x: 15, y: view.frame.size.height - 15, width: waterMarkSize.width, height: waterMarkSize.height))
+    }
+}
+
+extension ViewController: VideoTrimmerViewControllerDelegate {
+    func videoTrimmerDidCancel(_ videoTrimmer: VideoTrimmerViewController) {
+        videoTrimmer.dismiss(animated: true, completion: nil)
+    }
+    
+    func videoTrimmer(_ videoTrimmer: VideoTrimmerViewController, didFinishTrimingAt url: URL) {
+        print("trimmed video url: \(url)")
     }
 }

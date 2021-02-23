@@ -298,14 +298,14 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                                       preferredStyle: UIAlertController.Style.alert)
         let action = UIAlertAction(title: L10n.goToSettings, style: .default) { _ in
             guard let url = URL(string: UIApplication.openSettingsURLString) else {
-                self.back()
+                self.back(animated: true)
                 return
             }
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
-            self.back()
+            self.back(animated: true)
         }
         let cancel = UIAlertAction(title: L10n.cancel, style: .cancel) { _ in
-            self.back()
+            self.back(animated: true)
         }
         alert.addAction(action)
         alert.addAction(cancel)
@@ -328,7 +328,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     func setupNavigationBar() {
         // custom titleview
         topBar.dismiss = { [weak self] in
-            self?.back()
+            self?.back(animated: true)
         }
         topBar.albulmTitleTapped = { [weak self] in
             guard let self = self else { return }
@@ -406,14 +406,15 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 selectedArr.append(SelectedImage(asset: asset, image: image))
             }
             
-            self.back()
-            self.selectedPhotos?(selectedArr)
+            self.back(animated: true) {
+                self.selectedPhotos?(selectedArr)
+            }
         }
     }
 
-    func back() {
-        self.dismiss(animated: true, completion: {
-//            print("photo picker dismissed")
+    func back(animated: Bool, _ completion: (() -> Void)? = nil) {
+        self.dismiss(animated: animated, completion: {
+            completion?()
         })
     }
 
@@ -648,17 +649,20 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 let selectedVideo = SelectedVideo(url: url)
                 selectedVideo.briefImage = thumbnailImage
                 
-                self.back()
-                self.selectedVideo?(.success(selectedVideo))
+                self.back(animated: false) {
+                    self.selectedVideo?(.success(selectedVideo))
+                }
             } else {
-                self.compressVideo(url: url, asset: asset) { (result) in
+                self.compressVideo(url: url, asset: asset) { [weak self] (result) in
+                    guard let self = self else { return }
                     switch result {
                     case .success(let url):
-                        self.back()
                         let thumbnailImage = asset.getThumbnailImageSynchorously()
                         let selectedVideo = SelectedVideo(url: url)
                         selectedVideo.briefImage = thumbnailImage
-                        self.selectedVideo?(.success(selectedVideo))
+                        self.back(animated: false) {
+                            self.selectedVideo?(.success(selectedVideo))
+                        }
                     case .failure(let error):
                         self.selectedVideo?(.failure(error))
                     }
