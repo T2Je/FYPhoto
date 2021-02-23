@@ -301,6 +301,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         setupNavigationBar()
         setupBottomToolBar()
         addSubviews()
+        
         self.view.bringSubviewToFront(bottomToolView)
     }
 

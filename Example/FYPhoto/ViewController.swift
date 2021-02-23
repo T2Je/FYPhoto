@@ -96,6 +96,13 @@ class ViewController: UIViewController {
 //        imageController.sourceType = .camera
 //        imageController.cameraCaptureMode = .photo
 //        print("available media types: \(UIImagePickerController.availableMediaTypes(for: .camera))")
+        testRangeSlider()
+    }
+    
+    func testRangeSlider() {
+        print("viewController frame: \(view.frame)")
+        let rangeSlider = RangeSlider(frame: CGRect(x: 5, y: 100, width: 200, height: 60))
+        self.view.addSubview(rangeSlider)
     }
     
 // MARK: - Button action
