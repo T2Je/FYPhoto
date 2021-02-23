@@ -152,6 +152,20 @@ class VideoTrimmerToolView: UIView {
             highValue?(rangeSlider.rightHandleValue)
         }
     }
+        
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+        let view = super.hitTest(point, with: event)
+        if view == rangeSlider {
+            // frame scrollView handles hit if rangeSlider left or right handle doesn't contain the touch point.
+            if rangeSlider.isTouchingHandles(at: point) {
+                return rangeSlider
+            } else {
+                return frameScrollView
+            }
+        } else {
+            return view
+        }
+    }
 }
 
 extension VideoTrimmerToolView {

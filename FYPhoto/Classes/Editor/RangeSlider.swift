@@ -93,6 +93,10 @@ class RangeSlider: UIControl {
         handle.path = handlePath.cgPath
     }
     
+    func isTouchingHandles(at point: CGPoint) -> Bool {
+        return leftHandleLayer.frame.contains(point) || rightHandleLayer.frame.contains(point)
+    }
+    
     //  MARK: TOUCH EVENT
     override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
         previousLocation = touch.location(in: self)
