@@ -7,7 +7,7 @@
 
 import UIKit
 
-public class RangeSlider: UIControl {
+class RangeSlider: UIControl {
 
     var leftHandleIsSelected: Bool = false
     var rightHandleIsSelected: Bool = false
@@ -39,14 +39,13 @@ public class RangeSlider: UIControl {
     var previousLocation: CGPoint = .zero
     
     let handleWidth: CGFloat = 13
-    lazy var gapBetweenHandle: Double = {
-        return 0.6 * Double(handleWidth) * (maximumValue - minimumValue) / Double(bounds.width)
-    }()
+    
+    lazy var gapBetweenHandle: Double = 0.6 * Double(handleWidth) * (maximumValue - minimumValue) / Double(bounds.width)
     
     let leftHandleLayer = CAShapeLayer()
     let rightHandleLayer = CAShapeLayer()
     
-    public override init(frame: CGRect) {
+    override init(frame: CGRect = .zero) {
         super.init(frame: frame)
         self.backgroundColor = .systemBlue
         initSublayers()
@@ -56,7 +55,7 @@ public class RangeSlider: UIControl {
         fatalError("init(coder:) has not been implemented")
     }
     
-    public override func layoutSubviews() {
+    override func layoutSubviews() {
         super.layoutSubviews()
         updateLayerFrames()
     }
@@ -73,21 +72,16 @@ public class RangeSlider: UIControl {
         let rightCenter = positionForValue(rightHandleValue)
         
         let leftFrame = CGRect(x: leftCenter - handleWidth/2.0, y: 5, width: handleWidth, height: 50)
-                                    
         let rightFrame = CGRect(x: rightCenter - handleWidth/2.0, y: 5, width: handleWidth, height: 50)
-        
-        
+                
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        
         drawHandle(leftHandleLayer, withFrame: leftFrame)
         drawHandle(rightHandleLayer, withFrame: rightFrame)
         CATransaction.commit()
-        
     }
     
     func drawHandle(_ handle: CAShapeLayer, withFrame layerFrame: CGRect) {
-        
         handle.frame = layerFrame
         
         let handleFrame = handle.bounds.insetBy(dx: 2.0, dy: 2.0) // should use bounds
@@ -99,7 +93,8 @@ public class RangeSlider: UIControl {
         handle.path = handlePath.cgPath
     }
     
-    public override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+    //  MARK: TOUCH EVENT
+    override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
         previousLocation = touch.location(in: self)
         if leftHandleLayer.frame.contains(previousLocation) {
             leftHandleIsSelected = true
@@ -112,7 +107,7 @@ public class RangeSlider: UIControl {
         }
     }
     
-    public override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
+    override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
         let location = touch.location(in: self)
         
         let deltaLocation = Double(location.x - previousLocation.x)
@@ -130,12 +125,12 @@ public class RangeSlider: UIControl {
         return true
     }
     
-    public override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
+    override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
         leftHandleIsSelected = false
         rightHandleIsSelected = false
     }
     
-    // Calculation
+    // MARK: Calculation
     func positionForValue(_ value: Double) -> CGFloat {
         return (bounds.size.width - handleWidth) * CGFloat(value - minimumValue) / CGFloat(maximumValue - minimumValue) + (handleWidth / 2)
     }
