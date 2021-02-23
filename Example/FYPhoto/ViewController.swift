@@ -102,7 +102,8 @@ class ViewController: UIViewController {
     @objc func photosViewButtonClicked(_ sender: UIButton) {
         var pickerConfig = FYPhotoPickerConfiguration()
         pickerConfig.selectionLimit = 0
-        pickerConfig.maximumVideoMemorySize = 40
+        pickerConfig.maximumVideoMemorySize = 100 // 40
+        pickerConfig.maximumVideoDuration = 60
         pickerConfig.compressedQuality = .AVAssetExportPreset640x480
         pickerConfig.supportCamera = true
 //        pickerConfig.filterdMedia = .all

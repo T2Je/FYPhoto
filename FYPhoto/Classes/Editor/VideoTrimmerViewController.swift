@@ -45,6 +45,7 @@ public class VideoTrimmerViewController: UIViewController {
         
         setupTrimmerToolView()
         setupButtonButtons()
+        createImageFrames()
         // Do any additional setup after loading the view.
     }
     
@@ -107,6 +108,44 @@ public class VideoTrimmerViewController: UIViewController {
             trimmerToolView.heightAnchor.constraint(equalToConstant: 80)
         ])
     }
+    
+    func createImageFrames() {
+        //creating assets
+        let assetImgGenerate : AVAssetImageGenerator    = AVAssetImageGenerator(asset: asset)
+        assetImgGenerate.appliesPreferredTrackTransform = true
+        assetImgGenerate.requestedTimeToleranceAfter    = CMTime.zero;
+        assetImgGenerate.requestedTimeToleranceBefore   = CMTime.zero;
+        
+        
+        assetImgGenerate.appliesPreferredTrackTransform = true
+        let thumbTime: CMTime = asset.duration
+        let thumbtimeSeconds = Int(CMTimeGetSeconds(thumbTime))
+        let maxLength = "\(thumbtimeSeconds)" as NSString
+
+        let numberOfFrames = 10
+        let thumbAvg = thumbtimeSeconds/numberOfFrames
+        var startTime = 1
+        
+        var frames: [UIImage] = []
+        
+        //loop for numberOfFrames number of frames
+        for _ in 0...numberOfFrames
+        {
+            do {
+                let time:CMTime = CMTimeMakeWithSeconds(Float64(startTime),preferredTimescale: Int32(maxLength.length))
+                let img = try assetImgGenerate.copyCGImage(at: time, actualTime: nil)
+                let image = UIImage(cgImage: img)
+                frames.append(image)
+            } catch {
+                print("Image generation failed with error: \(error)")
+            }
+                        
+            startTime = startTime + thumbAvg
+        }
+        
+        trimmerToolView.videoFrames = frames
+    }
+    
     // MARK: BUTTON FUNCTIONS
     @objc func cancelButtonClicked(_ sender: UIButton) {
         delegate?.videoTrimmerDidCancel(self)

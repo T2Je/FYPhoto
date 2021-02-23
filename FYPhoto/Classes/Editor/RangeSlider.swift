@@ -9,8 +9,8 @@ import UIKit
 
 class RangeSlider: UIControl {
 
-    var leftHandleIsSelected: Bool = false
-    var rightHandleIsSelected: Bool = false
+    var isLeftHandleSelected: Bool = false
+    var isRightHandleSelected: Bool = false
     
     var minimumValue: Double = 0.0 {
         willSet(newValue) {
@@ -47,7 +47,7 @@ class RangeSlider: UIControl {
     
     override init(frame: CGRect = .zero) {
         super.init(frame: frame)
-        self.backgroundColor = .systemBlue
+        self.backgroundColor = .clear
         initSublayers()
     }
     
@@ -97,10 +97,10 @@ class RangeSlider: UIControl {
     override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
         previousLocation = touch.location(in: self)
         if leftHandleLayer.frame.contains(previousLocation) {
-            leftHandleIsSelected = true
+            isLeftHandleSelected = true
             return true
         } else if rightHandleLayer.frame.contains(previousLocation) {
-            rightHandleIsSelected = true
+            isRightHandleSelected = true
             return true
         } else {
             return false
@@ -115,7 +115,7 @@ class RangeSlider: UIControl {
         
         previousLocation = location
         
-        if leftHandleIsSelected {
+        if isLeftHandleSelected {
             leftHandleValue = boundValue(leftHandleValue + deltaValue, toLower: minimumValue, upperValue: rightHandleValue - gapBetweenHandle)
         } else {
             rightHandleValue = boundValue(rightHandleValue + deltaValue, toLower: leftHandleValue + gapBetweenHandle, upperValue: maximumValue)
@@ -126,8 +126,8 @@ class RangeSlider: UIControl {
     }
     
     override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
-        leftHandleIsSelected = false
-        rightHandleIsSelected = false
+        isLeftHandleSelected = false
+        isRightHandleSelected = false
     }
     
     // MARK: Calculation

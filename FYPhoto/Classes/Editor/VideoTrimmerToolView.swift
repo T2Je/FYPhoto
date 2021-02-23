@@ -102,13 +102,14 @@ class VideoTrimmerToolView: UIView {
             let videoFrame = videoFrames[index]
             let imageView = UIImageView(image: videoFrame)
             imageView.translatesAutoresizingMaskIntoConstraints = false
+            frameScrollView.addSubview(imageView)
             
             if let last = lastFrameView {
                 if index == videoFrames.count - 1 {
                     NSLayoutConstraint.activate([
                         imageView.leadingAnchor.constraint(equalTo: last.trailingAnchor),
                         imageView.centerYAnchor.constraint(equalTo: frameScrollView.centerYAnchor),
-                        imageView.widthAnchor.constraint(equalToConstant: 40),
+                        imageView.widthAnchor.constraint(equalToConstant: 50),
                         imageView.heightAnchor.constraint(equalTo: frameScrollView.heightAnchor),
                         imageView.trailingAnchor.constraint(equalTo: frameScrollView.trailingAnchor)
                     ])
@@ -116,13 +117,13 @@ class VideoTrimmerToolView: UIView {
                     NSLayoutConstraint.activate([
                         imageView.leadingAnchor.constraint(equalTo: last.trailingAnchor),
                         imageView.centerYAnchor.constraint(equalTo: frameScrollView.centerYAnchor),
-                        imageView.widthAnchor.constraint(equalToConstant: 40),
+                        imageView.widthAnchor.constraint(equalToConstant: 50),
                         imageView.heightAnchor.constraint(equalTo: frameScrollView.heightAnchor)
                     ])
                 }
             } else {
                 NSLayoutConstraint.activate([
-                    imageView.leadingAnchor.constraint(equalTo: frameScrollView.trailingAnchor),
+                    imageView.leadingAnchor.constraint(equalTo: frameScrollView.leadingAnchor),
                     imageView.centerYAnchor.constraint(equalTo: frameScrollView.centerYAnchor),
                     imageView.widthAnchor.constraint(equalToConstant: 40),
                     imageView.heightAnchor.constraint(equalTo: frameScrollView.heightAnchor)
@@ -145,7 +146,11 @@ class VideoTrimmerToolView: UIView {
     }
     
     @objc func rangeSliderValueChanged(_ rangeSlider: RangeSlider) {
-        
+        if rangeSlider.isLeftHandleSelected {
+            lowValue?(rangeSlider.leftHandleValue)
+        } else {
+            highValue?(rangeSlider.rightHandleValue)
+        }
     }
 }
 
