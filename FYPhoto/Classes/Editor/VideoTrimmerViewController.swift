@@ -28,12 +28,17 @@ public class VideoTrimmerViewController: UIViewController {
     fileprivate var previousAudioOptions: AVAudioSession.CategoryOptions?
     
     // rangeSlider
-    let trimmerToolView = VideoTrimmerToolView()
+    let trimmerToolView: VideoTrimmerToolView
     
     // bottom buttons
     let cancelButton = UIButton()
     let confirmButton = UIButton()
     let pauseButton = UIButton()
+    
+    // trimmed time
+    var startTime: Double = 0
+    var endTime: Double = 15
+    var biasTime: Double = 0
     
     let url: URL
     let maximumDuration: Double
@@ -48,6 +53,7 @@ public class VideoTrimmerViewController: UIViewController {
         self.asset = AVURLAsset(url: url)
         self.playerItem = AVPlayerItem(url: url)
         self.player = AVPlayer(playerItem: self.playerItem)
+        trimmerToolView = VideoTrimmerToolView(maximumDuration: maximumDuration)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -57,7 +63,7 @@ public class VideoTrimmerViewController: UIViewController {
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-        
+        self.view.backgroundColor = .black
         view.addSubview(playerView)
         view.addSubview(trimmerToolView)
         view.addSubview(cancelButton)
@@ -150,14 +156,27 @@ public class VideoTrimmerViewController: UIViewController {
             pauseButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
-    
+                
     func setupTrimmerToolView() {
         trimmerToolView.lowValue = { [weak self] low in
-            print(low)
+            guard let self = self else { return }
+            self.startTime = low + self.biasTime
+//            print("startTime: \(self.startTime)")
         }
         
         trimmerToolView.highValue = { [weak self] high in
-            print(high)
+            guard let self = self else { return }
+            self.endTime = high + self.biasTime
+//            print("endTime: \(self.endTime)")
+        }
+        
+        trimmerToolView.scrollVideoFrames = { [weak self] (xOffset, contentSize) in
+            guard let self = self, xOffset > 0 else { return }
+            
+            let durationSec = Double(CMTimeGetSeconds(self.asset.duration))
+            let a = durationSec / Double(contentSize.width)
+            self.biasTime = xOffset * a
+            print("self.biasTime: \(self.biasTime)")
         }
         
         trimmerToolView.translatesAutoresizingMaskIntoConstraints = false
@@ -179,12 +198,12 @@ public class VideoTrimmerViewController: UIViewController {
         
         
         assetImgGenerate.appliesPreferredTrackTransform = true
-        let thumbTime: CMTime = asset.duration
-        let thumbtimeSeconds = Int(CMTimeGetSeconds(thumbTime))
-        let maxLength = "\(thumbtimeSeconds)" as NSString
+        let videoDuration: CMTime = asset.duration
+        let durationSeconds = Int(CMTimeGetSeconds(videoDuration))
+        let maxLength = "\(durationSeconds)" as NSString
 
         let numberOfFrames = 10
-        let thumbAvg = thumbtimeSeconds/numberOfFrames
+        let secPerFrame = durationSeconds/numberOfFrames
         var startTime = 1
         
         var frames: [UIImage] = []
@@ -193,7 +212,7 @@ public class VideoTrimmerViewController: UIViewController {
         for _ in 0...numberOfFrames
         {
             do {
-                let time:CMTime = CMTimeMakeWithSeconds(Float64(startTime),preferredTimescale: Int32(maxLength.length))
+                let time: CMTime = CMTimeMakeWithSeconds(Float64(startTime), preferredTimescale: Int32(maxLength.length))
                 let img = try assetImgGenerate.copyCGImage(at: time, actualTime: nil)
                 let image = UIImage(cgImage: img)
                 frames.append(image)
@@ -201,7 +220,7 @@ public class VideoTrimmerViewController: UIViewController {
                 print("Image generation failed with error: \(error)")
             }
                         
-            startTime = startTime + thumbAvg
+            startTime = startTime + secPerFrame
         }
         
         trimmerToolView.videoFrames = frames

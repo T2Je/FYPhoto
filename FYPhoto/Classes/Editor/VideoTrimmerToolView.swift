@@ -18,9 +18,11 @@ class VideoTrimmerToolView: UIView {
     
     /// low value >= 0
     var lowValue: ((Double) -> Void)?
-    /// high value <= 100
+    /// high value <= maximum duration
     var highValue: ((Double) -> Void)?
     
+    var scrollVideoFrames: ((_ xOffset: Double, _ contentSize: CGSize) -> Void)?
+        
     var videoFrames: [UIImage] = [] {
         didSet {
             setupVideoFrames(videoFrames)
@@ -100,6 +102,7 @@ class VideoTrimmerToolView: UIView {
         frameScrollView.showsHorizontalScrollIndicator = false
         frameScrollView.showsVerticalScrollIndicator = false
         frameScrollView.isDirectionalLockEnabled = true
+        frameScrollView.delegate = self
         
         frameScrollView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -153,17 +156,20 @@ class VideoTrimmerToolView: UIView {
         
         NSLayoutConstraint.activate([
             rangeSlider.topAnchor.constraint(equalTo: self.topAnchor, constant: 15),
-            rangeSlider.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 15),
+            rangeSlider.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 0),
             rangeSlider.bottomAnchor.constraint(equalTo: self.bottomAnchor),
             rangeSlider.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -15)
         ])
     }
     
     @objc func rangeSliderValueChanged(_ rangeSlider: RangeSlider) {
+        let a = maximumDuration / (rangeSlider.maximumValue - rangeSlider.minimumValue)
         if rangeSlider.isLeftHandleSelected {
-            lowValue?(rangeSlider.leftHandleValue)
+            let startTime = a * rangeSlider.leftHandleValue
+            lowValue?(startTime)
         } else {
-            highValue?(rangeSlider.rightHandleValue)
+            let endTime = a * rangeSlider.rightHandleValue
+            highValue?(endTime)
         }
     }
         
@@ -183,6 +189,8 @@ class VideoTrimmerToolView: UIView {
     }
 }
 
-extension VideoTrimmerToolView {
-    
+extension VideoTrimmerToolView: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        scrollVideoFrames?(Double(scrollView.contentOffset.x), scrollView.contentSize)
+    }
 }
