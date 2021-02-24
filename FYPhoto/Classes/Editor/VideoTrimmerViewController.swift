@@ -97,6 +97,7 @@ public class VideoTrimmerViewController: UIViewController {
     
     // MARK: - SETUP
     func setupPlayerView() {
+        playerView.player = player
         playerView.translatesAutoresizingMaskIntoConstraints = false
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
@@ -110,14 +111,17 @@ public class VideoTrimmerViewController: UIViewController {
     func setupButtonButtons() {
         cancelButton.setTitle(L10n.cancel, for: .normal)
         cancelButton.setTitleColor(.white, for: .normal)
+        cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
         cancelButton.addTarget(self, action: #selector(cancelButtonClicked(_:)), for: .touchUpInside)
         
         confirmButton.setTitle(L10n.confirm, for: .normal)
         confirmButton.setTitleColor(.white, for: .normal)
+        confirmButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
         confirmButton.addTarget(self, action: #selector(confirmButtonClicked(_:)), for: .touchUpInside)
         
         pauseButton.setImage(Asset.icons8Pause.image.withRenderingMode(.alwaysTemplate), for: .normal)
         pauseButton.tintColor = .white
+        pauseButton.imageEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         pauseButton.addTarget(self, action: #selector(pauseButtonClicked(_:)), for: .touchUpInside)
         
         cancelButton.translatesAutoresizingMaskIntoConstraints = false

@@ -580,6 +580,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         }
     }
     
+    
+    //  MARK: BROWSE IMAGES || VIDEO
     func browseImages(at indexPath: IndexPath) {
         var photos = [PhotoProtocol]()
         for index in 0..<fetchResult.count {
@@ -710,6 +712,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     
     func presentVideoTrimmer(_ url: URL) {
         let trimmerVC = VideoTrimmerViewController(url: url, maximumDuration: maximumVideoDuration)
+        trimmerVC.delegate = self
         trimmerVC.modalPresentationStyle = .fullScreen
         self.present(trimmerVC, animated: true, completion: nil)
     }
@@ -734,14 +737,6 @@ extension PhotoPickerViewController: GridViewCellDelegate {
         } else {
             assetSelectionIdentifierCache.append(assetIdentifier)
         }
-
-//        // update cell selection button
-//        if let added = assetSelectionIdentifierCache.firstIndex(of: assetIdentifier) {
-//            // button display the order number of selected photos
-//            cell.updateSelectionButtonTitle("\(added + 1)", false)
-//        } else {
-//            cell.updateSelectionButtonTitle("", false)
-//        }
     }
 
     func updateSelectedAssetIsVideo(with assetIdentifiers: [String]) {
@@ -986,4 +981,15 @@ extension PhotoPickerViewController: PhotoPickerBottomToolViewDelegate {
     func bottomToolViewDoneButtonClicked() {
         selectionCompleted(assets: selectedAssets, animated: true)
     }
+}
+
+extension PhotoPickerViewController: VideoTrimmerViewControllerDelegate {
+    public func videoTrimmerDidCancel(_ videoTrimmer: VideoTrimmerViewController) {
+        videoTrimmer.dismiss(animated: true, completion: nil)
+    }
+    
+    public func videoTrimmer(_ videoTrimmer: VideoTrimmerViewController, didFinishTrimingAt url: URL) {
+        selectedVideo?(.success(SelectedVideo(url: url)))
+    }
+        
 }

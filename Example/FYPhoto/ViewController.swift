@@ -123,6 +123,8 @@ class ViewController: UIViewController {
             switch selectedResult {
             case .success(let video):
                 print("selected video: \(video)")
+                let previewVideo = VideoPreviewController(videoURL: video.url)
+                self?.present(previewVideo, animated: true, completion: nil)
             case .failure(let error):
                 print("selected video error: \(error)")
             }
