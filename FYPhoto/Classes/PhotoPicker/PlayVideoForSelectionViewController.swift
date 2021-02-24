@@ -79,6 +79,8 @@ class PlayVideoForSelectionViewController: UIViewController {
         
         makeConstraints()
         
+        storePreviousAudioState()
+        setAudioState()
         playVideo()
         // Do any additional setup after loading the view.
     }
@@ -118,6 +120,17 @@ class PlayVideoForSelectionViewController: UIViewController {
         
     }
     
+    func storePreviousAudioState() {
+        let audioSession = AVAudioSession.sharedInstance()
+        previousAudioMode = audioSession.mode
+        previousAudioCategory = audioSession.category
+        previousAudioOptions = audioSession.categoryOptions
+    }
+    
+    func setAudioState() {
+        try? AVAudioSession.sharedInstance().setCategory(.playback)
+    }
+    
     fileprivate func playVideo() {
         if isCreatedByURL {
             playURLVideo(url)
@@ -149,15 +162,15 @@ class PlayVideoForSelectionViewController: UIViewController {
         do {
             try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
             
-//            if let category = previousAudioCategory {
-//                do {
-//                    try AVAudioSession.sharedInstance().setCategory(category,
-//                                                                    mode: previousAudioMode ?? .default,
-//                                                                    options: previousAudioOptions ?? [])
-//                } catch {
-//                    print(error)
-//                }
-//            }
+            if let category = previousAudioCategory {
+                do {
+                    try AVAudioSession.sharedInstance().setCategory(category,
+                                                                    mode: previousAudioMode ?? .default,
+                                                                    options: previousAudioOptions ?? [])
+                } catch {
+                    print(error)
+                }
+            }
         } catch let error {
             print("audio session set active error: \(error)")
         }

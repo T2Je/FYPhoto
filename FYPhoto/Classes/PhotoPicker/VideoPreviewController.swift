@@ -26,6 +26,10 @@ public class VideoPreviewController: UIViewController {
     
     let videoURL: URL
     
+    fileprivate var previousAudioCategory: AVAudioSession.Category?
+    fileprivate var previousAudioMode: AVAudioSession.Mode?
+    fileprivate var previousAudioOptions: AVAudioSession.CategoryOptions?
+    
     public weak var delegate: VideoPreviewControllerDelegate?
     
     let playerItem: AVPlayerItem
@@ -66,6 +70,9 @@ public class VideoPreviewController: UIViewController {
         saveButton.addTarget(self, action: #selector(saveButtonClicked(_:)), for: .touchUpInside)
         
         makeConstraints()
+        storePreviousAudioState()
+        setAudioState()
+        
         playerView.player = player
 //        player.play()
         // Do any additional setup after loading the view.
@@ -79,6 +86,18 @@ public class VideoPreviewController: UIViewController {
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         player.pause()
+        activateOtherInterruptedAudioSessions()
+    }
+    
+    func storePreviousAudioState() {
+        let audioSession = AVAudioSession.sharedInstance()
+        previousAudioMode = audioSession.mode
+        previousAudioCategory = audioSession.category
+        previousAudioOptions = audioSession.categoryOptions
+    }
+    
+    func setAudioState() {
+        try? AVAudioSession.sharedInstance().setCategory(.playback)
     }
     
     @objc func cancelButtonClicked(_ sender: UIButton) {
@@ -110,14 +129,22 @@ public class VideoPreviewController: UIViewController {
         ])
         
     }
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    
+    fileprivate func activateOtherInterruptedAudioSessions() {
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+            
+            if let category = previousAudioCategory {
+                do {
+                    try AVAudioSession.sharedInstance().setCategory(category,
+                                                                    mode: previousAudioMode ?? .default,
+                                                                    options: previousAudioOptions ?? [])
+                } catch {
+                    print(error)
+                }
+            }
+        } catch let error {
+            print("audio session set active error: \(error)")
+        }
     }
-    */
-
 }

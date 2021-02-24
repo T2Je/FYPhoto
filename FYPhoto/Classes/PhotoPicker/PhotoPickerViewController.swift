@@ -690,12 +690,17 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         options.isNetworkAccessAllowed = true
         PHImageManager.default().requestAVAsset(forVideo: video, options: options) { (avasset, _, _) in
             DispatchQueue.main.async {
+                if let avURLAsset = avasset as? AVURLAsset {
+                    let valid = self.validVideoSize(avURLAsset.url, by: limit)
+                    completion(valid, avURLAsset.url)
+                } else if let avComposition = avasset as? AVComposition {
+                    
+                }
                 guard let avURLAsset = avasset as? AVURLAsset else {
                     completion(false, nil)
                     return
                 }
-                let valid = self.validVideoSize(avURLAsset.url, by: limit)
-                completion(valid, avURLAsset.url)
+                
             }
         }
     }
