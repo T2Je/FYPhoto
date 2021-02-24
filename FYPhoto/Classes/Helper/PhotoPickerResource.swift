@@ -210,7 +210,7 @@ public class PhotoPickerResource {
         return PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumBursts, options: nil).firstObject
     }
 
-    /// 相簿封面
+    /// Fetch albums covers
     func fetchCover(in collection: PHAssetCollection, targetSize: CGSize, options: PHFetchOptions? = nil, completion: @escaping ((UIImage?) -> Void)) {
         let keyAssetResult = PHAsset.fetchKeyAssets(in: collection, options: options)
         if let keyAsset = keyAssetResult?.firstObject {
@@ -227,6 +227,71 @@ public class PhotoPickerResource {
         }
     }
 
+    func requestAVAsset(for video: PHAsset, completion: @escaping((URL?) -> Void)) {
+        let options = PHVideoRequestOptions()
+        options.deliveryMode = .highQualityFormat
+        options.isNetworkAccessAllowed = true
+        
+        PHImageManager.default().requestAVAsset(forVideo: video, options: options) { (avasset, _, _) in
+            DispatchQueue.main.async {
+                if let avURLAsset = avasset as? AVURLAsset {
+                    completion(avURLAsset.url)
+                } else if let avComposition = avasset as? AVComposition {
+                    self.exportAVComposition(avComposition) { (result) in
+                        let url = try? result.get()
+                        completion(url)
+                    }
+                } else {
+                    completion(nil)
+                }
+            }
+        }
+    }
+    
+    // Export Slow Mode video url
+    func exportAVComposition(_ composition: AVComposition, completion: @escaping (Result<URL, Error>) -> Void) {
+        do {
+            var tempDirectory = try FileManager.tempDirectory(with: "avComposition")
+            let videoName = UUID().uuidString + ".mp4"
+            tempDirectory.appendPathComponent("\(videoName)")
+            
+            guard let exporter = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
+                completion(.failure(AVAssetExportSessionError.exportSessionCreationFailed))
+                return
+            }
+            
+            exporter.outputURL = tempDirectory
+            exporter.outputFileType = .mp4
+            exporter.shouldOptimizeForNetworkUse = true
+            exporter.exportAsynchronously {
+                DispatchQueue.main.async {
+                    switch exporter.status {
+                    case .waiting:
+                        #if DEBUG
+                        print("waiting to be exported")
+                        #endif
+                    case .exporting:
+                        #if DEBUG
+                        print("exporting video")
+                        #endif
+                    case .cancelled, .failed:
+                        completion(.failure(exporter.error!))
+                    case .completed:
+                        #if DEBUG
+                        print("finish exporting, video size: \(tempDirectory.sizePerMB()) MB")
+                        #endif
+                        completion(.success(tempDirectory))
+                    case .unknown:
+                        completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
+                    @unknown default:
+                        completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
+                    }
+                }
+            }
+        } catch {
+            completion(.failure(error))
+        }
+    }
 }
 
 extension PhotoPickerResource {

@@ -117,11 +117,11 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
     
     // video
-    fileprivate var videoMaximumDuration: TimeInterval? {
+    fileprivate var maximumVideoDuration: TimeInterval {
         configuration.maximumVideoDuration
     }
     
-    fileprivate var maximumVideoSize: Double? {
+    fileprivate var maximumVideoSize: Double {
         configuration.maximumVideoMemorySize
     }
     fileprivate var compressedQuality: VideoCompressor.QualityLevel? {
@@ -141,7 +141,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
     
     private(set) var configuration: FYPhotoPickerConfiguration
-        
+    
+    let videoValidator: VideoValidatorProtocol = FYVideoValidator()
     let collectionView: UICollectionView
     
     private init() {
@@ -621,22 +622,22 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         guard asset.mediaType == .video else {
             return
         }
-        guard validVideoDuration(asset) else {
-            selectedVideo?(.failure(PhotoPickerError.VideoDurationTooLong))
+        guard videoValidator.validVideoDuration(asset, limit: maximumVideoDuration) else {
+            PhotoPickerResource.shared.requestAVAsset(for: asset) { [weak self] (url) in
+                if let url = url {
+                    self?.presentVideoTrimmer(url)
+                }
+            }
             return
         }
         
-        if let maximimVideoSize = maximumVideoSize {
-            checkMemoryUsageFor(video: asset, limit: maximimVideoSize) { [weak self] (pass, url) in
-                guard let self = self else { return }
-                if pass {
-                    self.browseVideo(asset)
-                } else {
-                    self.selectedVideo?(.failure(PhotoPickerError.VideoMemoryOutOfSize))
-                }
+        checkMemoryUsageFor(video: asset, limit: maximumVideoSize) { [weak self] (pass, url) in
+            guard let self = self else { return }
+            if pass {
+                self.browseVideo(asset)
+            } else {
+                self.selectedVideo?(.failure(PhotoPickerError.VideoMemoryOutOfSize))
             }
-        } else {
-            browseVideo(asset)
         }
     }
     
@@ -684,24 +685,13 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         present(videoPlayer, animated: true, completion: nil)
     }
     
+    
     fileprivate func checkMemoryUsageFor(video: PHAsset, limit: Double, completion: @escaping (Bool, URL?) -> Void) {
-        let options = PHVideoRequestOptions()
-        options.deliveryMode = .highQualityFormat
-        options.isNetworkAccessAllowed = true
-        PHImageManager.default().requestAVAsset(forVideo: video, options: options) { (avasset, _, _) in
-            DispatchQueue.main.async {
-                if let avURLAsset = avasset as? AVURLAsset {
-                    let valid = self.validVideoSize(avURLAsset.url, by: limit)
-                    completion(valid, avURLAsset.url)
-                } else if let avComposition = avasset as? AVComposition {
-                    
-                }
-                guard let avURLAsset = avasset as? AVURLAsset else {
-                    completion(false, nil)
-                    return
-                }
-                
-            }
+        PhotoPickerResource.shared.requestAVAsset(for: video) { [weak self] (url) in
+            guard let self = self else { return }
+            guard let url = url else { return }
+            let isValid = self.videoValidator.validVideoSize(url, limit: limit)
+            completion(isValid, url)
         }
     }
     
@@ -718,24 +708,16 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         }
     }
     
-    fileprivate func validVideoDuration(_ asset: PHAsset) -> Bool {
-        guard let maximumDuration = videoMaximumDuration else {
-            return true
-        }
-        return asset.duration < maximumDuration
-    }
-    
-    fileprivate func validVideoSize(_ url: URL, by limit: Double) -> Bool {
-        guard url.isFileURL else {
-            return false
-        }
-        return url.sizePerMB() <= limit
+    func presentVideoTrimmer(_ url: URL) {
+        let trimmerVC = VideoTrimmerViewController(url: url, maximumDuration: maximumVideoDuration)
+        trimmerVC.modalPresentationStyle = .fullScreen
+        self.present(trimmerVC, animated: true, completion: nil)
     }
     
     func launchCamera() {
         let cameraVC = CameraViewController(tintColor: configuration.colorConfiguration.topBarColor.itemTintColor)
         cameraVC.captureMode = mediaOptions
-        cameraVC.videoMaximumDuration = videoMaximumDuration ?? 15
+        cameraVC.videoMaximumDuration = maximumVideoDuration
         cameraVC.moviePathExtension = moviePathExtension
         cameraVC.delegate = self
         cameraVC.modalPresentationStyle = .fullScreen

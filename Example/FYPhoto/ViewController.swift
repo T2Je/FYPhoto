@@ -103,7 +103,7 @@ class ViewController: UIViewController {
         var pickerConfig = FYPhotoPickerConfiguration()
         pickerConfig.selectionLimit = 0
         pickerConfig.maximumVideoMemorySize = 100 // 40
-        pickerConfig.maximumVideoDuration = 60
+        pickerConfig.maximumVideoDuration = 15
         pickerConfig.compressedQuality = .AVAssetExportPreset640x480
         pickerConfig.supportCamera = true
 //        pickerConfig.filterdMedia = .all
@@ -122,7 +122,7 @@ class ViewController: UIViewController {
         photoPickerVC.selectedVideo = { [weak self] selectedResult in
             switch selectedResult {
             case .success(let video):
-                self?.presentSelectedVideo(video.url)
+                print("selected video: \(video)")
             case .failure(let error):
                 print("selected video error: \(error)")
             }
@@ -206,13 +206,6 @@ class ViewController: UIViewController {
         let photos = images.map { Photo.photoWithUIImage($0.image) }
         let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: 0)
         self.fyphoto.present(photoBrowser, animated: true, completion: nil)
-    }
-    
-    func presentSelectedVideo(_ url: URL) {        
-        let videoTrimmer = VideoTrimmerViewController(url: url)
-        videoTrimmer.modalPresentationStyle = .fullScreen
-        videoTrimmer.delegate = self
-        self.present(videoTrimmer, animated: true, completion: nil)
     }
 
 }

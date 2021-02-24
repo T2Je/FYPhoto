@@ -26,3 +26,8 @@ extension PhotoPickerError: LocalizedError {
     }
 }
 
+public enum AVAssetExportSessionError: Error {
+    case exportSessionCreationFailed
+    case exportStatuUnknown
+}
+

@@ -16,7 +16,9 @@ class VideoTrimmerToolView: UIView {
     
     let frameScrollView = UIScrollView()
     
+    /// low value >= 0
     var lowValue: ((Double) -> Void)?
+    /// high value <= 100
     var highValue: ((Double) -> Void)?
     
     var videoFrames: [UIImage] = [] {
@@ -24,7 +26,18 @@ class VideoTrimmerToolView: UIView {
             setupVideoFrames(videoFrames)
         }
     }
-    override init(frame: CGRect = .zero) {
+    
+    let maximumDuration: Double
+    
+    /// Init VideoTimmerToolView.
+    ///
+    /// Trim the video duration less than maximumDuration.
+    ///
+    /// - Parameters:
+    ///   - maximumDuration: maximum video duration
+    ///   - frame: view frame
+    init(maximumDuration: Double = 0, frame: CGRect = .zero) {
+        self.maximumDuration = maximumDuration
         super.init(frame: frame)
         setupViews()
     }
@@ -91,9 +104,9 @@ class VideoTrimmerToolView: UIView {
         frameScrollView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             frameScrollView.topAnchor.constraint(equalTo: self.topAnchor, constant: 15),
-            frameScrollView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            frameScrollView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 0),
             frameScrollView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            frameScrollView.trailingAnchor.constraint(equalTo: self.trailingAnchor)
+            frameScrollView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: 0)
         ])
     }
     
@@ -140,9 +153,9 @@ class VideoTrimmerToolView: UIView {
         
         NSLayoutConstraint.activate([
             rangeSlider.topAnchor.constraint(equalTo: self.topAnchor, constant: 15),
-            rangeSlider.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+            rangeSlider.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 15),
             rangeSlider.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            rangeSlider.trailingAnchor.constraint(equalTo: self.trailingAnchor)
+            rangeSlider.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -15)
         ])
     }
     

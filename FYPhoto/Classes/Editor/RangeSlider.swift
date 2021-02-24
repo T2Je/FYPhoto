@@ -89,7 +89,7 @@ class RangeSlider: UIControl {
 
         let handlePath = UIBezierPath(roundedRect: handleFrame, cornerRadius: cornerRadius)
         
-        handle.fillColor = UIColor.red.cgColor
+        handle.fillColor = UIColor.white.cgColor
         handle.path = handlePath.cgPath
     }
     

@@ -36,9 +36,15 @@ public class VideoTrimmerViewController: UIViewController {
     let pauseButton = UIButton()
     
     let url: URL
+    let maximumDuration: Double
     
-    public init(url: URL) {
+    /// Init VideoTrimmerViewController
+    /// - Parameters:
+    ///   - url: video url
+    ///   - maximumDuration: maximum video duration
+    public init(url: URL, maximumDuration: Double) {
         self.url = url
+        self.maximumDuration = maximumDuration
         self.asset = AVURLAsset(url: url)
         self.playerItem = AVPlayerItem(url: url)
         self.player = AVPlayer(playerItem: self.playerItem)
