@@ -54,7 +54,7 @@ class VideoTrimmerToolView: UIView {
     func setupViews() {
         addSubview(startTimeLabel)
         addSubview(endTimeLabel)
-        addSubview(durationLabel)
+//        addSubview(durationLabel)
         addSubview(frameScrollView)
         addSubview(rangeSlider)
         
@@ -64,10 +64,10 @@ class VideoTrimmerToolView: UIView {
     }
     
     func setupLabels() {
-        // TODO: 😴zZ test text
         startTimeLabel.text = "00:00"
-        endTimeLabel.text = "00:30"
-        durationLabel.text = "00:30"
+        let endSecStr = maximumDuration < 10 ? "0\(Int(maximumDuration))" : "\(Int(maximumDuration))"
+        endTimeLabel.text = "00:\(endSecStr)"
+//        durationLabel.text = "00:30"
         
         startTimeLabel.textColor = .white
         startTimeLabel.font = UIFont.systemFont(ofSize: 12)
@@ -80,7 +80,7 @@ class VideoTrimmerToolView: UIView {
         
         startTimeLabel.translatesAutoresizingMaskIntoConstraints = false
         endTimeLabel.translatesAutoresizingMaskIntoConstraints = false
-        durationLabel.translatesAutoresizingMaskIntoConstraints = false
+//        durationLabel.translatesAutoresizingMaskIntoConstraints = false
                   
         NSLayoutConstraint.activate([
             startTimeLabel.topAnchor.constraint(equalTo: topAnchor),
@@ -94,11 +94,11 @@ class VideoTrimmerToolView: UIView {
             endTimeLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -30)
         ])
         
-        NSLayoutConstraint.activate([
-            durationLabel.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            durationLabel.topAnchor.constraint(equalTo: self.frameScrollView.bottomAnchor),
-            durationLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor)
-        ])
+//        NSLayoutConstraint.activate([
+//            durationLabel.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+//            durationLabel.topAnchor.constraint(equalTo: self.frameScrollView.bottomAnchor),
+//            durationLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+//        ])
     }
     
     func setupFrameScrollView() {
@@ -171,11 +171,17 @@ class VideoTrimmerToolView: UIView {
         let a = maximumDuration / (rangeSlider.maximumValue - rangeSlider.minimumValue)
         if rangeSlider.isLeftHandleSelected {
             let startTime = a * rangeSlider.leftHandleValue
+            let fixedSecStr = startTime < 10 ? "0\(Int(startTime))" : "\(Int(startTime))"
+            startTimeLabel.text = "00:\(fixedSecStr)"
+            
             lowValue?(startTime)
         } else {
             let endTime = a * rangeSlider.rightHandleValue
+            let fixedSecStr = endTime < 10 ? "0\(Int(endTime))" : "\(Int(endTime))"
+            endTimeLabel.text = "00:\(fixedSecStr)"
             highValue?(endTime)
         }
+                
     }
     
     @objc func rangeSliderTouchOutside(_ rangeSlider: RangeSlider) {
