@@ -76,7 +76,7 @@ public class VideoTrimmerViewController: UIViewController {
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setAudioState()
-        player.play()
+        isPlaying = true
     }
     
     public override func viewWillDisappear(_ animated: Bool) {
@@ -235,8 +235,18 @@ public class VideoTrimmerViewController: UIViewController {
         delegate?.videoTrimmerDidCancel(self)
     }
     
+    var isPlaying = false {
+        didSet {
+            if isPlaying {
+                player.play()
+            } else {
+                player.pause()
+            }
+        }
+    }
+    
     @objc func pauseButtonClicked(_ sender: UIButton) {
-        
+        isPlaying = !isPlaying
     }
     
 }
