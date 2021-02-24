@@ -39,9 +39,10 @@ FYPhoto is available under the MIT license. See the LICENSE file for more info.
 7. Support preview on PhotoPickerViewController ✅
 8. Function builder
 9. Long press to save photo ✅
-10. FYVideoPlayerViewController
-11. BarTintColor
+10. FYVideoPlayerViewController, ❌ won't do
+11. BarTintColor ✅ (ColorConfiguration)
 12. Quick completion for single selection on PhotoPicker ✅
-13. Crop video
+13. Crop video & Landscape. 
 14. Photo editor
 15. PhotoBrowser back callBack
+

@@ -171,7 +171,8 @@ class VideoTrimmerToolView: UIView {
         let view = super.hitTest(point, with: event)
         if view == rangeSlider {
             // frame scrollView handles hit if rangeSlider left or right handle doesn't contain the touch point.
-            if rangeSlider.isTouchingHandles(at: point) {
+            let fixPoint = CGPoint(x: point.x - rangeSlider.frame.origin.x, y: point.y)
+            if rangeSlider.isTouchingHandles(at: fixPoint) {
                 return rangeSlider
             } else {
                 return frameScrollView
