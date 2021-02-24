@@ -86,10 +86,10 @@ class PlayVideoForSelectionViewController: UIViewController {
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         player?.pause()
+        activateOtherInterruptedAudioSessions()
     }
     
-    func makeConstraints() {
-        // playerView 使用约束会导致视频没法全屏展示
+    func makeConstraints() {         
         playerView.translatesAutoresizingMaskIntoConstraints = false
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         selectButton.translatesAutoresizingMaskIntoConstraints = false
@@ -149,15 +149,15 @@ class PlayVideoForSelectionViewController: UIViewController {
         do {
             try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
             
-            if let category = previousAudioCategory {
-                do {
-                    try AVAudioSession.sharedInstance().setCategory(category,
-                                                                    mode: previousAudioMode ?? .default,
-                                                                    options: previousAudioOptions ?? [])
-                } catch {
-                    print(error)
-                }
-            }
+//            if let category = previousAudioCategory {
+//                do {
+//                    try AVAudioSession.sharedInstance().setCategory(category,
+//                                                                    mode: previousAudioMode ?? .default,
+//                                                                    options: previousAudioOptions ?? [])
+//                } catch {
+//                    print(error)
+//                }
+//            }
         } catch let error {
             print("audio session set active error: \(error)")
         }

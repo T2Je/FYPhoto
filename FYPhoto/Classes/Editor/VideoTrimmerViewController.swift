@@ -7,6 +7,7 @@
 
 import UIKit
 import AVFoundation
+import Photos
 
 public protocol VideoTrimmerViewControllerDelegate: class {
     func videoTrimmerDidCancel(_ videoTrimmer: VideoTrimmerViewController)
@@ -16,6 +17,16 @@ public protocol VideoTrimmerViewControllerDelegate: class {
 public class VideoTrimmerViewController: UIViewController {
     public weak var delegate: VideoTrimmerViewControllerDelegate?
     
+    // player
+    fileprivate var playerView = PlayerView()
+    fileprivate let player: AVPlayer
+    fileprivate let playerItem: AVPlayerItem
+    fileprivate let asset: AVURLAsset
+    
+    fileprivate var previousAudioCategory: AVAudioSession.Category?
+    fileprivate var previousAudioMode: AVAudioSession.Mode?
+    fileprivate var previousAudioOptions: AVAudioSession.CategoryOptions?
+    
     // rangeSlider
     let trimmerToolView = VideoTrimmerToolView()
     
@@ -24,10 +35,13 @@ public class VideoTrimmerViewController: UIViewController {
     let confirmButton = UIButton()
     let pauseButton = UIButton()
     
-    let asset: AVAsset
+    let url: URL
     
-    public init(asset: AVAsset) {
-        self.asset = asset
+    public init(url: URL) {
+        self.url = url
+        self.asset = AVURLAsset(url: url)
+        self.playerItem = AVPlayerItem(url: url)
+        self.player = AVPlayer(playerItem: self.playerItem)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -38,17 +52,54 @@ public class VideoTrimmerViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         
+        view.addSubview(playerView)
         view.addSubview(trimmerToolView)
         view.addSubview(cancelButton)
         view.addSubview(confirmButton)
         view.addSubview(pauseButton)
         
+        setupPlayerView()
         setupTrimmerToolView()
         setupButtonButtons()
         createImageFrames()
+        
+        storePreviousAudioState()
         // Do any additional setup after loading the view.
     }
     
+    public override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        setAudioState()
+        player.play()
+    }
+    
+    public override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        activateOtherInterruptedAudioSessions()
+    }
+     
+    func storePreviousAudioState() {
+        let audioSession = AVAudioSession.sharedInstance()
+        previousAudioMode = audioSession.mode
+        previousAudioCategory = audioSession.category
+        previousAudioOptions = audioSession.categoryOptions
+    }
+    
+    func setAudioState() {
+        try? AVAudioSession.sharedInstance().setCategory(.playback)
+    }
+    
+    // MARK: - SETUP
+    func setupPlayerView() {
+        playerView.translatesAutoresizingMaskIntoConstraints = false
+        let safeArea = view.safeAreaLayoutGuide
+        NSLayoutConstraint.activate([
+            playerView.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 20),
+            playerView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 40),
+            playerView.bottomAnchor.constraint(equalTo: trimmerToolView.topAnchor, constant: -10),
+            playerView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -40)
+        ])
+    }
     
     func setupButtonButtons() {
         cancelButton.setTitle(L10n.cancel, for: .normal)
@@ -60,7 +111,7 @@ public class VideoTrimmerViewController: UIViewController {
         confirmButton.addTarget(self, action: #selector(confirmButtonClicked(_:)), for: .touchUpInside)
         
         pauseButton.setImage(Asset.icons8Pause.image.withRenderingMode(.alwaysTemplate), for: .normal)
-        pauseButton.tintColor = .white        
+        pauseButton.tintColor = .white
         pauseButton.addTarget(self, action: #selector(pauseButtonClicked(_:)), for: .touchUpInside)
         
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
@@ -144,6 +195,24 @@ public class VideoTrimmerViewController: UIViewController {
         }
         
         trimmerToolView.videoFrames = frames
+    }
+    
+    fileprivate func activateOtherInterruptedAudioSessions() {
+        do {
+            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+            
+            if let category = previousAudioCategory {
+                do {
+                    try AVAudioSession.sharedInstance().setCategory(category,
+                                                                    mode: previousAudioMode ?? .default,
+                                                                    options: previousAudioOptions ?? [])
+                } catch {
+                    print(error)
+                }
+            }
+        } catch let error {
+            print("audio session set active error: \(error)")
+        }
     }
     
     // MARK: BUTTON FUNCTIONS

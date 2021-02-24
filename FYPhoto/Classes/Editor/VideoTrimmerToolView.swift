@@ -46,6 +46,7 @@ class VideoTrimmerToolView: UIView {
     }
     
     func setupLabels() {
+        // TODO: 😴zZ test text
         startTimeLabel.text = "00:00"
         endTimeLabel.text = "00:30"
         durationLabel.text = "00:30"

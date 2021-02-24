@@ -208,9 +208,8 @@ class ViewController: UIViewController {
         self.fyphoto.present(photoBrowser, animated: true, completion: nil)
     }
     
-    func presentSelectedVideo(_ url: URL) {
-        let avasset = AVAsset(url: url)
-        let videoTrimmer = VideoTrimmerViewController(asset: avasset)
+    func presentSelectedVideo(_ url: URL) {        
+        let videoTrimmer = VideoTrimmerViewController(url: url)
         videoTrimmer.modalPresentationStyle = .fullScreen
         videoTrimmer.delegate = self
         self.present(videoTrimmer, animated: true, completion: nil)
