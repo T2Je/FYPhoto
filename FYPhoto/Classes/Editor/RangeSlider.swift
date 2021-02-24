@@ -132,6 +132,7 @@ class RangeSlider: UIControl {
     override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
         isLeftHandleSelected = false
         isRightHandleSelected = false
+        sendActions(for: .touchDragExit)
     }
     
     // MARK: Calculation
