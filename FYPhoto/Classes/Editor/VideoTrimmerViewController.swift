@@ -52,13 +52,18 @@ public class VideoTrimmerViewController: UIViewController {
             seekVideo(to: startTime)
         }
     }
+    
     var endTime: Double = 15 {
         didSet {
             seekVideo(to: endTime)
+        }
+    }
+    
+    var offsetTime: Double = 0 {
+        didSet {
             
         }
     }
-    var biasTime: Double = 0
     
     let url: URL
     let maximumDuration: Double
@@ -93,7 +98,7 @@ public class VideoTrimmerViewController: UIViewController {
         setupPlayerView()
         setupTrimmerToolView()
         setupButtonButtons()
-        createImageFrames()
+        createImageFrames(15)
         
         storePreviousAudioState()
         // Do any additional setup after loading the view.
@@ -154,14 +159,14 @@ public class VideoTrimmerViewController: UIViewController {
         
         pauseButton.setImage(pauseImage, for: .normal)
         pauseButton.tintColor = .white
-        pauseButton.imageEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
+        pauseButton.imageEdgeInsets = UIEdgeInsets(top: 8, left: 10, bottom: 8, right: 10)
         pauseButton.addTarget(self, action: #selector(pauseButtonClicked(_:)), for: .touchUpInside)
         
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         confirmButton.translatesAutoresizingMaskIntoConstraints = false
         pauseButton.translatesAutoresizingMaskIntoConstraints = false
         
-        let safeArea = self.view.safeAreaLayoutGuide
+        let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
             cancelButton.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 15),
             cancelButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: 0),
@@ -177,44 +182,43 @@ public class VideoTrimmerViewController: UIViewController {
         ])
         
         NSLayoutConstraint.activate([
-            pauseButton.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
+            pauseButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             pauseButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: 0),
             pauseButton.widthAnchor.constraint(equalToConstant: 60),
             pauseButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
-
-    var isHightValueChanged = false
     
     func setupTrimmerToolView() {
         trimmerToolView.lowValue = { [weak self] low in
             guard let self = self else { return }
             self.isPlaying = false
-            self.isHightValueChanged = false
-            self.startTime = low + self.biasTime
+            self.startTime = low + self.offsetTime
 //            print("startTime: \(self.startTime)")
         }
         
         trimmerToolView.highValue = { [weak self] high in
             guard let self = self else { return }
-            self.isHightValueChanged = true
             self.isPlaying = false
-            self.endTime = high + self.biasTime
+            self.endTime = high + self.offsetTime
 //            print("endTime: \(self.endTime)")
         }
         
         trimmerToolView.scrollVideoFrames = { [weak self] (xOffset, contentSize) in
-            self?.isPlaying = false
-            guard let self = self, xOffset > 0 else { return }
+            guard let self = self else { return }
+            self.isPlaying = false
+            guard xOffset > 0 else { return }
             
             let durationSec = Double(CMTimeGetSeconds(self.asset.duration))
             let a = durationSec / Double(contentSize.width)
-            self.biasTime = xOffset * a
-            print("self.biasTime: \(self.biasTime)")
+            self.offsetTime = xOffset * a
+            self.seekVideo(to: self.startTime + self.offsetTime)
         }
         
         trimmerToolView.stopOperating = { [weak self] in
-            self?.isPlaying = true
+            guard let self = self else { return }
+            self.seekVideo(to: self.startTime + self.offsetTime)
+            self.isPlaying = true
         }
         
         trimmerToolView.translatesAutoresizingMaskIntoConstraints = false
@@ -227,7 +231,7 @@ public class VideoTrimmerViewController: UIViewController {
         ])
     }
     
-    func createImageFrames() {
+    func createImageFrames(_ num: Int) {
         //creating assets
         let assetImgGenerate : AVAssetImageGenerator    = AVAssetImageGenerator(asset: asset)
         assetImgGenerate.appliesPreferredTrackTransform = true
@@ -240,7 +244,7 @@ public class VideoTrimmerViewController: UIViewController {
         let durationSeconds = Int(CMTimeGetSeconds(videoDuration))
         let maxLength = "\(durationSeconds)" as NSString
 
-        let numberOfFrames = 10
+        let numberOfFrames = num
         let secPerFrame = durationSeconds/numberOfFrames
         var startTime = 1
         
@@ -284,7 +288,6 @@ public class VideoTrimmerViewController: UIViewController {
             pauseButton.setImage(playImage, for: .normal)
         }
     }
-    
     
     fileprivate func activateOtherInterruptedAudioSessions() {
         do {

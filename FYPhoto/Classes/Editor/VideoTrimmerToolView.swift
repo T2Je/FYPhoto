@@ -155,7 +155,7 @@ class VideoTrimmerToolView: UIView {
     
     func setupRangeSlider() {
         rangeSlider.addTarget(self, action: #selector(rangeSliderValueChanged(_:)), for: .valueChanged)
-        rangeSlider.addTarget(self, action: #selector(rangeSliderTouchOutside(_:)), for: .touchDragExit)
+        rangeSlider.addTarget(self, action: #selector(rangeSliderTouchDragExit(_:)), for: .touchDragExit)
         
         rangeSlider.translatesAutoresizingMaskIntoConstraints = false
         
@@ -181,7 +181,7 @@ class VideoTrimmerToolView: UIView {
                 
     }
     
-    @objc func rangeSliderTouchOutside(_ rangeSlider: RangeSlider) {
+    @objc func rangeSliderTouchDragExit(_ rangeSlider: RangeSlider) {
         stopOperating?()
     }
         
@@ -206,8 +206,13 @@ extension VideoTrimmerToolView: UIScrollViewDelegate {
         scrollVideoFrames?(Double(scrollView.contentOffset.x), scrollView.contentSize)
     }
     
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         stopOperating?()
-    }    
+    }
     
+    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        if !decelerate {
+            stopOperating?()
+        }
+    }
 }
