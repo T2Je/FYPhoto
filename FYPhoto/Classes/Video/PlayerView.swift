@@ -15,7 +15,8 @@ class PlayerView: UIView {
         }
         set {
             playerLayer.player = newValue
-            playerLayer.videoGravity = .resizeAspectFill
+            // .resizeAspectFill -> fullScreen
+//            playerLayer.videoGravity = .resizeAspectFill
         }
     }
 

@@ -23,7 +23,7 @@ class FYVideoValidator: VideoValidatorProtocol {
         if limit <= 0 {
             return true
         } else {
-            return asset.duration < limit
+            return asset.duration <= limit
         }
     }
     

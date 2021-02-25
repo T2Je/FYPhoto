@@ -62,6 +62,7 @@ class PlayVideoForSelectionViewController: UIViewController {
         view.addSubview(selectButton)
 
         playerView.backgroundColor = .black
+        playerView.layer.contentsGravity = .resizeAspectFill
         
         cancelButton.setTitle(L10n.cancel, for: .normal)
         cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
@@ -151,7 +152,7 @@ class PlayVideoForSelectionViewController: UIViewController {
         PHImageManager.default().requestPlayerItem(forVideo: asset, options: option) { (playerItem, _) in
             self.playerItem = playerItem
             let player = AVPlayer(playerItem: playerItem)
-            self.playerView.frame = UIScreen.main.bounds
+//            self.playerView.frame = UIScreen.main.bounds
             self.playerView.player = player
             player.play()
             self.player = player
