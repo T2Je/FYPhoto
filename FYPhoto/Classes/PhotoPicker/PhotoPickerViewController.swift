@@ -468,14 +468,14 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             // set the cell's thumbnail image only if it's still showing the same asset.
             if cell.representedAssetIdentifier == asset.localIdentifier {
                 cell.thumbnailImage = image
-                self.setupCell(cell, asset: asset)
+                self.configureCellState(cell, asset: asset)
             }
         })
     }
     
-    func setupCell(_ cell: GridViewCell, asset: PHAsset) {
+    func configureCellState(_ cell: GridViewCell, asset: PHAsset) {
         if asset.mediaType == .video {
-            cell.videoDuration = PhotoPickerResource.shared.time(of: asset.duration)
+            cell.videoDuration = asset.duration.videoDurationFormat()
             if let isVideo = self.selectedAssetIsVideo {
                 cell.isEnable = isVideo
             } else {
@@ -761,7 +761,7 @@ extension PhotoPickerViewController: GridViewCellDelegate {
         let cells = collectionView.visibleCells.compactMap{ $0 as? GridViewCell }.filter { $0.indexPath != nil }
         for cell in cells {
             let asset = fetchResult.object(at: regenerate(indexPath: cell.indexPath!, if: containsCamera).item)
-            setupCell(cell, asset: asset)
+            configureCellState(cell, asset: asset)
         }
     }
     

@@ -172,14 +172,14 @@ public class VideoTrimmerViewController: UIViewController {
         NSLayoutConstraint.activate([
             confirmButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -15),
             confirmButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: 0),
-            confirmButton.widthAnchor.constraint(equalToConstant: 50),
+            confirmButton.widthAnchor.constraint(equalToConstant: 60),
             confirmButton.heightAnchor.constraint(equalToConstant: 40)
         ])
         
         NSLayoutConstraint.activate([
             pauseButton.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
             pauseButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: 0),
-            pauseButton.widthAnchor.constraint(equalToConstant: 50),
+            pauseButton.widthAnchor.constraint(equalToConstant: 60),
             pauseButton.heightAnchor.constraint(equalToConstant: 40)
         ])
     }

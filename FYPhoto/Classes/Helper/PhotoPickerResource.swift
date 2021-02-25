@@ -368,32 +368,6 @@ extension PhotoPickerResource {
     }
 }
 
-extension PhotoPickerResource {
-
-    /// Get time string from timeInterval, timeInterval > 3600, retrun '> 1 hour'. TimeInterval in (60, 3600), return 'xx:yy'.
-    /// TimeInterval less than 10, return '00:xx'.
-    ///
-    /// - Parameter timeInterval: timeInterval
-    /// - Returns: e.g. 00:00
-    func time(of timeInterval: TimeInterval) -> String {
-        // per_minute == 60
-        // per_hour == 3600
-
-        guard timeInterval / Double(3600) < 1 else {
-            return String(format: "> 1 %@", L10n.hour)
-        }
-        let minutes = Int(timeInterval) / 60
-        let seconds = Int(timeInterval) % 60
-
-        if minutes == 0 {
-            let fixedSeconds = seconds < 10 ? "0\(seconds)" : "\(seconds)"
-            return "00:\(fixedSeconds)"
-        } else {
-            return String(format: "%d:%d", minutes, seconds)
-        }
-    }
-}
-
 extension PHAssetCollection {
     func getAssetCount(_ mediaType: PHAssetMediaType? = nil) -> Int {
         if estimatedAssetCount == NSNotFound { // Returns NSNotFound if a count cannot be quickly returned.
