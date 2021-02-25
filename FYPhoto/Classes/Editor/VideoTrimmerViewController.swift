@@ -194,14 +194,12 @@ public class VideoTrimmerViewController: UIViewController {
             guard let self = self else { return }
             self.isPlaying = false
             self.startTime = low + self.offsetTime
-//            print("startTime: \(self.startTime)")
         }
         
         trimmerToolView.highValue = { [weak self] high in
             guard let self = self else { return }
             self.isPlaying = false
             self.endTime = high + self.offsetTime
-//            print("endTime: \(self.endTime)")
         }
         
         trimmerToolView.scrollVideoFrames = { [weak self] (xOffset, contentSize) in
@@ -313,8 +311,16 @@ public class VideoTrimmerViewController: UIViewController {
     }
     
     @objc func confirmButtonClicked(_ sender: UIButton) {
-        // TODO: 😴zZ finish trimming
-        delegate?.videoTrimmerDidCancel(self)
+        PhotoPickerResource.shared.trimVideo(asset, from: startTime, to: endTime) { [weak self] (result) in
+            guard let self = self else { return }
+            self.delegate?.videoTrimmerDidCancel(self)
+            switch result {
+            case .success(let url):
+                self.delegate?.videoTrimmer(self, didFinishTrimingAt: url)
+            case .failure(let error):
+                print("export trimmed video error: \(error)")
+            }
+        }        
     }
     
     @objc func pauseButtonClicked(_ sender: UIButton) {
@@ -325,5 +331,4 @@ public class VideoTrimmerViewController: UIViewController {
         isPlaying = false
         needSeekToZeroBeforePlay = true
     }
-    
 }

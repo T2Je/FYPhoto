@@ -989,7 +989,9 @@ extension PhotoPickerViewController: VideoTrimmerViewControllerDelegate {
     }
     
     public func videoTrimmer(_ videoTrimmer: VideoTrimmerViewController, didFinishTrimingAt url: URL) {
-        selectedVideo?(.success(SelectedVideo(url: url)))
+        self.back(animated: true) {
+            self.selectedVideo?(.success(SelectedVideo(url: url)))
+        }
     }
         
 }
