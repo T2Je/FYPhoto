@@ -25,7 +25,8 @@ public struct MediaOptions: OptionSet {
 }
 
 
-/// A picker that manages the custom interfaces for choosing assets from the user's photos library and delivers the results of those interactions to closures. Presents picker should be better.
+/// A picker that manages the custom interfaces for choosing assets from the user's photos library and
+/// delivers the results of those interactions to closures. Presents picker should be better.
 ///
 /// Initializes new picker with the `configuration` the picker should use.
 /// PhotoPickerViewController is intended to be used as-is and does not support subclassing
@@ -57,7 +58,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             updateSelectedAssetsCount(with: assetSelectionIdentifierCache)
             updateVisibleCells(with: assetSelectionIdentifierCache)
             reachedMaximum = assetSelectionIdentifierCache.count >= maximumCanBeSelected
-//            collectionView.reloadData()
         }
     }
 
@@ -100,8 +100,11 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     
     var willBatchUpdated: Bool = false
     
+    // Authority
     /// photo picker get the right authority to access photos
     var photosAuthorityPassed: Bool?
+    
+    var hasAlertedLimited = false
     
     fileprivate var containsCamera: Bool {
         configuration.supportCamera
@@ -164,46 +167,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         self.configuration = configuration
     }
     
-    /// Initialize PhotoPicker with media types: image, video or both. Use the setting method below to config it.
-    /// - Parameter mediaTypes: image, video, both
-    @available(swift, deprecated: 1.1.0, message: "Use init(configuration:) instead")
-    public convenience init(mediaTypes: MediaOptions) {
-        self.init()
-        configuration.filterdMedia = mediaTypes
-    }
-
     public required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-    
-    @available(swift, deprecated: 1.1.0, message: "Use configuration instead")
-    @discardableResult
-    public func setMaximumPhotosCanBeSelected(_ maximum: Int) -> Self {
-        configuration.selectionLimit = maximum
-        return self
-    }
-    
-    @available(swift, deprecated: 1.1.0, message: "Use configuration instead")
-    @discardableResult
-    public func setMaximumVideoDuration(_ duration: Double) -> Self {
-        configuration.maximumVideoDuration = duration
-        return self
-    }
-    
-    @available(swift, deprecated: 1.1.0, message: "Use configuration instead")
-    @discardableResult
-    public func setMaximumVideoSizePerMB(_ size: Double,
-                                         compressedQuality: VideoCompressor.QualityLevel = .AVAssetExportPreset640x480) -> Self {
-        configuration.maximumVideoMemorySize = size
-        configuration.compressedQuality = compressedQuality
-        return self
-    }
-    
-    @available(swift, deprecated: 1.1.0, message: "Use configuration instead")
-    @discardableResult
-    public func setPickerWithCamera(_ containsCamera: Bool) -> Self {
-        configuration.supportCamera = containsCamera
-        return self
     }
 
     deinit {
@@ -242,18 +207,19 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 self.alertPhotosLibraryAuthorityError()
             } else {
                 thumbnailSize = calculateThumbnailSize()
-                alertLimitedStatus()
+                alertPhotoLibraryLimitedAuthority()
             }
         }
     }
     
-    func alertLimitedStatus() {
+    func alertPhotoLibraryLimitedAuthority() {
         if #available(iOS 14, *) {
-            if PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited {
+            if PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited && !hasAlertedLimited {
                 let bundleName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") ?? ""
                 let message = Bundle.main.object(forInfoDictionaryKey: "NSPhotoLibraryUsageDescription") as? String
                 let title = "\(bundleName)" + L10n.accessPhotoLibraryTitle
                 PhotosAuthority.presentLimitedLibraryPicker(title: title, message: message, from: self)
+                hasAlertedLimited = true
             }
         }
     }
