@@ -56,7 +56,7 @@ class PlayVideoForSelectionViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        view.backgroundColor = .black
         view.addSubview(playerView)
         view.addSubview(cancelButton)
         view.addSubview(selectButton)
@@ -97,24 +97,24 @@ class PlayVideoForSelectionViewController: UIViewController {
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         selectButton.translatesAutoresizingMaskIntoConstraints = false
         
-//        let safeLayoutGuide = view.safeAreaLayoutGuide
+        let safeLayoutGuide = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            playerView.topAnchor.constraint(equalTo: view.topAnchor),
-            playerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            playerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            playerView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            playerView.topAnchor.constraint(equalTo: safeLayoutGuide.topAnchor),
+            playerView.leadingAnchor.constraint(equalTo: safeLayoutGuide.leadingAnchor),
+            playerView.bottomAnchor.constraint(equalTo: safeLayoutGuide.bottomAnchor),
+            playerView.trailingAnchor.constraint(equalTo: safeLayoutGuide.trailingAnchor)
         ])
         
         NSLayoutConstraint.activate([
-            cancelButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 6),
-            cancelButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 25),
+            cancelButton.leadingAnchor.constraint(equalTo: safeLayoutGuide.leadingAnchor, constant: 6),
+            cancelButton.topAnchor.constraint(equalTo: safeLayoutGuide.topAnchor, constant: 25),
             cancelButton.widthAnchor.constraint(equalToConstant: 64),
             cancelButton.heightAnchor.constraint(equalToConstant: 32)
         ])
         
         NSLayoutConstraint.activate([
-            selectButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -10),
-            selectButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 25),
+            selectButton.trailingAnchor.constraint(equalTo: safeLayoutGuide.trailingAnchor, constant: -10),
+            selectButton.topAnchor.constraint(equalTo: safeLayoutGuide.topAnchor, constant: 25),
             selectButton.widthAnchor.constraint(equalToConstant: 64),
             selectButton.heightAnchor.constraint(equalToConstant: 32)
         ])
@@ -141,8 +141,8 @@ class PlayVideoForSelectionViewController: UIViewController {
     }
     
     fileprivate func playURLVideo(_ url: URL) {
-        playerView.frame = UIScreen.main.bounds
         playerView.player = player
+//        playerView.layer.contentsGravity = .resizeAspectFill
         player?.play()        
     }
     
@@ -152,8 +152,8 @@ class PlayVideoForSelectionViewController: UIViewController {
         PHImageManager.default().requestPlayerItem(forVideo: asset, options: option) { (playerItem, _) in
             self.playerItem = playerItem
             let player = AVPlayer(playerItem: playerItem)
-//            self.playerView.frame = UIScreen.main.bounds
             self.playerView.player = player
+//            self.playerView.layer.contentsGravity = .resizeAspectFill
             player.play()
             self.player = player
         }

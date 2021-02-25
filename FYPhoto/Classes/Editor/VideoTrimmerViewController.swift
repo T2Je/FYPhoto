@@ -98,7 +98,7 @@ public class VideoTrimmerViewController: UIViewController {
         setupPlayerView()
         setupTrimmerToolView()
         setupButtonButtons()
-        createImageFrames(15)
+        createImageFrames(20)
         
         storePreviousAudioState()
         // Do any additional setup after loading the view.
@@ -133,7 +133,7 @@ public class VideoTrimmerViewController: UIViewController {
     // MARK: - SETUP
     func setupPlayerView() {
         playerView.player = player
-        playerView.layer.contentsGravity = .resizeAspect
+        playerView.layer.contentsGravity = .resizeAspectFill
         playerView.translatesAutoresizingMaskIntoConstraints = false
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([

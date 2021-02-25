@@ -48,12 +48,13 @@ public class VideoPreviewController: UIViewController {
     
     override public func viewDidLoad() {
         super.viewDidLoad()
-
+        view.backgroundColor = .black
         view.addSubview(playerView)
         view.addSubview(cancelButton)
         view.addSubview(saveButton)
         
         playerView.backgroundColor = .black
+        playerView.layer.contentsGravity = .resizeAspectFill
         
         cancelButton.setTitle(L10n.cancel, for: .normal)
         cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 14)
@@ -112,8 +113,16 @@ public class VideoPreviewController: UIViewController {
     func makeConstraints() {
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         saveButton.translatesAutoresizingMaskIntoConstraints = false
-
-        playerView.frame = UIScreen.main.bounds
+        playerView.translatesAutoresizingMaskIntoConstraints = false
+        
+        let safeLayoutGuide = view.safeAreaLayoutGuide
+        NSLayoutConstraint.activate([
+            playerView.topAnchor.constraint(equalTo: safeLayoutGuide.topAnchor),
+            playerView.leadingAnchor.constraint(equalTo: safeLayoutGuide.leadingAnchor),
+            playerView.bottomAnchor.constraint(equalTo: safeLayoutGuide.bottomAnchor),
+            playerView.trailingAnchor.constraint(equalTo: safeLayoutGuide.trailingAnchor)
+        ])
+        
         NSLayoutConstraint.activate([
             cancelButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 10),
             cancelButton.topAnchor.constraint(equalTo: view.topAnchor, constant: 44),

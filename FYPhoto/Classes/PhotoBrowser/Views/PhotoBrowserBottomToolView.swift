@@ -58,9 +58,10 @@ class PhotoBrowserBottomToolView: UIView {
         playButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
         playButton.imageEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
         playButton.translatesAutoresizingMaskIntoConstraints = false
+        let centerOffset = safeAreaInsetsBottom == 0 ? 0 : -(safeAreaInsetsBottom/2-5)
         NSLayoutConstraint.activate([
             playButton.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            playButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -(safeAreaInsetsBottom/2-5)),
+            playButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: centerOffset),
             playButton.widthAnchor.constraint(equalToConstant: 35),
             playButton.heightAnchor.constraint(equalToConstant: 35)
         ])
@@ -79,9 +80,10 @@ class PhotoBrowserBottomToolView: UIView {
         doneButton.layer.masksToBounds = true
         doneButton.contentEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
         doneButton.translatesAutoresizingMaskIntoConstraints = false
+        let centerOffset = safeAreaInsetsBottom == 0 ? 0 : -(safeAreaInsetsBottom/2-5)
         NSLayoutConstraint.activate([
             doneButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -15),
-            doneButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -(safeAreaInsetsBottom/2-5)),
+            doneButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: centerOffset),
         ])
     }
     

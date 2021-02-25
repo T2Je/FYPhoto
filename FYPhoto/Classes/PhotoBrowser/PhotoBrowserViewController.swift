@@ -879,9 +879,9 @@ extension PhotoBrowserViewController {
             if toolViewIsHidden {
                 self.bottomToolView.isHidden = false
             }
-            UIView.animate(withDuration: 0.35) {
+            UIView.animate(withDuration: 0.3) {
                 self.bottomToolViewBottomConstraint?.constant = constant
-                self.bottomToolView.layoutIfNeeded()
+                self.view.layoutIfNeeded()
             } completion: { _ in
                 if !toolViewIsHidden {
                     self.bottomToolView.isHidden = true
