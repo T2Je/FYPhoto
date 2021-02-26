@@ -197,17 +197,18 @@ public class VideoTrimmerViewController: UIViewController {
         trimmerToolView.lowValue = { [weak self] low in
             guard let self = self else { return }
             self.isPlaying = false
+            self.maximumDuration = self.endTime - low
             self.startTime = low + self.offsetTime
-            self.maximumDuration = self.endTime - self.startTime
         }
         
         trimmerToolView.highValue = { [weak self] high in
             guard let self = self else { return }
             self.isPlaying = false
+            self.maximumDuration = high - self.startTime
             self.endTime = high + self.offsetTime
-            self.maximumDuration = self.endTime - self.startTime
         }
         
+        // scroll video frames doesn't change startTime or endTime.
         trimmerToolView.scrollVideoFrames = { [weak self] (xOffset, contentSize) in
             guard let self = self else { return }
             self.isPlaying = false
