@@ -24,7 +24,6 @@ public struct MediaOptions: OptionSet {
     public static let all: MediaOptions = [.image, .video]
 }
 
-
 /// A picker that manages the custom interfaces for choosing assets from the user's photos library and
 /// delivers the results of those interactions to closures. Presents picker should be better.
 ///
@@ -533,7 +532,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         }
     }
     
-    
     // Single selection just return selected image without entering PhotoBrowser
     func completeSingleSelection(at indexPath: IndexPath) {
         guard let cell = collectionView.cellForItem(at: indexPath) as? GridViewCell,
@@ -545,7 +543,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             selectionCompleted(assets: [first], animated: true)
         }
     }
-    
     
     //  MARK: BROWSE IMAGES || VIDEO
     func browseImages(at indexPath: IndexPath) {

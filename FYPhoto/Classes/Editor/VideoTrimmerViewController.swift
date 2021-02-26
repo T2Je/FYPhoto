@@ -65,6 +65,9 @@ public class VideoTrimmerViewController: UIViewController {
         }
     }
     
+    // video time
+    var periodTimeObserverToken: Any?
+    
     let url: URL
     let maximumDuration: Double
     
@@ -98,10 +101,10 @@ public class VideoTrimmerViewController: UIViewController {
         setupPlayerView()
         setupTrimmerToolView()
         setupButtonButtons()
-        createImageFrames(20)
+        createImageFrames()
         
         storePreviousAudioState()
-        // Do any additional setup after loading the view.
+        addPeriodicTimeObserver()
     }
     
     public override func viewWillAppear(_ animated: Bool) {
@@ -128,6 +131,7 @@ public class VideoTrimmerViewController: UIViewController {
     
     deinit {
         NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
+        removePeriodicTimeObserver()
     }
     
     // MARK: - SETUP
@@ -210,6 +214,7 @@ public class VideoTrimmerViewController: UIViewController {
             let durationSec = Double(CMTimeGetSeconds(self.asset.duration))
             let a = durationSec / Double(contentSize.width)
             self.offsetTime = xOffset * a
+            print("offsetX: \(xOffset), offset time: \(self.offsetTime)")
             self.seekVideo(to: self.startTime + self.offsetTime)
         }
         
@@ -222,37 +227,35 @@ public class VideoTrimmerViewController: UIViewController {
         trimmerToolView.translatesAutoresizingMaskIntoConstraints = false
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
-            trimmerToolView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 25),
-            trimmerToolView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -25),
+            trimmerToolView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 0),
+            trimmerToolView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: 0),
             trimmerToolView.bottomAnchor.constraint(equalTo: self.pauseButton.topAnchor, constant: -10),
             trimmerToolView.heightAnchor.constraint(equalToConstant: 80)
         ])
     }
     
-    func createImageFrames(_ num: Int) {
+    func createImageFrames() {
         //creating assets
-        let assetImgGenerate : AVAssetImageGenerator    = AVAssetImageGenerator(asset: asset)
+        let assetImgGenerate: AVAssetImageGenerator = AVAssetImageGenerator(asset: asset)
         assetImgGenerate.appliesPreferredTrackTransform = true
-        assetImgGenerate.requestedTimeToleranceAfter    = CMTime.zero;
-        assetImgGenerate.requestedTimeToleranceBefore   = CMTime.zero;
-        
-        
+        assetImgGenerate.requestedTimeToleranceAfter = CMTime.zero;
+        assetImgGenerate.requestedTimeToleranceBefore = CMTime.zero;
+                
         assetImgGenerate.appliesPreferredTrackTransform = true
         let videoDuration: CMTime = asset.duration
-        let durationSeconds = Int(CMTimeGetSeconds(videoDuration))
-        let maxLength = "\(durationSeconds)" as NSString
+        let durationSeconds = ceil(CMTimeGetSeconds(videoDuration))
 
-        let numberOfFrames = num
+        let numberOfFrames = durationSeconds
         let secPerFrame = durationSeconds/numberOfFrames
-        var startTime = 1
+        var startTime = 1.0
         
         var frames: [UIImage] = []
         
         //loop for numberOfFrames number of frames
-        for _ in 0...numberOfFrames
+        for _ in 0...Int(numberOfFrames)
         {
             do {
-                let time: CMTime = CMTimeMakeWithSeconds(Float64(startTime), preferredTimescale: Int32(maxLength.length))
+                let time = CMTime(seconds: startTime, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
                 let img = try assetImgGenerate.copyCGImage(at: time, actualTime: nil)
                 let image = UIImage(cgImage: img)
                 frames.append(image)
@@ -269,10 +272,66 @@ public class VideoTrimmerViewController: UIViewController {
     // MARK: PLAY VIDEO
     
     func seekVideo(to time: Double) {
-        print("seek to time: \(time)")
+//        print("seek to time: \(time)")
         let cmtime = CMTime(seconds: time, preferredTimescale: player.currentTime().timescale)
         player.seek(to: cmtime, toleranceBefore: .zero, toleranceAfter: .zero)
     }
+    
+    func addPeriodicTimeObserver() {
+        
+        let timeScale = CMTimeScale(NSEC_PER_SEC)
+        let time = CMTime(seconds: 0.05, preferredTimescale: timeScale)
+//        print("maximumDuration: \(maximumDuration)")
+        periodTimeObserverToken = player.addPeriodicTimeObserver(forInterval: time,
+                                                           queue: .main) {
+            [weak self] time in
+            guard let self = self else { return }
+//            print("period time: \(time.seconds)")
+//            print("offset time: \(self.offsetTime)")
+            let fixedTimeSec = time.seconds - self.offsetTime
+            if fixedTimeSec > self.maximumDuration {
+                self.isPlaying = false
+                self.seekVideo(to: self.startTime + self.offsetTime)
+            } else {
+                if self.isPlaying {
+                    self.trimmerToolView.runningAIndicator(at: fixedTimeSec)
+                }
+            }
+        }
+    }
+    
+    func removePeriodicTimeObserver() {
+        if let timeObserverToken = periodTimeObserverToken {
+            player.removeTimeObserver(timeObserverToken)
+            self.periodTimeObserverToken = nil
+        }
+    }
+    
+//    func addBoundaryTimeObserver() {
+//        // Divide the asset's duration into quarters.
+//        let interval = CMTimeMultiplyByFloat64(asset.duration, multiplier: 0.25)
+//        var currentTime = CMTime.zero
+//        var times = [NSValue]()
+//
+//        // Calculate boundary times
+//        while currentTime < asset.duration {
+//            currentTime = currentTime + interval
+//            times.append(NSValue(time:currentTime))
+//        }
+//
+//        timeObserverToken = player.addBoundaryTimeObserver(forTimes: times,
+//                                                           queue: .main) {
+//            // Update UI
+//        }
+//    }
+//
+//    func removeBoundaryTimeObserver() {
+//        if let timeObserverToken = timeObserverToken {
+//            player.removeTimeObserver(timeObserverToken)
+//            self.timeObserverToken = nil
+//        }
+//    }
+    
     
     fileprivate func playerStateValueChanged() {
         if isPlaying {
@@ -320,7 +379,7 @@ public class VideoTrimmerViewController: UIViewController {
             case .failure(let error):
                 print("export trimmed video error: \(error)")
             }
-        }        
+        }
     }
     
     @objc func pauseButtonClicked(_ sender: UIButton) {
@@ -328,7 +387,7 @@ public class VideoTrimmerViewController: UIViewController {
     }
     
     @objc func playerItemDidReachEnd(_ notification: Notification) {
-        isPlaying = false
-        needSeekToZeroBeforePlay = true
+//        isPlaying = false
+//        needSeekToZeroBeforePlay = true
     }
 }

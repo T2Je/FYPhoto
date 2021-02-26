@@ -36,14 +36,23 @@ class RangeSlider: UIControl {
         }
     }
     
+    var runningLayerValue: Double = 0 {
+        didSet {
+//            updateLayerFrames()
+        }
+    }
+    
+    
     var previousLocation: CGPoint = .zero
     
     let handleWidth: CGFloat = 13
+    let runningWidth: CGFloat = 7
     
     lazy var gapBetweenHandle: Double = 0.6 * Double(handleWidth) * (maximumValue - minimumValue) / Double(bounds.width)
     
     let leftHandleLayer = CAShapeLayer()
     let rightHandleLayer = CAShapeLayer()
+    let runnningLayer = CAShapeLayer()
     
     override init(frame: CGRect = .zero) {
         super.init(frame: frame)
@@ -63,34 +72,55 @@ class RangeSlider: UIControl {
     func initSublayers() {
         leftHandleLayer.contentsScale = UIScreen.main.scale
         rightHandleLayer.contentsScale = UIScreen.main.scale
+        runnningLayer.contentsScale = UIScreen.main.scale
+        
         layer.addSublayer(leftHandleLayer)
         layer.addSublayer(rightHandleLayer)
+        layer.addSublayer(runnningLayer)
     }
     
     func updateLayerFrames() {
-        let leftCenter = positionForValue(leftHandleValue)
-        let rightCenter = positionForValue(rightHandleValue)
+        let leftCenter = positionForValue(leftHandleValue, layerWidth: handleWidth)
+        let rightCenter = positionForValue(rightHandleValue, layerWidth: handleWidth)
+        let runningCenter = positionForValue(runningLayerValue, layerWidth: runningWidth)
         
         let leftFrame = CGRect(x: leftCenter - handleWidth/2.0, y: 5, width: handleWidth, height: 50)
         let rightFrame = CGRect(x: rightCenter - handleWidth/2.0, y: 5, width: handleWidth, height: 50)
+        let runningFrame = CGRect(x: runningCenter - runningWidth/2.0, y: 5, width: runningWidth, height: 50)
                 
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        drawHandle(leftHandleLayer, withFrame: leftFrame)
-        drawHandle(rightHandleLayer, withFrame: rightFrame)
+        drawLayer(leftHandleLayer, withFrame: leftFrame)
+        drawLayer(rightHandleLayer, withFrame: rightFrame)
+        drawLayer(runnningLayer, withFrame: runningFrame)
         CATransaction.commit()
     }
     
-    func drawHandle(_ handle: CAShapeLayer, withFrame layerFrame: CGRect) {
-        handle.frame = layerFrame
+    /// Run a indicator at value.
+    /// value is in range of low to high. Any value out of this range will be ignored.
+    /// - Parameter value: indicator value
+    func run(at value: Double) {
+        if value > rightHandleValue || value < leftHandleValue { return }
+        runningLayerValue = value
         
-        let handleFrame = handle.bounds.insetBy(dx: 2.0, dy: 2.0) // should use bounds
+        let runningCenter = positionForValue(runningLayerValue, layerWidth: runningWidth)
+        let runningFrame = CGRect(x: runningCenter - runningWidth/2.0, y: 5, width: runningWidth, height: 50)
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        drawLayer(runnningLayer, withFrame: runningFrame)
+        CATransaction.commit()
+    }
+    
+    func drawLayer(_ layer: CAShapeLayer, withFrame layerFrame: CGRect) {
+        layer.frame = layerFrame
+        
+        let handleFrame = layer.bounds.insetBy(dx: 2.0, dy: 2.0) // should use bounds
         let cornerRadius = handleFrame.height * 0.5
 
         let handlePath = UIBezierPath(roundedRect: handleFrame, cornerRadius: cornerRadius)
         
-        handle.fillColor = UIColor.white.cgColor
-        handle.path = handlePath.cgPath
+        layer.fillColor = UIColor.white.cgColor
+        layer.path = handlePath.cgPath
     }
     
     func isTouchingHandles(at point: CGPoint) -> Bool {
@@ -136,8 +166,8 @@ class RangeSlider: UIControl {
     }
     
     // MARK: Calculation
-    func positionForValue(_ value: Double) -> CGFloat {
-        return (bounds.size.width - handleWidth) * CGFloat(value - minimumValue) / CGFloat(maximumValue - minimumValue) + (handleWidth / 2)
+    func positionForValue(_ value: Double, layerWidth: CGFloat) -> CGFloat {
+        return (bounds.size.width - layerWidth) * CGFloat(value - minimumValue) / CGFloat(maximumValue - minimumValue) + (layerWidth / 2)
     }
     
     func boundValue(_ value: Double, toLower lowerValue: Double, upperValue: Double) -> Double {

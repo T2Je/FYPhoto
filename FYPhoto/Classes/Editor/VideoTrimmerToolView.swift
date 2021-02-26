@@ -16,6 +16,8 @@ class VideoTrimmerToolView: UIView {
     
     let frameScrollView = UIScrollView()
     
+    let sliderLeading: CGFloat = 40
+    
     /// low value >= 0
     var lowValue: ((Double) -> Void)?
     /// high value <= maximum duration
@@ -31,6 +33,9 @@ class VideoTrimmerToolView: UIView {
             setupVideoFrames(videoFrames)
         }
     }
+    
+    /// when video is playing, scrolling frameScrollView simultaneously.
+    var isScrollingWhilePlaying = false
     
     let maximumDuration: Double
     
@@ -94,11 +99,6 @@ class VideoTrimmerToolView: UIView {
             endTimeLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -30)
         ])
         
-//        NSLayoutConstraint.activate([
-//            durationLabel.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-//            durationLabel.topAnchor.constraint(equalTo: self.frameScrollView.bottomAnchor),
-//            durationLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor)
-//        ])
     }
     
     func setupFrameScrollView() {
@@ -106,6 +106,8 @@ class VideoTrimmerToolView: UIView {
         frameScrollView.showsVerticalScrollIndicator = false
         frameScrollView.isDirectionalLockEnabled = true
         frameScrollView.delegate = self
+        frameScrollView.contentInsetAdjustmentBehavior = .never
+        frameScrollView.contentInset = UIEdgeInsets(top: 0, left: sliderLeading, bottom: 0, right: sliderLeading)
         
         frameScrollView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -129,7 +131,7 @@ class VideoTrimmerToolView: UIView {
                     NSLayoutConstraint.activate([
                         imageView.leadingAnchor.constraint(equalTo: last.trailingAnchor),
                         imageView.centerYAnchor.constraint(equalTo: frameScrollView.centerYAnchor),
-                        imageView.widthAnchor.constraint(equalToConstant: 50),
+                        imageView.widthAnchor.constraint(equalToConstant: 40),
                         imageView.heightAnchor.constraint(equalTo: frameScrollView.heightAnchor),
                         imageView.trailingAnchor.constraint(equalTo: frameScrollView.trailingAnchor)
                     ])
@@ -137,7 +139,7 @@ class VideoTrimmerToolView: UIView {
                     NSLayoutConstraint.activate([
                         imageView.leadingAnchor.constraint(equalTo: last.trailingAnchor),
                         imageView.centerYAnchor.constraint(equalTo: frameScrollView.centerYAnchor),
-                        imageView.widthAnchor.constraint(equalToConstant: 50),
+                        imageView.widthAnchor.constraint(equalToConstant: 40),
                         imageView.heightAnchor.constraint(equalTo: frameScrollView.heightAnchor)
                     ])
                 }
@@ -161,9 +163,9 @@ class VideoTrimmerToolView: UIView {
         
         NSLayoutConstraint.activate([
             rangeSlider.topAnchor.constraint(equalTo: self.topAnchor, constant: 15),
-            rangeSlider.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 0),
+            rangeSlider.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: sliderLeading),
             rangeSlider.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            rangeSlider.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -15)
+            rangeSlider.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -sliderLeading)
         ])
     }
     
@@ -184,6 +186,12 @@ class VideoTrimmerToolView: UIView {
     @objc func rangeSliderTouchDragExit(_ rangeSlider: RangeSlider) {
         stopOperating?()
     }
+    
+    func runningAIndicator(at time: Double) {
+        let a = maximumDuration / (rangeSlider.maximumValue - rangeSlider.minimumValue)
+        let value = time / a        
+        rangeSlider.run(at: value)
+    }
         
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let view = super.hitTest(point, with: event)
@@ -199,20 +207,28 @@ class VideoTrimmerToolView: UIView {
             return view
         }
     }
+    
 }
 
 extension VideoTrimmerToolView: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        scrollVideoFrames?(Double(scrollView.contentOffset.x), scrollView.contentSize)
+        print("scrollView conentoffset: \(scrollView.contentOffset.x)")
+        if !isScrollingWhilePlaying {
+            scrollVideoFrames?(Double(scrollView.contentOffset.x + scrollView.contentInset.left), scrollView.contentSize)
+        }
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        stopOperating?()
+        if !isScrollingWhilePlaying {
+            stopOperating?()
+        }
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        if !decelerate {
-            stopOperating?()
+        if !isScrollingWhilePlaying {
+            if !decelerate {
+                stopOperating?()
+            }
         }
     }
 }
