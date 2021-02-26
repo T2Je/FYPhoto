@@ -35,9 +35,10 @@ class VideoTrimmerToolView: UIView {
     }
     
     /// when video is playing, scrolling frameScrollView simultaneously.
-    var isScrollingWhilePlaying = false
+//    var isScrollingWhilePlaying = false
     
     let maximumDuration: Double
+    let assetDuration: Double
     
     /// Init VideoTimmerToolView.
     ///
@@ -46,8 +47,10 @@ class VideoTrimmerToolView: UIView {
     /// - Parameters:
     ///   - maximumDuration: maximum video duration
     ///   - frame: view frame
-    init(maximumDuration: Double = 0, frame: CGRect = .zero) {
+    init(maximumDuration: Double = 0, assetDuration: Double, frame: CGRect = .zero) {
         self.maximumDuration = maximumDuration
+        self.assetDuration = assetDuration
+        
         super.init(frame: frame)
         setupViews()
     }
@@ -120,18 +123,23 @@ class VideoTrimmerToolView: UIView {
     
     func setupVideoFrames(_ videoFrames: [UIImage]) {
         var lastFrameView: UIImageView?
-        for index in 0..<videoFrames.count {
+        
+        // scrollView's contentSize is decided by asset duration, maximum duration and frames count
+        let framesCount = videoFrames.count
+        let multiplier = CGFloat(assetDuration / maximumDuration / Double(framesCount))
+        for index in 0..<framesCount {
             let videoFrame = videoFrames[index]
             let imageView = UIImageView(image: videoFrame)
             imageView.translatesAutoresizingMaskIntoConstraints = false
             frameScrollView.addSubview(imageView)
             
+            NSLayoutConstraint(item: imageView, attribute: .width, relatedBy: .equal, toItem: self.rangeSlider, attribute: .width, multiplier: multiplier, constant: 0).isActive = true
             if let last = lastFrameView {
-                if index == videoFrames.count - 1 {
+                if index == framesCount - 1 {
                     NSLayoutConstraint.activate([
                         imageView.leadingAnchor.constraint(equalTo: last.trailingAnchor),
                         imageView.centerYAnchor.constraint(equalTo: frameScrollView.centerYAnchor),
-                        imageView.widthAnchor.constraint(equalToConstant: 40),
+//                        imageView.widthAnchor.constraint(equalToConstant: 40),
                         imageView.heightAnchor.constraint(equalTo: frameScrollView.heightAnchor),
                         imageView.trailingAnchor.constraint(equalTo: frameScrollView.trailingAnchor)
                     ])
@@ -139,7 +147,7 @@ class VideoTrimmerToolView: UIView {
                     NSLayoutConstraint.activate([
                         imageView.leadingAnchor.constraint(equalTo: last.trailingAnchor),
                         imageView.centerYAnchor.constraint(equalTo: frameScrollView.centerYAnchor),
-                        imageView.widthAnchor.constraint(equalToConstant: 40),
+//                        imageView.widthAnchor.constraint(equalToConstant: 40),
                         imageView.heightAnchor.constraint(equalTo: frameScrollView.heightAnchor)
                     ])
                 }
@@ -147,7 +155,7 @@ class VideoTrimmerToolView: UIView {
                 NSLayoutConstraint.activate([
                     imageView.leadingAnchor.constraint(equalTo: frameScrollView.leadingAnchor),
                     imageView.centerYAnchor.constraint(equalTo: frameScrollView.centerYAnchor),
-                    imageView.widthAnchor.constraint(equalToConstant: 40),
+//                    imageView.widthAnchor.constraint(equalToConstant: 40),
                     imageView.heightAnchor.constraint(equalTo: frameScrollView.heightAnchor)
                 ])
             }
@@ -212,23 +220,16 @@ class VideoTrimmerToolView: UIView {
 
 extension VideoTrimmerToolView: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        print("scrollView conentoffset: \(scrollView.contentOffset.x)")
-        if !isScrollingWhilePlaying {
-            scrollVideoFrames?(Double(scrollView.contentOffset.x + scrollView.contentInset.left), scrollView.contentSize)
-        }
+        scrollVideoFrames?(Double(scrollView.contentOffset.x + scrollView.contentInset.left), scrollView.contentSize)
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        if !isScrollingWhilePlaying {
-            stopOperating?()
-        }
+        stopOperating?()
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        if !isScrollingWhilePlaying {
-            if !decelerate {
-                stopOperating?()
-            }
+        if !decelerate {
+            stopOperating?()
         }
     }
 }

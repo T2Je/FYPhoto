@@ -81,7 +81,7 @@ public class VideoTrimmerViewController: UIViewController {
         self.asset = AVURLAsset(url: url)
         self.playerItem = AVPlayerItem(url: url)
         self.player = AVPlayer(playerItem: self.playerItem)
-        trimmerToolView = VideoTrimmerToolView(maximumDuration: maximumDuration)
+        trimmerToolView = VideoTrimmerToolView(maximumDuration: maximumDuration, assetDuration: asset.duration.seconds)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -211,10 +211,9 @@ public class VideoTrimmerViewController: UIViewController {
             self.isPlaying = false
             guard xOffset > 0 else { return }
             
-            let durationSec = Double(CMTimeGetSeconds(self.asset.duration))
+            let durationSec = self.asset.duration.seconds
             let a = durationSec / Double(contentSize.width)
             self.offsetTime = xOffset * a
-            print("offsetX: \(xOffset), offset time: \(self.offsetTime)")
             self.seekVideo(to: self.startTime + self.offsetTime)
         }
         
@@ -247,12 +246,12 @@ public class VideoTrimmerViewController: UIViewController {
 
         let numberOfFrames = durationSeconds
         let secPerFrame = durationSeconds/numberOfFrames
-        var startTime = 1.0
+        var startTime = 0.0
         
         var frames: [UIImage] = []
         
         //loop for numberOfFrames number of frames
-        for _ in 0...Int(numberOfFrames)
+        for index in 0..<Int(numberOfFrames)
         {
             do {
                 let time = CMTime(seconds: startTime, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
@@ -260,9 +259,8 @@ public class VideoTrimmerViewController: UIViewController {
                 let image = UIImage(cgImage: img)
                 frames.append(image)
             } catch {
-                print("Image generation failed with error: \(error)")
+                print("Image \(index) generation failed with error: \(error)")
             }
-                        
             startTime = startTime + secPerFrame
         }
         
@@ -277,17 +275,13 @@ public class VideoTrimmerViewController: UIViewController {
         player.seek(to: cmtime, toleranceBefore: .zero, toleranceAfter: .zero)
     }
     
-    func addPeriodicTimeObserver() {
-        
+    func addPeriodicTimeObserver() {        
         let timeScale = CMTimeScale(NSEC_PER_SEC)
         let time = CMTime(seconds: 0.05, preferredTimescale: timeScale)
-//        print("maximumDuration: \(maximumDuration)")
         periodTimeObserverToken = player.addPeriodicTimeObserver(forInterval: time,
-                                                           queue: .main) {
+                                                                 queue: .main) {
             [weak self] time in
             guard let self = self else { return }
-//            print("period time: \(time.seconds)")
-//            print("offset time: \(self.offsetTime)")
             let fixedTimeSec = time.seconds - self.offsetTime
             if fixedTimeSec > self.maximumDuration {
                 self.isPlaying = false
@@ -306,32 +300,6 @@ public class VideoTrimmerViewController: UIViewController {
             self.periodTimeObserverToken = nil
         }
     }
-    
-//    func addBoundaryTimeObserver() {
-//        // Divide the asset's duration into quarters.
-//        let interval = CMTimeMultiplyByFloat64(asset.duration, multiplier: 0.25)
-//        var currentTime = CMTime.zero
-//        var times = [NSValue]()
-//
-//        // Calculate boundary times
-//        while currentTime < asset.duration {
-//            currentTime = currentTime + interval
-//            times.append(NSValue(time:currentTime))
-//        }
-//
-//        timeObserverToken = player.addBoundaryTimeObserver(forTimes: times,
-//                                                           queue: .main) {
-//            // Update UI
-//        }
-//    }
-//
-//    func removeBoundaryTimeObserver() {
-//        if let timeObserverToken = timeObserverToken {
-//            player.removeTimeObserver(timeObserverToken)
-//            self.timeObserverToken = nil
-//        }
-//    }
-    
     
     fileprivate func playerStateValueChanged() {
         if isPlaying {
