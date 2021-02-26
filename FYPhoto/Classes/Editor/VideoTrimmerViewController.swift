@@ -69,7 +69,7 @@ public class VideoTrimmerViewController: UIViewController {
     var periodTimeObserverToken: Any?
     
     let url: URL
-    let maximumDuration: Double
+    private(set) var maximumDuration: Double
     
     /// Init VideoTrimmerViewController
     /// - Parameters:
@@ -198,12 +198,14 @@ public class VideoTrimmerViewController: UIViewController {
             guard let self = self else { return }
             self.isPlaying = false
             self.startTime = low + self.offsetTime
+            self.maximumDuration = self.endTime - self.startTime
         }
         
         trimmerToolView.highValue = { [weak self] high in
             guard let self = self else { return }
             self.isPlaying = false
             self.endTime = high + self.offsetTime
+            self.maximumDuration = self.endTime - self.startTime
         }
         
         trimmerToolView.scrollVideoFrames = { [weak self] (xOffset, contentSize) in
@@ -282,13 +284,15 @@ public class VideoTrimmerViewController: UIViewController {
                                                                  queue: .main) {
             [weak self] time in
             guard let self = self else { return }
-            let fixedTimeSec = time.seconds - self.offsetTime
-            if fixedTimeSec > self.maximumDuration {
+            let timePlayed = time.seconds - self.offsetTime - self.startTime
+            let timeInSlideRange = time.seconds - self.offsetTime
+            
+            if timePlayed > self.maximumDuration {
                 self.isPlaying = false
                 self.seekVideo(to: self.startTime + self.offsetTime)
             } else {
                 if self.isPlaying {
-                    self.trimmerToolView.runningAIndicator(at: fixedTimeSec)
+                    self.trimmerToolView.runningAIndicator(at: timeInSlideRange)
                 }
             }
         }
