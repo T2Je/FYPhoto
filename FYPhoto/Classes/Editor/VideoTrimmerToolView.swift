@@ -122,8 +122,7 @@ class VideoTrimmerToolView: UIView {
     }
     
     func setupVideoFrames(_ videoFrames: [UIImage]) {
-        var lastFrameView: UIImageView?
-        
+        var lastFrameView: UIImageView?        
         // scrollView's contentSize is decided by asset duration, maximum duration and frames count
         let framesCount = videoFrames.count
         let multiplier = CGFloat(assetDuration / maximumDuration / Double(framesCount))

@@ -42,8 +42,13 @@ class RangeSlider: UIControl {
         }
     }
     
-    
     var previousLocation: CGPoint = .zero
+    
+    lazy var handleHeight: CGFloat = {
+        frame.size.height - 10
+    }()
+    
+    let topBottomPadding: CGFloat = 10
     
     let handleWidth: CGFloat = 13
     let runningWidth: CGFloat = 7
@@ -52,7 +57,7 @@ class RangeSlider: UIControl {
     
     let leftHandleLayer = CAShapeLayer()
     let rightHandleLayer = CAShapeLayer()
-    let runnningLayer = CAShapeLayer()
+    let runningLayer = CAShapeLayer()
     
     override init(frame: CGRect = .zero) {
         super.init(frame: frame)
@@ -72,11 +77,15 @@ class RangeSlider: UIControl {
     func initSublayers() {
         leftHandleLayer.contentsScale = UIScreen.main.scale
         rightHandleLayer.contentsScale = UIScreen.main.scale
-        runnningLayer.contentsScale = UIScreen.main.scale
+        runningLayer.contentsScale = UIScreen.main.scale
         
+        leftHandleLayer.fillColor = UIColor.white.cgColor
+        rightHandleLayer.fillColor = UIColor.white.cgColor
+        
+        runningLayer.fillColor = UIColor(white: 1, alpha: 0.7).cgColor
         layer.addSublayer(leftHandleLayer)
         layer.addSublayer(rightHandleLayer)
-        layer.addSublayer(runnningLayer)
+        layer.addSublayer(runningLayer)
     }
     
     func updateLayerFrames() {
@@ -84,15 +93,19 @@ class RangeSlider: UIControl {
         let rightCenter = positionForValue(rightHandleValue, layerWidth: handleWidth)
         let runningCenter = positionForValue(runningLayerValue, layerWidth: runningWidth)
         
-        let leftFrame = CGRect(x: leftCenter - handleWidth/2.0, y: 5, width: handleWidth, height: 50)
-        let rightFrame = CGRect(x: rightCenter - handleWidth/2.0, y: 5, width: handleWidth, height: 50)
-        let runningFrame = CGRect(x: runningCenter - runningWidth/2.0, y: 5, width: runningWidth, height: 50)
+        let handleY = topBottomPadding / 2
+        let runningY = handleY + 2.5
+        let leftFrame = CGRect(x: leftCenter - handleWidth/2.0, y: handleY, width: handleWidth, height: handleHeight)
+        let rightFrame = CGRect(x: rightCenter - handleWidth/2.0, y: handleY, width: handleWidth, height: handleHeight)
+        let runningFrame = CGRect(x: runningCenter - runningWidth/2.0, y: runningY, width: runningWidth, height: handleHeight-5)
                 
+        leftHandleLayer.isHidden = false
+        leftHandleLayer.isHidden = false
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         drawLayer(leftHandleLayer, withFrame: leftFrame)
         drawLayer(rightHandleLayer, withFrame: rightFrame)
-        drawLayer(runnningLayer, withFrame: runningFrame)
+        drawLayer(runningLayer, withFrame: runningFrame)
         CATransaction.commit()
     }
     
@@ -104,22 +117,20 @@ class RangeSlider: UIControl {
         runningLayerValue = value
         
         let runningCenter = positionForValue(runningLayerValue, layerWidth: runningWidth)
-        let runningFrame = CGRect(x: runningCenter - runningWidth/2.0, y: 5, width: runningWidth, height: 50)
+        let runningY = (topBottomPadding + 5) / 2
+        let runningFrame = CGRect(x: runningCenter - runningWidth/2.0, y: runningY, width: runningWidth, height: handleHeight-5)
+        runningLayer.isHidden = false
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        drawLayer(runnningLayer, withFrame: runningFrame)
+        drawLayer(runningLayer, withFrame: runningFrame)
         CATransaction.commit()
     }
     
     func drawLayer(_ layer: CAShapeLayer, withFrame layerFrame: CGRect) {
         layer.frame = layerFrame
-        
         let handleFrame = layer.bounds.insetBy(dx: 2.0, dy: 2.0) // should use bounds
         let cornerRadius = handleFrame.height * 0.5
-
-        let handlePath = UIBezierPath(roundedRect: handleFrame, cornerRadius: cornerRadius)
-        
-        layer.fillColor = UIColor.white.cgColor
+        let handlePath = UIBezierPath(roundedRect: handleFrame, cornerRadius: cornerRadius)                
         layer.path = handlePath.cgPath
     }
     
@@ -127,9 +138,14 @@ class RangeSlider: UIControl {
         return leftHandleLayer.frame.contains(point) || rightHandleLayer.frame.contains(point)
     }
     
+    func hideRunningIndicator(_ willBeHidden: Bool) {
+        runningLayer.isHidden = willBeHidden
+    }
+    
     //  MARK: TOUCH EVENT
     override func beginTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
         previousLocation = touch.location(in: self)
+        hideRunningIndicator(true)
         if leftHandleLayer.frame.contains(previousLocation) {
             isLeftHandleSelected = true
             return true
@@ -138,7 +154,7 @@ class RangeSlider: UIControl {
             return true
         } else {
             return false
-        }
+        }        
     }
     
     override func continueTracking(_ touch: UITouch, with event: UIEvent?) -> Bool {
@@ -162,7 +178,7 @@ class RangeSlider: UIControl {
     override func endTracking(_ touch: UITouch?, with event: UIEvent?) {
         isLeftHandleSelected = false
         isRightHandleSelected = false
-        sendActions(for: .touchDragExit)
+        sendActions(for: .touchDragExit)        
     }
     
     // MARK: Calculation
