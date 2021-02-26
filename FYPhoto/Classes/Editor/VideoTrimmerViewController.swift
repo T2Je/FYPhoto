@@ -49,19 +49,22 @@ public class VideoTrimmerViewController: UIViewController {
     // trimmed time
     var startTime: Double = 0 {
         didSet {
-            seekVideo(to: startTime)
+            seekVideo(to: startTime + offsetTime)
+            trimmerToolView.startTimeLabel.text = TimeInterval(startTime + offsetTime).videoDurationFormat()
         }
     }
     
     var endTime: Double = 15 {
         didSet {
-            seekVideo(to: endTime)
+            seekVideo(to: endTime + self.offsetTime)
+            trimmerToolView.endTimeLabel.text = TimeInterval(endTime + offsetTime).videoDurationFormat()
         }
     }
     
     var offsetTime: Double = 0 {
-        didSet {
-            
+        didSet {            
+            trimmerToolView.startTimeLabel.text = TimeInterval(startTime + offsetTime).videoDurationFormat()
+            trimmerToolView.endTimeLabel.text = TimeInterval(endTime + offsetTime).videoDurationFormat()
         }
     }
     
@@ -198,14 +201,14 @@ public class VideoTrimmerViewController: UIViewController {
             guard let self = self else { return }
             self.isPlaying = false
             self.maximumDuration = self.endTime - low
-            self.startTime = low + self.offsetTime
+            self.startTime = low
         }
         
         trimmerToolView.highValue = { [weak self] high in
             guard let self = self else { return }
             self.isPlaying = false
             self.maximumDuration = high - self.startTime
-            self.endTime = high + self.offsetTime
+            self.endTime = high
         }
         
         // scroll video frames doesn't change startTime or endTime.

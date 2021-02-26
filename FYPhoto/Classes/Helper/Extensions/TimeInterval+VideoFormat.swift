@@ -17,8 +17,8 @@ extension TimeInterval {
         guard self / Double(3600) < 1 else {
             return String(format: "> 1 %@", L10n.hour)
         }
-        let minutes = Int(self) / 60
-        let seconds = Int(self) % 60
+        let minutes = Int(ceil(self)) / 60
+        let seconds = Int(ceil(self)) % 60
 
         let fixedSeconds = seconds < 10 ? "0\(seconds)" : "\(seconds)"
         if minutes == 0 {

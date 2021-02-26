@@ -72,7 +72,7 @@ class VideoTrimmerToolView: UIView {
     }
     
     func setupLabels() {
-        startTimeLabel.text = TimeInterval.zeroDurationFormat()
+        startTimeLabel.text = TimeInterval(1).videoDurationFormat()
         let endSecStr = TimeInterval(maximumDuration).videoDurationFormat()
         endTimeLabel.text = endSecStr
 //        durationLabel.text = "00:30"
@@ -180,14 +180,13 @@ class VideoTrimmerToolView: UIView {
         let a = maximumDuration / (rangeSlider.maximumValue - rangeSlider.minimumValue)
         if rangeSlider.isLeftHandleSelected {
             let startTime = a * rangeSlider.leftHandleValue
-            startTimeLabel.text = TimeInterval(startTime).videoDurationFormat()
+//            startTimeLabel.text = TimeInterval(startTime).videoDurationFormat()
             lowValue?(startTime)
         } else {
             let endTime = a * rangeSlider.rightHandleValue            
-            endTimeLabel.text = TimeInterval(endTime).videoDurationFormat()
+//            endTimeLabel.text = TimeInterval(endTime).videoDurationFormat()
             highValue?(endTime)
-        }
-                
+        }                
     }
     
     @objc func rangeSliderTouchDragExit(_ rangeSlider: RangeSlider) {
