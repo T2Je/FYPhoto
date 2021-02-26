@@ -166,7 +166,7 @@ public class VideoTrimmerViewController: UIViewController {
         
         pauseButton.setImage(pauseImage, for: .normal)
         pauseButton.tintColor = .white
-        pauseButton.imageEdgeInsets = UIEdgeInsets(top: 8, left: 8, bottom: 8, right: 8)
+        pauseButton.imageEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
         pauseButton.addTarget(self, action: #selector(pauseButtonClicked(_:)), for: .touchUpInside)
         
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
@@ -176,14 +176,14 @@ public class VideoTrimmerViewController: UIViewController {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
             cancelButton.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 15),
-            cancelButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: 0),
+            cancelButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -3),
             cancelButton.widthAnchor.constraint(equalToConstant: 50),
             cancelButton.heightAnchor.constraint(equalToConstant: 40)
         ])
         
         NSLayoutConstraint.activate([
             confirmButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -15),
-            confirmButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: 0),
+            confirmButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -3),
             confirmButton.widthAnchor.constraint(equalToConstant: 60),
             confirmButton.heightAnchor.constraint(equalToConstant: 40)
         ])
@@ -192,7 +192,7 @@ public class VideoTrimmerViewController: UIViewController {
             pauseButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             pauseButton.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: 0),
             pauseButton.widthAnchor.constraint(equalToConstant: 60),
-            pauseButton.heightAnchor.constraint(equalToConstant: 40)
+            pauseButton.heightAnchor.constraint(equalToConstant: 50)
         ])
     }
     
