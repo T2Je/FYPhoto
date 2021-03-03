@@ -592,7 +592,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             } else {
                 if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoDetailCell.reuseIdentifier,
                                                                  for: indexPath) as? PhotoDetailCell {
-                    cell.maximumZoomScale = 2
+                    cell.maximumZoomScale = 15
                     return cell
                 }
             }
