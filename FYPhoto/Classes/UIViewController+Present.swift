@@ -20,7 +20,7 @@ extension TypeWrapperProtocol where WrappedType: UIViewController {
     ///   - animated: Pass true to animate the presentation; otherwise, pass false.
     ///   - completion: The block to execute after the presentation finishes. This block has no return value and takes no parameters. You may specify nil for this parameter.
     ///   - transitionEssential: A closure to generate animation essentials with current item. Set this parameter if you don't want your presentingViewController conforms to **PhotoTransition** protocol.
-    public func present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)?, transitionEssential: ((_ page: Int) -> PresentingVCTransitionEssential?)? = nil) {
+    public func present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)?, transitionEssential: ((_ page: Int) -> TransitionEssential?)? = nil) {
         let transition = PhotoPresentTransitionController(viewController: viewControllerToPresent, transitionEssential: transitionEssential)
         viewControllerToPresent.modalPresentationStyle = .custom
         viewControllerToPresent.transitioningDelegate = transition
@@ -56,7 +56,7 @@ extension TypeWrapperProtocol where WrappedType: UIViewController {
 extension TypeWrapperProtocol where WrappedType: UINavigationController {
     
     @available(swift, deprecated: 1.2.0, message: "Use pushViewController(_ viewController:, animated:, transitionEssential:) instead")
-    public func push(_ viewController: UIViewController, animated: Bool, transitionEssential: ((_ page: Int) -> PresentingVCTransitionEssential)? = nil) {
+    public func push(_ viewController: UIViewController, animated: Bool, transitionEssential: ((_ page: Int) -> TransitionEssential)? = nil) {
         let transition = PhotoPushTransitionController(navigationController: wrappedValue, transitionEssential: transitionEssential)
         wrappedValue.delegate = transition
         wrappedValue.pushViewController(viewController, animated: true)
@@ -74,7 +74,7 @@ extension TypeWrapperProtocol where WrappedType: UINavigationController {
     ///   - viewController: The view controller to push onto the stack. This object cannot be a tab bar controller. If the view controller is already on the navigation stack, this method throws an exception.
     ///   - animated: Specify true to animate the fyphoto transition or false if you do not want the transition to be animated. You might specify false if you are setting up the navigation controller at launch time.
     ///   - transitionEssential: A closure to generate animation essentials with current item. Set this parameter if you don't want your presentingViewController conforms to **PhotoTransition** protocol.
-    public func pushViewController(_ viewController: UIViewController, animated: Bool, transitionEssential: ((_ page: Int) -> PresentingVCTransitionEssential)? = nil) {
+    public func pushViewController(_ viewController: UIViewController, animated: Bool, transitionEssential: ((_ page: Int) -> TransitionEssential)? = nil) {
         let transition = PhotoPushTransitionController(navigationController: wrappedValue, transitionEssential: transitionEssential)
         wrappedValue.delegate = transition
         wrappedValue.pushViewController(viewController, animated: true)

@@ -7,13 +7,16 @@
 
 import Foundation
 
-/// Transition animation needs these properties to find out which image to show and where to show
-/// For presentation, transitionView will use them to start the animation and for dismission, transitionView will use them to end the animation.
-public struct PresentingVCTransitionEssential {
+/// Transition animation needs these infos to find out which image to show and where is it.
+public struct TransitionEssential {
     let transitionImage: UIImage?
     /// frame coverted to viewController view
     let convertedFrame: CGRect
     
+    /// Initial essentials
+    /// - Parameters:
+    ///   - transitionImage: Transition uses the image for animation
+    ///   - convertedFrame: Location of the image in the ViewController. e.g., imageView.convert(imageView.bounds, to: viewControllerView)
     public init(transitionImage: UIImage?, convertedFrame: CGRect) {
         self.transitionImage = transitionImage
         self.convertedFrame = convertedFrame

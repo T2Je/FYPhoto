@@ -23,7 +23,8 @@ class PhotoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
         }
     }
     
-    var maximumZoomScale: CGFloat = 1 {
+    // Fixed a bug that could not display long images
+    var maximumZoomScale: CGFloat = 12 {
         willSet {
             zoomingView.maximumZoomScale = newValue
         }
