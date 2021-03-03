@@ -42,7 +42,10 @@ FYPhoto is available under the MIT license. See the LICENSE file for more info.
 10. FYVideoPlayerViewController, ❌ won't do
 11. BarTintColor ✅ (ColorConfiguration)
 12. Quick completion for single selection on PhotoPicker ✅
-13. Crop video & Landscape. 
+13. Trim video & Landscape. ✅ 
 14. Photo editor
 15. PhotoBrowser back callBack
+
+Fix:
+1. Speed of exporting video for trimming is slowly.
 

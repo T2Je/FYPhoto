@@ -26,6 +26,7 @@ public struct TypeWrapper<T>: TypeWrapperProtocol {
 public protocol FYNameSpaceProtocol {
     associatedtype WrappedType
     var fyphoto: WrappedType { get }
+    /// FYPhoto namespace for present or push animation
     static var fyphoto: WrappedType.Type { get }
 }
 
