@@ -46,8 +46,7 @@ class ZoomingScrollView: UIScrollView {
     func setup() {
 //        backgroundColor = .clear
         imageView.gestureDelegate = self
-        imageView.contentMode = .scaleAspectFit
-
+        imageView.contentMode = .scaleAspectFit        
         circularProgressView.outerRingColor = .white
         circularProgressView.innerRingColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
         circularProgressView.style = .ontop
