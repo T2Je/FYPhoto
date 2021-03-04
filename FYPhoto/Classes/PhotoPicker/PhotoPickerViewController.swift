@@ -589,8 +589,10 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         }
         guard videoValidator.validVideoDuration(asset, limit: maximumVideoDuration) else {
             PhotoPickerResource.shared.requestAVAsset(for: asset) { [weak self] (avAsset) in
-                if let avAsset = avAsset {
-                    self?.presentVideoTrimmer(avAsset)
+                if let urlAsset = avAsset as? AVURLAsset {
+                    self?.presentVideoTrimmer(urlAsset, duration: urlAsset.duration.seconds)
+                } else if let composition = avAsset as? AVComposition {
+                    self?.presentVideoTrimmer(composition, duration: asset.duration)
                 }
             }
             return
@@ -680,8 +682,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         }
     }
     
-    func presentVideoTrimmer(_ avAsset: AVAsset) {
-        let trimmerVC = VideoTrimmerViewController(asset: avAsset, maximumDuration: maximumVideoDuration)
+    func presentVideoTrimmer(_ avAsset: AVAsset, duration: Double) {
+        let trimmerVC = VideoTrimmerViewController(asset: avAsset, duration: duration, maximumDuration: maximumVideoDuration)
         trimmerVC.delegate = self
         trimmerVC.modalPresentationStyle = .fullScreen
         self.present(trimmerVC, animated: true, completion: nil)

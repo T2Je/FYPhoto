@@ -26,7 +26,7 @@ class VideoTrimmerToolView: UIView {
     /// stopOperating this view
     var stopOperating: (() -> Void)?
         
-    var scrollVideoFrames: ((_ xOffset: Double, _ contentSize: CGSize) -> Void)?
+    var scrollVideoFrames: ((_ offsetTime: Double) -> Void)?
         
     var videoFrames: [UIImage] = [] {
         didSet {
@@ -72,8 +72,8 @@ class VideoTrimmerToolView: UIView {
     }
     
     func setupLabels() {
-        startTimeLabel.text = TimeInterval(1).videoDurationFormat()
-        let endSecStr = TimeInterval(maximumDuration).videoDurationFormat()
+        startTimeLabel.text = 0.videoDurationFormat()
+        let endSecStr = maximumDuration.videoDurationFormat()
         endTimeLabel.text = endSecStr
 //        durationLabel.text = "00:30"
         
@@ -183,7 +183,7 @@ class VideoTrimmerToolView: UIView {
 //            startTimeLabel.text = TimeInterval(startTime).videoDurationFormat()
             lowValue?(startTime)
         } else {
-            let endTime = a * rangeSlider.rightHandleValue            
+            let endTime = a * rangeSlider.rightHandleValue
 //            endTimeLabel.text = TimeInterval(endTime).videoDurationFormat()
             highValue?(endTime)
         }                
@@ -195,7 +195,7 @@ class VideoTrimmerToolView: UIView {
     
     func runningAIndicator(at time: Double) {
         let a = maximumDuration / (rangeSlider.maximumValue - rangeSlider.minimumValue)
-        let value = time / a        
+        let value = time / a / 1.5
         rangeSlider.run(at: value)
     }
         
@@ -218,7 +218,13 @@ class VideoTrimmerToolView: UIView {
 
 extension VideoTrimmerToolView: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        scrollVideoFrames?(Double(scrollView.contentOffset.x + scrollView.contentInset.left), scrollView.contentSize)
+        
+        let offsetX = scrollView.contentOffset.x + scrollView.contentInset.left
+        guard offsetX > 0 else { return }
+        let offsetTime = Double(offsetX / scrollView.contentSize.width) * assetDuration
+        
+        print("offset time: \(offsetTime), assetDuration: \(assetDuration)")
+        scrollVideoFrames?(Double(offsetTime))
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {

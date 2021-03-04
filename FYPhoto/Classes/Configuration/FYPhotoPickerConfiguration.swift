@@ -20,7 +20,7 @@ public struct FYPhotoPickerConfiguration {
     /// Filter the media types PhotoPickerController can display. Default are video and image.
     public var mediaFilter: MediaOptions = .all
         
-    /// Maximum video duration can pick. Default is 15.
+    /// Maximum video duration can pick. Default is 15 seconds.
     public var maximumVideoDuration: Double = 15
     
     /// Maximum video size can pick. No limit by default

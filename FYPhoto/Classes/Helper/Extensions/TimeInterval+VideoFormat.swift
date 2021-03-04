@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension TimeInterval {
+extension Double {
     /// Get time string from timeInterval, timeInterval > 3600, retrun '> 1 hour'. TimeInterval in (60, 3600), return 'xx:yy'.
     /// TimeInterval less than 10, return '00:xx'.
     ///
@@ -29,6 +29,6 @@ extension TimeInterval {
     }
     
     static func zeroDurationFormat() -> String {
-        return TimeInterval(0).videoDurationFormat()
+        return 0.videoDurationFormat()
     }
 }

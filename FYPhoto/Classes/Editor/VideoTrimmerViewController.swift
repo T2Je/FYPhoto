@@ -49,26 +49,29 @@ public class VideoTrimmerViewController: UIViewController {
     var startTime: Double = 0 {
         didSet {
             seekVideo(to: startTime + offsetTime)
-            trimmerToolView.startTimeLabel.text = TimeInterval(startTime + offsetTime).videoDurationFormat()
+            trimmerToolView.startTimeLabel.text = (startTime + offsetTime).videoDurationFormat()
         }
     }
     
-    var endTime: Double = 15 {
+    var endTime: Double = 0 {
         didSet {
+            print("endTime")
             seekVideo(to: endTime + self.offsetTime)
-            trimmerToolView.endTimeLabel.text = TimeInterval(endTime + offsetTime).videoDurationFormat()
+            trimmerToolView.endTimeLabel.text = (endTime + offsetTime).videoDurationFormat()
         }
     }
     
     var offsetTime: Double = 0 {
         didSet {            
-            trimmerToolView.startTimeLabel.text = TimeInterval(startTime + offsetTime).videoDurationFormat()
-            trimmerToolView.endTimeLabel.text = TimeInterval(endTime + offsetTime).videoDurationFormat()
+            trimmerToolView.startTimeLabel.text = (startTime + offsetTime).videoDurationFormat()
+            trimmerToolView.endTimeLabel.text = (endTime + offsetTime).videoDurationFormat()
         }
     }
     
     // video time
     var periodTimeObserverToken: Any?
+    
+    private let extraFrames = 10
     
     fileprivate var avAsset: AVAsset!
     fileprivate var url: URL!
@@ -77,26 +80,33 @@ public class VideoTrimmerViewController: UIViewController {
     
     private(set) var maximumDuration: Double
     fileprivate var isCreatedByURL: Bool = false
+    let videoDuration: Double
     
     /// Init VideoTrimmerViewController
     /// - Parameters:
     ///   - url: video url
     ///   - maximumDuration: maximum video duration
-    public convenience init(url: URL, maximumDuration: Double) {
+    public convenience init(url: URL, duration: Double?, maximumDuration: Double) {
         let asset = AVURLAsset(url: url)
-        self.init(asset: asset, maximumDuration: maximumDuration)
+        self.init(asset: asset, duration: duration, maximumDuration: maximumDuration)
         self.url = url
         self.isCreatedByURL = true
     }
     
-    public init(asset: AVAsset, maximumDuration: Double) {
+    /// Initialization method of VideoTrimmerViewController.
+    /// - Parameters:
+    ///   - asset: video AVAsset
+    ///   - duration: video duration. If video is Slow-Mode, use PHAsset duration rather than AVAsset duration.
+    ///   - maximumDuration: maximum duration
+    public init(asset: AVAsset, duration: Double?, maximumDuration: Double) {
         self.avAsset = asset
         self.maximumDuration = maximumDuration
         self.isCreatedByURL = false
         self.playerItem = AVPlayerItem(asset: asset)
         self.player = AVPlayer(playerItem: self.playerItem)
-        
-        self.trimmerToolView = VideoTrimmerToolView(maximumDuration: maximumDuration, assetDuration: asset.duration.seconds)
+        self.videoDuration = duration ?? asset.duration.seconds
+        self.endTime = maximumDuration
+        self.trimmerToolView = VideoTrimmerToolView(maximumDuration: maximumDuration, assetDuration: videoDuration)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -224,14 +234,12 @@ public class VideoTrimmerViewController: UIViewController {
         }
         
         // scroll video frames changes offset time, doesn't change startTime or endTime.
-        trimmerToolView.scrollVideoFrames = { [weak self] (xOffset, contentSize) in
+        trimmerToolView.scrollVideoFrames = { [weak self] (offsetTime) in
             guard let self = self else { return }
             self.isPlaying = false
-            guard xOffset > 0 else { return }
             
-            let durationSec = self.avAsset.duration.seconds
-            let param = durationSec / Double(contentSize.width)
-            self.offsetTime = xOffset * param
+            self.offsetTime = offsetTime
+//            print("offsetTime: \(self.offsetTime)")
             self.seekVideo(to: self.startTime + self.offsetTime)
         }
         
@@ -260,10 +268,10 @@ public class VideoTrimmerViewController: UIViewController {
             assetImgGenerate.requestedTimeToleranceBefore = CMTime.zero;
                     
             assetImgGenerate.appliesPreferredTrackTransform = true
-            let videoDuration: CMTime = self.avAsset.duration
-            let durationSeconds = ceil(CMTimeGetSeconds(videoDuration))
-
+            
+            let durationSeconds = ceil(self.videoDuration)
             let numberOfFrames = durationSeconds
+            
             let secPerFrame = durationSeconds/numberOfFrames
             var startTime = 0.0
             
