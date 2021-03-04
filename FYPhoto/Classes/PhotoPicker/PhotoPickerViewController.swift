@@ -588,22 +588,28 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             return
         }
         guard videoValidator.validVideoDuration(asset, limit: maximumVideoDuration) else {
-            PhotoPickerResource.shared.requestAVAsset(for: asset) { [weak self] (url) in
-                if let url = url {
-                    self?.presentVideoTrimmer(url)
+            PhotoPickerResource.shared.requestAVAsset(for: asset) { [weak self] (avAsset) in
+                if let avAsset = avAsset {
+                    self?.presentVideoTrimmer(avAsset)
                 }
             }
             return
         }
-        
-        checkMemoryUsageFor(video: asset, limit: maximumVideoSize) { [weak self] (pass, url) in
-            guard let self = self else { return }
-            if pass {
-                self.browseVideo(asset)
-            } else {
-                self.selectedVideo?(.failure(PhotoPickerError.VideoMemoryOutOfSize))
+        if maximumVideoSize == 0 {
+            self.browseVideo(asset)
+        } else {
+            // It takes a lot of time to compute slow mode video momery footprint because
+            // it needs to be exported to temp file to get the video url
+            checkMemoryUsageFor(video: asset, limit: maximumVideoSize) { [weak self] (pass, url) in
+                guard let self = self else { return }
+                if pass {
+                    self.browseVideo(asset)
+                } else {
+                    self.selectedVideo?(.failure(PhotoPickerError.VideoMemoryOutOfSize))
+                }
             }
         }
+        
     }
     
     func browseVideo(_ asset: PHAsset) {
@@ -652,7 +658,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     
     
     fileprivate func checkMemoryUsageFor(video: PHAsset, limit: Double, completion: @escaping (Bool, URL?) -> Void) {
-        PhotoPickerResource.shared.requestAVAsset(for: video) { [weak self] (url) in
+        
+        PhotoPickerResource.shared.requestAVAssetURL(for: video) { [weak self] (url) in
             guard let self = self else { return }
             guard let url = url else { return }
             let isValid = self.videoValidator.validVideoSize(url, limit: limit)
@@ -673,8 +680,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         }
     }
     
-    func presentVideoTrimmer(_ url: URL) {
-        let trimmerVC = VideoTrimmerViewController(url: url, maximumDuration: maximumVideoDuration)
+    func presentVideoTrimmer(_ avAsset: AVAsset) {
+        let trimmerVC = VideoTrimmerViewController(asset: avAsset, maximumDuration: maximumVideoDuration)
         trimmerVC.delegate = self
         trimmerVC.modalPresentationStyle = .fullScreen
         self.present(trimmerVC, animated: true, completion: nil)

@@ -226,8 +226,20 @@ public class PhotoPickerResource {
             completion(nil)
         }
     }
+    
+    func requestAVAsset(for video: PHAsset, completion: @escaping((AVAsset?) -> Void)) {
+        let options = PHVideoRequestOptions()
+        options.deliveryMode = .highQualityFormat
+        options.isNetworkAccessAllowed = true
+        
+        PHImageManager.default().requestAVAsset(forVideo: video, options: options) { (avasset, _, _) in
+            DispatchQueue.main.async {
+                completion(avasset)
+            }
+        }
+    }
 
-    func requestAVAsset(for video: PHAsset, completion: @escaping((URL?) -> Void)) {
+    func requestAVAssetURL(for video: PHAsset, completion: @escaping((URL?) -> Void)) {
         let options = PHVideoRequestOptions()
         options.deliveryMode = .highQualityFormat
         options.isNetworkAccessAllowed = true

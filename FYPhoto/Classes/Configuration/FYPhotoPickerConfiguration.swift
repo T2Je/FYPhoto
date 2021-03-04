@@ -23,8 +23,8 @@ public struct FYPhotoPickerConfiguration {
     /// Maximum video duration can pick. Default is 15.
     public var maximumVideoDuration: Double = 15
     
-    /// Maximum video size can pick. Default is 40 MB.
-    public var maximumVideoMemorySize: Double = 40
+    /// Maximum video size can pick. No limit by default
+    public var maximumVideoMemorySize: Double = 0
     
     /// Video compressed quality. Default is 640x480.
     public var compressedQuality: VideoCompressor.QualityLevel = .AVAssetExportPreset640x480

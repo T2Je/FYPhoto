@@ -19,9 +19,6 @@ public class VideoTrimmerViewController: UIViewController {
     
     // player
     fileprivate var playerView = PlayerView()
-    fileprivate let player: AVPlayer
-    fileprivate let playerItem: AVPlayerItem
-    fileprivate let asset: AVURLAsset
     
     fileprivate var previousAudioCategory: AVAudioSession.Category?
     fileprivate var previousAudioMode: AVAudioSession.Mode?
@@ -34,7 +31,9 @@ public class VideoTrimmerViewController: UIViewController {
     
     var isPlaying = false {
         didSet {
-            playerStateValueChanged()
+            if isPlaying != oldValue {
+                playerStateValueChanged()
+            }
         }
     }
     
@@ -71,20 +70,33 @@ public class VideoTrimmerViewController: UIViewController {
     // video time
     var periodTimeObserverToken: Any?
     
-    let url: URL
+    fileprivate var avAsset: AVAsset!
+    fileprivate var url: URL!
+    fileprivate let playerItem: AVPlayerItem
+    fileprivate var player: AVPlayer!
+    
     private(set) var maximumDuration: Double
+    fileprivate var isCreatedByURL: Bool = false
     
     /// Init VideoTrimmerViewController
     /// - Parameters:
     ///   - url: video url
     ///   - maximumDuration: maximum video duration
-    public init(url: URL, maximumDuration: Double) {
+    public convenience init(url: URL, maximumDuration: Double) {
+        let asset = AVURLAsset(url: url)
+        self.init(asset: asset, maximumDuration: maximumDuration)
         self.url = url
+        self.isCreatedByURL = true
+    }
+    
+    public init(asset: AVAsset, maximumDuration: Double) {
+        self.avAsset = asset
         self.maximumDuration = maximumDuration
-        self.asset = AVURLAsset(url: url)
-        self.playerItem = AVPlayerItem(url: url)
+        self.isCreatedByURL = false
+        self.playerItem = AVPlayerItem(asset: asset)
         self.player = AVPlayer(playerItem: self.playerItem)
-        trimmerToolView = VideoTrimmerToolView(maximumDuration: maximumDuration, assetDuration: asset.duration.seconds)
+        
+        self.trimmerToolView = VideoTrimmerToolView(maximumDuration: maximumDuration, assetDuration: asset.duration.seconds)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -211,15 +223,15 @@ public class VideoTrimmerViewController: UIViewController {
             self.endTime = high
         }
         
-        // scroll video frames doesn't change startTime or endTime.
+        // scroll video frames changes offset time, doesn't change startTime or endTime.
         trimmerToolView.scrollVideoFrames = { [weak self] (xOffset, contentSize) in
             guard let self = self else { return }
             self.isPlaying = false
             guard xOffset > 0 else { return }
             
-            let durationSec = self.asset.duration.seconds
-            let a = durationSec / Double(contentSize.width)
-            self.offsetTime = xOffset * a
+            let durationSec = self.avAsset.duration.seconds
+            let param = durationSec / Double(contentSize.width)
+            self.offsetTime = xOffset * param
             self.seekVideo(to: self.startTime + self.offsetTime)
         }
         
@@ -241,40 +253,44 @@ public class VideoTrimmerViewController: UIViewController {
     
     func createImageFrames() {
         //creating assets
-        let assetImgGenerate: AVAssetImageGenerator = AVAssetImageGenerator(asset: asset)
-        assetImgGenerate.appliesPreferredTrackTransform = true
-        assetImgGenerate.requestedTimeToleranceAfter = CMTime.zero;
-        assetImgGenerate.requestedTimeToleranceBefore = CMTime.zero;
-                
-        assetImgGenerate.appliesPreferredTrackTransform = true
-        let videoDuration: CMTime = asset.duration
-        let durationSeconds = ceil(CMTimeGetSeconds(videoDuration))
+        DispatchQueue.global().async {
+            let assetImgGenerate: AVAssetImageGenerator = AVAssetImageGenerator(asset: self.avAsset)
+            assetImgGenerate.appliesPreferredTrackTransform = true
+            assetImgGenerate.requestedTimeToleranceAfter = CMTime.zero;
+            assetImgGenerate.requestedTimeToleranceBefore = CMTime.zero;
+                    
+            assetImgGenerate.appliesPreferredTrackTransform = true
+            let videoDuration: CMTime = self.avAsset.duration
+            let durationSeconds = ceil(CMTimeGetSeconds(videoDuration))
 
-        let numberOfFrames = durationSeconds
-        let secPerFrame = durationSeconds/numberOfFrames
-        var startTime = 0.0
-        
-        var frames: [UIImage] = []
-        
-        //loop for numberOfFrames number of frames
-        for index in 0..<Int(numberOfFrames)
-        {
-            do {
-                let time = CMTime(seconds: startTime, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
-                let img = try assetImgGenerate.copyCGImage(at: time, actualTime: nil)
-                let image = UIImage(cgImage: img)
-                frames.append(image)
-            } catch {
-                print("Image \(index) generation failed with error: \(error)")
+            let numberOfFrames = durationSeconds
+            let secPerFrame = durationSeconds/numberOfFrames
+            var startTime = 0.0
+            
+            var frames: [UIImage] = []
+            
+            //loop for numberOfFrames number of frames
+            for index in 0..<Int(numberOfFrames)
+            {
+                do {
+                    let time = CMTime(seconds: startTime, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+                    let img = try assetImgGenerate.copyCGImage(at: time, actualTime: nil)
+                    let image = UIImage(cgImage: img)
+                    frames.append(image)
+                } catch {
+                    print("Image \(index) generation failed with error: \(error)")
+                }
+                startTime = startTime + secPerFrame
             }
-            startTime = startTime + secPerFrame
-        }
-        
-        trimmerToolView.videoFrames = frames
+            
+            DispatchQueue.main.async {
+                self.trimmerToolView.videoFrames = frames
+            }
+        }        
     }
     
     // MARK: PLAY VIDEO
-    
+
     func seekVideo(to time: Double) {
 //        print("seek to time: \(time)")
         let cmtime = CMTime(seconds: time, preferredTimescale: player.currentTime().timescale)
@@ -292,7 +308,9 @@ public class VideoTrimmerViewController: UIViewController {
             let timeInSlideRange = time.seconds - self.offsetTime
             
             if timePlayed > self.maximumDuration {
-                self.isPlaying = false
+                if self.isPlaying {
+                    self.isPlaying = false
+                }
                 self.seekVideo(to: self.startTime + self.offsetTime)
             } else {
                 if self.isPlaying {
@@ -323,20 +341,25 @@ public class VideoTrimmerViewController: UIViewController {
     }
     
     fileprivate func activateOtherInterruptedAudioSessions() {
-        do {
-            try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-            
-            if let category = previousAudioCategory {
-                do {
-                    try AVAudioSession.sharedInstance().setCategory(category,
-                                                                    mode: previousAudioMode ?? .default,
-                                                                    options: previousAudioOptions ?? [])
-                } catch {
-                    print(error)
+        isPlaying = false
+        removePeriodicTimeObserver()
+        // fix error: AVAudioSession: Deactivating an audio session that has running I/O
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            do {
+                try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+                
+                if let category = self.previousAudioCategory {
+                    do {
+                        try AVAudioSession.sharedInstance().setCategory(category,
+                                                                        mode: self.previousAudioMode ?? .default,
+                                                                        options: self.previousAudioOptions ?? [])
+                    } catch {
+                        print(error)
+                    }
                 }
+            } catch let error {
+                print("audio session set active error: \(error)")
             }
-        } catch let error {
-            print("audio session set active error: \(error)")
         }
     }
     
@@ -346,7 +369,7 @@ public class VideoTrimmerViewController: UIViewController {
     }
     
     @objc func confirmButtonClicked(_ sender: UIButton) {
-        PhotoPickerResource.shared.trimVideo(asset, from: startTime, to: endTime) { [weak self] (result) in
+        PhotoPickerResource.shared.trimVideo(avAsset, from: startTime, to: endTime) { [weak self] (result) in
             guard let self = self else { return }
             self.delegate?.videoTrimmerDidCancel(self)
             switch result {

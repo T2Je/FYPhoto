@@ -91,19 +91,14 @@ class ViewController: UIViewController {
                 stackView.heightAnchor.constraint(equalToConstant: 200)
             ])
         }
-
-//        let imageController = UIImagePickerController()
-//        imageController.sourceType = .camera
-//        imageController.cameraCaptureMode = .photo
-//        print("available media types: \(UIImagePickerController.availableMediaTypes(for: .camera))")
     }
     
 // MARK: - Button action
     @objc func photosViewButtonClicked(_ sender: UIButton) {
         var pickerConfig = FYPhotoPickerConfiguration()
         pickerConfig.selectionLimit = 0
-        pickerConfig.maximumVideoMemorySize = 100 // 40
-        pickerConfig.maximumVideoDuration = 15
+//        pickerConfig.maximumVideoMemorySize = 100 // 40
+        pickerConfig.maximumVideoDuration = 4
         pickerConfig.compressedQuality = .AVAssetExportPreset640x480
         pickerConfig.supportCamera = true
 //        pickerConfig.filterdMedia = .all
