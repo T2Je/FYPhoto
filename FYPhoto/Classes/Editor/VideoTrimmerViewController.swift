@@ -68,6 +68,7 @@ public class VideoTrimmerViewController: UIViewController {
         }
     }
     
+    let numberOfFramesInSlider = 10
     // video time
     var periodTimeObserverToken: Any?
     
@@ -106,7 +107,7 @@ public class VideoTrimmerViewController: UIViewController {
         self.player = AVPlayer(playerItem: self.playerItem)
         self.videoDuration = duration ?? asset.duration.seconds
         self.endTime = maximumDuration
-        self.trimmerToolView = VideoTrimmerToolView(maximumDuration: maximumDuration, assetDuration: videoDuration)
+        self.trimmerToolView = VideoTrimmerToolView(maximumDuration: maximumDuration, assetDuration: videoDuration, numberOfFramesInSlider: numberOfFramesInSlider)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -270,7 +271,7 @@ public class VideoTrimmerViewController: UIViewController {
             assetImgGenerate.appliesPreferredTrackTransform = true
             
             let durationSeconds = ceil(self.videoDuration)
-            let numberOfFrames = durationSeconds
+            let numberOfFrames = ceil(durationSeconds * (Double(self.numberOfFramesInSlider) / self.maximumDuration))
             
             let secPerFrame = durationSeconds/numberOfFrames
             var startTime = 0.0
@@ -314,7 +315,6 @@ public class VideoTrimmerViewController: UIViewController {
             guard let self = self else { return }
             let timePlayed = time.seconds - self.offsetTime - self.startTime
             let timeInSlideRange = time.seconds - self.offsetTime
-            
             if timePlayed > self.maximumDuration {
                 if self.isPlaying {
                     self.isPlaying = false
@@ -352,7 +352,7 @@ public class VideoTrimmerViewController: UIViewController {
         isPlaying = false
         removePeriodicTimeObserver()
         // fix error: AVAudioSession: Deactivating an audio session that has running I/O
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             do {
                 try AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
                 

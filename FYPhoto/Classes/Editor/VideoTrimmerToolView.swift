@@ -39,6 +39,7 @@ class VideoTrimmerToolView: UIView {
     
     let maximumDuration: Double
     let assetDuration: Double
+    let numberOfFramesInSlider: Int
     
     /// Init VideoTimmerToolView.
     ///
@@ -47,10 +48,10 @@ class VideoTrimmerToolView: UIView {
     /// - Parameters:
     ///   - maximumDuration: maximum video duration
     ///   - frame: view frame
-    init(maximumDuration: Double = 0, assetDuration: Double, frame: CGRect = .zero) {
+    init(maximumDuration: Double = 0, assetDuration: Double, numberOfFramesInSlider: Int, frame: CGRect = .zero) {
         self.maximumDuration = maximumDuration
         self.assetDuration = assetDuration
-        
+        self.numberOfFramesInSlider = numberOfFramesInSlider
         super.init(frame: frame)
         setupViews()
     }
@@ -120,12 +121,13 @@ class VideoTrimmerToolView: UIView {
             frameScrollView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: 0)
         ])
     }
-    
+        
     func setupVideoFrames(_ videoFrames: [UIImage]) {
         var lastFrameView: UIImageView?        
         // scrollView's contentSize is decided by asset duration, maximum duration and frames count
         let framesCount = videoFrames.count
-        let multiplier = CGFloat(assetDuration / maximumDuration / Double(framesCount))
+        let multiplier = CGFloat(1.0/Double(10))
+        print("multiplier: \(multiplier)")
         for index in 0..<framesCount {
             let videoFrame = videoFrames[index]
             let imageView = UIImageView(image: videoFrame)
@@ -195,7 +197,7 @@ class VideoTrimmerToolView: UIView {
     
     func runningAIndicator(at time: Double) {
         let a = maximumDuration / (rangeSlider.maximumValue - rangeSlider.minimumValue)
-        let value = time / a / 1.5
+        let value = time / a
         rangeSlider.run(at: value)
     }
         
@@ -213,18 +215,24 @@ class VideoTrimmerToolView: UIView {
             return view
         }
     }
+        
     
 }
 
 extension VideoTrimmerToolView: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        
         let offsetX = scrollView.contentOffset.x + scrollView.contentInset.left
-        guard offsetX > 0 else { return }
-        let offsetTime = Double(offsetX / scrollView.contentSize.width) * assetDuration
-        
-        print("offset time: \(offsetTime), assetDuration: \(assetDuration)")
-        scrollVideoFrames?(Double(offsetTime))
+        if offsetX < 0 {
+            return
+        } else if offsetX == 0 {
+            scrollVideoFrames?(0)
+        } else {
+            // scrolled time = per frame duration * scrolled frames
+            let perFrameDuration = assetDuration / Double(videoFrames.count)
+            let scrolledFrames = Double(offsetX / (rangeSlider.frame.size.width / CGFloat(numberOfFramesInSlider)))
+            let offsetTime = Double(perFrameDuration * scrolledFrames)
+            scrollVideoFrames?(offsetTime)
+        }
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
