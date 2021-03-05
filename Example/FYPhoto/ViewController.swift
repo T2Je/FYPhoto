@@ -47,31 +47,36 @@ class ViewController: UIViewController {
         let playRemoteVideoBtn = UIButton()
 
         let customCameraBtn = UIButton()
+        let remoteImageBtn = UIButton()
         
         photosViewBtn.setTitle("浏览全部照片（Custom）", for: .normal)
         suishoupaiBtn.setTitle("随手拍", for: .normal)
         cameraPhotoBtn.setTitle("照片or相机", for: .normal)
         playRemoteVideoBtn.setTitle("Play remote video", for: .normal)
         customCameraBtn.setTitle("Custom Camera", for: .normal)
-
+        remoteImageBtn.setTitle("display remote images", for: .normal)
+        
         photosViewBtn.setTitleColor(.systemBlue, for: .normal)
         suishoupaiBtn.setTitleColor(.systemBlue, for: .normal)
         cameraPhotoBtn.setTitleColor(.systemBlue, for: .normal)
         playRemoteVideoBtn.setTitleColor(.systemBlue, for: .normal)
         customCameraBtn.setTitleColor(.systemPink, for: .normal)
+        remoteImageBtn.setTitleColor(.systemGreen, for: .normal)
 
         photosViewBtn.addTarget(self, action: #selector(photosViewButtonClicked(_:)), for: .touchUpInside)
         suishoupaiBtn.addTarget(self, action: #selector(suiShouPaiButtonClicked(_:)), for: .touchUpInside)
         cameraPhotoBtn.addTarget(self, action: #selector(cameraPhotoButtonClicked(_:)), for: .touchUpInside)
         playRemoteVideoBtn.addTarget(self, action: #selector(playRemoteVideo(_:)), for: .touchUpInside)
         customCameraBtn.addTarget(self, action: #selector(launchCustomCamera(_:)), for: .touchUpInside)
+        remoteImageBtn.addTarget(self, action: #selector(displayRemoteImagesButtonClicked(_:)), for: .touchUpInside)
         
         stackView.addArrangedSubview(photosViewBtn)
         stackView.addArrangedSubview(suishoupaiBtn)
         stackView.addArrangedSubview(cameraPhotoBtn)
         stackView.addArrangedSubview(playRemoteVideoBtn)
         stackView.addArrangedSubview(customCameraBtn)
-
+        stackView.addArrangedSubview(remoteImageBtn)
+        
         self.view.addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -100,7 +105,7 @@ class ViewController: UIViewController {
 //        pickerConfig.maximumVideoMemorySize = 100 // 40
         pickerConfig.maximumVideoDuration = 15
         pickerConfig.compressedQuality = .AVAssetExportPreset640x480
-        pickerConfig.supportCamera = true
+        pickerConfig.supportCamera = false
 //        pickerConfig.filterdMedia = .all
         pickerConfig.mediaFilter = .all
         let colorConfig = FYColorConfiguration()
@@ -196,6 +201,15 @@ class ViewController: UIViewController {
 
     @objc func launchCustomCamera(_ sender: UIButton) {
         photoLanucher.launchCamera(in: self, captureMode: [.image, .video])
+    }
+    
+    @objc func displayRemoteImagesButtonClicked(_ sender: UIButton) {
+        guard let url = URL(string: "https://images.unsplash.com/photo-1546608235-3310a2494cdf?ixlib=rb-1.2.1&ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&auto=format&fit=crop&w=3161&q=80") else {
+            return
+        }
+        let image = Photo.photoWithURL(url)
+        let photoBrowser = PhotoBrowserViewController.create(photos: [image], initialIndex: 0)
+        self.fyphoto.present(photoBrowser, animated: true, completion: nil)
     }
     
     // MARK: PRESENT SELECTED
