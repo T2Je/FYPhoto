@@ -53,7 +53,7 @@ class RangeSlider: UIControl {
     let handleWidth: CGFloat = 13
     let runningWidth: CGFloat = 7
     
-    lazy var gapBetweenHandle: Double = 0.6 * Double(handleWidth) * (maximumValue - minimumValue) / Double(bounds.width)
+    lazy var gapBetweenHandles: Double = 0.6 * Double(handleWidth) * (maximumValue - minimumValue) / Double(bounds.width)
     
     let leftHandleLayer = CAShapeLayer()
     let rightHandleLayer = CAShapeLayer()
@@ -166,9 +166,9 @@ class RangeSlider: UIControl {
         previousLocation = location
         
         if isLeftHandleSelected {
-            leftHandleValue = boundValue(leftHandleValue + deltaValue, toLower: minimumValue, upperValue: rightHandleValue - gapBetweenHandle)
+            leftHandleValue = boundValue(leftHandleValue + deltaValue, toLower: minimumValue, upperValue: rightHandleValue - gapBetweenHandles)
         } else {
-            rightHandleValue = boundValue(rightHandleValue + deltaValue, toLower: leftHandleValue + gapBetweenHandle, upperValue: maximumValue)
+            rightHandleValue = boundValue(rightHandleValue + deltaValue, toLower: leftHandleValue + gapBetweenHandles, upperValue: maximumValue)
         }
 
         sendActions(for: .valueChanged)
