@@ -11,14 +11,17 @@ import Photos
 
 extension PhotoPickerViewController: CameraViewControllerDelegate {
     public func camera(_ cameraViewController: CameraViewController, didFinishCapturingMediaInfo info: [CameraViewController.InfoKey : Any]) {
-        guard let mediaType = info[.mediaType] as? String else { return }
-
+        self.willDismiss = true
+        guard let mediaType = info[.mediaType] as? String else {
+            cameraViewController.dismiss(animated: true, completion: nil)
+            return
+        }        
         switch mediaType {
-//        case "public.image":
         case String(kUTTypeImage):
             guard let data = info[.mediaMetadata] as? Data else { return }
-                        
+            
             cameraViewController.dismiss(animated: true) {
+                
                 SaveMediaTool.saveImageDataToAlbums(data) { (error) in
                     var asset: PHAsset?
                     
@@ -31,12 +34,12 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
                         let result = PHAsset.fetchAssets(with: fetchOptions)
                         asset = result.firstObject
                     }
-                    self.dismiss(animated: true) {
+                    
+                    self.dismiss(animated: false) {
                         guard let image = info[.originalImage] as? UIImage else { return }
                         self.selectedPhotos?([SelectedImage(asset: asset, image: image)])
                     }                    
                 }
-                
             }
         case String(kUTTypeMovie):
             guard let videoURL = info[.mediaURL] as? URL else {

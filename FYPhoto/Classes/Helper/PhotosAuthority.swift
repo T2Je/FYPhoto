@@ -42,8 +42,34 @@ import Photos
         return sources.contains(paramMediaType)
     }
     
+    static func requestPhotoAuthority(_ completion: @escaping (_ isSuccess: Bool) -> Void) {
+        let status = PHPhotoLibrary.authorizationStatus()
+        switch status {
+        case .authorized, .limited:
+            completion(true)
+        case .denied, .restricted:
+            completion(false)
+        case .notDetermined:
+            PHPhotoLibrary.requestAuthorization { (status) in
+                DispatchQueue.main.async {
+                    switch status {
+                    case .authorized, .limited:
+                        completion(true)
+                    case .denied, .restricted, .notDetermined:
+                        completion(false)
+                        print("⚠️ without authorization! ⚠️")
+                    @unknown default:
+                        fatalError()
+                    }
+                }
+            }
+        default:
+            completion(false)
+        }
+    }
+    
     @available(iOS 14, *)
-    @objc public static func presentLimitedLibraryPicker(title: String, message: String?, from viewController: UIViewController) {
+    static func presentLimitedLibraryPicker(title: String, message: String?, from viewController: UIViewController) {
         guard PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited else {
             return
         }
