@@ -24,6 +24,7 @@ extension PHAsset {
     }
     
     func getThumbnailImageSynchorously() -> UIImage? {
+        // FIXME: Synchronous image requests are incompatible with fast delivery mode, changing delivery mode to high
         let options = PHImageRequestOptions()
         options.isNetworkAccessAllowed = true
         options.resizeMode = .fast

@@ -7,7 +7,6 @@
 
 import UIKit
 import Photos
-import UICircularProgressRing
 import MobileCoreServices
 
 enum ImageViewGestureEvent: String {
@@ -19,7 +18,7 @@ enum ImageViewGestureEvent: String {
 class ZoomingScrollView: UIScrollView {
     var photo: PhotoProtocol? {
         didSet {
-            circularProgressView.isHidden = true
+            activityIndicator.isHidden = true
             if let photo = photo {
                 if let url = photo.url {
                     display(url, placeholder: photo.image)
@@ -36,7 +35,7 @@ class ZoomingScrollView: UIScrollView {
 
     var imageView = PhotoAnimatedImageView()
 
-    var circularProgressView = UICircularProgressRing()
+    let activityIndicator = UIActivityIndicatorView()
 
     override init(frame: CGRect) {        
         super.init(frame: frame)
@@ -46,18 +45,16 @@ class ZoomingScrollView: UIScrollView {
     func setup() {
 //        backgroundColor = .clear
         imageView.gestureDelegate = self
-        imageView.contentMode = .scaleAspectFit        
-        circularProgressView.outerRingColor = .white
-        circularProgressView.innerRingColor = UIColor(red: 24/255.0, green: 135/255.0, blue: 251/255.0, alpha: 1)
-        circularProgressView.style = .ontop
-        circularProgressView.startAngle = 270
-        circularProgressView.isHidden = true
-        circularProgressView.minValue = 0
-        circularProgressView.maxValue = 100
-        circularProgressView.innerRingWidth = 5
+        imageView.contentMode = .scaleAspectFit
+        activityIndicator.color = .systemGray
+        if #available(iOS 13.0, *) {
+            activityIndicator.style = .large
+        } else {
+            activityIndicator.style = .whiteLarge
+        }
 
         addSubview(imageView)
-        addSubview(circularProgressView)
+        addSubview(activityIndicator)
 
         imageView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -69,12 +66,10 @@ class ZoomingScrollView: UIScrollView {
             imageView.heightAnchor.constraint(equalTo: self.heightAnchor)
         ])
 
-        circularProgressView.translatesAutoresizingMaskIntoConstraints = false
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            circularProgressView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            circularProgressView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-            circularProgressView.widthAnchor.constraint(equalToConstant: 130),
-            circularProgressView.heightAnchor.constraint(equalToConstant: 130)
+            activityIndicator.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: self.centerYAnchor)
         ])
     }
 
@@ -100,17 +95,17 @@ class ZoomingScrollView: UIScrollView {
     }
 
     func display(_ url: URL, placeholder: UIImage? = nil) {
-        circularProgressView.value = 0
+//        circularProgressView.value = 0
+        if activityIndicator.isHidden {
+            activityIndicator.isHidden = false
+        }
+        activityIndicator.startAnimating()
         imageView.setImage(url: url, placeholder: placeholder) { (recieved, expected, _) in
             let progress = recieved / expected
-            DispatchQueue.main.async {
-                if self.circularProgressView.isHidden == true {
-                    self.circularProgressView.isHidden = false
-                }
-                self.circularProgressView.value = CGFloat(progress * 100)
-            }
+            print("image download progress: \(CGFloat(progress * 100))")
         } completed: { [weak self] (result) in
-            self?.circularProgressView.isHidden = true
+            self?.activityIndicator.stopAnimating()
+            self?.activityIndicator.isHidden = true
             switch result {
             case .failure(let error):
                 #if DEBUG

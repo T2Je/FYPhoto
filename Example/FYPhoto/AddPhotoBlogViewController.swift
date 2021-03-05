@@ -360,7 +360,7 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
                 var configuration = FYPhotoPickerConfiguration()
                 configuration.supportCamera = true
                 configuration.selectionLimit = photosLimited - selectedImageArray.count
-                configuration.filterdMedia = .all
+                configuration.mediaFilter = .all
                 let photoPicker = PhotoPickerViewController(configuration: configuration)
                 
                 photoPicker.selectedPhotos = { [weak self] selectedImages in

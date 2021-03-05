@@ -20,18 +20,13 @@ public class VideoCompressor {
         case AVAssetExportPreset3840x2160
     }
     
-    public enum CompressionError: Error {
-        case exportSessionCreationFailed
-        case exportStatuUnknown
-    }
-    
     public static func compressVideo(url: URL,
                               quality: QualityLevel,
                               completion: @escaping (Result<URL, Error>) -> Void) {
         let urlAsset = AVURLAsset(url: url, options: nil)
         guard let exportSession = AVAssetExportSession(asset: urlAsset,
                                                        presetName: quality.rawValue) else {
-            completion(.failure(CompressionError.exportSessionCreationFailed))
+            completion(.failure(AVAssetExportSessionError.exportSessionCreationFailed))
             return
         }
         do {
@@ -68,11 +63,11 @@ public class VideoCompressor {
                     }
                 case .unknown:
                     DispatchQueue.main.async {
-                        completion(.failure(CompressionError.exportStatuUnknown))
+                        completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
                     }
                 @unknown default:
                     DispatchQueue.main.async {
-                        completion(.failure(CompressionError.exportStatuUnknown))
+                        completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
                     }
                 }
             }

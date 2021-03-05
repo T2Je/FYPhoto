@@ -24,8 +24,8 @@ public struct MediaOptions: OptionSet {
     public static let all: MediaOptions = [.image, .video]
 }
 
-
-/// A picker that manages the custom interfaces for choosing assets from the user's photos library and delivers the results of those interactions to closures. Presents picker should be better.
+/// A picker that manages the custom interfaces for choosing assets from the user's photos library and
+/// delivers the results of those interactions to closures. Presents picker should be better.
 ///
 /// Initializes new picker with the `configuration` the picker should use.
 /// PhotoPickerViewController is intended to be used as-is and does not support subclassing
@@ -34,9 +34,9 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     public var selectedPhotos: (([SelectedImage]) -> Void)?
     public var selectedVideo: ((Result<SelectedVideo, Error>) -> Void)?
     
-    var allPhotos: PHFetchResult<PHAsset>!
-    var smartAlbums: [PHAssetCollection]!
-    var userCollections: PHFetchResult<PHCollection>!
+    var allPhotos: PHFetchResult<PHAsset> = PHFetchResult()
+    var smartAlbums: [PHAssetCollection] = []
+    var userCollections: PHFetchResult<PHCollection> = PHFetchResult()
 
     /// select all photos default, used in AlbumsTableViewController
     fileprivate var selectedAlbumIndexPath = IndexPath(row: 0, section: 0)
@@ -57,7 +57,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             updateSelectedAssetsCount(with: assetSelectionIdentifierCache)
             updateVisibleCells(with: assetSelectionIdentifierCache)
             reachedMaximum = assetSelectionIdentifierCache.count >= maximumCanBeSelected
-//            collectionView.reloadData()
         }
     }
 
@@ -80,8 +79,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         return toolView
     }()
     
-    var previewVC: PhotoBrowserViewController?
-    
     fileprivate var selectedAssetIsVideo: Bool? = nil {
         willSet {
             if newValue != selectedAssetIsVideo {
@@ -89,10 +86,11 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             }
         }
     }
-
-    internal private(set) var fetchResult: PHFetchResult<PHAsset>! {
-        willSet {
-            if newValue != fetchResult, !willBatchUpdated {
+    
+    /// assets in current album
+    private(set) var assets: PHFetchResult<PHAsset> = PHFetchResult() {
+        didSet {
+            if assets != oldValue, !willBatchUpdated {
                 collectionView.reloadData()
             }
         }
@@ -100,8 +98,14 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     
     var willBatchUpdated: Bool = false
     
+    // authority params
     /// photo picker get the right authority to access photos
     var photosAuthorityPassed: Bool?
+    var isAuthorityErrorAlerted = false
+    /// appears from camera dimissing
+    var willDismiss = false
+    
+    var hasAlertedLimited = false
     
     fileprivate var containsCamera: Bool {
         configuration.supportCamera
@@ -110,18 +114,18 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     // photo
     fileprivate var maximumCanBeSelected: Int {
         if configuration.selectionLimit == 0 {
-            return fetchResult.count
+            return allPhotos.count
         } else {
             return configuration.selectionLimit
         }
     }
     
     // video
-    fileprivate var videoMaximumDuration: TimeInterval? {
+    fileprivate var maximumVideoDuration: TimeInterval {
         configuration.maximumVideoDuration
     }
     
-    fileprivate var maximumVideoSize: Double? {
+    fileprivate var maximumVideoSize: Double {
         configuration.maximumVideoMemorySize
     }
     fileprivate var compressedQuality: VideoCompressor.QualityLevel? {
@@ -141,7 +145,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
     
     private(set) var configuration: FYPhotoPickerConfiguration
-        
+    
+    let videoValidator: VideoValidatorProtocol = FYVideoValidator()
     let collectionView: UICollectionView
     
     private init() {
@@ -163,46 +168,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         self.configuration = configuration
     }
     
-    /// Initialize PhotoPicker with media types: image, video or both. Use the setting method below to config it.
-    /// - Parameter mediaTypes: image, video, both
-    @available(swift, deprecated: 1.1.0, message: "Use init(configuration:) instead")
-    public convenience init(mediaTypes: MediaOptions) {
-        self.init()
-        configuration.filterdMedia = mediaTypes
-    }
-
     public required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
-    }
-    
-    @available(swift, deprecated: 1.1.0, message: "Use configuration instead")
-    @discardableResult
-    public func setMaximumPhotosCanBeSelected(_ maximum: Int) -> Self {
-        configuration.selectionLimit = maximum
-        return self
-    }
-    
-    @available(swift, deprecated: 1.1.0, message: "Use configuration instead")
-    @discardableResult
-    public func setMaximumVideoDuration(_ duration: Double) -> Self {
-        configuration.maximumVideoDuration = duration
-        return self
-    }
-    
-    @available(swift, deprecated: 1.1.0, message: "Use configuration instead")
-    @discardableResult
-    public func setMaximumVideoSizePerMB(_ size: Double,
-                                         compressedQuality: VideoCompressor.QualityLevel = .AVAssetExportPreset640x480) -> Self {
-        configuration.maximumVideoMemorySize = size
-        configuration.compressedQuality = compressedQuality
-        return self
-    }
-    
-    @available(swift, deprecated: 1.1.0, message: "Use configuration instead")
-    @discardableResult
-    public func setPickerWithCamera(_ containsCamera: Bool) -> Self {
-        configuration.supportCamera = containsCamera
-        return self
     }
 
     deinit {
@@ -217,14 +184,13 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     public override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        collectionView.backgroundColor = .white
-        requestPhotoAuthority { (isSuccess) in
+        self.addSubViews()
+        self.setupSubViews()
+        PhotosAuthority.requestPhotoAuthority { (isSuccess) in
             if isSuccess {
                 self.photosAuthorityPassed = true
                 self.thumbnailSize = self.calculateThumbnailSize()
                 self.requestAlbumsData()
-                self.setupSubViews()
-                self.addSubViews()
                 self.resetCachedAssets()
                 PHPhotoLibrary.shared().register(self)
             } else {
@@ -235,53 +201,29 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
+        guard !willDismiss else {
+            return
+        }
         if let isPassed = photosAuthorityPassed {
-            if !isPassed {
+            if !isPassed, !isAuthorityErrorAlerted {
                 self.alertPhotosLibraryAuthorityError()
             } else {
                 thumbnailSize = calculateThumbnailSize()
-                alertLimitedStatus()
+                alertPhotoLibraryLimitedAuthority()
             }
         }
     }
     
-    func alertLimitedStatus() {
+    func alertPhotoLibraryLimitedAuthority() {
         if #available(iOS 14, *) {
-            if PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited {
+            if PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited && !hasAlertedLimited {
                 let bundleName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") ?? ""
                 let message = Bundle.main.object(forInfoDictionaryKey: "NSPhotoLibraryUsageDescription") as? String
                 let title = "\(bundleName)" + L10n.accessPhotoLibraryTitle
                 PhotosAuthority.presentLimitedLibraryPicker(title: title, message: message, from: self)
+                hasAlertedLimited = true
             }
         }
-    }
-
-    func requestPhotoAuthority(_ completion: @escaping (_ isSuccess: Bool) -> Void) {
-        let status = PHPhotoLibrary.authorizationStatus()
-        switch status {
-        case .authorized, .limited:
-            completion(true)
-        case .denied, .restricted:
-            completion(false)
-        case .notDetermined:
-            PHPhotoLibrary.requestAuthorization { (status) in
-                DispatchQueue.main.async {
-                    switch status {
-                    case .authorized, .limited:
-                        completion(true)
-                    case .denied, .restricted, .notDetermined:
-                        completion(false)
-                        print("⚠️ without authorization! ⚠️")
-                    @unknown default:
-                        fatalError()
-                    }
-                }
-            }
-        default:
-            completion(false)
-        }
-        
     }
     
     func requestAlbumsData() {
@@ -289,7 +231,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         smartAlbums = PhotoPickerResource.shared.getSmartAlbums(withMediaOptions: mediaOptions)
         userCollections = PhotoPickerResource.shared.userCollection()
         
-        fetchResult = allPhotos
+        assets = allPhotos
     }
 
     func alertPhotosLibraryAuthorityError() {
@@ -298,18 +240,22 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                                       preferredStyle: UIAlertController.Style.alert)
         let action = UIAlertAction(title: L10n.goToSettings, style: .default) { _ in
             guard let url = URL(string: UIApplication.openSettingsURLString) else {
-                self.back()
+                self.back(animated: true)
                 return
             }
             UIApplication.shared.open(url, options: [:], completionHandler: nil)
-            self.back()
+            self.back(animated: true)
         }
         let cancel = UIAlertAction(title: L10n.cancel, style: .cancel) { _ in
-            self.back()
+            if !self.containsCamera {
+                self.back(animated: true)
+            }
         }
         alert.addAction(action)
         alert.addAction(cancel)
-        self.present(alert, animated: true, completion: nil)
+        self.present(alert, animated: true, completion: {
+            self.isAuthorityErrorAlerted = true
+        })
     }
     
     func calculateThumbnailSize() -> CGSize {
@@ -328,7 +274,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     func setupNavigationBar() {
         // custom titleview
         topBar.dismiss = { [weak self] in
-            self?.back()
+            self?.back(animated: true)
         }
         topBar.albulmTitleTapped = { [weak self] in
             guard let self = self else { return }
@@ -343,6 +289,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
     
     func setupCollectionView() {
+        collectionView.backgroundColor = .white
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: GridViewCell.reuseIdentifier)
@@ -405,24 +352,32 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 let image = images[index]
                 selectedArr.append(SelectedImage(asset: asset, image: image))
             }
-            
-            self.back()
-            self.selectedPhotos?(selectedArr)
+
+            self.back(animated: true) {
+                self.selectedPhotos?(selectedArr)
+            }
         }
     }
 
-    func back() {
-        self.dismiss(animated: true, completion: {
-            print("photo picker dismissed")
+    func back(animated: Bool, _ completion: (() -> Void)? = nil) {
+        self.dismiss(animated: animated, completion: {
+            completion?()
         })
     }
 
     // MARK: UICollectionView Delegate
 
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        guard let isPassed = photosAuthorityPassed, isPassed else { return 0 }
-        return containsCamera ? fetchResult.count + 1 : fetchResult.count
-        // + 1, one cell for taking picture or video
+        if containsCamera {
+            // one cell for taking picture or video
+            if let isPassed = photosAuthorityPassed, isPassed {
+                return assets.count + 1
+            } else {
+                return 1
+            }
+        } else {
+            return assets.count
+        }
     }
     
     /// Regenerate IndexPath whether the indexPath is for pure photos or not.
@@ -466,14 +421,14 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             // set the cell's thumbnail image only if it's still showing the same asset.
             if cell.representedAssetIdentifier == asset.localIdentifier {
                 cell.thumbnailImage = image
-                self.setupCell(cell, asset: asset)
+                self.configureCellState(cell, asset: asset)
             }
         })
     }
     
-    func setupCell(_ cell: GridViewCell, asset: PHAsset) {
+    func configureCellState(_ cell: GridViewCell, asset: PHAsset) {
         if asset.mediaType == .video {
-            cell.videoDuration = PhotoPickerResource.shared.time(of: asset.duration)
+            cell.videoDuration = asset.duration.videoDurationFormat()
             if let isVideo = self.selectedAssetIsVideo {
                 cell.isEnable = isVideo
             } else {
@@ -516,14 +471,14 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             } else {
                 // Dequeue a GridViewCell.
                 if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GridViewCell.reuseIdentifier, for: indexPath) as? GridViewCell {
-                    let asset = fetchResult.object(at: regenerate(indexPath: indexPath, if: containsCamera).item)
+                    let asset = assets.object(at: regenerate(indexPath: indexPath, if: containsCamera).item)
                     configureAssetCell(cell, asset: asset, at: indexPath)
                     return cell
                 }
             }
         } else {
             if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: GridViewCell.reuseIdentifier, for: indexPath) as? GridViewCell {
-                let asset = fetchResult.object(at: regenerate(indexPath: indexPath, if: containsCamera).item)
+                let asset = assets.object(at: regenerate(indexPath: indexPath, if: containsCamera).item)
                 configureAssetCell(cell, asset: asset, at: indexPath)
                 return cell
             }
@@ -539,7 +494,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             } else {
                 // due to the placeholder camera cell
                 let indexPathWithoutCamera = regenerate(indexPath: indexPath, if: containsCamera)
-                let selectedAsset = fetchResult[indexPathWithoutCamera.item]
+                let selectedAsset = assets[indexPathWithoutCamera.item]
                 if selectedAsset.mediaType == .video {
                     browseVideoIfValid(selectedAsset)
                 } else {
@@ -552,7 +507,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             }
         } else {
             let indexPathWithoutCamera = regenerate(indexPath: indexPath, if: containsCamera)
-            let selectedAsset = fetchResult[indexPathWithoutCamera.item]
+            let selectedAsset = assets[indexPathWithoutCamera.item]
             if selectedAsset.mediaType == .video {
                 browseVideoIfValid(selectedAsset)
             } else {
@@ -564,7 +519,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             }
         }
     }
-    
     
     // Single selection just return selected image without entering PhotoBrowser
     func completeSingleSelection(at indexPath: IndexPath) {
@@ -578,10 +532,11 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         }
     }
     
+    //  MARK: BROWSE IMAGES || VIDEO
     func browseImages(at indexPath: IndexPath) {
         var photos = [PhotoProtocol]()
-        for index in 0..<fetchResult.count {
-            let asset = fetchResult[index]
+        for index in 0..<assets.count {
+            let asset = assets[index]
             photos.append(Photo.photoWithPHAsset(asset))
         }
         
@@ -620,13 +575,22 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         guard asset.mediaType == .video else {
             return
         }
-        guard validVideoDuration(asset) else {
-            selectedVideo?(.failure(PhotoPickerError.VideoDurationTooLong))
+        guard videoValidator.validVideoDuration(asset, limit: maximumVideoDuration) else {
+            PhotoPickerResource.shared.requestAVAsset(for: asset) { [weak self] (avAsset) in
+                if let urlAsset = avAsset as? AVURLAsset {
+                    self?.presentVideoTrimmer(urlAsset, duration: urlAsset.duration.seconds)
+                } else if let composition = avAsset as? AVComposition {
+                    self?.presentVideoTrimmer(composition, duration: asset.duration)
+                }
+            }
             return
         }
-        
-        if let maximimVideoSize = maximumVideoSize {
-            checkMemoryUsageFor(video: asset, limit: maximimVideoSize) { [weak self] (pass, url) in
+        if maximumVideoSize == 0 {
+            self.browseVideo(asset)
+        } else {
+            // It takes a lot of time to compute slow mode video momery footprint because
+            // it needs to be exported to temp file to get the video url
+            checkMemoryUsageFor(video: asset, limit: maximumVideoSize) { [weak self] (pass, url) in
                 guard let self = self else { return }
                 if pass {
                     self.browseVideo(asset)
@@ -634,9 +598,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                     self.selectedVideo?(.failure(PhotoPickerError.VideoMemoryOutOfSize))
                 }
             }
-        } else {
-            browseVideo(asset)
         }
+        
     }
     
     func browseVideo(_ asset: PHAsset) {
@@ -647,22 +610,23 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 let thumbnailImage = asset.getThumbnailImageSynchorously()
                 let selectedVideo = SelectedVideo(url: url)
                 selectedVideo.briefImage = thumbnailImage
-                
-                self.back()
-                self.selectedVideo?(.success(selectedVideo))
+                self.back(animated: false) {
+                    self.selectedVideo?(.success(selectedVideo))
+                }
             } else {
-                self.compressVideo(url: url, asset: asset) { (result) in
+                self.compressVideo(url: url, asset: asset) { [weak self] (result) in
+                    guard let self = self else { return }
                     switch result {
                     case .success(let url):
-                        self.back()
                         let thumbnailImage = asset.getThumbnailImageSynchorously()
                         let selectedVideo = SelectedVideo(url: url)
                         selectedVideo.briefImage = thumbnailImage
-                        self.selectedVideo?(.success(selectedVideo))
+                        self.back(animated: false) {
+                            self.selectedVideo?(.success(selectedVideo))
+                        }
                     case .failure(let error):
                         self.selectedVideo?(.failure(error))
                     }
-                    
                 }
             }
         }
@@ -680,19 +644,14 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         present(videoPlayer, animated: true, completion: nil)
     }
     
+    
     fileprivate func checkMemoryUsageFor(video: PHAsset, limit: Double, completion: @escaping (Bool, URL?) -> Void) {
-        let options = PHVideoRequestOptions()
-        options.deliveryMode = .highQualityFormat
-        options.isNetworkAccessAllowed = true
-        PHImageManager.default().requestAVAsset(forVideo: video, options: options) { (avasset, _, _) in
-            DispatchQueue.main.async {
-                guard let avURLAsset = avasset as? AVURLAsset else {
-                    completion(false, nil)
-                    return
-                }
-                let valid = self.validVideoSize(avURLAsset.url, by: limit)
-                completion(valid, avURLAsset.url)
-            }
+        
+        PhotoPickerResource.shared.requestAVAssetURL(for: video) { [weak self] (url) in
+            guard let self = self else { return }
+            guard let url = url else { return }
+            let isValid = self.videoValidator.validVideoSize(url, limit: limit)
+            completion(isValid, url)
         }
     }
     
@@ -709,24 +668,17 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         }
     }
     
-    fileprivate func validVideoDuration(_ asset: PHAsset) -> Bool {
-        guard let maximumDuration = videoMaximumDuration else {
-            return true
-        }
-        return asset.duration < maximumDuration
-    }
-    
-    fileprivate func validVideoSize(_ url: URL, by limit: Double) -> Bool {
-        guard url.isFileURL else {
-            return false
-        }
-        return url.sizePerMB() <= limit
+    func presentVideoTrimmer(_ avAsset: AVAsset, duration: Double) {
+        let trimmerVC = VideoTrimmerViewController(asset: avAsset, duration: duration, maximumDuration: maximumVideoDuration)
+        trimmerVC.delegate = self
+        trimmerVC.modalPresentationStyle = .fullScreen
+        self.present(trimmerVC, animated: true, completion: nil)
     }
     
     func launchCamera() {
         let cameraVC = CameraViewController(tintColor: configuration.colorConfiguration.topBarColor.itemTintColor)
         cameraVC.captureMode = mediaOptions
-        cameraVC.videoMaximumDuration = videoMaximumDuration ?? 15
+        cameraVC.videoMaximumDuration = maximumVideoDuration
         cameraVC.moviePathExtension = moviePathExtension
         cameraVC.delegate = self
         cameraVC.modalPresentationStyle = .fullScreen
@@ -743,14 +695,6 @@ extension PhotoPickerViewController: GridViewCellDelegate {
         } else {
             assetSelectionIdentifierCache.append(assetIdentifier)
         }
-
-//        // update cell selection button
-//        if let added = assetSelectionIdentifierCache.firstIndex(of: assetIdentifier) {
-//            // button display the order number of selected photos
-//            cell.updateSelectionButtonTitle("\(added + 1)", false)
-//        } else {
-//            cell.updateSelectionButtonTitle("", false)
-//        }
     }
 
     func updateSelectedAssetIsVideo(with assetIdentifiers: [String]) {
@@ -774,8 +718,8 @@ extension PhotoPickerViewController: GridViewCellDelegate {
     func updateVisibleCells(with identifiers: [String]) {
         let cells = collectionView.visibleCells.compactMap{ $0 as? GridViewCell }.filter { $0.indexPath != nil }
         for cell in cells {
-            let asset = fetchResult.object(at: regenerate(indexPath: cell.indexPath!, if: containsCamera).item)
-            setupCell(cell, asset: asset)
+            let asset = assets.object(at: regenerate(indexPath: cell.indexPath!, if: containsCamera).item)
+            configureCellState(cell, asset: asset)
         }
     }
     
@@ -800,7 +744,9 @@ extension PhotoPickerViewController: PhotoBrowserViewControllerDelegate {
 
     public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, didCompleteSelected photos: [PhotoProtocol]) {
         let assets = photos.compactMap { $0.asset }
-        selectionCompleted(assets: assets, animated: true)
+        photoBrowser.dismiss(animated: true) {
+            self.selectionCompleted(assets: assets, animated: true)
+        }
     }
     
     public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, deletePhotoAtIndexWhenBrowsing index: Int) {
@@ -814,11 +760,11 @@ extension PhotoPickerViewController: AlbumsTableViewControllerDelegate {
         self.selectedAlbumIndexPath = indexPath
         switch AlbumsTableViewController.Section(rawValue: indexPath.section)! {
         case .allPhotos:
-            fetchResult = allPhotos
+            assets = allPhotos
             topBar.setTitle(L10n.allPhotos)
         case .smartAlbums:
             let collection = smartAlbums[indexPath.row]
-            fetchResult = PHAsset.fetchAssets(in: collection, options: nil)
+            assets = PHAsset.fetchAssets(in: collection, options: nil)
             topBar.setTitle(collection.localizedTitle ?? "")
         case .userCollections:
             let collection: PHCollection = userCollections.object(at: indexPath.row)
@@ -830,13 +776,13 @@ extension PhotoPickerViewController: AlbumsTableViewControllerDelegate {
             if mediaOptions == .image {
                 let fetchOptions = PHFetchOptions()
                 fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue)
-                fetchResult = PHAsset.fetchAssets(in: assetCollection, options: fetchOptions)
+                assets = PHAsset.fetchAssets(in: assetCollection, options: fetchOptions)
             } else if mediaOptions == .video {
                 let fetchOptions = PHFetchOptions()
                 fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.video.rawValue)
-                fetchResult = PHAsset.fetchAssets(in: assetCollection, options: fetchOptions)
+                assets = PHAsset.fetchAssets(in: assetCollection, options: fetchOptions)
             } else {
-                fetchResult = PHAsset.fetchAssets(in: assetCollection, options: nil)
+                assets = PHAsset.fetchAssets(in: assetCollection, options: nil)
             }
         }
     }
@@ -858,7 +804,7 @@ extension PhotoPickerViewController: UIScrollViewDelegate {
         guard let isPassed = photosAuthorityPassed, isPassed else { return }
         // Update only if the view is visible.
         guard isViewLoaded && view.window != nil else { return }
-        guard fetchResult.count > 0 else {
+        guard assets.count > 0 else {
             #if DEBUG
             print("❌ could't fetch any photo")
             #endif
@@ -881,7 +827,7 @@ extension PhotoPickerViewController: UIScrollViewDelegate {
                 return nil
             } else {
                 let index = indexPath.item - 1
-                return fetchResult.object(at: index)
+                return assets.object(at: index)
             }
         }
                 
@@ -892,7 +838,7 @@ extension PhotoPickerViewController: UIScrollViewDelegate {
                     return nil
                 } else {
                     let index = indexPath.item - 1
-                    return fetchResult.object(at: index)
+                    return assets.object(at: index)
                 }
             }
         // Update the assets the PHCachingImageManager is caching.
@@ -936,7 +882,7 @@ extension PhotoPickerViewController: UIScrollViewDelegate {
 extension PhotoPickerViewController: PHPhotoLibraryChangeObserver {
     public func photoLibraryDidChange(_ changeInstance: PHChange) {
 
-        guard let changes = changeInstance.changeDetails(for: fetchResult)
+        guard let changes = changeInstance.changeDetails(for: assets)
             else { return }
 
         // Change notifications may be made on a background queue. Re-dispatch to the
@@ -944,7 +890,7 @@ extension PhotoPickerViewController: PHPhotoLibraryChangeObserver {
         DispatchQueue.main.sync {
             // Hang on to the new fetch result.
             self.willBatchUpdated = changes.hasIncrementalChanges
-            fetchResult = changes.fetchResultAfterChanges
+            assets = changes.fetchResultAfterChanges
             if changes.hasIncrementalChanges {
                 let bias = self.containsCamera ? 1 : 0
                 // If we have incremental diffs, animate them in the collection view.
@@ -987,12 +933,23 @@ extension PhotoPickerViewController: PhotoPickerBottomToolViewDelegate {
         }
         photoBrowser.delegate = self
         let navi = UINavigationController(rootViewController: photoBrowser)
-//        navi.modalPresentationStyle= .fullScreen
         self.present(navi, animated: true, completion: nil)
-        self.previewVC = photoBrowser
     }
     
     func bottomToolViewDoneButtonClicked() {
-        selectionCompleted(assets: selectedAssets, animated: true)
+        self.selectionCompleted(assets: self.selectedAssets, animated: true)
     }
+}
+
+extension PhotoPickerViewController: VideoTrimmerViewControllerDelegate {
+    public func videoTrimmerDidCancel(_ videoTrimmer: VideoTrimmerViewController) {
+        videoTrimmer.dismiss(animated: true, completion: nil)
+    }
+    
+    public func videoTrimmer(_ videoTrimmer: VideoTrimmerViewController, didFinishTrimingAt url: URL) {
+        self.back(animated: true) {
+            self.selectedVideo?(.success(SelectedVideo(url: url)))
+        }
+    }
+        
 }

@@ -210,7 +210,7 @@ public class PhotoPickerResource {
         return PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumBursts, options: nil).firstObject
     }
 
-    /// 相簿封面
+    /// Fetch albums covers
     func fetchCover(in collection: PHAssetCollection, targetSize: CGSize, options: PHFetchOptions? = nil, completion: @escaping ((UIImage?) -> Void)) {
         let keyAssetResult = PHAsset.fetchKeyAssets(in: collection, options: options)
         if let keyAsset = keyAssetResult?.firstObject {
@@ -226,7 +226,130 @@ public class PhotoPickerResource {
             completion(nil)
         }
     }
+    
+    func requestAVAsset(for video: PHAsset, completion: @escaping((AVAsset?) -> Void)) {
+        let options = PHVideoRequestOptions()
+        options.deliveryMode = .highQualityFormat
+        options.isNetworkAccessAllowed = true
+        
+        PHImageManager.default().requestAVAsset(forVideo: video, options: options) { (avasset, _, _) in
+            DispatchQueue.main.async {
+                completion(avasset)
+            }
+        }
+    }
 
+    func requestAVAssetURL(for video: PHAsset, completion: @escaping((URL?) -> Void)) {
+        let options = PHVideoRequestOptions()
+        options.deliveryMode = .highQualityFormat
+        options.isNetworkAccessAllowed = true
+        
+        PHImageManager.default().requestAVAsset(forVideo: video, options: options) { (avasset, _, _) in
+            DispatchQueue.main.async {
+                if let avURLAsset = avasset as? AVURLAsset {
+                    completion(avURLAsset.url)
+                } else if let avComposition = avasset as? AVComposition {
+                    self.exportAVComposition(avComposition) { (result) in
+                        let url = try? result.get()
+                        completion(url)
+                    }
+                } else {
+                    completion(nil)
+                }
+            }
+        }
+    }
+    
+    // Export Slow Mode video url
+    func exportAVComposition(_ composition: AVComposition, completion: @escaping (Result<URL, Error>) -> Void) {
+        do {
+            var tempDirectory = try FileManager.tempDirectory(with: "avComposition")
+            let videoName = UUID().uuidString + ".mp4"
+            tempDirectory.appendPathComponent("\(videoName)")
+            
+            guard let exporter = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
+                completion(.failure(AVAssetExportSessionError.exportSessionCreationFailed))
+                return
+            }
+            
+            exporter.outputURL = tempDirectory
+            exporter.outputFileType = .mp4
+            exporter.shouldOptimizeForNetworkUse = true
+            exporter.exportAsynchronously {
+                DispatchQueue.main.async {
+                    switch exporter.status {
+                    case .waiting:
+                        #if DEBUG
+                        print("waiting to be exported")
+                        #endif
+                    case .exporting:
+                        #if DEBUG
+                        print("exporting video")
+                        #endif
+                    case .cancelled, .failed:
+                        completion(.failure(exporter.error!))
+                    case .completed:
+                        #if DEBUG
+                        print("finish exporting, video size: \(tempDirectory.sizePerMB()) MB")
+                        #endif
+                        completion(.success(tempDirectory))
+                    case .unknown:
+                        completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
+                    @unknown default:
+                        completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
+                    }
+                }
+            }
+        } catch {
+            completion(.failure(error))
+        }
+    }
+    
+    func trimVideo(_ asset: AVAsset, from startTime: Double, to endTime: Double, completion: @escaping((Result<URL, Error>) -> Void)) {
+        do {
+            var tempDirectory = try FileManager.tempDirectory(with: "trimmedVideo")
+            let videoName = UUID().uuidString + ".mp4"
+            tempDirectory.appendPathComponent("\(videoName)")
+            
+            guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
+                completion(.failure(AVAssetExportSessionError.exportSessionCreationFailed))
+                return
+            }
+            
+            let start = CMTime(seconds: startTime, preferredTimescale: 600)
+            let end = CMTime(seconds: endTime, preferredTimescale: 600)
+            exporter.timeRange = CMTimeRange(start: start, end: end)
+            exporter.outputURL = tempDirectory
+            exporter.outputFileType = .mp4            
+            exporter.exportAsynchronously {
+                DispatchQueue.main.async {
+                    switch exporter.status {
+                    case .waiting:
+                        #if DEBUG
+                        print("waiting to be exported")
+                        #endif
+                    case .exporting:
+                        #if DEBUG
+                        print("exporting video")
+                        #endif
+                    case .cancelled, .failed:
+                        completion(.failure(exporter.error!))
+                    case .completed:
+                        #if DEBUG
+                        print("finish exporting, video size: \(tempDirectory.sizePerMB()) MB")
+                        #endif
+                        completion(.success(tempDirectory))
+                    case .unknown:
+                        completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
+                    @unknown default:
+                        completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
+                    }
+                }
+            }
+        } catch {
+            completion(.failure(error))
+        }
+    }
 }
 
 extension PhotoPickerResource {
@@ -299,32 +422,6 @@ extension PhotoPickerResource {
         }
         return PHImageManager.default().requestImage(for: asset, targetSize: targetSize, contentMode: .default, options: _options) { (image, info) in
             completion(image, info?["PHImageResultRequestIDKey"] as? PHImageRequestID)
-        }
-    }
-}
-
-extension PhotoPickerResource {
-
-    /// Get time string from timeInterval, timeInterval > 3600, retrun '> 1 hour'. TimeInterval in (60, 3600), return 'xx:yy'.
-    /// TimeInterval less than 10, return '00:xx'.
-    ///
-    /// - Parameter timeInterval: timeInterval
-    /// - Returns: e.g. 00:00
-    func time(of timeInterval: TimeInterval) -> String {
-        // per_minute == 60
-        // per_hour == 3600
-
-        guard timeInterval / Double(3600) < 1 else {
-            return String(format: "> 1 %@", L10n.hour)
-        }
-        let minutes = Int(timeInterval) / 60
-        let seconds = Int(timeInterval) % 60
-
-        if minutes == 0 {
-            let fixedSeconds = seconds < 10 ? "0\(seconds)" : "\(seconds)"
-            return "00:\(fixedSeconds)"
-        } else {
-            return String(format: "%d:%d", minutes, seconds)
         }
     }
 }

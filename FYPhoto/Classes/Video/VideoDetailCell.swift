@@ -48,6 +48,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
 //        contentView.backgroundColor = .white
         contentView.addSubview(imageView)
         contentView.addSubview(playerView)
+        playerView.layer.contentsGravity = .resizeAspectFill
 
         contentView.addSubview(activityIndicator)
 
