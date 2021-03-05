@@ -23,16 +23,19 @@ public struct FYPhotoPickerConfiguration {
     /// Maximum video duration can pick. Default is 15 seconds.
     public var maximumVideoDuration: Double = 15
     
-    /// Maximum video size can pick. No limit by default
+    /// Maximum video size can pick. Default is 0, not limit.
     public var maximumVideoMemorySize: Double = 0
+    
+    /// If true, compress video larger than 10 MB before giving it to user. Default is true.
+    public var compressedVideoBeforeSelected: Bool = true
     
     /// Video compressed quality. Default is 640x480.
     public var compressedQuality: VideoCompressor.QualityLevel = .AVAssetExportPreset640x480
     
-    /// Captured movie path extension
+    /// Captured movie path extension. Default is `mp4`.
     public var moviePathExtension: String = "mp4"
     
-    /// whether first cell is camera cell or not
+    /// whether first cell is camera cell or not. Default is true.
     public var supportCamera: Bool = true
 
     @available(swift, deprecated: 1.2.0, message: "custom color with colorConfiguration")

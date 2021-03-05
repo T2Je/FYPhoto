@@ -49,6 +49,14 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                                     safeAreaInsetsTop: safeAreaInsets.top)
         return bar
     }()
+    
+    fileprivate lazy var bottomToolBar: PhotoPickerBottomToolView = {
+        let toolView = PhotoPickerBottomToolView(selectionLimit: maximumCanBeSelected,
+                                                 colorStyle: configuration.colorConfiguration.pickerBottomBarColor,
+                                                 safeAreaInsetsBottom: safeAreaInsets.bottom)
+        toolView.delegate = self
+        return toolView
+    }()
 
     /// identify selected assets
     fileprivate var assetSelectionIdentifierCache = [String]() {
@@ -70,14 +78,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     internal let imageManager = PHCachingImageManager()
     fileprivate var thumbnailSize: CGSize = .zero
     fileprivate var previousPreheatRect = CGRect.zero
-
-    fileprivate lazy var bottomToolBar: PhotoPickerBottomToolView = {
-        let toolView = PhotoPickerBottomToolView(selectionLimit: maximumCanBeSelected,
-                                                 colorStyle: configuration.colorConfiguration.pickerBottomBarColor,
-                                                 safeAreaInsetsBottom: safeAreaInsets.bottom)
-        toolView.delegate = self
-        return toolView
-    }()
     
     fileprivate var selectedAssetIsVideo: Bool? = nil {
         willSet {
@@ -142,6 +142,10 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     /// single selection has different interactions
     fileprivate var isSingleSelection: Bool {
         configuration.selectionLimit == 1
+    }
+    
+    fileprivate var hasMemorySizeLimit: Bool {
+        return maximumVideoSize > 0
     }
     
     private(set) var configuration: FYPhotoPickerConfiguration
@@ -585,7 +589,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             }
             return
         }
-        if maximumVideoSize == 0 {
+        if !hasMemorySizeLimit {
             self.browseVideo(asset)
         } else {
             // It takes a lot of time to compute slow mode video momery footprint because
@@ -606,27 +610,36 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         let videoPlayer = PlayVideoForSelectionViewController.playVideo(asset)
         videoPlayer.selectedVideo = { [weak self] url in
             guard let self = self else { return }
-            if url.sizePerMB() <= 10 {
+            if self.configuration.compressedVideoBeforeSelected {
+                if url.sizePerMB() <= 10 {
+                    let thumbnailImage = asset.getThumbnailImageSynchorously()
+                    let selectedVideo = SelectedVideo(url: url)
+                    selectedVideo.briefImage = thumbnailImage
+                    self.back(animated: false) {
+                        self.selectedVideo?(.success(selectedVideo))
+                    }
+                } else {
+                    self.compressVideo(url: url, asset: asset) { [weak self] (result) in
+                        guard let self = self else { return }
+                        switch result {
+                        case .success(let url):
+                            let thumbnailImage = asset.getThumbnailImageSynchorously()
+                            let selectedVideo = SelectedVideo(url: url)
+                            selectedVideo.briefImage = thumbnailImage
+                            self.back(animated: false) {
+                                self.selectedVideo?(.success(selectedVideo))
+                            }
+                        case .failure(let error):
+                            self.selectedVideo?(.failure(error))
+                        }
+                    }
+                }
+            } else {
                 let thumbnailImage = asset.getThumbnailImageSynchorously()
                 let selectedVideo = SelectedVideo(url: url)
                 selectedVideo.briefImage = thumbnailImage
                 self.back(animated: false) {
                     self.selectedVideo?(.success(selectedVideo))
-                }
-            } else {
-                self.compressVideo(url: url, asset: asset) { [weak self] (result) in
-                    guard let self = self else { return }
-                    switch result {
-                    case .success(let url):
-                        let thumbnailImage = asset.getThumbnailImageSynchorously()
-                        let selectedVideo = SelectedVideo(url: url)
-                        selectedVideo.briefImage = thumbnailImage
-                        self.back(animated: false) {
-                            self.selectedVideo?(.success(selectedVideo))
-                        }
-                    case .failure(let error):
-                        self.selectedVideo?(.failure(error))
-                    }
                 }
             }
         }
