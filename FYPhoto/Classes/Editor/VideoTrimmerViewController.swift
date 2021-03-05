@@ -45,6 +45,8 @@ public class VideoTrimmerViewController: UIViewController {
     let confirmButton = UIButton()
     let pauseButton = UIButton()
     
+    let activityIndicator = UIActivityIndicatorView()
+    
     // trimmed time
     var startTime: Double = 0 {
         didSet {
@@ -71,8 +73,6 @@ public class VideoTrimmerViewController: UIViewController {
     let numberOfFramesInSlider = 10
     // video time
     var periodTimeObserverToken: Any?
-    
-    private let extraFrames = 10
     
     fileprivate var avAsset: AVAsset!
     fileprivate var url: URL!
@@ -123,10 +123,13 @@ public class VideoTrimmerViewController: UIViewController {
         view.addSubview(cancelButton)
         view.addSubview(confirmButton)
         view.addSubview(pauseButton)
+        view.addSubview(activityIndicator)
         
         setupPlayerView()
         setupTrimmerToolView()
         setupButtonButtons()
+        setupActivityIndicator()
+        
         createImageFrames()
         
         storePreviousAudioState()
@@ -136,7 +139,7 @@ public class VideoTrimmerViewController: UIViewController {
     public override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         setAudioState()
-        isPlaying = true
+//        isPlaying = true
     }
     
     public override func viewWillDisappear(_ animated: Bool) {
@@ -260,8 +263,26 @@ public class VideoTrimmerViewController: UIViewController {
         ])
     }
     
+    func setupActivityIndicator() {
+        if #available(iOS 13.0, *) {
+            activityIndicator.style = .large
+        } else {
+            activityIndicator.style = .whiteLarge
+        }
+        
+        activityIndicator.translatesAutoresizingMaskIntoConstraints = false
+        let safeArea = view.safeAreaLayoutGuide
+        NSLayoutConstraint.activate([
+            activityIndicator.centerXAnchor.constraint(equalTo: safeArea.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: safeArea.centerYAnchor)
+        ])
+    }
+    
+    //
+    
     func createImageFrames() {
         //creating assets
+        self.activityIndicator.startAnimating()
         DispatchQueue.global().async {
             let assetImgGenerate: AVAssetImageGenerator = AVAssetImageGenerator(asset: self.avAsset)
             assetImgGenerate.appliesPreferredTrackTransform = true
@@ -293,6 +314,8 @@ public class VideoTrimmerViewController: UIViewController {
             }
             
             DispatchQueue.main.async {
+                self.activityIndicator.stopAnimating()
+                self.isPlaying = true
                 self.trimmerToolView.videoFrames = frames
             }
         }        
