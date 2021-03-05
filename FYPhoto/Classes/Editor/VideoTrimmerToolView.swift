@@ -10,7 +10,6 @@ import UIKit
 class VideoTrimmerToolView: UIView {
     let startTimeLabel = UILabel()
     let endTimeLabel = UILabel()
-    let durationLabel = UILabel()
     
     let rangeSlider = RangeSlider()
     
@@ -33,10 +32,7 @@ class VideoTrimmerToolView: UIView {
             setupVideoFrames(videoFrames)
         }
     }
-    
-    /// when video is playing, scrolling frameScrollView simultaneously.
-//    var isScrollingWhilePlaying = false
-    
+
     let maximumDuration: Double
     let assetDuration: Double
     let numberOfFramesInSlider: Int
@@ -47,6 +43,8 @@ class VideoTrimmerToolView: UIView {
     ///
     /// - Parameters:
     ///   - maximumDuration: maximum video duration
+    ///   - assetDuration: asset duration
+    ///   - numberOfFramesInSlider: number of frames in slider range
     ///   - frame: view frame
     init(maximumDuration: Double = 0, assetDuration: Double, numberOfFramesInSlider: Int, frame: CGRect = .zero) {
         self.maximumDuration = maximumDuration
@@ -63,7 +61,6 @@ class VideoTrimmerToolView: UIView {
     func setupViews() {
         addSubview(startTimeLabel)
         addSubview(endTimeLabel)
-//        addSubview(durationLabel)
         addSubview(frameScrollView)
         addSubview(rangeSlider)
         
@@ -76,20 +73,15 @@ class VideoTrimmerToolView: UIView {
         startTimeLabel.text = 0.videoDurationFormat()
         let endSecStr = maximumDuration.videoDurationFormat()
         endTimeLabel.text = endSecStr
-//        durationLabel.text = "00:30"
         
         startTimeLabel.textColor = .white
         startTimeLabel.font = UIFont.systemFont(ofSize: 12)
         
         endTimeLabel.textColor = .white
         endTimeLabel.font = UIFont.systemFont(ofSize: 12)
-                
-        durationLabel.textColor = .white
-        durationLabel.font = UIFont.systemFont(ofSize: 12)
-        
+
         startTimeLabel.translatesAutoresizingMaskIntoConstraints = false
         endTimeLabel.translatesAutoresizingMaskIntoConstraints = false
-//        durationLabel.translatesAutoresizingMaskIntoConstraints = false
                   
         NSLayoutConstraint.activate([
             startTimeLabel.topAnchor.constraint(equalTo: topAnchor),
@@ -102,7 +94,6 @@ class VideoTrimmerToolView: UIView {
             endTimeLabel.heightAnchor.constraint(equalToConstant: 15),
             endTimeLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -30)
         ])
-        
     }
     
     func setupFrameScrollView() {
@@ -182,11 +173,9 @@ class VideoTrimmerToolView: UIView {
         let a = maximumDuration / (rangeSlider.maximumValue - rangeSlider.minimumValue)
         if rangeSlider.isLeftHandleSelected {
             let startTime = a * rangeSlider.leftHandleValue
-//            startTimeLabel.text = TimeInterval(startTime).videoDurationFormat()
             lowValue?(startTime)
         } else {
             let endTime = a * rangeSlider.rightHandleValue
-//            endTimeLabel.text = TimeInterval(endTime).videoDurationFormat()
             highValue?(endTime)
         }                
     }
