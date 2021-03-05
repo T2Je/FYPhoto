@@ -51,13 +51,14 @@ public class VideoTrimmerViewController: UIViewController {
     var startTime: Double = 0 {
         didSet {
             seekVideo(to: startTime + offsetTime)
+            print("real start: \(startTime + offsetTime)")
             trimmerToolView.startTimeLabel.text = (startTime + offsetTime).videoDurationFormat()
         }
     }
     
     var endTime: Double = 0 {
         didSet {
-            print("endTime")
+            print("real end: \(endTime + offsetTime)")
             seekVideo(to: endTime + self.offsetTime)
             trimmerToolView.endTimeLabel.text = (endTime + offsetTime).videoDurationFormat()
         }
@@ -66,7 +67,9 @@ public class VideoTrimmerViewController: UIViewController {
     var offsetTime: Double = 0 {
         didSet {            
             trimmerToolView.startTimeLabel.text = (startTime + offsetTime).videoDurationFormat()
-            trimmerToolView.endTimeLabel.text = (endTime + offsetTime).videoDurationFormat()
+
+            let _endTime = (endTime + offsetTime) > videoDuration ? videoDuration : endTime + offsetTime
+            trimmerToolView.endTimeLabel.text = _endTime.videoDurationFormat()
         }
     }
     
@@ -228,6 +231,7 @@ public class VideoTrimmerViewController: UIViewController {
             self.isPlaying = false
             self.maximumDuration = self.endTime - low
             self.startTime = low
+            print("high: \(low)")
         }
         
         trimmerToolView.highValue = { [weak self] high in
@@ -235,6 +239,7 @@ public class VideoTrimmerViewController: UIViewController {
             self.isPlaying = false
             self.maximumDuration = high - self.startTime
             self.endTime = high
+            print("high: \(high)")
         }
         
         // scroll video frames changes offset time, doesn't change startTime or endTime.
@@ -243,7 +248,7 @@ public class VideoTrimmerViewController: UIViewController {
             self.isPlaying = false
             
             self.offsetTime = offsetTime
-//            print("offsetTime: \(self.offsetTime)")
+            print("offsetTime: \(self.offsetTime)")
             self.seekVideo(to: self.startTime + self.offsetTime)
         }
         
@@ -292,6 +297,7 @@ public class VideoTrimmerViewController: UIViewController {
             assetImgGenerate.appliesPreferredTrackTransform = true
             
             let durationSeconds = ceil(self.videoDuration)
+            
             let numberOfFrames = ceil(durationSeconds * (Double(self.numberOfFramesInSlider) / self.maximumDuration))
             
             let secPerFrame = durationSeconds/numberOfFrames
@@ -400,7 +406,9 @@ public class VideoTrimmerViewController: UIViewController {
     }
     
     @objc func confirmButtonClicked(_ sender: UIButton) {
-        PhotoPickerResource.shared.trimVideo(avAsset, from: startTime, to: endTime) { [weak self] (result) in
+        var realEnd = endTime+offsetTime
+        realEnd = realEnd > videoDuration ? videoDuration : realEnd
+        PhotoPickerResource.shared.trimVideo(avAsset, from: startTime+offsetTime, to: realEnd) { [weak self] (result) in
             guard let self = self else { return }
             self.delegate?.videoTrimmerDidCancel(self)
             switch result {

@@ -227,10 +227,8 @@ extension VideoTrimmerToolView: UIScrollViewDelegate {
         } else if offsetX == 0 {
             scrollVideoFrames?(0)
         } else {
-            // scrolled time = per frame duration * scrolled frames
-            let perFrameDuration = assetDuration / Double(videoFrames.count)
-            let scrolledFrames = Double(offsetX / (rangeSlider.frame.size.width / CGFloat(numberOfFramesInSlider)))
-            let offsetTime = Double(perFrameDuration * scrolledFrames)
+            let offsetTime = assetDuration / Double(scrollView.contentSize.width) * Double(offsetX)
+//            print("offsetTime: \(offsetTime)")
             scrollVideoFrames?(offsetTime)
         }
     }
