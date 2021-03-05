@@ -222,7 +222,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         view.backgroundColor = .white
         self.addSubViews()
         self.setupSubViews()
-        requestPhotoAuthority { (isSuccess) in
+        PhotosAuthority.requestPhotoAuthority { (isSuccess) in
             if isSuccess {
                 self.photosAuthorityPassed = true
                 self.thumbnailSize = self.calculateThumbnailSize()
@@ -258,32 +258,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 let title = "\(bundleName)" + L10n.accessPhotoLibraryTitle
                 PhotosAuthority.presentLimitedLibraryPicker(title: title, message: message, from: self)
             }
-        }
-    }
-
-    func requestPhotoAuthority(_ completion: @escaping (_ isSuccess: Bool) -> Void) {
-        let status = PHPhotoLibrary.authorizationStatus()
-        switch status {
-        case .authorized, .limited:
-            completion(true)
-        case .denied, .restricted:
-            completion(false)
-        case .notDetermined:
-            PHPhotoLibrary.requestAuthorization { (status) in
-                DispatchQueue.main.async {
-                    switch status {
-                    case .authorized, .limited:
-                        completion(true)
-                    case .denied, .restricted, .notDetermined:
-                        completion(false)
-                        print("⚠️ without authorization! ⚠️")
-                    @unknown default:
-                        fatalError()
-                    }
-                }
-            }
-        default:
-            completion(false)
         }
     }
     
@@ -681,7 +655,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                     case .failure(let error):
                         self.selectedVideo?(.failure(error))
                     }
-                    
                 }
             }
         }
@@ -762,14 +735,6 @@ extension PhotoPickerViewController: GridViewCellDelegate {
         } else {
             assetSelectionIdentifierCache.append(assetIdentifier)
         }
-
-//        // update cell selection button
-//        if let added = assetSelectionIdentifierCache.firstIndex(of: assetIdentifier) {
-//            // button display the order number of selected photos
-//            cell.updateSelectionButtonTitle("\(added + 1)", false)
-//        } else {
-//            cell.updateSelectionButtonTitle("", false)
-//        }
     }
 
     func updateSelectedAssetIsVideo(with assetIdentifiers: [String]) {
@@ -1008,7 +973,6 @@ extension PhotoPickerViewController: PhotoPickerBottomToolViewDelegate {
         }
         photoBrowser.delegate = self
         let navi = UINavigationController(rootViewController: photoBrowser)
-//        navi.modalPresentationStyle= .fullScreen
         self.present(navi, animated: true, completion: nil)
     }
     
