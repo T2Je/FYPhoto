@@ -105,7 +105,7 @@ class ViewController: UIViewController {
 //        pickerConfig.maximumVideoMemorySize = 100 // 40
         pickerConfig.maximumVideoDuration = 6
         pickerConfig.compressedQuality = .AVAssetExportPreset640x480
-        pickerConfig.supportCamera = false
+        pickerConfig.supportCamera = true
 //        pickerConfig.filterdMedia = .all
         pickerConfig.mediaFilter = .all
         let colorConfig = FYColorConfiguration()

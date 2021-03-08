@@ -100,7 +100,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     
     // authority params
     /// photo picker get the right authority to access photos
-    var photosAuthorityPassed: Bool?
+    var photosAuthorityPassed: Bool = false
     var isAuthorityErrorAlerted = false
     /// appears from camera dimissing
     var willDismiss = false
@@ -177,7 +177,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
 
     deinit {
-        if let isPassed = photosAuthorityPassed, isPassed {
+        if photosAuthorityPassed {
             resetCachedAssets()
             PHPhotoLibrary.shared().unregisterChangeObserver(self)
         }
@@ -208,12 +208,16 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         guard !willDismiss else {
             return
         }
-        if let isPassed = photosAuthorityPassed {
-            if !isPassed, !isAuthorityErrorAlerted {
-                self.alertPhotosLibraryAuthorityError()
-            } else {
+        if PHPhotoLibrary.authorizationStatus() != .notDetermined {
+            // app is installed on device for the first time, the photos authority is not determined,
+            // so there is no need to show custom alert controller.
+            if photosAuthorityPassed {
                 thumbnailSize = calculateThumbnailSize()
                 alertPhotoLibraryLimitedAuthority()
+            } else {
+                if !isAuthorityErrorAlerted {
+                    self.alertPhotosLibraryAuthorityError()
+                }
             }
         }
     }
@@ -374,7 +378,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if containsCamera {
             // one cell for taking picture or video
-            if let isPassed = photosAuthorityPassed, isPassed {
+            if photosAuthorityPassed {
                 return assets.count + 1
             } else {
                 return 1
@@ -659,7 +663,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     
     
     fileprivate func checkMemoryUsageFor(video: PHAsset, limit: Double, completion: @escaping (Bool, URL?) -> Void) {
-        
         PhotoPickerResource.shared.requestAVAssetURL(for: video) { [weak self] (url) in
             guard let self = self else { return }
             guard let url = url else { return }
@@ -814,7 +817,7 @@ extension PhotoPickerViewController: UIScrollViewDelegate {
     }
 
     fileprivate func updateCachedAssets() {
-        guard let isPassed = photosAuthorityPassed, isPassed else { return }
+        guard photosAuthorityPassed else { return }
         // Update only if the view is visible.
         guard isViewLoaded && view.window != nil else { return }
         guard assets.count > 0 else {
