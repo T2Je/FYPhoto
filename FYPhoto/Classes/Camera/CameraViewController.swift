@@ -165,7 +165,6 @@ public class CameraViewController: UIViewController {
                     self.alertCameraConfigurationFailed()
                 }
             }
-            
         }
     }
 
@@ -667,14 +666,6 @@ public class CameraViewController: UIViewController {
             }
         }
     }
-
-
-    public struct InfoKey : Hashable, Equatable, RawRepresentable {
-        public let rawValue: String
-        public init(rawValue: String) {
-            self.rawValue = rawValue
-        }
-    }
 }
 // MARK: - VideoCaptureOverlayDelegate
 extension CameraViewController: VideoCaptureOverlayDelegate {
@@ -1032,26 +1023,4 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         }
         return videoSize
     }
-    
-    
-}
-
-public extension CameraViewController.InfoKey {
-    static let mediaType: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "mediaType")
-
-    static let originalImage: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "originalImage") // a UIImage
-
-    static let editedImage: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "editedImage")// a UIImage
-
-    static let cropRect: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "cropRect")// an NSValue (CGRect)
-
-    static let mediaURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "mediaURL") // an URL
-
-    static let mediaMetadata: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "mediaMetadata") // an NSDictionary containing metadata from a captured photo
-    static let livePhoto: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "livePhoto") // a PHLivePhoto
-
-    static let imageURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "imageURL") // a URL
-    
-    static let watermarkImage: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "watermarkImage") // a UIImage
-    static let watermarkVideoURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "watermarkVideoURL") // a URL
 }
