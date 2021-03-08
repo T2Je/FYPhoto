@@ -17,6 +17,8 @@ protocol CacheProtocol {
     
     func data(forKey key: String) -> Data?
     
+    func removeData(forKey key: String)
+    
     func removeAllData()
 }
 
@@ -49,6 +51,7 @@ public class VideoCache {
             return nil
         }
     }
+    
     private static let movieTypes: [String] = ["mp4", "m4v", "mov"]
     
     public static let shared: VideoCache? = VideoCache()
@@ -66,6 +69,11 @@ public class VideoCache {
     
     public func clearAll() {
         cache?.removeAllData()
+    }
+    
+    public func removeData(forKey key: URL) {
+        let cKey = getCacheKey(with: key)
+        cache?.removeData(forKey: cKey)
     }
     
     public func save(data: Data, key: URL) {
