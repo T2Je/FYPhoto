@@ -89,17 +89,6 @@ public class VideoCache {
                     }
                 }
             }
-//            AF.request(key).responseData { (response: DataResponse<Data, AFError>) in
-//                switch response.result {
-//                case .success(let data):
-//                    self.save(data: data, key: key)
-//                    completion(.success(data))
-//                case .failure(let error):
-//                    DispatchQueue.main.async {
-//                        completion(.failure(error))
-//                    }
-//                }
-//            }
         }
     }
     
@@ -171,23 +160,6 @@ public class VideoCache {
                     }
                 }
             }
-            
-//            AF.request(key).responseData { (response: DataResponse<Data, AFError>) in
-//                switch response.result {
-//                case .success(let data):
-//                    self.save(data: data, key: key)
-//                    if let path = cache.cachePath(forKey: keyString) {
-//                        let url = URL(fileURLWithPath: path)
-//                        DispatchQueue.main.async {
-//                            completion(.success(url))
-//                        }
-//                    }
-//                case .failure(let error):
-//                    DispatchQueue.main.async {
-//                        completion(.failure(error))
-//                    }
-//                }
-//            }
         }
     }
     
@@ -203,7 +175,7 @@ public class VideoCache {
     func getCacheKey(with url: URL) -> String {
         let pathExtension = url.pathExtension
         if VideoCache.movieTypes.contains(pathExtension) {
-            return url.absoluteString
+            return url.lastPathComponent
         } else {
             let fileURL = URL(fileURLWithPath: url.absoluteString)
             let filePathExtension = fileURL.pathExtension

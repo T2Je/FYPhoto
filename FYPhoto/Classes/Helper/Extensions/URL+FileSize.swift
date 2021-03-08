@@ -8,6 +8,9 @@
 import Foundation
 
 extension URL {
+    /// File url video memory footprint.
+    /// Remote url will return 0.
+    /// - Returns: memory size
     func sizePerMB() -> Double {
         guard isFileURL else { return 0 }
         do {

@@ -20,6 +20,8 @@
 		E343E62E24F7BBA8003341DE /* AddPhotoBlogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */; };
 		E343E62F24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */; };
 		E3C6A6A0256CAC4200F81A33 /* RenderImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3C6A69F256CAC4200F81A33 /* RenderImageViewController.swift */; };
+		E3D9590825F6081A004AAFF1 /* TestHelperExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3D9590725F6081A004AAFF1 /* TestHelperExtensions.swift */; };
+		E3D9590C25F60B57004AAFF1 /* TestVideoCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3D9590B25F60B57004AAFF1 /* TestVideoCache.swift */; };
 		E3F5F5A8259431E70044229D /* OCViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E3F5F5A7259431E70044229D /* OCViewController.m */; };
 /* End PBXBuildFile section */
 
@@ -59,6 +61,8 @@
 		E3C6A69F256CAC4200F81A33 /* RenderImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderImageViewController.swift; sourceTree = "<group>"; };
 		E3D48E0225B139D3007AA8A8 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
 		E3D48E0325B139D4007AA8A8 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
+		E3D9590725F6081A004AAFF1 /* TestHelperExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelperExtensions.swift; sourceTree = "<group>"; };
+		E3D9590B25F60B57004AAFF1 /* TestVideoCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestVideoCache.swift; sourceTree = "<group>"; };
 		E3F5F5A5259431E70044229D /* FYPhoto_Example-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FYPhoto_Example-Bridging-Header.h"; sourceTree = "<group>"; };
 		E3F5F5A6259431E70044229D /* OCViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OCViewController.h; sourceTree = "<group>"; };
 		E3F5F5A7259431E70044229D /* OCViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OCViewController.m; sourceTree = "<group>"; };
@@ -149,6 +153,8 @@
 		607FACE81AFB9204008FA782 /* Tests */ = {
 			isa = PBXGroup;
 			children = (
+				E3D9590B25F60B57004AAFF1 /* TestVideoCache.swift */,
+				E3D9590725F6081A004AAFF1 /* TestHelperExtensions.swift */,
 				E3295DB7250F22BC00A55AEA /* TestAuthority.swift */,
 				607FACEB1AFB9204008FA782 /* Tests.swift */,
 				607FACE91AFB9204008FA782 /* Supporting Files */,
@@ -385,6 +391,8 @@
 			files = (
 				607FACEC1AFB9204008FA782 /* Tests.swift in Sources */,
 				E3295DB8250F22BC00A55AEA /* TestAuthority.swift in Sources */,
+				E3D9590C25F60B57004AAFF1 /* TestVideoCache.swift in Sources */,
+				E3D9590825F6081A004AAFF1 /* TestHelperExtensions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

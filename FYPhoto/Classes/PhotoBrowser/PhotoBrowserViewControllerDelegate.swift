@@ -68,7 +68,6 @@ public extension PhotoBrowserViewControllerDelegate {
                     self.photoBrowser(viewController, saveMediaCompletedWith: error)
                 }
             })
-            
         } else if let image = photo.image {
             SaveMediaTool.saveImageToAlbums(image) { (error) in
                 self.photoBrowser(viewController, saveMediaCompletedWith: error)

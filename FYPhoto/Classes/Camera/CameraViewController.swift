@@ -28,14 +28,6 @@ public protocol CameraViewControllerDelegate: class {
     func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL)
 }
 
-public extension CameraViewControllerDelegate {
-    func watermarkImage() -> WatermarkImage? {
-        return nil
-    }
-    func cameraViewControllerStartAddingWatermark(_ cameraViewController: CameraViewController) {}
-    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL) {}
-}
-
 public class CameraViewController: UIViewController {
     public weak var delegate: CameraViewControllerDelegate?
 
@@ -1023,4 +1015,12 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         }
         return videoSize
     }
+}
+
+public extension CameraViewControllerDelegate {
+    func watermarkImage() -> WatermarkImage? {
+        return nil
+    }
+    func cameraViewControllerStartAddingWatermark(_ cameraViewController: CameraViewController) {}
+    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL) {}
 }
