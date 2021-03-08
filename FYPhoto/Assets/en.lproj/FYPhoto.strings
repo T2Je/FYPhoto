@@ -53,3 +53,6 @@
 "SuccessfullySavedMedia" = "Successfully Saved to Photo Library";
 
 "GotIt" = "Got it";
+
+"Resume" = "Resume";
+"Unable to resume" = "Unable to resume";

@@ -48,7 +48,8 @@ public class CameraViewController: UIViewController {
     public var videoMaximumDuration: TimeInterval = 15
 
     var previewView = VideoPreviewView()
-
+    var bundleDisplayName: String = "App"
+    
     // Session
     private enum SessionSetupResult {
         case success
@@ -102,7 +103,9 @@ public class CameraViewController: UIViewController {
     override public func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
-
+        
+        bundleDisplayName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "APP"
+        
         cameraOverlayView = VideoCaptureOverlay(videoMaximumDuration: videoMaximumDuration, tintColor: tintColor)
 
         view.addSubview(previewView)
@@ -216,16 +219,14 @@ public class CameraViewController: UIViewController {
     }
 
     func alertNotAuthorized() {
-        let bundleDisplayName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") ?? ""
-        let changePrivacySetting = "\(bundleDisplayName as? String) \(L10n.withoutCameraPermission)"
-        let message = NSLocalizedString(changePrivacySetting, comment: "Alert message when the user has denied access to the camera")
-        let alertController = UIAlertController(title: "\(bundleDisplayName)", message: message, preferredStyle: .alert)
+        let changePrivacySetting = bundleDisplayName + L10n.withoutCameraPermission
+        let alertController = UIAlertController(title: "\(bundleDisplayName)", message: changePrivacySetting, preferredStyle: .alert)
         
-        alertController.addAction(UIAlertAction(title: NSLocalizedString(L10n.ok, comment: "Alert OK button"),
+        alertController.addAction(UIAlertAction(title: L10n.ok,
                                                 style: .cancel,
                                                 handler: nil))
         
-        alertController.addAction(UIAlertAction(title: NSLocalizedString(L10n.settings, comment: "Alert button to open Settings"),
+        alertController.addAction(UIAlertAction(title: L10n.settings,
                                                 style: .`default`,
                                                 handler: { _ in
                                                     UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!,
@@ -238,10 +239,10 @@ public class CameraViewController: UIViewController {
     
     
     func alertCameraConfigurationFailed() {
-        let alertMsg = "Alert message when something goes wrong during capture session configuration"
-        let message = NSLocalizedString(L10n.cameraConfigurationFailed, comment: alertMsg)
+//        let alertMsg = "Alert message when something goes wrong during capture session configuration"
+        let message = L10n.cameraConfigurationFailed
         let alertController = UIAlertController(title: L10n.camera, message: message, preferredStyle: .alert)
-        alertController.addAction(UIAlertAction(title: NSLocalizedString(L10n.ok, comment: "Alert OK button"),
+        alertController.addAction(UIAlertAction(title: L10n.ok,
                                                 style: .cancel,
                                                 handler: nil))
         self.present(alertController, animated: true, completion: nil)
@@ -565,7 +566,7 @@ public class CameraViewController: UIViewController {
         /*
          In some scenarios you want to enable the user to resume the session.
          For example, if music playback is initiated from Control Center while
-         using AVCam, then the user can let AVCam resume
+         using FYPhoto, then the user can let FYPhoto resume
          the session running, which will stop music playback. Note that stopping
          music playback in Control Center will not automatically resume the session.
          Also note that it's not always possible to resume, see `resumeInterruptedSession(_:)`.
@@ -573,7 +574,7 @@ public class CameraViewController: UIViewController {
         if let userInfoValue = notification.userInfo?[AVCaptureSessionInterruptionReasonKey] as AnyObject?,
             let reasonIntegerValue = userInfoValue.integerValue,
             let reason = AVCaptureSession.InterruptionReason(rawValue: reasonIntegerValue) {
-            print("Capture session was interrupted with reason \(reason)")
+            print("Capture session was interrupted with reason \(reason.rawValue)")
 
             var showResumeButton = false
             if reason == .audioDeviceInUseByAnotherClient || reason == .videoDeviceInUseByAnotherClient {
@@ -667,7 +668,7 @@ public class CameraViewController: UIViewController {
         }
     }
 }
-
+// MARK: - VideoCaptureOverlayDelegate
 extension CameraViewController: VideoCaptureOverlayDelegate {
     public func flashSwitch() {
         if flashMode == AVCaptureDevice.FlashMode.off {
@@ -902,6 +903,32 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
         self.dismiss(animated: true, completion: nil)
     }
 
+    public func resumeButtonClicked(_ resumeButton: UIButton) {
+        sessionQueue.async {
+            /*
+             The session might fail to start running, for example, if a phone or FaceTime call is still
+             using audio or video. This failure is communicated by the session posting a
+             runtime error notification. To avoid repeatedly failing to start the session,
+             only try to restart the session in the error handler if you aren't
+             trying to resume the session.
+             */
+            self.session.startRunning()
+            self.isSessionRunning = self.session.isRunning
+            if !self.session.isRunning {
+                DispatchQueue.main.async {
+                    let message = L10n.unableToResume
+                    let alertController = UIAlertController(title: self.bundleDisplayName, message: message, preferredStyle: .alert)
+                    let cancelAction = UIAlertAction(title: L10n.ok, style: .cancel, handler: nil)
+                    alertController.addAction(cancelAction)
+                    self.present(alertController, animated: true, completion: nil)
+                }
+            } else {
+                DispatchQueue.main.async {
+                    resumeButton.isHidden = true
+                }
+            }
+        }
+    }
 }
 
 extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
