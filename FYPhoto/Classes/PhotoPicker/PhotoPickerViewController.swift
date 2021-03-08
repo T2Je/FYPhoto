@@ -748,8 +748,8 @@ extension PhotoPickerViewController: GridViewCellDelegate {
 
 // MARK: - PhotoDetailCollectionViewControllerDelegate
 extension PhotoPickerViewController: PhotoBrowserViewControllerDelegate {
-    public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt indexPath: IndexPath) {
-        let itemFromBrowser = indexPath.item
+    public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt item: Int) {
+        let itemFromBrowser = item
         let itemInPhotoPicker = containsCamera ? itemFromBrowser - 1 : itemFromBrowser
         lastSelectedIndexPath = IndexPath(item: itemInPhotoPicker, section: 0)
     }
