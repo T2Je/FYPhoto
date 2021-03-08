@@ -111,7 +111,7 @@ public class CameraViewController: UIViewController {
         view.addSubview(previewView)
         view.addSubview(cameraOverlayView)
         makeConstraints()
-
+                
         cameraOverlayView.captureMode = captureMode
         cameraOverlayView.delegate = self
 
@@ -120,6 +120,8 @@ public class CameraViewController: UIViewController {
         // there is no need to request microphone authorization when only taking photos
         handleVideoAuthority(for: captureMode)
         
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(focusAndExposeTap(_:)))
+        view.addGestureRecognizer(tapGesture)
         /*
          Setup the capture session.
          In general, it's not safe to mutate an AVCaptureSession or any of its
@@ -626,6 +628,12 @@ public class CameraViewController: UIViewController {
             }
             )
         }
+    }
+    
+    @objc
+    func focusAndExposeTap(_ gestureRecognizer: UITapGestureRecognizer) {
+        let devicePoint = previewView.videoPreviewLayer.captureDevicePointConverted(fromLayerPoint: gestureRecognizer.location(in: gestureRecognizer.view))
+        focus(with: .autoFocus, exposureMode: .autoExpose, at: devicePoint, monitorSubjectAreaChange: true)
     }
 
     private func focus(with focusMode: AVCaptureDevice.FocusMode,
