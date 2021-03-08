@@ -299,8 +299,21 @@ public class CameraViewController: UIViewController {
          Live Photo is not supported when AVCaptureMovieFileOutput is added to the session.
          */
         session.sessionPreset = .high
+        
+        // Input
+        addDeviceInput()
+        if captureMode.contains(.video) {
+            addAudioInput()
+        }
+        
+        // Output
+        addPhotoOutput()
+        addMovieOutput()
+        
+        session.commitConfiguration()
+    }
 
-        // Add video input.
+    func addDeviceInput() {
         do {
             var defaultVideoDevice: AVCaptureDevice?
 
@@ -354,26 +367,27 @@ public class CameraViewController: UIViewController {
             session.commitConfiguration()
             return
         }
-        
-        if captureMode.contains(.video) {
-            // Add an audio input device.
-            do {
-                guard let audioDevice = AVCaptureDevice.default(for: .audio) else {
-                    print("Default audio device is unavailable.")
-                    return
-                }
-                let audioDeviceInput = try AVCaptureDeviceInput(device: audioDevice)
-                if session.canAddInput(audioDeviceInput) {
-                    session.addInput(audioDeviceInput)
-                } else {
-                    print("Could not add audio device input to the session")
-                }
-            } catch {
-                print("Could not create audio device input: \(error)")
+    }
+    
+    func addAudioInput() {
+        // Add an audio input device.
+        do {
+            guard let audioDevice = AVCaptureDevice.default(for: .audio) else {
+                print("Default audio device is unavailable.")
+                return
             }
+            let audioDeviceInput = try AVCaptureDeviceInput(device: audioDevice)
+            if session.canAddInput(audioDeviceInput) {
+                session.addInput(audioDeviceInput)
+            } else {
+                print("Could not add audio device input to the session")
+            }
+        } catch {
+            print("Could not create audio device input: \(error)")
         }
-        
-        // Add the photo output
+    }
+    
+    func addPhotoOutput() {
         if session.canAddOutput(photoOutput) {
             session.addOutput(photoOutput)
             photoOutput.isHighResolutionCaptureEnabled = true
@@ -392,14 +406,14 @@ public class CameraViewController: UIViewController {
             print("Could not add photo output to the session")
             setupResult = .configurationFailed
             session.commitConfiguration()
-            return
         }
-
+    }
+    
+    func addMovieOutput() {
         let movieFileOutput = AVCaptureMovieFileOutput()
 
         if self.session.canAddOutput(movieFileOutput) {
             self.session.addOutput(movieFileOutput)
-//            self.session.sessionPreset = .high
             if let connection = movieFileOutput.connection(with: .video) {
                 if connection.isVideoStabilizationSupported {
                     connection.preferredVideoStabilizationMode = .auto
@@ -410,11 +424,9 @@ public class CameraViewController: UIViewController {
             print("Could not add photo output to the session")
             setupResult = .configurationFailed
             session.commitConfiguration()
-            return
         }
-        session.commitConfiguration()
     }
-
+    
     func initVideoDeviceDiscoverySession() {
         if #available(iOS 10.2, *) {
             if #available(iOS 11.1, *) {
