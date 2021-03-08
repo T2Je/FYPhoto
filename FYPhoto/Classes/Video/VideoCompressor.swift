@@ -20,9 +20,9 @@ public class VideoCompressor {
         case AVAssetExportPreset3840x2160
     }
     
-    public static func compressVideo(url: URL,
-                              quality: QualityLevel,
-                              completion: @escaping (Result<URL, Error>) -> Void) {
+    public static func compressVideo(_ url: URL,
+                                     quality: QualityLevel,
+                                     completion: @escaping (Result<URL, Error>) -> Void) {
         let urlAsset = AVURLAsset(url: url, options: nil)
         guard let exportSession = AVAssetExportSession(asset: urlAsset,
                                                        presetName: quality.rawValue) else {

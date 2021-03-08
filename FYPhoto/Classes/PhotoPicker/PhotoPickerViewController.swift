@@ -673,7 +673,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     
     fileprivate func compressVideo(url: URL, asset: PHAsset, completion: @escaping ((Result<URL, Error>) -> Void)) {
         let quality = self.compressedQuality ?? .AVAssetExportPreset640x480
-        VideoCompressor.compressVideo(url: url,
+        VideoCompressor.compressVideo(url,
                                       quality: quality) { (result) in
             switch result {
             case .success(let url):
