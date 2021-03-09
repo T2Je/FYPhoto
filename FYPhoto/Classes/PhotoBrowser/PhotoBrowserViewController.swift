@@ -19,7 +19,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     
     fileprivate var mainCollectionView: UICollectionView!
 
-    /// 底部标题
+    /// bottom caption view
     fileprivate lazy var captionView = CaptionView()
     
     fileprivate lazy var pageControl: UIPageControl = {
@@ -784,7 +784,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             if isForSelection {
                 navigationItem.title = ""
             } else {
-                navigationItem.title = "\(indexPath.item + 1)/\(photos.count)"
+                if photos.count > 1 {
+                    navigationItem.title = "\(indexPath.item + 1)/\(photos.count)"
+                }
             }
         }
     }
