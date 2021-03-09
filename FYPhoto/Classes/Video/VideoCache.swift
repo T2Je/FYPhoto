@@ -74,6 +74,7 @@ public class VideoCache {
     public func removeData(forKey key: URL) {
         let cKey = getCacheKey(with: key)
         cache?.removeData(forKey: cKey)
+        
     }
     
     public func save(data: Data, key: URL) {
@@ -101,6 +102,10 @@ public class VideoCache {
     }
     
     fileprivate func request(_ url: URL, completion: @escaping ((Result<Data, Error>) -> Void)) {
+        if let task = activeTaskMap[url] {
+            task.cancel()
+            activeTaskMap[url] = nil
+        }
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             if let error = error {
                 DispatchQueue.main.async {

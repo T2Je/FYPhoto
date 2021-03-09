@@ -394,7 +394,7 @@ extension AddPhotoBlogViewController: UICollectionViewDelegate, UICollectionView
 //                }
 //                return cell.imageView
 //            }
-            navigationController?.fyphoto.push(photoBrowser, animated: true)
+            navigationController?.fyphoto.pushViewController(photoBrowser, animated: true)
 //            self.fyphoto.present(photoBrowser, animated: true, completion: nil)
 //            self.navigationController?.fyphoto.push(photoBrowser, animated: true)
 //            self.navigationController?.pushViewController(photoBrowser, animated: true)
