@@ -15,6 +15,8 @@ public protocol VideoCaptureOverlayDelegate: class {
     func stopVideoCapturing(_ isCancel: Bool)
     func dismissVideoCapture()
     func flashSwitch()
+    
+    func resumeButtonClicked(_ resumeButton: UIButton)
 }
 
 public class VideoCaptureOverlay: UIView {
@@ -78,6 +80,7 @@ public class VideoCaptureOverlay: UIView {
         addSubview(progressView)
         addSubview(rearFrontCameraButton)
         addSubview(dismissButton)
+        addSubview(resumeButton)
         addSubview(cameraUnavailableLabel)
         addSubview(flashButton)
 
@@ -106,6 +109,10 @@ public class VideoCaptureOverlay: UIView {
 
         dismissButton.setTitle(L10n.cancel, for: .normal)
         dismissButton.addTarget(self, action: #selector(dismiss(_:)), for: .touchUpInside)
+        
+        resumeButton.isHidden = true
+        resumeButton.setTitle(L10n.resume, for: .normal)
+        resumeButton.addTarget(self, action: #selector(resume(_:)), for: .touchUpInside)
 
         flashButton.setImage(Asset.icons8FlashOn.image, for: .normal)
         flashButton.addTarget(self, action: #selector(switchFlash(_:)), for: .touchUpInside)
@@ -127,6 +134,10 @@ public class VideoCaptureOverlay: UIView {
 
     @objc func dismiss(_ sender: UIButton) {
         delegate?.dismissVideoCapture()
+    }
+    
+    @objc func resume(_ sender: UIButton) {
+        delegate?.resumeButtonClicked(sender)
     }
 
     @objc func longPress(_ gesture:UILongPressGestureRecognizer) {
@@ -234,12 +245,17 @@ public class VideoCaptureOverlay: UIView {
         ])
 
         flashButton.translatesAutoresizingMaskIntoConstraints = false
-
         NSLayoutConstraint.activate([
             flashButton.topAnchor.constraint(equalTo: self.topAnchor, constant: 30),
             flashButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 15),
             flashButton.widthAnchor.constraint(equalToConstant: 45),
             flashButton.heightAnchor.constraint(equalToConstant: 45)
+        ])
+        
+        resumeButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            resumeButton.centerXAnchor.constraint(equalTo: self.centerXAnchor, constant: 0),
+            resumeButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: 0),
         ])
     }
 

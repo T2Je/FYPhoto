@@ -58,3 +58,6 @@
 "SuccessfullySavedMedia" = "已保存到相册";
 
 "GotIt" = "知道了";
+
+"Resume" = "恢复";
+"Unable to resume" = "无法恢复";

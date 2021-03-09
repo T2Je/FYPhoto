@@ -17,6 +17,8 @@ protocol CacheProtocol {
     
     func data(forKey key: String) -> Data?
     
+    func removeData(forKey key: String)
+    
     func removeAllData()
 }
 
@@ -49,6 +51,7 @@ public class VideoCache {
             return nil
         }
     }
+    
     private static let movieTypes: [String] = ["mp4", "m4v", "mov"]
     
     public static let shared: VideoCache? = VideoCache()
@@ -66,6 +69,11 @@ public class VideoCache {
     
     public func clearAll() {
         cache?.removeAllData()
+    }
+    
+    public func removeData(forKey key: URL) {
+        let cKey = getCacheKey(with: key)
+        cache?.removeData(forKey: cKey)
     }
     
     public func save(data: Data, key: URL) {
@@ -89,17 +97,6 @@ public class VideoCache {
                     }
                 }
             }
-//            AF.request(key).responseData { (response: DataResponse<Data, AFError>) in
-//                switch response.result {
-//                case .success(let data):
-//                    self.save(data: data, key: key)
-//                    completion(.success(data))
-//                case .failure(let error):
-//                    DispatchQueue.main.async {
-//                        completion(.failure(error))
-//                    }
-//                }
-//            }
         }
     }
     
@@ -171,23 +168,6 @@ public class VideoCache {
                     }
                 }
             }
-            
-//            AF.request(key).responseData { (response: DataResponse<Data, AFError>) in
-//                switch response.result {
-//                case .success(let data):
-//                    self.save(data: data, key: key)
-//                    if let path = cache.cachePath(forKey: keyString) {
-//                        let url = URL(fileURLWithPath: path)
-//                        DispatchQueue.main.async {
-//                            completion(.success(url))
-//                        }
-//                    }
-//                case .failure(let error):
-//                    DispatchQueue.main.async {
-//                        completion(.failure(error))
-//                    }
-//                }
-//            }
         }
     }
     
@@ -203,7 +183,7 @@ public class VideoCache {
     func getCacheKey(with url: URL) -> String {
         let pathExtension = url.pathExtension
         if VideoCache.movieTypes.contains(pathExtension) {
-            return url.absoluteString
+            return url.lastPathComponent
         } else {
             let fileURL = URL(fileURLWithPath: url.absoluteString)
             let filePathExtension = fileURL.pathExtension

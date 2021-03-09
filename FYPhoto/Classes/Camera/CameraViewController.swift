@@ -28,14 +28,6 @@ public protocol CameraViewControllerDelegate: class {
     func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL)
 }
 
-public extension CameraViewControllerDelegate {
-    func watermarkImage() -> WatermarkImage? {
-        return nil
-    }
-    func cameraViewControllerStartAddingWatermark(_ cameraViewController: CameraViewController) {}
-    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL) {}
-}
-
 public class CameraViewController: UIViewController {
     public weak var delegate: CameraViewControllerDelegate?
 
@@ -48,7 +40,8 @@ public class CameraViewController: UIViewController {
     public var videoMaximumDuration: TimeInterval = 15
 
     var previewView = VideoPreviewView()
-
+    var bundleDisplayName: String = "App"
+    
     // Session
     private enum SessionSetupResult {
         case success
@@ -102,22 +95,25 @@ public class CameraViewController: UIViewController {
     override public func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
-
+        
+        bundleDisplayName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "APP"
+        
         cameraOverlayView = VideoCaptureOverlay(videoMaximumDuration: videoMaximumDuration, tintColor: tintColor)
 
         view.addSubview(previewView)
         view.addSubview(cameraOverlayView)
         makeConstraints()
-
+                
         cameraOverlayView.captureMode = captureMode
         cameraOverlayView.delegate = self
 
         previewView.session = session
-                
-        if captureMode.contains(.video) {
-            requestVideoAuthority()
-        }
         
+        // there is no need to request microphone authorization when only taking photos
+        handleVideoAuthority(for: captureMode)
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(focusAndExposeTap(_:)))
+        view.addGestureRecognizer(tapGesture)
         /*
          Setup the capture session.
          In general, it's not safe to mutate an AVCaptureSession or any of its
@@ -153,36 +149,12 @@ public class CameraViewController: UIViewController {
                 self.isSessionRunning = self.session.isRunning
 
             case .notAuthorized:
-                let bundleDisplayName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") ?? ""
                 DispatchQueue.main.async {
-                    let changePrivacySetting = "\(bundleDisplayName as? String) \(L10n.withoutCameraPermission)"
-                    let message = NSLocalizedString(changePrivacySetting, comment: "Alert message when the user has denied access to the camera")
-                    let alertController = UIAlertController(title: "\(bundleDisplayName)", message: message, preferredStyle: .alert)
-
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString(L10n.ok, comment: "Alert OK button"),
-                                                            style: .cancel,
-                                                            handler: nil))
-
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString(L10n.settings, comment: "Alert button to open Settings"),
-                                                            style: .`default`,
-                                                            handler: { _ in
-                                                                UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!,
-                                                                                          options: [:],
-                                                                                          completionHandler: nil)
-                    }))
-
-                    self.present(alertController, animated: true, completion: nil)
+                    self.alertNotAuthorized()
                 }
-
             case .configurationFailed:
                 DispatchQueue.main.async {
-                    let alertMsg = "Alert message when something goes wrong during capture session configuration"
-                    let message = NSLocalizedString(L10n.cameraConfigurationFailed, comment: alertMsg)
-                    let alertController = UIAlertController(title: L10n.camera, message: message, preferredStyle: .alert)
-                    alertController.addAction(UIAlertAction(title: NSLocalizedString(L10n.ok, comment: "Alert OK button"),
-                                                            style: .cancel,
-                                                            handler: nil))
-                    self.present(alertController, animated: true, completion: nil)
+                    self.alertCameraConfigurationFailed()
                 }
             }
         }
@@ -238,32 +210,72 @@ public class CameraViewController: UIViewController {
             cameraOverlayView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor)
         ])
     }
+
+    func alertNotAuthorized() {
+        let changePrivacySetting = bundleDisplayName + L10n.withoutCameraPermission
+        let alertController = UIAlertController(title: "\(bundleDisplayName)", message: changePrivacySetting, preferredStyle: .alert)
+        
+        alertController.addAction(UIAlertAction(title: L10n.ok,
+                                                style: .cancel,
+                                                handler: nil))
+        
+        alertController.addAction(UIAlertAction(title: L10n.settings,
+                                                style: .`default`,
+                                                handler: { _ in
+                                                    UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!,
+                                                                              options: [:],
+                                                                              completionHandler: nil)
+                                                }))
+        
+        self.present(alertController, animated: true, completion: nil)
+    }
     
-    fileprivate func requestVideoAuthority() {
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
+    
+    func alertCameraConfigurationFailed() {
+//        let alertMsg = "Alert message when something goes wrong during capture session configuration"
+        let message = L10n.cameraConfigurationFailed
+        let alertController = UIAlertController(title: L10n.camera, message: message, preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: L10n.ok,
+                                                style: .cancel,
+                                                handler: nil))
+        self.present(alertController, animated: true, completion: nil)
+    }
+    
+    /*
+     Check the video authorization status. Video access is required and audio
+     access is optional. If the user denies audio access, FYphoto won't
+     record audio during movie recording. If Mode is image, set result to success.
+     */
+    fileprivate func handleVideoAuthority(for mode: MediaOptions) {
+        let status = AVCaptureDevice.authorizationStatus(for: .video)
+        switch status {
         case .authorized:
-            // The user has previously granted access to the camera.
-            break
+            setupResult = .success
         case .notDetermined:
-            /*
-             The user has not yet been presented with the option to grant
-             video access. Suspend the session queue to delay session
-             setup until the access request has completed.
-             
-             Note that audio access will be implicitly requested when we
-             create an AVCaptureDeviceInput for audio during session setup.
-             */
-            sessionQueue.suspend()
-            AVCaptureDevice.requestAccess(for: .video, completionHandler: { granted in
-                if !granted {
-                    self.setupResult = .notAuthorized
-                }
-                self.sessionQueue.resume()
-            })
+            if mode == .image {
+                setupResult = .success
+            } else {
+                /*
+                 The user has not yet been presented with the option to grant
+                 video access. Suspend the session queue to delay session
+                 setup until the access request has completed.
+                 
+                 Note that audio access will be implicitly requested when we
+                 create an AVCaptureDeviceInput for audio during session setup.
+                 */
+                sessionQueue.suspend()
+                AVCaptureDevice.requestAccess(for: .video, completionHandler: { granted in
+                    if !granted {
+                        self.setupResult = .notAuthorized
+                    }
+                    self.sessionQueue.resume()
+                })
+            }
         default:
             // The user has previously denied access.
             setupResult = .notAuthorized
         }
+                
     }
     
     // MARK: Session Management
@@ -281,8 +293,21 @@ public class CameraViewController: UIViewController {
          Live Photo is not supported when AVCaptureMovieFileOutput is added to the session.
          */
         session.sessionPreset = .high
+        
+        // Input
+        addDeviceInput()
+        if captureMode.contains(.video) {
+            addAudioInput()
+        }
+        
+        // Output
+        addPhotoOutput()
+        addMovieOutput()
+        
+        session.commitConfiguration()
+    }
 
-        // Add video input.
+    func addDeviceInput() {
         do {
             var defaultVideoDevice: AVCaptureDevice?
 
@@ -336,26 +361,27 @@ public class CameraViewController: UIViewController {
             session.commitConfiguration()
             return
         }
-        
-        if captureMode.contains(.video) {
-            // Add an audio input device.
-            do {
-                guard let audioDevice = AVCaptureDevice.default(for: .audio) else {
-                    print("Default audio device is unavailable.")
-                    return
-                }
-                let audioDeviceInput = try AVCaptureDeviceInput(device: audioDevice)
-                if session.canAddInput(audioDeviceInput) {
-                    session.addInput(audioDeviceInput)
-                } else {
-                    print("Could not add audio device input to the session")
-                }
-            } catch {
-                print("Could not create audio device input: \(error)")
+    }
+    
+    func addAudioInput() {
+        // Add an audio input device.
+        do {
+            guard let audioDevice = AVCaptureDevice.default(for: .audio) else {
+                print("Default audio device is unavailable.")
+                return
             }
+            let audioDeviceInput = try AVCaptureDeviceInput(device: audioDevice)
+            if session.canAddInput(audioDeviceInput) {
+                session.addInput(audioDeviceInput)
+            } else {
+                print("Could not add audio device input to the session")
+            }
+        } catch {
+            print("Could not create audio device input: \(error)")
         }
-        
-        // Add the photo output
+    }
+    
+    func addPhotoOutput() {
         if session.canAddOutput(photoOutput) {
             session.addOutput(photoOutput)
             photoOutput.isHighResolutionCaptureEnabled = true
@@ -374,14 +400,14 @@ public class CameraViewController: UIViewController {
             print("Could not add photo output to the session")
             setupResult = .configurationFailed
             session.commitConfiguration()
-            return
         }
-
+    }
+    
+    func addMovieOutput() {
         let movieFileOutput = AVCaptureMovieFileOutput()
 
         if self.session.canAddOutput(movieFileOutput) {
             self.session.addOutput(movieFileOutput)
-//            self.session.sessionPreset = .high
             if let connection = movieFileOutput.connection(with: .video) {
                 if connection.isVideoStabilizationSupported {
                     connection.preferredVideoStabilizationMode = .auto
@@ -392,11 +418,9 @@ public class CameraViewController: UIViewController {
             print("Could not add photo output to the session")
             setupResult = .configurationFailed
             session.commitConfiguration()
-            return
         }
-        session.commitConfiguration()
     }
-
+    
     func initVideoDeviceDiscoverySession() {
         if #available(iOS 10.2, *) {
             if #available(iOS 11.1, *) {
@@ -414,7 +438,6 @@ public class CameraViewController: UIViewController {
 
 
     // MARK: KVO and Notifications
-
     private var keyValueObservations = [NSKeyValueObservation]()
     /// - Tag: ObserveInterruption
     private func addObservers() {
@@ -536,7 +559,7 @@ public class CameraViewController: UIViewController {
         /*
          In some scenarios you want to enable the user to resume the session.
          For example, if music playback is initiated from Control Center while
-         using AVCam, then the user can let AVCam resume
+         using FYPhoto, then the user can let FYPhoto resume
          the session running, which will stop music playback. Note that stopping
          music playback in Control Center will not automatically resume the session.
          Also note that it's not always possible to resume, see `resumeInterruptedSession(_:)`.
@@ -544,7 +567,7 @@ public class CameraViewController: UIViewController {
         if let userInfoValue = notification.userInfo?[AVCaptureSessionInterruptionReasonKey] as AnyObject?,
             let reasonIntegerValue = userInfoValue.integerValue,
             let reason = AVCaptureSession.InterruptionReason(rawValue: reasonIntegerValue) {
-            print("Capture session was interrupted with reason \(reason)")
+            print("Capture session was interrupted with reason \(reason.rawValue)")
 
             var showResumeButton = false
             if reason == .audioDeviceInUseByAnotherClient || reason == .videoDeviceInUseByAnotherClient {
@@ -597,6 +620,12 @@ public class CameraViewController: UIViewController {
             )
         }
     }
+    
+    @objc
+    func focusAndExposeTap(_ gestureRecognizer: UITapGestureRecognizer) {
+        let devicePoint = previewView.videoPreviewLayer.captureDevicePointConverted(fromLayerPoint: gestureRecognizer.location(in: gestureRecognizer.view))
+        focus(with: .autoFocus, exposureMode: .autoExpose, at: devicePoint, monitorSubjectAreaChange: true)
+    }
 
     private func focus(with focusMode: AVCaptureDevice.FocusMode,
                        exposureMode: AVCaptureDevice.ExposureMode,
@@ -629,16 +658,8 @@ public class CameraViewController: UIViewController {
             }
         }
     }
-
-
-    public struct InfoKey : Hashable, Equatable, RawRepresentable {
-        public let rawValue: String
-        public init(rawValue: String) {
-            self.rawValue = rawValue
-        }
-    }
 }
-
+// MARK: - VideoCaptureOverlayDelegate
 extension CameraViewController: VideoCaptureOverlayDelegate {
     public func flashSwitch() {
         if flashMode == AVCaptureDevice.FlashMode.off {
@@ -814,17 +835,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
             self.inProgressPhotoCaptureDelegates[photoCaptureProcessor.requestedPhotoSettings.uniqueID] = photoCaptureProcessor
             self.photoOutput.capturePhoto(with: photoSettings, delegate: photoCaptureProcessor)
         }
-    }
-
-    func addWaterMarkImage(_ waterMark: WatermarkImage, on image: UIImage) -> UIImage {
-        let imageSize = view.frame.size
-        let render = UIGraphicsImageRenderer(size: imageSize)
-        let renderedImage = render.image { (ctx) in
-            image.draw(in: CGRect(x: 0, y: 0, width: imageSize.width, height: imageSize.height))
-            waterMark.image.draw(in: waterMark.frame)
-        }
-        return renderedImage
-    }
+    }    
     
     public func startVideoCapturing() {
         guard captureDeviceIsAvailable else {
@@ -883,6 +894,32 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
         self.dismiss(animated: true, completion: nil)
     }
 
+    public func resumeButtonClicked(_ resumeButton: UIButton) {
+        sessionQueue.async {
+            /*
+             The session might fail to start running, for example, if a phone or FaceTime call is still
+             using audio or video. This failure is communicated by the session posting a
+             runtime error notification. To avoid repeatedly failing to start the session,
+             only try to restart the session in the error handler if you aren't
+             trying to resume the session.
+             */
+            self.session.startRunning()
+            self.isSessionRunning = self.session.isRunning
+            if !self.session.isRunning {
+                DispatchQueue.main.async {
+                    let message = L10n.unableToResume
+                    let alertController = UIAlertController(title: self.bundleDisplayName, message: message, preferredStyle: .alert)
+                    let cancelAction = UIAlertAction(title: L10n.ok, style: .cancel, handler: nil)
+                    alertController.addAction(cancelAction)
+                    self.present(alertController, animated: true, completion: nil)
+                }
+            } else {
+                DispatchQueue.main.async {
+                    resumeButton.isHidden = true
+                }
+            }
+        }
+    }
 }
 
 extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
@@ -978,185 +1015,12 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         }
         return videoSize
     }
-    
-    func applyWatermarkToVideoComposition(watermark: WatermarkImage, videoSize: CGSize) -> AVMutableVideoComposition {
-        let videoSizeScale = videoSize.width / view.frame.size.width
-        let imageLayer = CALayer()
-        imageLayer.contents = watermark.image.cgImage
-        let fixedWatermarkOriginY = watermark.frame.origin.y + watermark.frame.height
-        let imageLayerOrigin = CGPoint(x: watermark.frame.origin.x * videoSizeScale,
-                                       y: videoSize.height - fixedWatermarkOriginY  * videoSizeScale)
-        let imageLayerSize = CGSize(width: watermark.frame.size.width * videoSizeScale, height: watermark.frame.size.height * videoSizeScale)
-        imageLayer.frame = CGRect(origin: imageLayerOrigin, size: imageLayerSize)
-        imageLayer.opacity = 1.0
-        imageLayer.contentsGravity = .resizeAspectFill
-        
-        let parentLayer = CALayer()
-        let videoLayer = CALayer()
-        parentLayer.frame = CGRect(origin: .zero, size: videoSize)
-        videoLayer.frame = CGRect(origin: .zero, size: videoSize)
-        parentLayer.addSublayer(videoLayer)
-        parentLayer.addSublayer(imageLayer)
-//            parentLayer.addSublayer(textLayer)
-        
-        let videoComp = AVMutableVideoComposition()
-        videoComp.renderSize = videoSize
-        videoComp.frameDuration = CMTime(value: 1, timescale: 30)
-        videoComp.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: parentLayer)
-        return videoComp
-    }
-    
-    func createWaterMark(waterMarkImage: WatermarkImage, onVideo url: URL, completion: @escaping ((URL) -> Void)) {
-        #if DEBUG
-        let startDate = Date()
-        #endif
-        
-        let videoAsset = AVURLAsset(url: url)
-        let mixComposition = AVMutableComposition()
-        guard let compositionVideoTrack = mixComposition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid) else {
-            completion(url)
-            return
-        }
-        guard let clipVideoTrack = videoAsset.tracks(withMediaType: .video).last else {
-            completion(url)
-            return
-        }
-        do {
-            let timeRange = CMTimeRange(start: CMTime.zero, duration: videoAsset.duration)
-            try compositionVideoTrack.insertTimeRange(timeRange, of: clipVideoTrack, at: CMTime.zero)
-            compositionVideoTrack.preferredTransform = clipVideoTrack.preferredTransform
-//            let textLayer = textWaterMark()
-        } catch {
-            print("video water mark error:\(error)")
-            completion(url)
-        }
-        
-        let videoSize = getVideoSize(with: clipVideoTrack)
-        let videoComp = applyWatermarkToVideoComposition(watermark: waterMarkImage, videoSize: videoSize)
-        
-        let instrutction = AVMutableVideoCompositionInstruction()
-        instrutction.timeRange = CMTimeRange(start: .zero, duration: mixComposition.duration)
-        
-        guard let videoCompositionTrack = mixComposition.tracks(withMediaType: .video).last else {
-            completion(url)
-            return
-        }
-//            videoCompositionTrack.preferredTransform = clipVideoTrack.preferredTransform
-//            let t1 = CGAffineTransform(translationX: videoSize.width, y: 0)
-//            let t2 = t1.rotated(by: CGFloat(deg2rad(90)))
-//
-        let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoCompositionTrack)
-        layerInstruction.setTransform(clipVideoTrack.preferredTransform, at: .zero)
-        instrutction.layerInstructions = [layerInstruction]
-            
-        videoComp.instructions = [instrutction]
-        
-        guard
-            let assetExport = AVAssetExportSession(asset: mixComposition,
-                                                   presetName: AVAssetExportPresetHighestQuality) else {
-            completion(url)
-            return
-        }
-        assetExport.videoComposition = videoComp
-        let videoName = "watermark-" + url.lastPathComponent
-        let exportPath = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(videoName)
-        
-        if FileManager.default.fileExists(atPath: exportPath.absoluteString) {
-            try? FileManager.default.removeItem(at: exportPath)
-        }
-        assetExport.outputFileType = .mp4
-        assetExport.outputURL = exportPath
-        assetExport.shouldOptimizeForNetworkUse = true
-//            assetExport.progress
-        assetExport.exportAsynchronously(completionHandler: {
-            switch assetExport.status {
-            case .completed:
-                completion(exportPath)
-                #if DEBUG
-                if #available(iOS 13.0, *) {
-                    let endDate = Date()
-                    let distance = startDate.distance(to: endDate)
-                    print("It took \(distance) to create water mark for \(videoAsset.duration.seconds) seconds video")
-                }
-                #endif
-            case .failed:
-                print("assetExport.error: \(String(describing: assetExport.error))")
-                completion(url)
-            default:
-                completion(url)
-            }
-        })
-    }
-    
-//    func deg2rad(_ number: Double) -> Double {
-//        return number * .pi / 180
-//    }
-    
-    func watermark(video: AVAsset, with image: UIImage, outputURL: URL, completion: @escaping ((URL) -> Void)) {
-        #if DEBUG
-        let startDate = Date()
-        #endif
-        guard let watermarkImage = CIImage(image: image) else {
-            completion(outputURL)
-            return
-        }
-        let context = CIContext(options: nil)
-        let watermarkFilter = CIFilter(name: "CISourceOverCompositing")
-        let videoComposition = AVVideoComposition(asset: video) { (request) in
-            let source = request.sourceImage.clampedToExtent()
-            watermarkFilter?.setValue(source, forKey: kCIInputBackgroundImageKey)
-            let transform = CGAffineTransform(translationX: request.sourceImage.extent.width - watermarkImage.extent.width - 10, y: 10)
-            watermarkFilter?.setValue(watermarkImage.transformed(by: transform), forKey: kCIInputImageKey)
-            guard let outputImage = watermarkFilter?.outputImage else { return }
-            request.finish(with: outputImage, context: context)
-        }
-        guard let assetExport = AVAssetExportSession(asset: video, presetName: AVAssetExportPresetLowQuality) else {
-            completion(outputURL)
-            return
-        }
-        assetExport.videoComposition = videoComposition
-        assetExport.outputFileType = .mp4
-        assetExport.shouldOptimizeForNetworkUse = true
-        assetExport.outputURL = outputURL
-        assetExport.exportAsynchronously {
-            switch assetExport.status {
-            case .completed:
-                completion(outputURL)
-                #if DEBUG
-                if #available(iOS 13.0, *) {
-                    let endDate = Date()
-                    let distance = startDate.distance(to: endDate)
-                    print("It took \(distance) to create water mark for \(video.duration.seconds) seconds video")
-                } else {
-                    
-                }
-                #endif
-            case .failed:
-                print("assetExport.error: \(String(describing: assetExport.error))")
-                completion(outputURL)
-            default:
-                completion(outputURL)
-            }
-        }
-    }
 }
 
-public extension CameraViewController.InfoKey {
-    static let mediaType: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "mediaType")
-
-    static let originalImage: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "originalImage") // a UIImage
-
-    static let editedImage: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "editedImage")// a UIImage
-
-    static let cropRect: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "cropRect")// an NSValue (CGRect)
-
-    static let mediaURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "mediaURL") // an URL
-
-    static let mediaMetadata: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "mediaMetadata") // an NSDictionary containing metadata from a captured photo
-    static let livePhoto: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "livePhoto") // a PHLivePhoto
-
-    static let imageURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "imageURL") // a URL
-    
-    static let watermarkImage: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "watermarkImage") // a UIImage
-    static let watermarkVideoURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "watermarkVideoURL") // a URL
+public extension CameraViewControllerDelegate {
+    func watermarkImage() -> WatermarkImage? {
+        return nil
+    }
+    func cameraViewControllerStartAddingWatermark(_ cameraViewController: CameraViewController) {}
+    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL) {}
 }

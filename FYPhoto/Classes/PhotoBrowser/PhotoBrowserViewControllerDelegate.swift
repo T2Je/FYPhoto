@@ -9,9 +9,6 @@ import Foundation
 import Photos
 
 public protocol PhotoBrowserViewControllerDelegate: class {
-    @available(swift, deprecated: 1.1.0, message: "Use photoBrowser(_ photoBrowser: , scrollAt item: ) instead")
-    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt indexPath: IndexPath)
-    
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt item: Int)
     
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, selectedAssets identifiers: [String])
@@ -71,7 +68,6 @@ public extension PhotoBrowserViewControllerDelegate {
                     self.photoBrowser(viewController, saveMediaCompletedWith: error)
                 }
             })
-            
         } else if let image = photo.image {
             SaveMediaTool.saveImageToAlbums(image) { (error) in
                 self.photoBrowser(viewController, saveMediaCompletedWith: error)

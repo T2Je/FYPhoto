@@ -45,6 +45,7 @@ FYPhoto is available under the MIT license. See the LICENSE file for more info.
 13. Trim video & Landscape. ✅ 
 14. Photo editor
 15. PhotoBrowser back callBack
+16. Unit Test
 
 Fix:
 1. Speed of exporting video for trimming is slowly. TrimmerVC adds new init method of phasset ✅

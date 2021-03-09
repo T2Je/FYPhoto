@@ -50,6 +50,8 @@ internal enum L10n {
   internal static let photo = L10n.tr("FYPhoto", "photo")
   /// 预览
   internal static let preview = L10n.tr("FYPhoto", "Preview")
+  /// 恢复
+  internal static let resume = L10n.tr("FYPhoto", "Resume")
   /// 保存
   internal static let save = L10n.tr("FYPhoto", "Save")
   /// 保存图片
@@ -66,6 +68,8 @@ internal enum L10n {
   internal static let smartAlbums = L10n.tr("FYPhoto", "Smart Albums")
   /// 已保存到相册
   internal static let successfullySavedMedia = L10n.tr("FYPhoto", "SuccessfullySavedMedia")
+  /// 无法恢复
+  internal static let unableToResume = L10n.tr("FYPhoto", "Unable to resume")
   /// 不支持的文件格式
   internal static let unspportedVideoFormat = L10n.tr("FYPhoto", "UnspportedVideoFormat")
   /// 自定义相簿

@@ -431,11 +431,10 @@ extension AddPhotoBlogViewController: PhotoLauncherDelegate {
 }
 
 extension AddPhotoBlogViewController: PhotoBrowserViewControllerDelegate {
-
-    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt indexPath: IndexPath) {
-        lastSelectedIndexPath = indexPath
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt item: Int) {
+        lastSelectedIndexPath = IndexPath(item: item, section: 0)
     }
-
+    
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, selectedAssets identifiers: [String]) {
 
     }
