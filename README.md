@@ -46,7 +46,7 @@ FYPhoto is available under the MIT license. See the LICENSE file for more info.
 14. Photo editor
 15. PhotoBrowser back callBack
 16. Unit Test 🤯
-17. HUD
+17. HUD (use AlertController auto dismiss instead ✅)
 
 Fix:
 1. Speed of exporting video for trimming is slowly. TrimmerVC adds new init method of phasset ✅
