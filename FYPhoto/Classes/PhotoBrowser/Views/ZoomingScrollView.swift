@@ -46,7 +46,7 @@ class ZoomingScrollView: UIScrollView {
 //        backgroundColor = .clear
         imageView.gestureDelegate = self
         imageView.contentMode = .scaleAspectFit
-        activityIndicator.color = .systemGray
+//        activityIndicator.color = .systemGray
         if #available(iOS 13.0, *) {
             activityIndicator.style = .large
         } else {

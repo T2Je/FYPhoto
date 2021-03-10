@@ -36,10 +36,9 @@ public extension PhotoBrowserViewControllerDelegate {
     
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, saveMediaCompletedWith error: Error?) {
         if let error = error {
-            
-            SaveMediaTool.alertSaveMediaCompleted(L10n.failedToSaveMedia, error.localizedDescription, on: photoBrowser)
+            photoBrowser.showMessage(error.localizedDescription)
         } else {
-            SaveMediaTool.alertSaveMediaCompleted(L10n.successfullySavedMedia, on: photoBrowser)
+            photoBrowser.showMessage(L10n.successfullySavedMedia)
         }        
     }
     
@@ -52,7 +51,7 @@ public extension PhotoBrowserViewControllerDelegate {
         let cancelAction = UIAlertAction(title: L10n.cancel, style: .cancel, handler: nil)
         alertController.addAction(saveAction)
         alertController.addAction(cancelAction)
-        viewController.present(alertController, animated: true, completion: nil)
+        viewController.present(alertController, animated: true, completion: nil)        
     }
     
     func savePhotoToLibrary(_ photo: PhotoProtocol, with viewController: PhotoBrowserViewController) {        

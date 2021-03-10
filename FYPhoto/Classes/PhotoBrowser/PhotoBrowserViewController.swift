@@ -444,7 +444,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         if isForSelection || canDeleteWhenPreviewingSelectedPhotos {
             bottomToolView.addDoneButton()
             bottomToolView.disableDoneButton(selectedPhotos.isEmpty)
-        }
+        }    
     }
 
     fileprivate func restoreOtherPreviousData() {

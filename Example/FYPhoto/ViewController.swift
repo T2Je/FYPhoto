@@ -209,6 +209,7 @@ class ViewController: UIViewController {
         }
         let image = Photo.photoWithURL(url)
         let photoBrowser = PhotoBrowserViewController.create(photos: [image], initialIndex: 0)
+        photoBrowser.delegate = self
         self.fyphoto.present(photoBrowser, animated: true, completion: nil)
     }
     

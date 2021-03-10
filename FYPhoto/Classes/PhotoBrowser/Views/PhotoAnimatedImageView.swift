@@ -37,7 +37,7 @@ class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
         singleTap.numberOfTapsRequired = 1
 
         let longPress = UILongPressGestureRecognizer()
-        
+        longPress.minimumPressDuration = 1.0
         super.init(frame: frame)
         isUserInteractionEnabled = true
         addGestureRecognizer(doubleTap)
@@ -65,7 +65,9 @@ class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
     }
     
     @objc func longPressed(_ gesture: UILongPressGestureRecognizer) {
-        gestureDelegate?.handleLongPress()
+        if gesture.state == .began {
+            gestureDelegate?.handleLongPress()
+        }
     }
     
     func setAsset(_ asset: PHAsset, targeSize: CGSize, resultHandler: ((UIImage?) -> Void)? = nil) {
@@ -90,24 +92,6 @@ class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
                 resultHandler?(nil)
             }
         }
-    
-//        PHImageManager.default().requestImage(for: asset, targetSize: targeSize, contentMode: .aspectFit, options: options) { (image, info) in
-//
-//            if let image = image {
-//                if asset.playbackStyle == .imageAnimated {
-//                    if let imageData = image.pngData(),
-//                       let animatedImage = SDAnimatedImage(data: imageData) {
-//                        self.image = animatedImage
-//                        resultHandler?(animatedImage)
-//                    }
-//                } else {
-//                    self.image = image
-//                    resultHandler?(image)
-//                }
-//            } else {
-//                resultHandler?(nil)
-//            }
-//        }
     }
     
     func setImage(url: URL, placeholder: UIImage?, contentMode: ContentMode = .scaleAspectFit, progress: ((Int, Int, URL?) -> Void)? = nil, completed: ((Result<UIImage, Error>) -> Void)? = nil) {

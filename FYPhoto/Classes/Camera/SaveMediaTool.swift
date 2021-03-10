@@ -96,22 +96,4 @@ class SaveMediaTool {
             }
         }
     }
-    
-    static func alertSaveMediaCompleted(_ title: String?, _ message: String? = nil, on viewController: UIViewController) {
-        let alertController = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        let action = UIAlertAction(title: L10n.gotIt, style: .default) { (_) in
-            alertController.dismiss(animated: true, completion: nil)
-        }
-        alertController.addAction(action)
-        viewController.present(alertController, animated: true, completion: nil)
-    }
-    
-    static func alertAthorityError(_ error: Error, on viewController: UIViewController) {
-        let alertController = UIAlertController(title: L10n.failedToSaveMedia, message: error.localizedDescription, preferredStyle: .alert)
-        let action = UIAlertAction(title: L10n.gotIt, style: .default) { (_) in
-            alertController.dismiss(animated: true, completion: nil)
-        }
-        alertController.addAction(action)
-        viewController.present(alertController, animated: true, completion: nil)
-    }
 }
