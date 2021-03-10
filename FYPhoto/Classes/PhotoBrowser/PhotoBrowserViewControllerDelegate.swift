@@ -36,7 +36,7 @@ public extension PhotoBrowserViewControllerDelegate {
     
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, saveMediaCompletedWith error: Error?) {
         if let error = error {
-            photoBrowser.showMessage(error.localizedDescription)
+            photoBrowser.showError(error)
         } else {
             photoBrowser.showMessage(L10n.successfullySavedMedia)
         }        
