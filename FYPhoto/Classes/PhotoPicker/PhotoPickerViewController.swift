@@ -791,8 +791,18 @@ extension PhotoPickerViewController: AlbumsTableViewControllerDelegate {
             topBar.setTitle(L10n.allPhotos)
         case .smartAlbums:
             let collection = smartAlbums[indexPath.row]
-            assets = PHAsset.fetchAssets(in: collection, options: nil)
             topBar.setTitle(collection.localizedTitle ?? "")
+            if mediaOptions == .image {
+                let fetchOptions = PHFetchOptions()
+                fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue)
+                assets = PHAsset.fetchAssets(in: collection, options: fetchOptions)
+            } else if mediaOptions == .video {
+                let fetchOptions = PHFetchOptions()
+                fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.video.rawValue)
+                assets = PHAsset.fetchAssets(in: collection, options: fetchOptions)
+            } else {
+                assets = PHAsset.fetchAssets(in: collection, options: nil)
+            }
         case .userCollections:
             let collection: PHCollection = userCollections.object(at: indexPath.row)
             guard let assetCollection = collection as? PHAssetCollection else {

@@ -57,13 +57,23 @@ public class PhotoPickerResource {
     
     public func getSmartAlbums(withMediaOptions options: MediaOptions) -> [PHAssetCollection] {
         if options == .all {
-            var imageAlbums = allImageAlbums()
-            imageAlbums.append(contentsOf: allVideoAlbums())
-            return imageAlbums
+            if let favoritesAlbum = favorites() {
+                return allImageAlbums() + allVideoAlbums() + [favoritesAlbum]
+            } else {
+                return allImageAlbums() + allVideoAlbums()
+            }
         } else if options == .image {
-            return allImageAlbums()
+            if let favoritesAlbum = favorites() {
+                return allImageAlbums() + [favoritesAlbum]
+            } else {
+                return allImageAlbums()
+            }
         } else if options == .video {
-            return allVideoAlbums()
+            if let favoritesAlbum = favorites() {
+                return allImageAlbums() + [favoritesAlbum]
+            } else {
+                return allVideoAlbums()
+            }
         } else {
             return []
         }
@@ -71,6 +81,7 @@ public class PhotoPickerResource {
     
     func allImageAlbums() -> [PHAssetCollection] {
         var albums = [PHAssetCollection]()
+                
         if let selfies = selfies() {
             if selfies.getAssetCount(.image) > 0 {
                 albums.append(selfies)
@@ -118,7 +129,7 @@ public class PhotoPickerResource {
     public func filteredSmartAlbums(isOnlyImage: Bool = false) -> [PHAssetCollection] {
         var albums = [PHAssetCollection]()
 
-        if let favorites = favorites(), !isOnlyImage {
+        if let favorites = favorites() {
             if favorites.getAssetCount() > 0 {
                 albums.append(favorites)
             }
@@ -166,7 +177,7 @@ public class PhotoPickerResource {
         return albums
     }
 
-    // MARK: smart albums
+    // MARK: smart albums. Contains videos and images
     func favorites() -> PHAssetCollection? {
         return PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumFavorites, options: nil).firstObject
     }
@@ -320,7 +331,7 @@ public class PhotoPickerResource {
             let end = CMTime(seconds: endTime, preferredTimescale: 600)
             exporter.timeRange = CMTimeRange(start: start, end: end)
             exporter.outputURL = tempDirectory
-            exporter.outputFileType = .mp4            
+            exporter.outputFileType = .mp4
             exporter.exportAsynchronously {
                 DispatchQueue.main.async {
                     switch exporter.status {
