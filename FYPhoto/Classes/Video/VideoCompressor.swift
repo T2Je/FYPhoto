@@ -22,7 +22,7 @@ public class VideoCompressor {
     
     public static func compressVideo(_ url: URL,
                                      quality: QualityLevel,
-                                     completion: @escaping (Result<URL, Error>) -> Void) {
+                                     completion: @escaping (Result<URL, Error>) -> Void) {        
         let urlAsset = AVURLAsset(url: url, options: nil)
         guard let exportSession = AVAssetExportSession(asset: urlAsset,
                                                        presetName: quality.rawValue) else {
@@ -30,7 +30,7 @@ public class VideoCompressor {
             return
         }
         do {
-            var tempDirectory = try FileManager.tempDirectory(with: "compressedVideo")
+            var tempDirectory = try FileManager.tempDirectory(with: "CompressedVideo")
             let videoName = UUID().uuidString + ".mp4"
             tempDirectory.appendPathComponent("\(videoName)")
             #if DEBUG
