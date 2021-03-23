@@ -188,7 +188,7 @@ class GridViewCell: UICollectionViewCell {
         }
         selectionButton.layer.removeAnimation(forKey: "selectionButtonAnimation")
         let keyAnimation = CAKeyframeAnimation.init(keyPath: "transform.scale")
-        keyAnimation.duration = 0.3
+        keyAnimation.duration = 0.25
         keyAnimation.values = animationValues
         selectionButton.layer.add(keyAnimation, forKey: "selectionButtonAnimation")
     }

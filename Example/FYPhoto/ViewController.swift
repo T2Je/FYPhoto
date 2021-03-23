@@ -107,7 +107,7 @@ class ViewController: UIViewController {
         pickerConfig.compressedQuality = .AVAssetExportPreset640x480
         pickerConfig.supportCamera = true
 //        pickerConfig.filterdMedia = .all
-        pickerConfig.mediaFilter = .image
+        pickerConfig.mediaFilter = .all
         let colorConfig = FYColorConfiguration()
         colorConfig.topBarColor = FYColorConfiguration.BarColor(itemTintColor: .red, itemDisableColor: .gray, itemBackgroundColor: .black, backgroundColor: .blue)
 

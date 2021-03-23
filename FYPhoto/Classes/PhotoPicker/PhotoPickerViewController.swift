@@ -29,6 +29,7 @@ public struct MediaOptions: OptionSet {
 ///
 /// Initializes new picker with the `configuration` the picker should use.
 /// PhotoPickerViewController is intended to be used as-is and does not support subclassing
+/// Support dark mode for devices running iOS 13 or above. Customize color with FYColorConfiguration.
 public final class PhotoPickerViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     // call back for photo, video selections
     public var selectedPhotos: (([SelectedImage]) -> Void)?
@@ -187,7 +188,12 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     
     public override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .white
+        if #available(iOS 13.0, *) {
+            view.backgroundColor = .systemGroupedBackground
+        } else {
+            view.backgroundColor = .white
+        }
+        
         self.addSubViews()
         self.setupSubViews()
         PhotosAuthority.requestPhotoAuthority { (isSuccess) in
@@ -297,7 +303,12 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
     
     func setupCollectionView() {
-        collectionView.backgroundColor = .white
+        if #available(iOS 13.0, *) {
+            collectionView.backgroundColor = .systemBackground
+        } else {
+            collectionView.backgroundColor = .white
+        }
+        
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.register(GridViewCell.self, forCellWithReuseIdentifier: GridViewCell.reuseIdentifier)
