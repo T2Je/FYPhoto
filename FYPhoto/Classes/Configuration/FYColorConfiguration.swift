@@ -36,7 +36,7 @@ public class FYColorConfiguration {
     public var topBarColor =
         BarColor(itemTintColor: UIColor.fyBlueTintColor,
                  itemDisableColor: .systemGray,
-                 itemBackgroundColor: .white,
+                 itemBackgroundColor: .clear,
                  backgroundColor: .white)
     
     public var pickerBottomBarColor =

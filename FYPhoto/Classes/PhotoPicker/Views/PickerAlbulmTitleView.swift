@@ -18,7 +18,7 @@ class PickerAlbulmTitleView: UIView {
 
     var titleColor: UIColor = .black {
         willSet {
-            titleLabel.tintColor = newValue
+            titleLabel.textColor = newValue
             setNeedsDisplay()
         }
     }
