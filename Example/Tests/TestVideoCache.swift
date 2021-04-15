@@ -72,16 +72,20 @@ class TestVideoCache: XCTestCase {
         let size = TestVideoCache.cachedURL!.sizePerMB()
         print("original size: \(size)")
         let expectation = XCTestExpectation(description: "compress video")
-        VideoCompressor.compressVideo(TestVideoCache.cachedURL!, quality: .AVAssetExportPreset640x480) { (result) in
+//        let assetURL: URL = {
+//            guard let path = Bundle.main.path(forResource: "zoo.mov", ofType: nil) else { fatalError() }
+//            return URL.init(fileURLWithPath: path)
+//        }()
+        VideoCompressor.shared.compressVideo(TestVideoCache.cachedURL!, quality: .mediumQuality) { (result) in
             expectation.fulfill()
             switch result {
             case .success(let url):
                 TestVideoCache.compressedURL = url
             case .failure(_): break
             }
-        }
+        }   
         
-        wait(for: [expectation], timeout: 15)
+        wait(for: [expectation], timeout: 50)
         
         XCTAssertNotNil(TestVideoCache.compressedURL)
         let compressedSize = TestVideoCache.compressedURL!.sizePerMB()        

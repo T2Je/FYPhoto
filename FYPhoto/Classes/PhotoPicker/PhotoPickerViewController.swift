@@ -129,7 +129,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     fileprivate var maximumVideoSize: Double {
         configuration.maximumVideoMemorySize
     }
-    fileprivate var compressedQuality: VideoCompressor.QualityLevel? {
+    fileprivate var compressedQuality: VideoCompressor.VideoQuality {
         configuration.compressedQuality
     }
     fileprivate var moviePathExtension: String {
@@ -682,10 +682,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         }
     }
     
-    fileprivate func compressVideo(url: URL, asset: PHAsset, completion: @escaping ((Result<URL, Error>) -> Void)) {
-        let quality = self.compressedQuality ?? .AVAssetExportPreset640x480
-        VideoCompressor.compressVideo(url,
-                                      quality: quality) { (result) in
+    fileprivate func compressVideo(url: URL, asset: PHAsset, completion: @escaping ((Result<URL, Error>) -> Void)) {        
+        VideoCompressor.shared.compressVideo(url, quality: compressedQuality) { (result) in
             switch result {
             case .success(let url):
                 completion(.success(url))

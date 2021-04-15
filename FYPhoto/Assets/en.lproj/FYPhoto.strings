@@ -56,3 +56,5 @@
 
 "Resume" = "Resume";
 "Unable to resume" = "Unable to resume";
+
+"NoVideo" = "URL isn't a video";

@@ -30,7 +30,7 @@ public struct FYPhotoPickerConfiguration {
     public var compressedVideoBeforeSelected: Bool = true
     
     /// Video compressed quality. Default is 640x480.
-    public var compressedQuality: VideoCompressor.QualityLevel = .AVAssetExportPreset640x480
+    public var compressedQuality: VideoCompressor.VideoQuality = .mediumQuality
     
     /// Captured movie path extension. Default is `mp4`.
     public var moviePathExtension: String = "mp4"
