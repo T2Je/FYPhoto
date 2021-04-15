@@ -61,3 +61,5 @@
 
 "Resume" = "恢复";
 "Unable to resume" = "无法恢复";
+
+"NoVideo" = "URL不是一个视频";

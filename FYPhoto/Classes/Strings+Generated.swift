@@ -44,6 +44,8 @@ internal enum L10n {
   internal static let keepCurrent = L10n.tr("FYPhoto", "KeepCurrent")
   /// 没有权限将照片存储到相册中
   internal static let noPermissionToSave = L10n.tr("FYPhoto", "NoPermissionToSave")
+  /// URL不是一个视频
+  internal static let noVideo = L10n.tr("FYPhoto", "NoVideo")
   /// 好的
   internal static let ok = L10n.tr("FYPhoto", "OK")
   /// 照片

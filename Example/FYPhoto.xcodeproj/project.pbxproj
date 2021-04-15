@@ -19,6 +19,8 @@
 		E3295DB8250F22BC00A55AEA /* TestAuthority.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3295DB7250F22BC00A55AEA /* TestAuthority.swift */; };
 		E343E62E24F7BBA8003341DE /* AddPhotoBlogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */; };
 		E343E62F24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */; };
+		E375753726205BA3008E22E4 /* zoo.mov in Resources */ = {isa = PBXBuildFile; fileRef = E375753626205BA2008E22E4 /* zoo.mov */; };
+		E375753826205BA3008E22E4 /* zoo.mov in Resources */ = {isa = PBXBuildFile; fileRef = E375753626205BA2008E22E4 /* zoo.mov */; };
 		E3C6A6A0256CAC4200F81A33 /* RenderImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3C6A69F256CAC4200F81A33 /* RenderImageViewController.swift */; };
 		E3D9590825F6081A004AAFF1 /* TestHelperExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3D9590725F6081A004AAFF1 /* TestHelperExtensions.swift */; };
 		E3D9590C25F60B57004AAFF1 /* TestVideoCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3D9590B25F60B57004AAFF1 /* TestVideoCache.swift */; };
@@ -58,6 +60,7 @@
 		E3295DB7250F22BC00A55AEA /* TestAuthority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestAuthority.swift; sourceTree = "<group>"; };
 		E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPhotoBlogViewController.swift; sourceTree = "<group>"; };
 		E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPhotoCollectionViewCell.swift; sourceTree = "<group>"; };
+		E375753626205BA2008E22E4 /* zoo.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = zoo.mov; sourceTree = "<group>"; };
 		E3C6A69F256CAC4200F81A33 /* RenderImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderImageViewController.swift; sourceTree = "<group>"; };
 		E3D48E0225B139D3007AA8A8 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
 		E3D48E0325B139D4007AA8A8 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
@@ -125,6 +128,7 @@
 		607FACD21AFB9204008FA782 /* Example for FYPhoto */ = {
 			isa = PBXGroup;
 			children = (
+				E375753626205BA2008E22E4 /* zoo.mov */,
 				E3F5F5A6259431E70044229D /* OCViewController.h */,
 				E3F5F5A7259431E70044229D /* OCViewController.m */,
 				E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */,
@@ -281,6 +285,7 @@
 				607FACDB1AFB9204008FA782 /* Main.storyboard in Resources */,
 				607FACE01AFB9204008FA782 /* LaunchScreen.xib in Resources */,
 				607FACDD1AFB9204008FA782 /* Images.xcassets in Resources */,
+				E375753726205BA3008E22E4 /* zoo.mov in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -288,6 +293,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E375753826205BA3008E22E4 /* zoo.mov in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
