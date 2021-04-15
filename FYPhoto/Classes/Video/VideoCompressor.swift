@@ -69,7 +69,7 @@ public final class VideoCompressor {
     public func compressVideo(_ url: URL, quality: VideoQuality, completion: @escaping (Result<URL, Error>) -> Void) {
         do {
             let asset = AVAsset.init(url: url)
-            let reader = try AVAssetReader.init(asset: asset)
+            let reader = try AVAssetReader(asset: asset)
             var outputURL = try FileManager.tempDirectory(with: "CompressedVideo")
             let videoName = UUID().uuidString + ".mp4"
             outputURL.appendPathComponent("\(videoName)")
@@ -84,7 +84,7 @@ public final class VideoCompressor {
             let videoOutput = AVAssetReaderTrackOutput.init(track: videoTrack, outputSettings: [kCVPixelBufferPixelFormatTypeKey as String:  kCVPixelFormatType_32BGRA])
             
             let outputSettings = videoCompressSettings(videoTrack, quality: quality)
-            print("output setting: \(outputSettings)")
+//            print("output setting: \(outputSettings)")
             
             let videoInput = AVAssetWriterInput.init(mediaType: .video, outputSettings: outputSettings)
             
@@ -103,7 +103,7 @@ public final class VideoCompressor {
                 audioOutput = adOutput
                 
                 let settings = audioCompressSettings(audioTrack)
-                print("audio compress settings: \(settings)")
+//                print("audio compress settings: \(settings)")
                 let adInput = AVAssetWriterInput.init(mediaType: .audio, outputSettings: settings)
                 audioInput = adInput
                 if reader.canAdd(adOutput) {

@@ -8,11 +8,23 @@
 import Foundation
 
 extension FileManager {
+    public enum CreateTempDirectoryError: Error, LocalizedError {
+        case fileExsisted
+        
+        public var errorDescription: String? {
+            switch self {
+            case .fileExsisted:
+                return "File exsisted"
+            default:
+                <#code#>
+            }
+        }
+    }
     /// create temp directory. `xxx/pathComponent/`
     /// - Parameter pathComponent: path to append to temp directory
     /// - Throws: error when create temp url
     /// - Returns: temp directory location
-    public static func tempDirectory(with pathComponent: String?) throws -> URL {
+    public static func tempDirectory(with pathComponent: String? = nil) throws -> URL {
         let cacheURL = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first!
         do {
             // Only the volume(卷) of cache url is used.
@@ -27,6 +39,8 @@ extension FileManager {
                 } catch {
                     throw error
                 }
+            } else {
+                throw CreateTempDirectoryError.fileExsisted
             }
             #if DEBUG
             print("temp directory path👉\(temp)👈")
