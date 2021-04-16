@@ -28,6 +28,9 @@ class CropOverlayHandlesView: UIView {
     private let verticalLine1 = UIView()
     private let verticalLine2 = UIView()
     
+    var lines: [UIView] = []
+    var currentAnimator: UIViewPropertyAnimator?
+    
     init() {
         super.init(frame: .zero)
         addSubview(edgeShapeView)
@@ -47,7 +50,8 @@ class CropOverlayHandlesView: UIView {
             addSubview($0)
         }
         
-        [horizontalLine1, horizontalLine2, verticalLine1, verticalLine2].forEach {
+        lines = [horizontalLine1, horizontalLine2, verticalLine1, verticalLine2]
+        lines.forEach {
             $0.backgroundColor = .white
             $0.translatesAutoresizingMaskIntoConstraints = false
             addSubview($0)
@@ -167,7 +171,27 @@ class CropOverlayHandlesView: UIView {
         ])
     }
     
+    func startResizing() {
+        currentAnimator?.stopAnimation(true)
+        
+        currentAnimator = UIViewPropertyAnimator(duration: 0.3, dampingRatio: 1, animations: {
+            self.lines.forEach {
+                $0.alpha = 1
+            }
+        })
+        currentAnimator?.startAnimation()
+    }
     
+    func stopResizing() {
+        currentAnimator?.stopAnimation(true)
+        
+        currentAnimator = UIViewPropertyAnimator(duration: 0.3, dampingRatio: 1, animations: {
+            self.lines.forEach {
+                $0.alpha = 1
+            }
+        })
+        currentAnimator?.startAnimation()
+    }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
