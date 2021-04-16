@@ -780,7 +780,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                 photoOutputConnection.videoOrientation = videoPreviewLayerOrientation!
             }
             var photoSettings = AVCapturePhotoSettings()
-
+            
             // Capture HEIF photos when supported. Enable auto-flash and high-resolution photos.
             if  self.photoOutput.availablePhotoCodecTypes.contains(.hevc) {
                 photoSettings = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.hevc])
@@ -847,7 +847,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
         }
         cameraOverlayView.enableFlash = false
         
-        let videoPreviewLayerOrientation = previewView.videoPreviewLayer.connection?.videoOrientation
+        let videoPreviewLayerOrientation = previewView.videoPreviewLayer.connection?.videoOrientation ?? .portrait
         sessionQueue.async {
             if !movieFileOutput.isRecording {
                 if UIDevice.current.isMultitaskingSupported {
@@ -862,12 +862,18 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                 
                 // Update the orientation on the movie file output video connection before recording.
                 let movieFileOutputConnection = movieFileOutput.connection(with: .video)
-                movieFileOutputConnection?.videoOrientation = videoPreviewLayerOrientation!
-
+                movieFileOutputConnection?.videoOrientation = videoPreviewLayerOrientation
+                
                 let availableVideoCodecTypes = movieFileOutput.availableVideoCodecTypes
 
                 if availableVideoCodecTypes.contains(.hevc) {
-                    movieFileOutput.setOutputSettings([AVVideoCodecKey: AVVideoCodecType.hevc], for: movieFileOutputConnection!)
+                    if let connection = movieFileOutputConnection {
+                        movieFileOutput.setOutputSettings([AVVideoCodecKey: AVVideoCodecType.hevc], for: connection)
+                    }
+                } else {
+                    if let connection = movieFileOutputConnection {
+                        movieFileOutput.setOutputSettings([AVVideoCodecKey: AVVideoCodecType.h264], for: connection)
+                    }
                 }
 
                 // Start recording video to a temporary file.
