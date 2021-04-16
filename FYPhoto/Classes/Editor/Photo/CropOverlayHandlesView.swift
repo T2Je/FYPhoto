@@ -22,6 +22,12 @@ class CropOverlayHandlesView: UIView {
     private let cornerBottomRightHorizontalView = UIView()
     private let cornerBottomRightVerticalView = UIView()
     
+    private let horizontalLine1 = UIView()
+    private let horizontalLine2 = UIView()
+    
+    private let verticalLine1 = UIView()
+    private let verticalLine2 = UIView()
+    
     init() {
         super.init(frame: .zero)
         addSubview(edgeShapeView)
@@ -41,6 +47,12 @@ class CropOverlayHandlesView: UIView {
             addSubview($0)
         }
         
+        [horizontalLine1, horizontalLine2, verticalLine1, verticalLine2].forEach {
+            $0.backgroundColor = .white
+            $0.translatesAutoresizingMaskIntoConstraints = false
+            addSubview($0)
+        }
+        
         edgeShapeView.layer.borderWidth = 1
         edgeShapeView.layer.borderColor = UIColor.white.cgColor
         makeConstraints()
@@ -54,14 +66,14 @@ class CropOverlayHandlesView: UIView {
         let horizontalHandleHeight: CGFloat = verticalHandleWidth
         
         let padding: CGFloat = verticalHandleWidth
-        
+        //
         NSLayoutConstraint.activate([
             edgeShapeView.topAnchor.constraint(equalTo: topAnchor, constant: 0),
             edgeShapeView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
             edgeShapeView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: 0),
             edgeShapeView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: 0)
         ])
-        
+                
         NSLayoutConstraint.activate([
             cornerTopLeftHorizontalView.topAnchor.constraint(equalTo: topAnchor, constant: -padding),
             cornerTopLeftHorizontalView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -padding),
@@ -118,7 +130,44 @@ class CropOverlayHandlesView: UIView {
             cornerTopRightHorizontalView.heightAnchor.constraint(equalToConstant: horizontalHandleHeight)
         ])
         
+        // line
+        
+        let horizontalLine1CenterY = NSLayoutConstraint(item: horizontalLine1, attribute: .centerY, relatedBy: .equal, toItem: self, attribute: .centerY, multiplier: 2/3, constant: 0)
+        let horizontalLine2CenterY = NSLayoutConstraint(item: horizontalLine2, attribute: .centerY, relatedBy: .equal, toItem: self, attribute: .centerY, multiplier: 4/3, constant: 0)
+        
+        let verticalLine1CenterX = NSLayoutConstraint(item: verticalLine1, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .centerX, multiplier: 2/3, constant: 0)
+        let verticalLine2CenterX = NSLayoutConstraint(item: verticalLine2, attribute: .centerX, relatedBy: .equal, toItem: self, attribute: .centerX, multiplier: 4/3, constant: 0)
+        
+        NSLayoutConstraint.activate([
+            horizontalLine1.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
+            horizontalLine1.trailingAnchor.constraint(equalTo: trailingAnchor),
+            horizontalLine1CenterY,
+            horizontalLine1.heightAnchor.constraint(equalToConstant: 1)
+        ])
+        
+        NSLayoutConstraint.activate([
+            horizontalLine2.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0),
+            horizontalLine2.trailingAnchor.constraint(equalTo: trailingAnchor),
+            horizontalLine2CenterY,
+            horizontalLine2.heightAnchor.constraint(equalToConstant: 1)
+        ])
+        
+        NSLayoutConstraint.activate([
+            verticalLine1.topAnchor.constraint(equalTo: topAnchor, constant: 0),
+            verticalLine1.bottomAnchor.constraint(equalTo: bottomAnchor),
+            verticalLine1CenterX,
+            verticalLine1.widthAnchor.constraint(equalToConstant: 1)
+        ])
+        
+        NSLayoutConstraint.activate([
+            verticalLine2.topAnchor.constraint(equalTo: topAnchor, constant: 0),
+            verticalLine2.bottomAnchor.constraint(equalTo: bottomAnchor),
+            verticalLine2CenterX,
+            verticalLine2.widthAnchor.constraint(equalToConstant: 1)
+        ])
     }
+    
+    
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
