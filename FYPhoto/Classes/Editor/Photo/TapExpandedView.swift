@@ -23,6 +23,7 @@ final class TapExpandedView: UIView {
     }
     
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        bounds.insetBy(dx: -horizontal, dy: -vertical).contains(point)
+        print("bounds inset : \(bounds.insetBy(dx: -horizontal, dy: -vertical)), point: \(point)")
+        return bounds.insetBy(dx: -horizontal, dy: -vertical).contains(point)
     }
 }

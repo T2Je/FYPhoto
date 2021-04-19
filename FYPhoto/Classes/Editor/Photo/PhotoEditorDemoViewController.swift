@@ -12,16 +12,17 @@ public class PhotoEditorDemoViewController: UIViewController {
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-        let handleView = CropOverlayHandlesView()
-        view.addSubview(handleView)
+        let guideView = InteractiveCropGuideView()
+        view.addSubview(guideView)
         
-        handleView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            handleView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            handleView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            handleView.widthAnchor.constraint(equalToConstant: 200),
-            handleView.heightAnchor.constraint(equalToConstant: 200)
-        ])
+        guideView.frame = CGRect(x: 20, y: 200, width: 200, height: 150)
+//        handleView.translatesAutoresizingMaskIntoConstraints = false
+//        NSLayoutConstraint.activate([
+//            handleView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+//            handleView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+//            handleView.widthAnchor.constraint(equalToConstant: 200),
+//            handleView.heightAnchor.constraint(equalToConstant: 200)
+//        ])
         // Do any additional setup after loading the view.
     }
     

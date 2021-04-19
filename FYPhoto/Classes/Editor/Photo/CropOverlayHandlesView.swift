@@ -182,7 +182,7 @@ class CropOverlayHandlesView: UIView {
         currentAnimator?.startAnimation()
     }
     
-    func stopResizing() {
+    func endResizing() {
         currentAnimator?.stopAnimation(true)
         
         currentAnimator = UIViewPropertyAnimator(duration: 0.3, dampingRatio: 1, animations: {
