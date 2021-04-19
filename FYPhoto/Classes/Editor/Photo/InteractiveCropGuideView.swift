@@ -137,15 +137,72 @@ class InteractiveCropGuideView: UIView {
     }
     
     @objc func handleTopRightViewPanGesture(_ gesture: UIPanGestureRecognizer) {
-        
+        switch gesture.state {
+        case .began:
+            panGestureBegan()
+            activeBottomConstraint()
+            activeLeadingConstraint()
+            activeWidthConstraint()
+            activeHeightConstraint()
+            fallthrough
+        case .changed:
+            defer {
+              gesture.setTranslation(.zero, in: self)
+            }
+            let translation = gesture.translation(in: self)
+            widthConstraint?.constant += translation.x
+            heightConstraint?.constant -= translation.y
+        case .ended, .cancelled, .failed:
+            panGestureEnded()
+        default:
+            break
+        }
     }
     
     @objc func handleBottomLeftViewPanGesture(_ gesture: UIPanGestureRecognizer) {
-        
+        switch gesture.state {
+        case .began:
+            panGestureBegan()
+            activeTopConstraint()
+            activeTrailingConstraint()
+            activeWidthConstraint()
+            activeHeightConstraint()
+            fallthrough
+        case .changed:
+            defer {
+              gesture.setTranslation(.zero, in: self)
+            }
+            let translation = gesture.translation(in: self)
+            widthConstraint?.constant -= translation.x
+            heightConstraint?.constant += translation.y
+        case .ended, .cancelled, .failed:
+            panGestureEnded()
+        default:
+            break
+        }
     }
     
     @objc func handleBottomRightViewPanGesture(_ gesture: UIPanGestureRecognizer) {
-        
+        switch gesture.state {
+        case .began:
+            panGestureBegan()
+            activeTopConstraint()
+            activeLeadingConstraint()
+            activeWidthConstraint()
+            activeHeightConstraint()
+            fallthrough
+        case .changed:
+            defer {
+              gesture.setTranslation(.zero, in: self)
+            }
+            let translation = gesture.translation(in: self)
+            widthConstraint?.constant += translation.x
+            heightConstraint?.constant += translation.y
+        case .ended, .cancelled, .failed:
+            panGestureEnded()
+        default:
+            break
+        }
     }
     
     func panGestureBegan() {
@@ -154,6 +211,7 @@ class InteractiveCropGuideView: UIView {
     
     func panGestureEnded() {
         handlesView.endResizing()
+        deactivePanningConstraints()
     }
     
     // Constraints for pan gestures
@@ -172,6 +230,23 @@ class InteractiveCropGuideView: UIView {
         temp.isActive = true
         constraintsWhenPanning.append(temp)
     }
+    
+    func activeLeadingConstraint() {
+        guard let superview = superview else { return }
+        translatesAutoresizingMaskIntoConstraints = false
+        let temp = leadingAnchor.constraint(equalTo: superview.leadingAnchor, constant: frame.minX - superview.frame.minX)
+        temp.isActive = true
+        constraintsWhenPanning.append(temp)
+    }
+    
+    func activeTopConstraint() {
+        guard let superview = superview else { return }
+        translatesAutoresizingMaskIntoConstraints = false
+        let temp = topAnchor.constraint(equalTo: superview.topAnchor, constant: frame.minY - superview.frame.minY)
+        temp.isActive = true
+        constraintsWhenPanning.append(temp)
+    }
+    
     
     func activeWidthConstraint() {
         translatesAutoresizingMaskIntoConstraints = false
@@ -193,6 +268,12 @@ class InteractiveCropGuideView: UIView {
         let temp = heightAnchor.constraint(greaterThanOrEqualToConstant: minimumSize.height)
         temp.isActive = true
         constraintsWhenPanning.append(temp)
+    }
+    
+    func deactivePanningConstraints() {
+        translatesAutoresizingMaskIntoConstraints = true
+        let activedCons = [widthConstraint, heightConstraint].compactMap { $0 } + constraintsWhenPanning
+        NSLayoutConstraint.deactivate(activedCons)
     }
     
     required init?(coder: NSCoder) {
