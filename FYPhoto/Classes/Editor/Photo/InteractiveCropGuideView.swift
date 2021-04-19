@@ -31,8 +31,6 @@ class InteractiveCropGuideView: UIView {
         super.init(frame: frame)
         isUserInteractionEnabled = true
         
-//        translatesAutoresizingMaskIntoConstraints = false
-        
         addSubview(handlesView)
         
         [topLeftControlPointView,
@@ -91,6 +89,35 @@ class InteractiveCropGuideView: UIView {
             bottomRightControlPointView.widthAnchor.constraint(equalToConstant: length),
             bottomRightControlPointView.heightAnchor.constraint(equalToConstant: length)
         ])
+        
+        NSLayoutConstraint.activate([
+            topControlPointView.topAnchor.constraint(equalTo: topAnchor),
+            topControlPointView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            topControlPointView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            topControlPointView.heightAnchor.constraint(equalToConstant: 1)
+        ])
+        
+        NSLayoutConstraint.activate([
+            leftControlPointView.topAnchor.constraint(equalTo: topAnchor),
+            leftControlPointView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            leftControlPointView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            leftControlPointView.widthAnchor.constraint(equalToConstant: 1)
+        ])
+        
+        NSLayoutConstraint.activate([
+            bottomControlPointView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            bottomControlPointView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            bottomControlPointView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            bottomControlPointView.heightAnchor.constraint(equalToConstant: 1)
+        ])
+        
+        NSLayoutConstraint.activate([
+            rightControlPointView.topAnchor.constraint(equalTo: topAnchor),
+            rightControlPointView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            rightControlPointView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            rightControlPointView.widthAnchor.constraint(equalToConstant: 1)
+        ])
+                
     }
     
     func addGestures() {
@@ -105,6 +132,15 @@ class InteractiveCropGuideView: UIView {
         
         let topRightGesture = UIPanGestureRecognizer(target: self, action: #selector(handleTopRightViewPanGesture(_:)))
         topRightControlPointView.addGestureRecognizer(topRightGesture)
+        
+        let topGesture = UIPanGestureRecognizer(target: self, action: #selector(handleTopControlViewPanGesture(_:)))
+        topControlPointView.addGestureRecognizer(topGesture)
+        let leftGesture = UIPanGestureRecognizer(target: self, action: #selector(handleLeftControlViewPanGesture(_:)))
+        leftControlPointView.addGestureRecognizer(leftGesture)
+        let bottomGesture = UIPanGestureRecognizer(target: self, action: #selector(handleBottomControlViewPanGesture(_:)))
+        bottomControlPointView.addGestureRecognizer(bottomGesture)
+        let rightGesture = UIPanGestureRecognizer(target: self, action: #selector(handleRightControlViewPanGesture(_:)))
+        rightControlPointView.addGestureRecognizer(rightGesture)
     }
     
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
@@ -112,7 +148,7 @@ class InteractiveCropGuideView: UIView {
     }
     
     // Pan actions
-    
+    // Corner points
     @objc func handleTopLeftViewPanGesture(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .began:
@@ -205,6 +241,96 @@ class InteractiveCropGuideView: UIView {
         }
     }
     
+    // Control lines
+    @objc func handleTopControlViewPanGesture(_ gesture: UIPanGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            panGestureBegan()
+            activeBottomConstraint()
+            activeTrailingConstraint()
+            activeHeightConstraint()
+            activeWidthConstraint()
+            fallthrough
+        case .changed:
+            defer {
+              gesture.setTranslation(.zero, in: self)
+            }
+            let translation = gesture.translation(in: self)
+            heightConstraint?.constant -= translation.y
+        case .ended, .cancelled, .failed:
+            panGestureEnded()
+        default:
+            break
+        }
+    }
+    
+    @objc func handleLeftControlViewPanGesture(_ gesture: UIPanGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            panGestureBegan()
+            activeTopConstraint()
+            activeTrailingConstraint()
+            activeWidthConstraint()
+            activeHeightConstraint()
+            fallthrough
+        case .changed:
+            defer {
+              gesture.setTranslation(.zero, in: self)
+            }
+            let translation = gesture.translation(in: self)
+            widthConstraint?.constant -= translation.x
+        case .ended, .cancelled, .failed:
+            panGestureEnded()
+        default:
+            break
+        }
+    }
+    
+    
+    @objc func handleBottomControlViewPanGesture(_ gesture: UIPanGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            panGestureBegan()
+            activeTopConstraint()
+            activeLeadingConstraint()
+            activeWidthConstraint()
+            activeHeightConstraint()
+            fallthrough
+        case .changed:
+            defer {
+              gesture.setTranslation(.zero, in: self)
+            }
+            let translation = gesture.translation(in: self)
+            heightConstraint?.constant += translation.y
+        case .ended, .cancelled, .failed:
+            panGestureEnded()
+        default:
+            break
+        }
+    }
+    
+    @objc func handleRightControlViewPanGesture(_ gesture: UIPanGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            panGestureBegan()
+            activeTopConstraint()
+            activeLeadingConstraint()
+            activeWidthConstraint()
+            activeHeightConstraint()
+            fallthrough
+        case .changed:
+            defer {
+              gesture.setTranslation(.zero, in: self)
+            }
+            let translation = gesture.translation(in: self)
+            widthConstraint?.constant += translation.x
+        case .ended, .cancelled, .failed:
+            panGestureEnded()
+        default:
+            break
+        }
+    }
+    
     func panGestureBegan() {
         handlesView.startResizing()
     }
@@ -246,8 +372,7 @@ class InteractiveCropGuideView: UIView {
         temp.isActive = true
         constraintsWhenPanning.append(temp)
     }
-    
-    
+        
     func activeWidthConstraint() {
         translatesAutoresizingMaskIntoConstraints = false
         widthConstraint = widthAnchor.constraint(equalToConstant: bounds.width)
@@ -268,6 +393,12 @@ class InteractiveCropGuideView: UIView {
         let temp = heightAnchor.constraint(greaterThanOrEqualToConstant: minimumSize.height)
         temp.isActive = true
         constraintsWhenPanning.append(temp)
+    }
+    
+    func activeTopMaxConstraint() {
+        translatesAutoresizingMaskIntoConstraints = false
+        
+        
     }
     
     func deactivePanningConstraints() {
