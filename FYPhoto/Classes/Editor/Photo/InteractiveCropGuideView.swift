@@ -97,28 +97,28 @@ class InteractiveCropGuideView: UIView {
         
         NSLayoutConstraint.activate([
             topControlPointView.topAnchor.constraint(equalTo: topAnchor),
-            topControlPointView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            topControlPointView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            topControlPointView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
+            topControlPointView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
             topControlPointView.heightAnchor.constraint(equalToConstant: 1)
         ])
         
         NSLayoutConstraint.activate([
-            leftControlPointView.topAnchor.constraint(equalTo: topAnchor),
+            leftControlPointView.topAnchor.constraint(equalTo: topAnchor, constant: 10),
             leftControlPointView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            leftControlPointView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            leftControlPointView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
             leftControlPointView.widthAnchor.constraint(equalToConstant: 1)
         ])
         
         NSLayoutConstraint.activate([
             bottomControlPointView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            bottomControlPointView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            bottomControlPointView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            bottomControlPointView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
+            bottomControlPointView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
             bottomControlPointView.heightAnchor.constraint(equalToConstant: 1)
         ])
         
         NSLayoutConstraint.activate([
-            rightControlPointView.topAnchor.constraint(equalTo: topAnchor),
-            rightControlPointView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            rightControlPointView.topAnchor.constraint(equalTo: topAnchor, constant: 10),
+            rightControlPointView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
             rightControlPointView.trailingAnchor.constraint(equalTo: trailingAnchor),
             rightControlPointView.widthAnchor.constraint(equalToConstant: 1)
         ])
