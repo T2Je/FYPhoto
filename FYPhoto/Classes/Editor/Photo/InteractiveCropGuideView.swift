@@ -9,9 +9,9 @@ import Foundation
 
 class InteractiveCropGuideView: UIView {
     
-    var touchesBegan = {}
-    var touchesCancelled = {}
-    var touchesEnded = {}
+    var resizeBegan = {}
+    var resizeCancelled = {}
+    var resizeEnded: ((_ frame: CGRect) -> Void)?
     
     private let topLeftControlPointView = TapExpandedView(horizontal: 16, vertical: 16)
     private let topRightControlPointView = TapExpandedView(horizontal: 16, vertical: 16)
@@ -170,7 +170,9 @@ class InteractiveCropGuideView: UIView {
             let translation = gesture.translation(in: self)
             widthConstraint?.constant -= translation.x
             heightConstraint?.constant -= translation.y
-        case .ended, .cancelled, .failed:
+        case .cancelled:
+            panGestureCancelled()
+        case .ended, .failed:
             panGestureEnded()
         default:
             break
@@ -193,7 +195,9 @@ class InteractiveCropGuideView: UIView {
             let translation = gesture.translation(in: self)
             widthConstraint?.constant += translation.x
             heightConstraint?.constant -= translation.y
-        case .ended, .cancelled, .failed:
+        case .cancelled:
+            panGestureCancelled()
+        case .ended, .failed:
             panGestureEnded()
         default:
             break
@@ -216,7 +220,9 @@ class InteractiveCropGuideView: UIView {
             let translation = gesture.translation(in: self)
             widthConstraint?.constant -= translation.x
             heightConstraint?.constant += translation.y
-        case .ended, .cancelled, .failed:
+        case .cancelled:
+            panGestureCancelled()
+        case .ended, .failed:
             panGestureEnded()
         default:
             break
@@ -239,7 +245,9 @@ class InteractiveCropGuideView: UIView {
             let translation = gesture.translation(in: self)
             widthConstraint?.constant += translation.x
             heightConstraint?.constant += translation.y
-        case .ended, .cancelled, .failed:
+        case .cancelled:
+            panGestureCancelled()
+        case .ended, .failed:
             panGestureEnded()
         default:
             break
@@ -262,7 +270,9 @@ class InteractiveCropGuideView: UIView {
             }
             let translation = gesture.translation(in: self)
             heightConstraint?.constant -= translation.y
-        case .ended, .cancelled, .failed:
+        case .cancelled:
+            panGestureCancelled()
+        case .ended, .failed:
             panGestureEnded()
         default:
             break
@@ -284,7 +294,9 @@ class InteractiveCropGuideView: UIView {
             }
             let translation = gesture.translation(in: self)
             widthConstraint?.constant -= translation.x
-        case .ended, .cancelled, .failed:
+        case .cancelled:
+            panGestureCancelled()
+        case .ended, .failed:
             panGestureEnded()
         default:
             break
@@ -307,7 +319,9 @@ class InteractiveCropGuideView: UIView {
             }
             let translation = gesture.translation(in: self)
             heightConstraint?.constant += translation.y
-        case .ended, .cancelled, .failed:
+        case .cancelled:
+            panGestureCancelled()
+        case .ended, .failed:
             panGestureEnded()
         default:
             break
@@ -329,7 +343,9 @@ class InteractiveCropGuideView: UIView {
             }
             let translation = gesture.translation(in: self)
             widthConstraint?.constant += translation.x
-        case .ended, .cancelled, .failed:
+        case .cancelled:
+            panGestureCancelled()
+        case .ended, .failed:
             panGestureEnded()
         default:
             break
@@ -337,10 +353,18 @@ class InteractiveCropGuideView: UIView {
     }
     
     func panGestureBegan() {
-        handlesView.startResizing()
+        resizeBegan()
+        handlesView.startResizing()        
+    }
+    
+    func panGestureCancelled() {
+        resizeCancelled()
+        handlesView.endResizing()
+        deactivePanningConstraints()
     }
     
     func panGestureEnded() {
+        resizeEnded?(frame)
         handlesView.endResizing()
         deactivePanningConstraints()
     }
@@ -412,23 +436,7 @@ class InteractiveCropGuideView: UIView {
         NSLayoutConstraint.deactivate(activedCons)
     }
     
-    // Touches
-    
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        touchesBegan()
-        super.touchesBegan(touches, with: event)
-    }
-    
-    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
-        touchesCancelled()
-        super.touchesCancelled(touches, with: event)
-    }
-    
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        touchesEnded()
-        super.touchesEnded(touches, with: event)
-    }
-    
+    // Ignore touches
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let view = super.hitTest(point, with: event)
         

@@ -91,15 +91,19 @@ class CropView: UIView {
 //    var touchesBegan: Bool = false
     
     func setupGuideView() {
-        guideView.touchesBegan = { [weak self] in
+        guideView.resizeBegan = { [weak self] in
 //            self?.touchesBegan = true
         }
         
-        guideView.touchesEnded = { [weak self] in
+        guideView.resizeEnded = { [weak self] guideViewFrame in
+            guard let self = self else { return }
+            let convertedFrame = self.convert(guideViewFrame, to: self.imageView)
+            self.scrollView.zoom(to: convertedFrame, animated: true)
 //            self?.touchesBegan = false
         }
         
-        guideView.touchesCancelled = { [weak self] in
+        guideView.resizeCancelled = { [weak self] in
+            
 //            self?.touchesBegan = false
         }
     }
