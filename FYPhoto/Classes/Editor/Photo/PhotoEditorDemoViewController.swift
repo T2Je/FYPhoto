@@ -16,24 +16,20 @@ public class PhotoEditorDemoViewController: UIViewController {
         let viewModel = CropViewModel(image: image)
         let cropView =  CropView(viewModel: viewModel)
         view.addSubview(cropView)
+//        cropView.frame = view.frame
         cropView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            cropView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0),
-            cropView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 20),
-            cropView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0),
-            cropView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -20)
+            cropView.topAnchor.constraint(equalTo: view.topAnchor, constant: 0),
+            cropView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            cropView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 0),
+            cropView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
         ])
+        
 //        let guideView = InteractiveCropGuideView()
 //        view.addSubview(guideView)
-        
+//
 //        guideView.frame = CGRect(x: 20, y: 200, width: 200, height: 150)
-//        handleView.translatesAutoresizingMaskIntoConstraints = false
-//        NSLayoutConstraint.activate([
-//            handleView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-//            handleView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-//            handleView.widthAnchor.constraint(equalToConstant: 200),
-//            handleView.heightAnchor.constraint(equalToConstant: 200)
-//        ])
+
         // Do any additional setup after loading the view.
     }
     

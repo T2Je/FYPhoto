@@ -20,6 +20,7 @@ class CropView: UIView {
     
     lazy var scrollView = CropScrollView(frame: bounds)
     
+    private var guideViewHasFrame = false
 //    private var cropFrameKVO: NSKeyValueObservation?
     
     init(viewModel: CropViewModel) {
@@ -30,7 +31,7 @@ class CropView: UIView {
 //        cropFrameKVO = viewModel.observe(\.cropViewFrame, options: [.new, .old], changeHandler: { (_ , value) in
 //
 //        })
-        
+        clipsToBounds = false
         addSubview(scrollView)
         scrollView.addSubview(imageView)
         addSubview(guideView)
@@ -47,13 +48,6 @@ class CropView: UIView {
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor)
         ])
         
-//        imageView.topAnchor.constraint(equalTo: self.topAnchor),
-//        imageView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-//        imageView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-//        imageView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-//        imageView.widthAnchor.constraint(equalTo: self.widthAnchor),
-//        imageView.heightAnchor.constraint(equalTo: self.heightAnchor)
-        
         imageView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             imageView.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor),
@@ -67,14 +61,12 @@ class CropView: UIView {
         
     }
     
-    var guideViewHasFrame = false
-    
-    
     override func layoutSubviews() {
         super.layoutSubviews()
         
 //        print("imageView: \(imageView)")
         if !guideViewHasFrame && (imageView.frame.width < frame.width && imageView.frame.height < frame.height) {
+            print("imageView: \(imageView)")
             let convertedFrame = imageView.convert(imageView.bounds, to: self)
             guideView.frame = convertedFrame
             viewModel.imageFrame = convertedFrame
@@ -96,19 +88,19 @@ class CropView: UIView {
         
     }
     
-    var touchesBegan: Bool = false
+//    var touchesBegan: Bool = false
     
     func setupGuideView() {
         guideView.touchesBegan = { [weak self] in
-            self?.touchesBegan = true
+//            self?.touchesBegan = true
         }
         
         guideView.touchesEnded = { [weak self] in
-            self?.touchesBegan = false
+//            self?.touchesBegan = false
         }
         
         guideView.touchesCancelled = { [weak self] in
-            self?.touchesBegan = false
+//            self?.touchesBegan = false
         }
     }
     

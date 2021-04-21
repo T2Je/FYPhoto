@@ -349,7 +349,7 @@ class InteractiveCropGuideView: UIView {
     func activeBottomConstraint() {
         guard let superview = superview else { return }
         translatesAutoresizingMaskIntoConstraints = false
-        let temp = bottomAnchor.constraint(equalTo: superview.bottomAnchor, constant: frame.maxY - superview.frame.maxY)
+        let temp = bottomAnchor.constraint(equalTo: superview.bottomAnchor, constant: frame.maxY - superview.bounds.maxY)
         temp.isActive = true
         constraintsWhenPanning.append(temp)
     }
@@ -357,7 +357,7 @@ class InteractiveCropGuideView: UIView {
     func activeTrailingConstraint() {
         guard let superview = superview else { return }
         translatesAutoresizingMaskIntoConstraints = false
-        let temp = trailingAnchor.constraint(equalTo: superview.trailingAnchor, constant: frame.maxX - superview.frame.maxX)
+        let temp = trailingAnchor.constraint(equalTo: superview.trailingAnchor, constant: frame.maxX - superview.bounds.maxX)
         temp.isActive = true
         constraintsWhenPanning.append(temp)
     }
@@ -365,7 +365,7 @@ class InteractiveCropGuideView: UIView {
     func activeLeadingConstraint() {
         guard let superview = superview else { return }
         translatesAutoresizingMaskIntoConstraints = false
-        let temp = leadingAnchor.constraint(equalTo: superview.leadingAnchor, constant: frame.minX - superview.frame.minX)
+        let temp = leadingAnchor.constraint(equalTo: superview.leadingAnchor, constant: frame.minX - superview.bounds.minX)
         temp.isActive = true
         constraintsWhenPanning.append(temp)
     }
@@ -373,7 +373,7 @@ class InteractiveCropGuideView: UIView {
     func activeTopConstraint() {
         guard let superview = superview else { return }
         translatesAutoresizingMaskIntoConstraints = false
-        let temp = topAnchor.constraint(equalTo: superview.topAnchor, constant: frame.minY - superview.frame.minY)
+        let temp = topAnchor.constraint(equalTo: superview.topAnchor, constant: frame.minY - superview.bounds.minY)
         temp.isActive = true
         constraintsWhenPanning.append(temp)
     }
