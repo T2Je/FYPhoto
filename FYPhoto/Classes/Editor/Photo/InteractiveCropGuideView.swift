@@ -8,6 +8,11 @@
 import Foundation
 
 class InteractiveCropGuideView: UIView {
+    
+    var touchesBegan = {}
+    var touchesCancelled = {}
+    var touchesEnded = {}
+    
     private let topLeftControlPointView = TapExpandedView(horizontal: 16, vertical: 16)
     private let topRightControlPointView = TapExpandedView(horizontal: 16, vertical: 16)
     private let bottomLeftControlPointView = TapExpandedView(horizontal: 16, vertical: 16)
@@ -405,6 +410,34 @@ class InteractiveCropGuideView: UIView {
         translatesAutoresizingMaskIntoConstraints = true
         let activedCons = [widthConstraint, heightConstraint].compactMap { $0 } + constraintsWhenPanning
         NSLayoutConstraint.deactivate(activedCons)
+    }
+    
+    // Touches
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        touchesBegan()
+        super.touchesBegan(touches, with: event)
+    }
+    
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        touchesCancelled()
+        super.touchesCancelled(touches, with: event)
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        touchesEnded()
+        super.touchesEnded(touches, with: event)
+    }
+    
+    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+      
+      let view = super.hitTest(point, with: event)
+ 
+      if view == self {
+        return nil
+      }
+
+      return view
     }
     
     required init?(coder: NSCoder) {
