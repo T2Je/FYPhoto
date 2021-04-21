@@ -13,6 +13,7 @@ extension CropView {
     class ImageView: UIImageView {
         override init(image: UIImage?) {
             super.init(image: image)
+            setup()
         }
         
         required init?(coder: NSCoder) {
@@ -20,7 +21,7 @@ extension CropView {
         }
         
         /// constraint to maintain same aspect ratio as the image
-        private var aspectRatioConstraint:NSLayoutConstraint? = nil
+        private var aspectRatioConstraint: NSLayoutConstraint? = nil
         
         private func setup() {
             self.contentMode = .scaleAspectFit

@@ -47,6 +47,13 @@ class CropView: UIView {
             scrollView.trailingAnchor.constraint(equalTo: trailingAnchor)
         ])
         
+//        imageView.topAnchor.constraint(equalTo: self.topAnchor),
+//        imageView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
+//        imageView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+//        imageView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+//        imageView.widthAnchor.constraint(equalTo: self.widthAnchor),
+//        imageView.heightAnchor.constraint(equalTo: self.heightAnchor)
+        
         imageView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             imageView.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor),
@@ -68,10 +75,10 @@ class CropView: UIView {
         
 //        print("imageView: \(imageView)")
         if !guideViewHasFrame && (imageView.frame.width < frame.width && imageView.frame.height < frame.height) {
-            
             let convertedFrame = imageView.convert(imageView.bounds, to: self)
             guideView.frame = convertedFrame
             viewModel.imageFrame = convertedFrame
+            scrollView.contentSize = scrollView.frame.size
             guideViewHasFrame = true
         }        
         
@@ -81,6 +88,7 @@ class CropView: UIView {
     }
     
     func setupUI() {
+        setupScrollView()
         setupGuideView()
     }
     
@@ -105,6 +113,13 @@ class CropView: UIView {
     }
     
     func setupScrollView() {
-        
+        scrollView.delegate = self
+    }
+}
+
+extension CropView: UIScrollViewDelegate {
+    // pinches imageView
+    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+        return imageView
     }
 }
