@@ -148,10 +148,6 @@ class InteractiveCropGuideView: UIView {
         rightControlPointView.addGestureRecognizer(rightGesture)
     }
     
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-        bounds.insetBy(dx: -16, dy: -16).contains(point)
-    }
-    
     // Pan actions
     // Corner points
     @objc func handleTopLeftViewPanGesture(_ gesture: UIPanGestureRecognizer) {
@@ -436,15 +432,19 @@ class InteractiveCropGuideView: UIView {
         NSLayoutConstraint.deactivate(activedCons)
     }
     
-    // Ignore touches
+    // Ignore touches inside the control area
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let view = super.hitTest(point, with: event)
         
-        if view == self {
+        if view == self && bounds.insetBy(dx: 16, dy: 16).contains(point) {
             
             return nil
         }
         return view
+    }
+
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        bounds.insetBy(dx: -16, dy: -16).contains(point)
     }
     
     required init?(coder: NSCoder) {

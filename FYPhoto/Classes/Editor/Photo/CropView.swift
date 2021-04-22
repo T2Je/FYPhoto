@@ -121,7 +121,6 @@ class CropView: UIView {
         guideView.resizeEnded = { [weak self] guideViewFrame in
             guard let self = self else { return }
             var convertedFrame = self.convert(guideViewFrame, to: self.imageView)
-            let tempOrigin = convertedFrame.origin
             
             self.scrollView.zoom(to: convertedFrame, animated: true)
             
