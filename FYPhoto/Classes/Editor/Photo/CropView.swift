@@ -8,7 +8,7 @@
 import UIKit
 
 class CropView: UIView {
-
+    
     let viewModel: CropViewModel
     
     var image: UIImage {
@@ -32,6 +32,18 @@ class CropView: UIView {
         scrollView.addSubview(imageView)
         addSubview(guideView)
         setupUI()
+        
+        viewModel.statusChanged = { [weak self] status in
+            print("status: \(status)")
+            //            switch changed.newValue {
+            //            case .initial:
+            //            case .touchImage:
+            //            case .touchHandle(_):
+            //            case .endTouch:
+            //
+            //            }
+
+        }
     }
     
     func updateViews() {
@@ -67,8 +79,8 @@ class CropView: UIView {
 //    var touchesBegan: Bool = false
     
     func setupGuideView() {
-        guideView.resizeBegan = { [weak self] in
-
+        guideView.resizeBegan = { [weak self] handle in
+            self?.viewModel.status = .touchHandle(handle)
         }
         
         guideView.resizeEnded = { [weak self] guideViewFrame in
@@ -87,6 +99,17 @@ class CropView: UIView {
     
     func setupScrollView() {
         scrollView.delegate = self
+        scrollView.touchesBegan = { [weak self] in
+            self?.viewModel.status = .touchImage
+        }
+        
+        scrollView.touchesCancelled = { [weak self] in
+            self?.viewModel.status = .endTouch
+        }
+        
+        scrollView.touchesEnd = { [weak self] in
+            self?.viewModel.status = .endTouch
+        }
     }
     
     

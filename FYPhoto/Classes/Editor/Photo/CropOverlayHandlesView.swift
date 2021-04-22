@@ -188,7 +188,7 @@ class CropOverlayHandlesView: UIView {
         
         currentAnimator = UIViewPropertyAnimator(duration: 0.3, dampingRatio: 1, animations: {
             self.lines.forEach {
-                $0.alpha = 1
+                $0.alpha = 0
             }
         })
         currentAnimator?.startAnimation()

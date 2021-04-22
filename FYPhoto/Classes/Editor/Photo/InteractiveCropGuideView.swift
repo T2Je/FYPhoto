@@ -9,7 +9,7 @@ import Foundation
 
 class InteractiveCropGuideView: UIView {
     
-    var resizeBegan = {}
+    var resizeBegan: ((CropViewHandle) -> Void)?
     var resizeCancelled = {}
     var resizeEnded: ((_ frame: CGRect) -> Void)?
     
@@ -153,7 +153,7 @@ class InteractiveCropGuideView: UIView {
     @objc func handleTopLeftViewPanGesture(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .began:
-            panGestureBegan()
+            panGestureBegan(.leftTop)
             activeBottomConstraint()
             activeTrailingConstraint()
             activeWidthConstraint()
@@ -178,7 +178,7 @@ class InteractiveCropGuideView: UIView {
     @objc func handleTopRightViewPanGesture(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .began:
-            panGestureBegan()
+            panGestureBegan(.rightTop)
             activeBottomConstraint()
             activeLeadingConstraint()
             activeWidthConstraint()
@@ -203,7 +203,7 @@ class InteractiveCropGuideView: UIView {
     @objc func handleBottomLeftViewPanGesture(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .began:
-            panGestureBegan()
+            panGestureBegan(.leftBottom)
             activeTopConstraint()
             activeTrailingConstraint()
             activeWidthConstraint()
@@ -228,7 +228,7 @@ class InteractiveCropGuideView: UIView {
     @objc func handleBottomRightViewPanGesture(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .began:
-            panGestureBegan()
+            panGestureBegan(.rightBottom)
             activeTopConstraint()
             activeLeadingConstraint()
             activeWidthConstraint()
@@ -254,7 +254,7 @@ class InteractiveCropGuideView: UIView {
     @objc func handleTopControlViewPanGesture(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .began:
-            panGestureBegan()
+            panGestureBegan(.top)
             activeBottomConstraint()
             activeTrailingConstraint()
             activeHeightConstraint()
@@ -278,7 +278,7 @@ class InteractiveCropGuideView: UIView {
     @objc func handleLeftControlViewPanGesture(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .began:
-            panGestureBegan()
+            panGestureBegan(.left)
             activeTopConstraint()
             activeTrailingConstraint()
             activeWidthConstraint()
@@ -303,7 +303,7 @@ class InteractiveCropGuideView: UIView {
     @objc func handleBottomControlViewPanGesture(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .began:
-            panGestureBegan()
+            panGestureBegan(.bottom)
             activeTopConstraint()
             activeLeadingConstraint()
             activeWidthConstraint()
@@ -327,7 +327,7 @@ class InteractiveCropGuideView: UIView {
     @objc func handleRightControlViewPanGesture(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
         case .began:
-            panGestureBegan()
+            panGestureBegan(.right)
             activeTopConstraint()
             activeLeadingConstraint()
             activeWidthConstraint()
@@ -348,8 +348,8 @@ class InteractiveCropGuideView: UIView {
         }
     }
     
-    func panGestureBegan() {
-        resizeBegan()
+    func panGestureBegan(_ handle: CropViewHandle) {
+        resizeBegan?(handle)
         handlesView.startResizing()        
     }
     

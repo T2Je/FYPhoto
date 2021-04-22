@@ -9,6 +9,10 @@ import UIKit
 
 class CropScrollView: UIScrollView {
 
+    var touchesBegan = {}
+    var touchesCancelled = {}
+    var touchesEnd = {}
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         alwaysBounceHorizontal = true
@@ -34,5 +38,20 @@ class CropScrollView: UIScrollView {
 
         frame = rect
         contentSize = rect.size
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesBegan(touches, with: event)
+        touchesBegan()
+    }
+    
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesCancelled(touches, with: event)
+        touchesCancelled()
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        super.touchesEnded(touches, with: event)
+        touchesEnd()
     }
 }

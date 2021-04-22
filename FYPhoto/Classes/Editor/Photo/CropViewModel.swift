@@ -8,12 +8,19 @@
 import Foundation
 
 class CropViewModel: NSObject {
-//    var cropViewFrame: CGRect = .zero
+    var statusChanged: ((CropViewStatus) -> Void)?
+    
     var imageFrame: CGRect = .zero
     
     var image: UIImage
     
     var isPortrait = true
+    
+    var status: CropViewStatus = .initial {
+        didSet {
+            statusChanged?(status)
+        }
+    }
     
     init(image: UIImage) {
         self.image = image
