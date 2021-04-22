@@ -15,8 +15,9 @@ class CropView: UIView {
         viewModel.image
     }
     
-    var imageView: ImageView
-    var guideView = InteractiveCropGuideView()
+    let imageView: ImageView
+    let guideView = InteractiveCropGuideView()
+    let blurredManager = CropViewMaskManager()        
     
     lazy var scrollView = CropScrollView(frame: bounds)
     
@@ -31,18 +32,12 @@ class CropView: UIView {
         addSubview(scrollView)
         scrollView.addSubview(imageView)
         addSubview(guideView)
+        
         setupUI()
         
         viewModel.statusChanged = { [weak self] status in
             print("status: \(status)")
-            //            switch changed.newValue {
-            //            case .initial:
-            //            case .touchImage:
-            //            case .touchHandle(_):
-            //            case .endTouch:
-            //
-            //            }
-
+            self?.cropViewStatusChanged(status)
         }
     }
     
@@ -51,6 +46,9 @@ class CropView: UIView {
     }
     
     func resetUIFrame() {
+        blurredManager.reset()
+        blurredManager.showIn(self)
+        
         let initialGuideFrame = viewModel.getInitialCropGuideViewRect(fromOutside: bounds)
         viewModel.resetCropFrame(initialGuideFrame)
                 
@@ -76,8 +74,6 @@ class CropView: UIView {
         
     }
     
-//    var touchesBegan: Bool = false
-    
     func setupGuideView() {
         guideView.resizeBegan = { [weak self] handle in
             self?.viewModel.status = .touchHandle(handle)
@@ -85,15 +81,15 @@ class CropView: UIView {
         
         guideView.resizeEnded = { [weak self] guideViewFrame in
             guard let self = self else { return }
+            self.viewModel.status = .endTouch
+            
             let convertedFrame = self.convert(guideViewFrame, to: self.imageView)
-            
             self.scrollView.zoom(to: convertedFrame, animated: true)
-            
             self.guideView.frame = GeometryHelper.getAppropriateRect(fromOutside: self.viewModel.imageFrame, inside: guideViewFrame)
         }
         
         guideView.resizeCancelled = { [weak self] in
-            
+            self?.viewModel.status = .endTouch
         }
     }
     
@@ -110,6 +106,30 @@ class CropView: UIView {
         scrollView.touchesEnd = { [weak self] in
             self?.viewModel.status = .endTouch
         }
+    }
+        
+    
+    func cropViewStatusChanged(_ status: CropViewStatus) {
+        switch status {
+        case .initial:
+            setupUI()
+        case .touchImage:
+            blurredManager.showDimmingBackground()
+            // TODO: 😴zZ
+        case .touchHandle(_):
+            blurredManager.showDimmingBackground()
+        // TODO: 😴zZ
+        case .endTouch:
+            blurredManager.showVisualEffectBackground()
+        // TODO: 😴zZ
+
+        }
+    }
+    
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        blurredManager.createTransparentRect(with: viewModel.imageFrame)
     }
     
     

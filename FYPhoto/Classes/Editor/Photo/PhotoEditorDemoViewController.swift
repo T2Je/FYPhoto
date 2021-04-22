@@ -29,9 +29,9 @@ public class PhotoEditorDemoViewController: UIViewController {
         cropView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             cropView.topAnchor.constraint(equalTo: view.topAnchor, constant: 0),
-            cropView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            cropView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
             cropView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 0),
-            cropView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20)
+            cropView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0)
         ])
         
 //        let guideView = InteractiveCropGuideView()
