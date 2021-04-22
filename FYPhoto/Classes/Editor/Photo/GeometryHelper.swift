@@ -14,8 +14,8 @@ struct GeometryHelper {
     ///   - outside: outside view
     ///   - inside: inside view (guide view)
     /// - Returns: rect
-    func getAppropriateRect(fromOutside outside: CGRect, andInside inside: CGRect) -> CGRect {
-        var rect = inside
+    static func getAppropriateRect(fromOutside outside: CGRect, inside: CGRect) -> CGRect {
+        var rect = CGRect(origin: .zero, size: inside.size)
         let outsideRatio = outside.width / outside.height
         let insideRatio = inside.width / inside.height
         

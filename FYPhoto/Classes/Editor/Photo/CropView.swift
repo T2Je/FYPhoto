@@ -39,24 +39,45 @@ class CropView: UIView {
         makeConstraints()
     }
     
-    func makeConstraints() {
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor)
-        ])
+    func updateViews() {
+        resetUIFrame()
+    }
+    
+    func resetUIFrame() {
+        let initialGuideFrame = viewModel.getInitialCropGuideViewRect(fromOutside: bounds)
+        viewModel.resetCropFrame(initialGuideFrame)
+                
+        scrollView.transform = .identity
+        scrollView.reset(initialGuideFrame)
         
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            imageView.centerXAnchor.constraint(equalTo: scrollView.centerXAnchor),
-            imageView.centerYAnchor.constraint(equalTo: scrollView.centerYAnchor),
-            imageView.leadingAnchor.constraint(greaterThanOrEqualTo: scrollView.leadingAnchor, constant: 30),
-            imageView.trailingAnchor.constraint(lessThanOrEqualTo: scrollView.trailingAnchor, constant: -30),
-            imageView.topAnchor.constraint(greaterThanOrEqualTo: scrollView.topAnchor, constant: 30),
-            imageView.bottomAnchor.constraint(lessThanOrEqualTo: scrollView.bottomAnchor, constant: -30)
-        ])
+        imageView.frame = scrollView.bounds
+        imageView.center = CGPoint(x: scrollView.bounds.width/2, y: scrollView.bounds.height/2)
+
+        guideView.frame = initialGuideFrame
+//        gridOverlayView.superview?.bringSubviewToFront(gridOverlayView)
+    }
+    
+    func makeConstraints() {
+//        scrollView.translatesAutoresizingMaskIntoConstraints = false
+//        NSLayoutConstraint.activate([
+//            scrollView.topAnchor.constraint(equalTo: topAnchor),
+//            scrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
+//            scrollView.bottomAnchor.constraint(equalTo: bottomAnchor),
+//            scrollView.trailingAnchor.constraint(equalTo: trailingAnchor)
+//        ])
+                
+//        imageView.translatesAutoresizingMaskIntoConstraints = false
+//        NSLayoutConstraint.activate([
+//            imageView.leadingAnchor.constraint(greaterThanOrEqualTo: scrollView.leadingAnchor, constant: 30),
+//            imageView.trailingAnchor.constraint(lessThanOrEqualTo: scrollView.trailingAnchor, constant: -30),
+//            imageView.topAnchor.constraint(greaterThanOrEqualTo: scrollView.topAnchor, constant: 30),
+//            imageView.bottomAnchor.constraint(lessThanOrEqualTo: scrollView.bottomAnchor, constant: -30)
+//
+////            imageView.leadingAnchor.constraint(greaterThanOrEqualTo: scrollView.leadingAnchor, constant: 30),
+////            imageView.trailingAnchor.constraint(lessThanOrEqualTo: scrollView.trailingAnchor, constant: -30),
+////            imageView.topAnchor.constraint(greaterThanOrEqualTo: scrollView.topAnchor, constant: 30),
+////            imageView.bottomAnchor.constraint(lessThanOrEqualTo: scrollView.bottomAnchor, constant: -30)
+//        ])
         
         
     }
@@ -64,15 +85,17 @@ class CropView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         
-//        print("imageView: \(imageView)")
-        if !guideViewHasFrame && (imageView.frame.width < frame.width && imageView.frame.height < frame.height) {
-            print("imageView: \(imageView)")
-            let convertedFrame = imageView.convert(imageView.bounds, to: self)
-            guideView.frame = convertedFrame
-            viewModel.imageFrame = convertedFrame
-            scrollView.contentSize = scrollView.frame.size
-            guideViewHasFrame = true
-        }        
+//        imageView.frame = viewModel.getInitialCropGuideViewRect(fromOutside: self.bounds)
+//
+////        print("imageView: \(imageView)")
+//        if !guideViewHasFrame && (imageView.frame.width < frame.width && imageView.frame.height < frame.height) {
+//            print("imageView: \(imageView)")
+//            let convertedFrame = imageView.convert(imageView.bounds, to: self)
+//            guideView.frame = convertedFrame
+//            viewModel.imageFrame = convertedFrame
+//            scrollView.contentSize = frame.size
+//            guideViewHasFrame = true
+//        }
         
     }
     required init?(coder: NSCoder) {
@@ -97,8 +120,12 @@ class CropView: UIView {
         
         guideView.resizeEnded = { [weak self] guideViewFrame in
             guard let self = self else { return }
-            let convertedFrame = self.convert(guideViewFrame, to: self.imageView)
+            var convertedFrame = self.convert(guideViewFrame, to: self.imageView)
+            let tempOrigin = convertedFrame.origin
+            
             self.scrollView.zoom(to: convertedFrame, animated: true)
+            
+            self.guideView.frame = GeometryHelper.getAppropriateRect(fromOutside: self.viewModel.imageFrame, inside: guideViewFrame)
 //            self?.touchesBegan = false
         }
         
@@ -111,6 +138,8 @@ class CropView: UIView {
     func setupScrollView() {
         scrollView.delegate = self
     }
+    
+    
 }
 
 extension CropView: UIScrollViewDelegate {

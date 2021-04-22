@@ -20,11 +20,19 @@ class CropScrollView: UIScrollView {
         maximumZoomScale = 15.0
         clipsToBounds = false
         contentSize = bounds.size
-//        layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
     }
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
 
+    func reset(_ rect: CGRect) {
+        // Reseting zoom need to be before resetting frame and contentsize
+        minimumZoomScale = 1.0
+        zoomScale = 1.0
+
+        frame = rect
+        contentSize = rect.size
+    }
 }

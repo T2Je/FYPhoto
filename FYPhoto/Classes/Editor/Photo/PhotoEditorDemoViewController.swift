@@ -9,14 +9,23 @@
 import UIKit
 
 public class PhotoEditorDemoViewController: UIViewController {
-
+    let cropView: CropView
+    
+    public init(image: UIImage = UIImage(named: "sunflower")!) {
+        let viewModel = CropViewModel(image: image)
+        cropView = CropView(viewModel: viewModel)
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     public override func viewDidLoad() {
         super.viewDidLoad()
-        guard let image = UIImage(named: "sunflower") else { return }
-        let viewModel = CropViewModel(image: image)
-        let cropView =  CropView(viewModel: viewModel)
+        
         view.addSubview(cropView)
-//        cropView.frame = view.frame
+
         cropView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             cropView.topAnchor.constraint(equalTo: view.topAnchor, constant: 0),
@@ -33,15 +42,14 @@ public class PhotoEditorDemoViewController: UIViewController {
         // Do any additional setup after loading the view.
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    var initialLayout = false
+    
+    public override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if !initialLayout {
+            initialLayout = true
+            cropView.updateViews()
+        }
+        
     }
-    */
-
 }
