@@ -30,5 +30,5 @@ struct GeometryHelper {
         rect.origin.x = outside.midX - rect.width / 2
         rect.origin.y = outside.midY - rect.height / 2
         return rect
-    }
+    }        
 }
