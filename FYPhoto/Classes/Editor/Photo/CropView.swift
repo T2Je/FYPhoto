@@ -129,15 +129,8 @@ class CropView: UIView {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        blurredManager.createTransparentRect(with: viewModel.imageFrame)
+        blurredManager.createTransparentRect(with: guideView.frame)
     }
     
     
-}
-
-extension CropView: UIScrollViewDelegate {
-    // pinches imageView
-    func viewForZooming(in scrollView: UIScrollView) -> UIView? {
-        return imageView
-    }
 }

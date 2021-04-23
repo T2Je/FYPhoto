@@ -74,6 +74,7 @@ class CropViewMaskManager {
     }
     
     func createTransparentRect(with insideRect: CGRect) {
+        print("insideRect: \(insideRect)")
         effectView.setMask(insideRect)
         dimmingView.setMask(insideRect)
     }
