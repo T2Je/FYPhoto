@@ -8,6 +8,9 @@
 import UIKit
 
 class CropView: UIView {
+    struct Constant {
+        static let padding: CGFloat = 14
+    }
     
     let viewModel: CropViewModel
     
@@ -49,7 +52,8 @@ class CropView: UIView {
         blurredManager.reset()
         blurredManager.showIn(self)
         
-        let initialGuideFrame = viewModel.getInitialCropGuideViewRect(fromOutside: bounds)
+        let contentBounds = viewModel.getContentBounds(bounds, Constant.padding)
+        let initialGuideFrame = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
         viewModel.resetCropFrame(initialGuideFrame)
                 
         scrollView.transform = .identity
@@ -59,6 +63,7 @@ class CropView: UIView {
         imageView.center = CGPoint(x: scrollView.bounds.width/2, y: scrollView.bounds.height/2)
 
         guideView.frame = initialGuideFrame
+        guideView.superview?.bringSubviewToFront(guideView)
     }
     
     required init?(coder: NSCoder) {

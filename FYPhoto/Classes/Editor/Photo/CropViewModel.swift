@@ -42,6 +42,16 @@ class CropViewModel: NSObject {
         return GeometryHelper.getAppropriateRect(fromOutside: outside, inside: inside)
     }
     
+    // CropGuideView moves around in this area
+    func getContentBounds(_ outsideRect: CGRect, _ padding: CGFloat) -> CGRect {
+        var rect = outsideRect
+        rect.origin.x = rect.origin.x + padding
+        rect.origin.y = rect.origin.y + padding
+        rect.size.width = rect.size.width - padding * 2
+        rect.size.height = rect.size.height - padding * 2
+        return rect
+    }
+    
     func resetCropFrame(_ rect: CGRect) {
         imageFrame = rect
     }
