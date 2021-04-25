@@ -10,7 +10,8 @@ import Foundation
 class CropViewModel: NSObject {
     var statusChanged: ((CropViewStatus) -> Void)?
     
-    var imageFrame: CGRect = .zero
+    /// initial frame of the imageView. Need to be reseted when device rotates.
+    @objc dynamic var initialFrame: CGRect = .zero
     
     var image: UIImage
     
@@ -53,7 +54,7 @@ class CropViewModel: NSObject {
     }
     
     func resetCropFrame(_ rect: CGRect) {
-        imageFrame = rect
+        initialFrame = rect
     }
 
 }
