@@ -45,6 +45,10 @@ class CropView: UIView {
             self?.cropViewStatusChanged(status)
         }
         
+//        viewModel.aspectRatioChanged = { [weak self] ratio in
+//            
+//        }
+        
         cropFrameObservation = viewModel.observe(\.initialFrame, options: .new) { [unowned self] (_, changed) in
             if let rect = changed.newValue {
                 self.guideView.frame = rect
@@ -74,10 +78,6 @@ class CropView: UIView {
     func setupUI() {
         setupScrollView()
         setupGuideView()
-    }
-    
-    func setupImageView() {
-        
     }
     
     func setupGuideView() {
@@ -113,7 +113,6 @@ class CropView: UIView {
             self?.viewModel.status = .endTouch
         }
     }
-        
     
     func cropViewStatusChanged(_ status: CropViewStatus) {
         switch status {
@@ -131,6 +130,7 @@ class CropView: UIView {
 
         }
     }
+        
     
     fileprivate func updateViewFrame() {
         let contentBounds = viewModel.getContentBounds(bounds, Constant.padding)

@@ -61,3 +61,8 @@
 
 "Resume" = "恢复";
 "Unable to resume" = "无法恢复";
+
+// PhotoEdit
+"Orinial" = "原始尺寸";
+"Square" = "正方形";
+

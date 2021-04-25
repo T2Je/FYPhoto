@@ -46,6 +46,8 @@ internal enum L10n {
   internal static let noPermissionToSave = L10n.tr("FYPhoto", "NoPermissionToSave")
   /// 好的
   internal static let ok = L10n.tr("FYPhoto", "OK")
+  /// 原始尺寸
+  internal static let orinial = L10n.tr("FYPhoto", "Orinial")
   /// 照片
   internal static let photo = L10n.tr("FYPhoto", "photo")
   /// 预览
@@ -66,6 +68,8 @@ internal enum L10n {
   internal static let settings = L10n.tr("FYPhoto", "Settings")
   /// 分类相簿
   internal static let smartAlbums = L10n.tr("FYPhoto", "Smart Albums")
+  /// 正方形
+  internal static let square = L10n.tr("FYPhoto", "Square")
   /// 已保存到相册
   internal static let successfullySavedMedia = L10n.tr("FYPhoto", "SuccessfullySavedMedia")
   /// 无法恢复
