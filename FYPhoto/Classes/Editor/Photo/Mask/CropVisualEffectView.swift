@@ -18,8 +18,8 @@ class CropVisualEffectView: UIVisualEffectView, CropMaskProtocol {
     }
     
     func setMask(_ insideRect: CGRect) {
+        guard self.bounds.size != .zero else { return }
         self.mask = nil
-        
         let layer = createTransparentRect(withOutside: bounds, insideRect: insideRect, opacity: 0.98)
         
         let maskView = UIView(frame: bounds)

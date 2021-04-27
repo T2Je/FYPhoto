@@ -11,6 +11,9 @@ class CropDimmingView: UIView, CropMaskProtocol {
     var transparentLayer: CALayer?
     
     func setMask(_ insideRect: CGRect) {
+        guard self.bounds.size != .zero else {
+            return
+        }
         transparentLayer?.removeFromSuperlayer()
         transparentLayer = nil        
         let layer = createTransparentRect(withOutside: bounds, insideRect: insideRect, opacity: 0.5)

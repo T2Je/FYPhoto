@@ -16,6 +16,8 @@ public class PhotoEditorCropViewController: UIViewController {
     
     let cropView: CropView
     
+    let maskManager = CropViewMaskManager()
+    
     let cancelButton = UIButton()
     let doneButton = UIButton()
     let bottomStackView = UIStackView()
@@ -45,6 +47,7 @@ public class PhotoEditorCropViewController: UIViewController {
         view.backgroundColor = .black
         
         setupCropView()
+        setupBlurredManager()
         
         setupTopStackView()
         setupBottomToolView()
@@ -78,6 +81,22 @@ public class PhotoEditorCropViewController: UIViewController {
     
     func setupCropView() {
         view.addSubview(cropView)
+        
+        cropView.guideViewFrameChanged = { [weak self] rect in
+            guard let self = self else { return }
+            let convertedInsideRect = self.cropView.guideView.convert(self.cropView.guideView.bounds, to: self.view)
+            self.maskManager.recreateTransparentRect(convertedInsideRect)
+        }
+        
+        cropView.statusChanged = { [weak self] status in
+            self?.cropViewStatusChanged(status)
+        }
+    }
+    
+    func setupBlurredManager() {
+        maskManager.reset()
+        maskManager.showIn(view)
+        
     }
     
     func setupBottomToolView() {
@@ -125,12 +144,15 @@ public class PhotoEditorCropViewController: UIViewController {
             bottomStackView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
         ])
     }
+    
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if !initialLayout {
             initialLayout = true
             cropView.updateViews()
         }
+        let convertedInsideRect = cropView.guideView.convert(cropView.guideView.bounds, to: view)
+        maskManager.createTransparentRect(with: convertedInsideRect)
     }
     
     public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -149,6 +171,26 @@ public class PhotoEditorCropViewController: UIViewController {
         // viewDidLayoutSubviews
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             self?.cropView.handleDeviceRotate()
+        }
+    }
+    
+    func cropViewStatusChanged(_ status: CropViewStatus) {
+        switch status {
+        case .initial:
+            maskManager.showVisualEffectBackground()
+        case .touchImage:
+            maskManager.showDimmingBackground()
+            // TODO: 😴zZ
+        case .touchHandle(_):
+            maskManager.showDimmingBackground()
+        // TODO: 😴zZ
+        case .imageRotation:
+//            blurredManager.showVisualEffectBackground()
+        break
+        case .endTouch:
+            maskManager.showVisualEffectBackground()
+        // TODO: 😴zZ
+
         }
     }
     

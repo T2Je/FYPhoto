@@ -43,7 +43,7 @@ class CropScrollView: UIScrollView {
     func update(with newSize: CGSize) {
         let oldOffsetCenter = CGPoint(x: contentOffset.x + bounds.width/2, y: contentOffset.y + bounds.height/2)
         
-        bounds.size = newSize // change the transform of a view, will also change the bounds of the view.
+        bounds.size = newSize // change the transform of a view, will not automatically change the bounds of the view.
         let newOffset = CGPoint(x: oldOffsetCenter.x - newSize.width/2, y: oldOffsetCenter.y - newSize.height/2)
         contentOffset = newOffset
     }

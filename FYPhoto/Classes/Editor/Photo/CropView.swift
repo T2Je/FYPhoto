@@ -14,13 +14,15 @@ class CropView: UIView {
     
     let viewModel: CropViewModel
     
+    var guideViewFrameChanged: ((CGRect) -> Void)?
+    var statusChanged: ((CropViewStatus) -> Void)?
+    
     var image: UIImage {
         viewModel.image
     }
     
     let imageView: ImageView
     let guideView = InteractiveCropGuideView()
-    let blurredManager = CropViewMaskManager()        
     
     lazy var scrollView = CropScrollView(frame: bounds)
     
@@ -52,10 +54,11 @@ class CropView: UIView {
 //            
 //        }
         
-        cropFrameObservation = viewModel.observe(\.initialFrame, options: .new) { [unowned self] (_, changed) in
+        cropFrameObservation = viewModel.observe(\.initialFrame, options: .new) { [weak self] (_, changed) in
+            guard let self = self else { return }
             if let rect = changed.newValue {
                 self.guideView.frame = rect
-                self.blurredManager.recreateTransparentRect(rect)
+                self.guideViewFrameChanged?(rect)
             }
         }
     }
@@ -65,11 +68,8 @@ class CropView: UIView {
     }
     
     func resetUIFrame() {
-        blurredManager.reset()
-        blurredManager.showIn(self)
-        
         updateViewFrame()
-
+        
         // guide view frame is set in kvo
         guideView.superview?.bringSubviewToFront(guideView)
     }
@@ -114,32 +114,28 @@ class CropView: UIView {
     }
     
     func cropViewStatusChanged(_ status: CropViewStatus) {
+        self.statusChanged?(status)
+        
         switch status {
         case .initial:
             setupUI()
         case .touchImage:
-            blurredManager.showDimmingBackground()
+            break
             // TODO: 😴zZ
         case .touchHandle(_):
-            blurredManager.showDimmingBackground()
+            break
         // TODO: 😴zZ
         case .imageRotation:
 //            blurredManager.showVisualEffectBackground()
         break
         case .endTouch:
-            blurredManager.showVisualEffectBackground()
+            break
         // TODO: 😴zZ
 
         }
     }
     
     func cropViewRotationDegreeChanged(_ degree: PhotoRotationDegree) {
-//        switch degree {
-//        case .zero:
-//            <#code#>
-//        default:
-//            <#code#>
-//        }
         updateSubviewsRotation(-Double.pi/2)
     }
         
@@ -155,8 +151,6 @@ class CropView: UIView {
         
         let contentBounds = viewModel.getContentBounds(bounds, Constant.padding)
         let newRect = GeometryHelper.getAppropriateRect(fromOutside: contentBounds, inside: rect)
-        
-//        let initialGuideFrame = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
         
         let initialGuideFrame = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
         viewModel.resetCropFrame(initialGuideFrame)
@@ -234,8 +228,7 @@ class CropView: UIView {
     }
         
     override func layoutSubviews() {
-        super.layoutSubviews()
-        blurredManager.createTransparentRect(with: guideView.frame)
+        super.layoutSubviews()        
     }
     
 }
