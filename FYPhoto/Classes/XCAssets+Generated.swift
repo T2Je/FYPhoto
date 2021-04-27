@@ -20,6 +20,10 @@ internal typealias AssetImageTypeAlias = ImageAsset.Image
 // swiftlint:disable identifier_name line_length nesting type_body_length type_name
 internal enum Asset {
   internal static let browserErrorLoading = ImageAsset(name: "Browser-ErrorLoading")
+  internal enum Crop {
+    internal static let aspectratio = ImageAsset(name: "aspectratio")
+    internal static let rotate = ImageAsset(name: "rotate")
+  }
   internal static let flipCamera = ImageAsset(name: "FlipCamera")
   internal static let imageError = ImageAsset(name: "ImageError")
   internal static let imageSelectedOff = ImageAsset(name: "ImageSelectedOff")

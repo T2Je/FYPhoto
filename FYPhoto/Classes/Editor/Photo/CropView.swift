@@ -45,6 +45,9 @@ class CropView: UIView {
             self?.cropViewStatusChanged(status)
         }
         
+        viewModel.rotationChanged = { [weak self] degree in
+            self?.cropViewRotationDegreeChanged(degree)
+        }
 //        viewModel.aspectRatioChanged = { [weak self] ratio in
 //            
 //        }
@@ -87,11 +90,7 @@ class CropView: UIView {
         
         guideView.resizeEnded = { [weak self] guideViewFrame in
             guard let self = self else { return }
-            self.viewModel.status = .endTouch
-            
-            let convertedFrame = self.convert(guideViewFrame, to: self.imageView)
-            self.scrollView.zoom(to: convertedFrame, animated: true)
-            self.guideView.frame = GeometryHelper.getAppropriateRect(fromOutside: self.viewModel.initialFrame, inside: guideViewFrame)
+            self.guideViewResized(guideViewFrame)
         }
         
         guideView.resizeCancelled = { [weak self] in
@@ -124,13 +123,103 @@ class CropView: UIView {
         case .touchHandle(_):
             blurredManager.showDimmingBackground()
         // TODO: 😴zZ
+        case .imageRotation:
+//            blurredManager.showVisualEffectBackground()
+        break
         case .endTouch:
             blurredManager.showVisualEffectBackground()
         // TODO: 😴zZ
 
         }
     }
+    
+    func cropViewRotationDegreeChanged(_ degree: PhotoRotationDegree) {
+//        switch degree {
+//        case .zero:
+//            <#code#>
+//        default:
+//            <#code#>
+//        }
+        updateSubviewsRotation(-Double.pi/2)
+    }
         
+    func counterclockRotate90Degree() {
+        viewModel.rotationDegree.counterclockwiseRotate90Degree()
+    }
+    
+    func updateSubviewsRotation(_ radians: Double) {
+        viewModel.status = .imageRotation
+        var rect = guideView.frame
+        rect.size.width = guideView.frame.height
+        rect.size.height = guideView.frame.width
+        
+        let contentBounds = viewModel.getContentBounds(bounds, Constant.padding)
+        let newRect = GeometryHelper.getAppropriateRect(fromOutside: contentBounds, inside: rect)
+        
+//        let initialGuideFrame = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
+        
+        let initialGuideFrame = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
+        viewModel.resetCropFrame(initialGuideFrame)
+        
+        
+        let transform = scrollView.transform.rotated(by: CGFloat(radians))
+        UIView.animate(withDuration: 0.25) {
+            self.scrollView.transform = transform
+//            self.viewModel.resetCropFrame(newRect)
+            
+            self.guideView.frame = newRect
+            self.updateScrollViewBy90DegreeRotation(newRect.size)
+        } completion: { _ in
+            self.scrollView.updateMinimumScacle(withImageViewSize: self.imageView.frame.size)
+            self.viewModel.status = .endTouch
+        }
+    }
+    
+    func updateScrollViewBy90DegreeRotation(_ guideViewSize: CGSize) {
+        var size = guideViewSize
+        if viewModel.rotationDegree == .zero || viewModel.rotationDegree == .counterclockwise180 {
+//            size = CGSize(width: guideViewSize.height, height: guideViewSize.width)
+        } else {
+            size = CGSize(width: guideViewSize.height, height: guideViewSize.width)
+        }
+        scrollView.update(with: size)
+        
+        let scale = size.width / scrollView.frame.width
+        let newScale = scrollView.minimumZoomScale * scale
+        scrollView.minimumZoomScale = newScale
+        scrollView.zoomScale = newScale
+
+//        scrollView.checkContentOffset()
+    }
+    
+    func guideViewResized(_ guideViewFrame: CGRect) {
+        viewModel.status = .endTouch
+        let scaleX: CGFloat
+        let scaleY: CGFloat
+        let contentBounds = viewModel.getContentBounds(bounds, Constant.padding)
+        scaleX = contentBounds.width / guideViewFrame.size.width
+        scaleY = contentBounds.height / guideViewFrame.size.height
+        
+        let scale = min(scaleX, scaleY)
+        
+        let newCropBounds = CGRect(x: 0, y: 0, width: guideViewFrame.width * scale, height: guideViewFrame.height * scale)
+        
+        // calculate the zoom area of scroll view
+        var scaleFrame = guideViewFrame
+        if scaleFrame.width >= scrollView.contentSize.width {
+            scaleFrame.size.width = scrollView.contentSize.width
+        }
+        if scaleFrame.height >= scrollView.contentSize.height {
+            scaleFrame.size.height = scrollView.contentSize.height
+        }
+        
+        self.scrollView.update(with: newCropBounds.size)
+        
+        let convertedFrame = self.convert(scaleFrame, to: self.imageView)
+        
+        self.scrollView.zoom(to: convertedFrame, animated: false)
+        self.guideView.frame = GeometryHelper.getAppropriateRect(fromOutside: self.viewModel.initialFrame, inside: guideViewFrame)
+    }
     
     fileprivate func updateViewFrame() {
         let contentBounds = viewModel.getContentBounds(bounds, Constant.padding)

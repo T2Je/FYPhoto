@@ -27,7 +27,11 @@ class CropViewModel: NSObject {
     
     
 //    var aspectRatio: Double = 1
-    var rotationDegree: PhotoRotationDegree = .zero
+    var rotationDegree: PhotoRotationDegree = .zero {
+        didSet {
+            rotationChanged?(rotationDegree)
+        }
+    }
     
     init(image: UIImage) {
         self.image = image
@@ -42,10 +46,18 @@ class CropViewModel: NSObject {
         let inside: CGRect
         
         if isPortrait {
-            inside = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
+            if rotationDegree == .counterclockwise90 || rotationDegree == .counterclockwise270 {
+                inside = CGRect(x: 0, y: 0, width: image.size.height, height: image.size.width)
+            } else {
+                inside = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
+            }
         } else {
-            inside = CGRect(x: 0, y: 0, width: image.size.height, height: image.size.width)
-        }
+            if rotationDegree == .counterclockwise90 || rotationDegree == .counterclockwise270 {
+                inside = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
+            } else {
+                inside = CGRect(x: 0, y: 0, width: image.size.height, height: image.size.width)
+            }
+        }                
         
         return GeometryHelper.getAppropriateRect(fromOutside: outside, inside: inside)
     }

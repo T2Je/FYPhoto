@@ -219,8 +219,9 @@ class ViewController: UIViewController {
     }
     
     @objc func photoEditorButtonClicked(_ sender: UIButton) {
-        let vc = PhotoEditorDemoViewController()
-        navigationController?.pushViewController(vc, animated: true)
+        let vc = PhotoEditorCropViewController()
+        vc.modalPresentationStyle = .fullScreen
+        self.present(vc, animated: true, completion: nil)
     }
     
     // MARK: PRESENT SELECTED

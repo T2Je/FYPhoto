@@ -22,5 +22,6 @@ enum CropViewStatus {
     case initial
     case touchImage
     case touchHandle(_ handle: CropViewHandle)
+    case imageRotation
     case endTouch
 }

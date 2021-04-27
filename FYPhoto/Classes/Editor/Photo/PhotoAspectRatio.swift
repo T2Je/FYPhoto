@@ -27,10 +27,10 @@ public struct RatioOptions: OptionSet {
 }
 
 class RatioManager {
-    let ratioOptions: RatioOptions
+//    let ratioOptions: RatioOptions
     
-    var horizontalItems: [RatioItem]
-    var verticalItems: [RatioItem]
+    var horizontalItems: [RatioItem] = []
+    var verticalItems: [RatioItem] = []
     
     init(ratioOptions: RatioOptions, custom: [RatioItem]) {
         if ratioOptions.contains(.original) {

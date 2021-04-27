@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum PhotoRotationDegree {
+enum PhotoRotationDegree: Equatable {
     case zero
     case counterclockwise90
     case counterclockwise180
@@ -19,11 +19,11 @@ enum PhotoRotationDegree {
         case .zero:
             return 0
         case .counterclockwise90:
-            return 90
+            return -Double.pi/2
         case .counterclockwise180:
-            return 180
+            return -Double.pi
         case .counterclockwise270:
-            return 270
+            return -Double.pi*1.5
         case .custom(radians: let value):
             return value
         }
@@ -35,18 +35,18 @@ enum PhotoRotationDegree {
         }
     }
     
-    func counterclockwiseRotate90Degree() -> PhotoRotationDegree {
+    mutating func counterclockwiseRotate90Degree() {
         switch self {
         case .zero:
-            return .counterclockwise90
+            self = .counterclockwise90
         case .counterclockwise90:
-            return .counterclockwise180
+            self = .counterclockwise180
         case .counterclockwise180:
-            return .counterclockwise270
+            self = .counterclockwise270
         case .counterclockwise270:
-            return .zero
+            self = .zero
         case .custom(radians: let radians):
-            return .custom(radians: radians + Double.pi / 2)
+            self = .custom(radians: radians + Double.pi / 2)
         }
     }
 }

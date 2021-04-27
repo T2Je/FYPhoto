@@ -40,6 +40,38 @@ class CropScrollView: UIScrollView {
         contentSize = rect.size
     }
     
+    func update(with newSize: CGSize) {
+        let oldOffsetCenter = CGPoint(x: contentOffset.x + bounds.width/2, y: contentOffset.y + bounds.height/2)
+        
+        bounds.size = newSize // change the transform of a view, will also change the bounds of the view.
+        let newOffset = CGPoint(x: oldOffsetCenter.x - newSize.width/2, y: oldOffsetCenter.y - newSize.height/2)
+        contentOffset = newOffset
+    }
+    
+    func updateMinimumScacle(withImageViewSize size: CGSize) {
+        minimumZoomScale = getBoundZoomScale(size)
+    }
+    
+    private func getBoundZoomScale(_ size: CGSize) -> CGFloat {
+        let scaleW = bounds.width / size.width
+        let scaleH = bounds.height / size.height
+        
+        return max(scaleW, scaleH)
+    }
+    
+    func checkContentOffset() {
+        contentOffset.x = max(contentOffset.x, 0)
+        contentOffset.y = max(contentOffset.y, 0)
+        
+        if contentSize.height - contentOffset.y <= bounds.size.height {
+            contentOffset.y = contentSize.height - bounds.size.height
+        }
+        
+        if contentSize.width - contentOffset.x <= bounds.size.width {
+            contentOffset.x = contentSize.width - bounds.size.width
+        }
+    }
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesBegan(touches, with: event)
         touchesBegan()
