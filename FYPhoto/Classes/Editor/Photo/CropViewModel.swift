@@ -8,8 +8,7 @@
 import Foundation
 
 class CropViewModel: NSObject {
-    var statusChanged: ((CropViewStatus) -> Void)?
-    var rotationChanged: ((PhotoRotationDegree) -> Void)?
+    var statusChanged: ((CropViewStatus) -> Void)?    
 //    var aspectRatioChanged: ((PhotoAspectRatio) -> Void)?
     
     /// initial frame of the imageView. Need to be reseted when device rotates.
@@ -27,11 +26,7 @@ class CropViewModel: NSObject {
     
     
 //    var aspectRatio: Double = 1
-    var rotationDegree: PhotoRotationDegree = .zero {
-        didSet {
-            rotationChanged?(rotationDegree)
-        }
-    }
+    var rotationDegree: PhotoRotationDegree = .zero
     
     init(image: UIImage) {
         self.image = image
@@ -89,7 +84,7 @@ class CropViewModel: NSObject {
         return rect
     }
     
-    func resetCropFrame(_ rect: CGRect) {
+    func resetInitFrame(_ rect: CGRect) {
         initialFrame = rect
     }
 

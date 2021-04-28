@@ -14,13 +14,18 @@ public class PhotoEditorCropViewController: UIViewController {
     let aspectRatioButton = UIButton()
     let topStackView = UIStackView()
     
+    let viewModel: CropViewModel
+    
     let cropView: CropView
+    let guideView = InteractiveCropGuideView()
     
     let maskManager = CropViewMaskManager()
     
     let cancelButton = UIButton()
     let doneButton = UIButton()
     let bottomStackView = UIStackView()
+    
+    private var cropFrameObservation: NSKeyValueObservation?
     
     var orientation: UIInterfaceOrientation {
         get {
@@ -33,8 +38,8 @@ public class PhotoEditorCropViewController: UIViewController {
     }
     
     public init(image: UIImage = UIImage(named: "sunflower")!) {
-        let viewModel = CropViewModel(image: image)
-        cropView = CropView(viewModel: viewModel)
+        viewModel = CropViewModel(image: image)
+        cropView = CropView(image: image)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -48,11 +53,17 @@ public class PhotoEditorCropViewController: UIViewController {
         
         setupCropView()
         setupBlurredManager()
-        
+        setupGuideView()
         setupTopStackView()
         setupBottomToolView()
         
         makeConstraints()
+        
+//        cropFrameObservation = viewModel.observe(\.initialFrame, options: .new) { [weak self] (_, changed) in
+//            if let rect = changed.newValue {
+//                self?.guideViewInitFrameChanged(rect)
+//            }
+//        }
     }
     
     var initialLayout = false
@@ -81,22 +92,59 @@ public class PhotoEditorCropViewController: UIViewController {
     
     func setupCropView() {
         view.addSubview(cropView)
-        
-        cropView.guideViewFrameChanged = { [weak self] rect in
-            guard let self = self else { return }
-            let convertedInsideRect = self.cropView.guideView.convert(self.cropView.guideView.bounds, to: self.view)
-            self.maskManager.recreateTransparentRect(convertedInsideRect)
-        }
-        
+        cropView.guideView = guideView
+
         cropView.statusChanged = { [weak self] status in
             self?.cropViewStatusChanged(status)
+        }
+        
+        cropView.scrollViewTouchesBegan = { [weak self] in
+            self?.viewModel.status = .touchImage
+        }
+        
+        cropView.scrollViewTouchesCancelled = { [weak self] in
+            self?.viewModel.status = .endTouch
+        }
+        
+        cropView.scrollViewTouchesEnd = { [weak self] in
+            self?.viewModel.status = .endTouch
+        }
+        
+        cropView.scrollViewWillBeginDragging = { [weak self] in
+            self?.viewModel.status = .touchImage
+        }
+        
+        cropView.scrollViewDidEndDragging = { [weak self] in
+            self?.viewModel.status = .endTouch
+        }
+        
+        cropView.scrollViewDidEndDecelerating = { [weak self] in
+            self?.viewModel.status = .endTouch
+        }
+    }
+    
+    func setupGuideView() {
+        view.addSubview(guideView)
+        
+        guideView.resizeBegan = { [weak self] handle in
+            self?.viewModel.status = .touchHandle(handle)
+        }
+        
+        guideView.resizeEnded = { [weak self] scaledFrame in
+            guard let self = self else { return }
+            self.guideViewResized(scaledFrame)
+            self.guideView.frame = GeometryHelper.getAppropriateRect(fromOutside: self.viewModel.initialFrame, inside: scaledFrame)
+//            self.cropView.guideViewResized(scaledFrame)
+        }
+        
+        guideView.resizeCancelled = { [weak self] in
+            self?.viewModel.status = .endTouch
         }
     }
     
     func setupBlurredManager() {
         maskManager.reset()
         maskManager.showIn(view)
-        
     }
     
     func setupBottomToolView() {
@@ -149,9 +197,17 @@ public class PhotoEditorCropViewController: UIViewController {
         super.viewDidLayoutSubviews()
         if !initialLayout {
             initialLayout = true
-            cropView.updateViews()
+            // set guideView from
+            let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
+            let guideFrameInCropView = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
+            //  initialGuideFrame is related to CropView, should convert to it's subview before setted to guideView
+            let converted = cropView.convert(guideFrameInCropView, to: view)
+            viewModel.resetInitFrame(converted)
+            guideView.frame = converted
+//            guideViewInitFrameChanged(converted)
+            cropView.updateSubViews(guideFrameInCropView)
         }
-        let convertedInsideRect = cropView.guideView.convert(cropView.guideView.bounds, to: view)
+        let convertedInsideRect = guideView.convert(guideView.bounds, to: view)
         maskManager.createTransparentRect(with: convertedInsideRect)
     }
     
@@ -170,7 +226,72 @@ public class PhotoEditorCropViewController: UIViewController {
         // So delay the execution to make sure handleRotate runs after the final
         // viewDidLayoutSubviews
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            self?.cropView.handleDeviceRotate()
+            guard let self = self else { return }
+            self.cropView.handleDeviceRotate(self.guideView.frame)
+        }
+    }
+    
+    func guideViewInitFrameChanged(_ rect: CGRect) {
+//        self.guideView.frame = rect
+        let convertedInsideRect = self.guideView.convert(self.guideView.bounds, to: self.view)
+        self.maskManager.recreateTransparentRect(convertedInsideRect)
+    }
+    
+    func guideViewResized(_ guideViewFrame: CGRect) {
+        viewModel.status = .endTouch
+        let scaleX: CGFloat
+        let scaleY: CGFloat
+        let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
+        scaleX = contentBounds.width / guideViewFrame.size.width
+        scaleY = contentBounds.height / guideViewFrame.size.height
+        
+        let scale = min(scaleX, scaleY)
+        
+        let newCropBounds = CGRect(x: 0, y: 0, width: guideViewFrame.width * scale, height: guideViewFrame.height * scale)
+        
+        // calculate the zoom area of scroll view
+        var scaleFrame = guideViewFrame
+        if scaleFrame.width >= cropView.scrollView.contentSize.width {
+            scaleFrame.size.width = cropView.scrollView.contentSize.width
+        }
+        if scaleFrame.height >= cropView.scrollView.contentSize.height {
+            scaleFrame.size.height = cropView.scrollView.contentSize.height
+        }
+        
+        self.cropView.scrollView.update(with: newCropBounds.size)
+        
+        let convertedFrame = self.view.convert(scaleFrame, to: self.cropView.imageView)
+        
+        self.cropView.scrollView.zoom(to: convertedFrame, animated: false)
+    }
+    
+    /// counterclock rotate image view with degree radian value
+    /// - Parameter radians: radian value
+    /// - Parameter guideViewFrame: guide view frame
+    func updateCropViewRotation(_ radians: Double, _ guideViewFrame: CGRect) {
+        viewModel.status = .imageRotation
+        var rect = guideViewFrame
+        rect.size.width = guideView.frame.height
+        rect.size.height = guideView.frame.width
+        
+        let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
+        let newRect = GeometryHelper.getAppropriateRect(fromOutside: contentBounds, inside: rect)
+        
+        let guideFrameInCropView = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
+        let convertedFrame = cropView.convert(guideFrameInCropView, to: view)
+        viewModel.resetInitFrame(convertedFrame)
+                        
+        UIView.animate(withDuration: 0.25) {
+            self.guideView.frame = convertedFrame
+            
+            var size = newRect.size
+            if self.viewModel.rotationDegree == .counterclockwise90 || self.viewModel.rotationDegree == .counterclockwise270 {
+                size = CGSize(width: newRect.height, height: newRect.width)
+            }
+            self.cropView.updateSubviewsRotation(radians, size)
+        } completion: { _ in
+            self.cropView.completeRotation()
+            self.viewModel.status = .endTouch
         }
     }
     
@@ -195,7 +316,8 @@ public class PhotoEditorCropViewController: UIViewController {
     }
     
     @objc func rotatePhotoBy90DegreeClicked(_ sender: UIButton) {
-        cropView.counterclockRotate90Degree()
+        viewModel.rotationDegree.counterclockwiseRotate90Degree()
+        updateCropViewRotation(-Double.pi/2, guideView.frame)
     }
     
     @objc func resetPhotoButtonClicked(_ sender: UIButton) {

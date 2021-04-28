@@ -14,16 +14,16 @@ extension CropView: UIScrollViewDelegate {
     }
     
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
-        viewModel.status = .touchImage
+        scrollViewWillBeginDragging()
     }
     
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
-            viewModel.status = .endTouch
+            scrollViewDidEndDragging()
         }
     }
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        viewModel.status = .endTouch
+        scrollViewDidEndDecelerating()
     }
 }

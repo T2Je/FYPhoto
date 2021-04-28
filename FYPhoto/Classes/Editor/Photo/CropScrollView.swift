@@ -40,12 +40,15 @@ class CropScrollView: UIScrollView {
         contentSize = rect.size
     }
     
+    // Update bound size, re-center with old center, then scrollView's frame will be changed.
     func update(with newSize: CGSize) {
+        let oldCenter = center
         let oldOffsetCenter = CGPoint(x: contentOffset.x + bounds.width/2, y: contentOffset.y + bounds.height/2)
         
-        bounds.size = newSize // change the transform of a view, will not automatically change the bounds of the view.
+        bounds.size = newSize
         let newOffset = CGPoint(x: oldOffsetCenter.x - newSize.width/2, y: oldOffsetCenter.y - newSize.height/2)
         contentOffset = newOffset
+        center = oldCenter
     }
     
     func updateMinimumScacle(withImageViewSize size: CGSize) {
