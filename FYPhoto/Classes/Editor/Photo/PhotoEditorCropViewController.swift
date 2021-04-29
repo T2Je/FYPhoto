@@ -25,7 +25,8 @@ public class PhotoEditorCropViewController: UIViewController {
     let doneButton = UIButton()
     let bottomStackView = UIStackView()
     
-    private var cropFrameObservation: NSKeyValueObservation?
+    private var isGuideViewZoommingOut = false
+//    private var cropFrameObservation: NSKeyValueObservation?
     
     var orientation: UIInterfaceOrientation {
         get {
@@ -58,12 +59,6 @@ public class PhotoEditorCropViewController: UIViewController {
         setupBottomToolView()
         
         makeConstraints()
-        
-//        cropFrameObservation = viewModel.observe(\.initialFrame, options: .new) { [weak self] (_, changed) in
-//            if let rect = changed.newValue {
-//                self?.guideViewInitFrameChanged(rect)
-//            }
-//        }
     }
     
     var initialLayout = false
@@ -92,7 +87,6 @@ public class PhotoEditorCropViewController: UIViewController {
     
     func setupCropView() {
         view.addSubview(cropView)
-        cropView.guideView = guideView
 
         cropView.statusChanged = { [weak self] status in
             self?.cropViewStatusChanged(status)
@@ -132,9 +126,22 @@ public class PhotoEditorCropViewController: UIViewController {
         
         guideView.resizeEnded = { [weak self] scaledFrame in
             guard let self = self else { return }
-            self.guideViewResized(scaledFrame)
-            self.guideView.frame = GeometryHelper.getAppropriateRect(fromOutside: self.viewModel.initialFrame, inside: scaledFrame)
-//            self.cropView.guideViewResized(scaledFrame)
+            
+            let guideViewFrame = GeometryHelper.getAppropriateRect(fromOutside: self.viewModel.initialFrame, inside: scaledFrame)
+            
+            self.isGuideViewZoommingOut = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+                guard let self = self else { return }
+
+                self.updateMaskTransparent(guideViewFrame, animated: true)
+                UIView.animate(withDuration: 0.5) {
+                    self.guideView.frame = guideViewFrame
+                    self.guideViewResized(scaledFrame)
+                } completion: { _ in
+                    self.isGuideViewZoommingOut = false
+                }
+                
+            }
         }
         
         guideView.resizeCancelled = { [weak self] in
@@ -204,11 +211,14 @@ public class PhotoEditorCropViewController: UIViewController {
             let converted = cropView.convert(guideFrameInCropView, to: view)
             viewModel.resetInitFrame(converted)
             guideView.frame = converted
-//            guideViewInitFrameChanged(converted)
+            print("guide frame: \(converted) in viewDidLayoutSubviews")
+
             cropView.updateSubViews(guideFrameInCropView)
+//            updateMaskTransparent()
         }
-        let convertedInsideRect = guideView.convert(guideView.bounds, to: view)
-        maskManager.createTransparentRect(with: convertedInsideRect)
+        if !isGuideViewZoommingOut {
+            updateMaskTransparent(guideView.frame, animated: false)
+        }        
     }
     
     public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -231,26 +241,18 @@ public class PhotoEditorCropViewController: UIViewController {
         }
     }
     
-    func guideViewInitFrameChanged(_ rect: CGRect) {
-//        self.guideView.frame = rect
-        let convertedInsideRect = self.guideView.convert(self.guideView.bounds, to: self.view)
-        self.maskManager.recreateTransparentRect(convertedInsideRect)
+    func updateMaskTransparent(_ rect: CGRect, animated: Bool) {
+        let convertedInsideRect = self.view.convert(rect, to: self.view)
+        self.maskManager.recreateTransparentRect(convertedInsideRect, animated: animated)
     }
     
-    func guideViewResized(_ guideViewFrame: CGRect) {
+    func guideViewResized(_ scaleFrame: CGRect) {
         viewModel.status = .endTouch
-        let scaleX: CGFloat
-        let scaleY: CGFloat
-        let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
-        scaleX = contentBounds.width / guideViewFrame.size.width
-        scaleY = contentBounds.height / guideViewFrame.size.height
         
-        let scale = min(scaleX, scaleY)
-        
-        let newCropBounds = CGRect(x: 0, y: 0, width: guideViewFrame.width * scale, height: guideViewFrame.height * scale)
+//        updateMaskTransparent()
         
         // calculate the zoom area of scroll view
-        var scaleFrame = guideViewFrame
+        var scaleFrame = scaleFrame
         if scaleFrame.width >= cropView.scrollView.contentSize.width {
             scaleFrame.size.width = cropView.scrollView.contentSize.width
         }
@@ -258,7 +260,7 @@ public class PhotoEditorCropViewController: UIViewController {
             scaleFrame.size.height = cropView.scrollView.contentSize.height
         }
         
-        self.cropView.scrollView.update(with: newCropBounds.size)
+        self.cropView.scrollView.update(with: guideView.frame.size)
         
         let convertedFrame = self.view.convert(scaleFrame, to: self.cropView.imageView)
         

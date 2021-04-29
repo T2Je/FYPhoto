@@ -9,6 +9,8 @@ import UIKit
 
 class CropVisualEffectView: UIVisualEffectView, CropMaskProtocol {        
 
+    var transparentLayer: CAShapeLayer?
+    
     override init(effect: UIVisualEffect?) {
         super.init(effect: effect)
     }
@@ -17,16 +19,23 @@ class CropVisualEffectView: UIVisualEffectView, CropMaskProtocol {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setMask(_ insideRect: CGRect) {
+    func setMask(_ insideRect: CGRect, animated: Bool) {
         guard self.bounds.size != .zero else { return }
-        self.mask = nil
         let layer = createTransparentRect(withOutside: bounds, insideRect: insideRect, opacity: 0.98)
         
-        let maskView = UIView(frame: bounds)
-        maskView.clipsToBounds = true
-        maskView.layer.addSublayer(layer)
-        
-        self.mask = maskView
+        if let shapeLayer = transparentLayer {
+            if animated {
+                animateTransparentLayer(shapeLayer, withOutside: bounds, insideRect: insideRect, opacity: 0.98)
+            } else {
+                shapeLayer.path = layer.path
+            }
+        } else {
+            let maskView = UIView(frame: bounds)
+            maskView.clipsToBounds = true
+            maskView.layer.addSublayer(layer)
+            transparentLayer = layer
+            self.mask = maskView
+        }
     }
     
 }

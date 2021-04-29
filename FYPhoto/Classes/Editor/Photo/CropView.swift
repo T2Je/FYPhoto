@@ -12,9 +12,6 @@ class CropView: UIView {
         static let padding: CGFloat = 14
     }
     
-//    let viewModel: CropViewModel
-    
-//    var guideViewFrameChanged: ((CGRect) -> Void)?
     var statusChanged: ((CropViewStatus) -> Void)?
     
     var scrollViewTouchesBegan = {}
@@ -24,11 +21,7 @@ class CropView: UIView {
     var scrollViewDidEndDragging = {}
     var scrollViewDidEndDecelerating = {}
     
-//    var image: UIImage
-    
     let imageView: ImageView
-    
-    weak var guideView: InteractiveCropGuideView?
     
     lazy var scrollView = CropScrollView(frame: bounds)
     
@@ -105,35 +98,6 @@ class CropView: UIView {
     func computeScrollViewScale(_ size: CGSize) -> CGFloat {
         return size.width / scrollView.bounds.width
     }
-    
-//    func guideViewResized(_ guideViewFrame: CGRect) {
-//        viewModel.status = .endTouch
-//        let scaleX: CGFloat
-//        let scaleY: CGFloat
-//        let contentBounds = viewModel.getContentBounds(bounds, Constant.padding)
-//        scaleX = contentBounds.width / guideViewFrame.size.width
-//        scaleY = contentBounds.height / guideViewFrame.size.height
-//
-//        let scale = min(scaleX, scaleY)
-//
-//        let newCropBounds = CGRect(x: 0, y: 0, width: guideViewFrame.width * scale, height: guideViewFrame.height * scale)
-//
-//        // calculate the zoom area of scroll view
-//        var scaleFrame = guideViewFrame
-//        if scaleFrame.width >= scrollView.contentSize.width {
-//            scaleFrame.size.width = scrollView.contentSize.width
-//        }
-//        if scaleFrame.height >= scrollView.contentSize.height {
-//            scaleFrame.size.height = scrollView.contentSize.height
-//        }
-//
-//        self.scrollView.update(with: newCropBounds.size)
-//
-//        let convertedFrame = self.convert(scaleFrame, to: self.imageView)
-//
-//        self.scrollView.zoom(to: convertedFrame, animated: false)
-//    }
-    
     
     func updateScrollView(with convertedFrame: CGRect) {
         self.scrollView.zoom(to: convertedFrame, animated: false)

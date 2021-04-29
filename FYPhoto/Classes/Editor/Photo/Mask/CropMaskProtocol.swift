@@ -8,12 +8,12 @@
 import Foundation
 
 protocol CropMaskProtocol where Self: UIView {
-        
-    func setMask(_ insideRect: CGRect)
+    var transparentLayer: CAShapeLayer? { get set }
+    func setMask(_ insideRect: CGRect, animated: Bool)
 }
 
 extension CropMaskProtocol {
-    func createTransparentRect(withOutside outsideRect: CGRect, insideRect: CGRect, opacity: Float) -> CALayer {
+    func createTransparentRect(withOutside outsideRect: CGRect, insideRect: CGRect, opacity: Float) -> CAShapeLayer {
         let path = UIBezierPath(rect: outsideRect)
         
         let innerPath = UIBezierPath(rect: insideRect)
@@ -27,5 +27,28 @@ extension CropMaskProtocol {
         fillLayer.fillColor = UIColor.black.cgColor
         fillLayer.opacity = opacity
         return fillLayer
+    }
+    
+    func animateTransparentLayer(_ shapeLayer: CAShapeLayer, withOutside outsideRect: CGRect, insideRect: CGRect, opacity: Float) {
+        let animation = CABasicAnimation(keyPath: "path")
+        animation.fromValue = shapeLayer.path
+        addTransparentRect(on: shapeLayer, withOutside: outsideRect, insideRect: insideRect, opacity: opacity)
+        animation.toValue = shapeLayer.path
+        animation.duration = 0.5
+        animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut) // Avoid animation vibration 
+        shapeLayer.add(animation, forKey: "pathAnimation")
+    }
+    
+    func addTransparentRect(on fillLayer: CAShapeLayer, withOutside outsideRect: CGRect, insideRect: CGRect, opacity: Float) {
+        let path = UIBezierPath(rect: outsideRect)
+        let innerPath = UIBezierPath(rect: insideRect)
+        
+        path.append(innerPath)
+        path.usesEvenOddFillRule = true
+        
+        fillLayer.path = path.cgPath
+        fillLayer.fillRule = .evenOdd
+        fillLayer.fillColor = UIColor.black.cgColor
+        fillLayer.opacity = opacity
     }
 }
