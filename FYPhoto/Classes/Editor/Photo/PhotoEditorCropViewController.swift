@@ -26,7 +26,7 @@ public class PhotoEditorCropViewController: UIViewController {
     let bottomStackView = UIStackView()
     
     private var isGuideViewZoommingOut = false
-//    private var cropFrameObservation: NSKeyValueObservation?
+    private var guideViewResizeAnimator: UIViewPropertyAnimator?
     
     var orientation: UIInterfaceOrientation {
         get {
@@ -114,36 +114,6 @@ public class PhotoEditorCropViewController: UIViewController {
         
         cropView.scrollViewDidEndDecelerating = { [weak self] in
             self?.viewModel.status = .endTouch
-        }
-    }
-    
-    var guideViewResizeAnimator: UIViewPropertyAnimator?
-    
-    fileprivate func animateGuideViewAfterResizing(_ scaledFrame: CGRect) {
-        let guideViewFrame = GeometryHelper.getAppropriateRect(fromOutside: self.viewModel.initialFrame, inside: scaledFrame)
-        
-        isGuideViewZoommingOut = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-            guard let self = self else { return }
-            self.updateMaskTransparent(guideViewFrame, animated: true)
-        }
-        
-        guideViewResizeAnimator?.stopAnimation(true)
-        let animator = UIViewPropertyAnimator(duration: 0.5, curve: .easeInOut) {
-            self.guideView.frame = guideViewFrame
-            self.guideViewResized(scaledFrame)
-        }
-        self.guideViewResizeAnimator = animator
-        
-        animator.startAnimation(afterDelay: 1)
-        animator.addCompletion { position in
-            switch position {
-            case .start:
-                print("animation starting: guideView: \(self.guideView)")
-            case .end:
-                self.isGuideViewZoommingOut = false
-            default: break
-            }
         }
     }
     
@@ -240,6 +210,8 @@ public class PhotoEditorCropViewController: UIViewController {
         hanleRotate()
     }
     
+    // MARK: - Rotation
+    
     func hanleRotate() {
 //        if UIDevice.current.userInterfaceIdiom == .phone && orientation == .portraitUpsideDown {
 //            return
@@ -252,30 +224,6 @@ public class PhotoEditorCropViewController: UIViewController {
             guard let self = self else { return }
             self.cropView.handleDeviceRotate(self.guideView.frame)
         }
-    }
-    
-    func updateMaskTransparent(_ rect: CGRect, animated: Bool) {
-        let convertedInsideRect = self.view.convert(rect, to: self.view)
-        self.maskManager.recreateTransparentRect(convertedInsideRect, animated: animated)
-    }
-    
-    func guideViewResized(_ scaleFrame: CGRect) {
-        viewModel.status = .endTouch
-        
-        // calculate the zoom area of scroll view
-        var scaleFrame = scaleFrame
-        if scaleFrame.width >= cropView.scrollView.contentSize.width {
-            scaleFrame.size.width = cropView.scrollView.contentSize.width
-        }
-        if scaleFrame.height >= cropView.scrollView.contentSize.height {
-            scaleFrame.size.height = cropView.scrollView.contentSize.height
-        }
-        
-        self.cropView.scrollView.update(with: guideView.frame.size)
-        
-        let convertedFrame = self.view.convert(scaleFrame, to: self.cropView.imageView)
-        
-        self.cropView.scrollView.zoom(to: convertedFrame, animated: false)
     }
     
     /// counterclock rotate image view with degree radian value
@@ -328,9 +276,62 @@ public class PhotoEditorCropViewController: UIViewController {
         }
     }
     
+    // MARK: - GuideView resized
+    func guideViewResized(_ scaleFrame: CGRect) {
+        viewModel.status = .endTouch
+        
+        // calculate the zoom area of scroll view
+        var scaleFrame = scaleFrame
+        if scaleFrame.width >= cropView.scrollView.contentSize.width {
+            scaleFrame.size.width = cropView.scrollView.contentSize.width
+        }
+        if scaleFrame.height >= cropView.scrollView.contentSize.height {
+            scaleFrame.size.height = cropView.scrollView.contentSize.height
+        }
+        
+        self.cropView.scrollView.update(with: guideView.frame.size)
+        
+        let convertedFrame = self.view.convert(scaleFrame, to: self.cropView.imageView)
+        
+        self.cropView.scrollView.zoom(to: convertedFrame, animated: false)
+    }
+    
+    fileprivate func animateGuideViewAfterResizing(_ scaledFrame: CGRect) {
+        let guideViewFrame = GeometryHelper.getAppropriateRect(fromOutside: self.viewModel.initialFrame, inside: scaledFrame)
+        
+        isGuideViewZoommingOut = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            guard let self = self else { return }
+            self.updateMaskTransparent(guideViewFrame, animated: true)
+        }
+        
+        guideViewResizeAnimator?.stopAnimation(true)
+        let animator = UIViewPropertyAnimator(duration: 0.5, curve: .easeInOut) {
+            self.guideView.frame = guideViewFrame
+            self.guideViewResized(scaledFrame)
+        }
+        self.guideViewResizeAnimator = animator
+        
+        animator.startAnimation(afterDelay: 1)
+        animator.addCompletion { position in
+            switch position {
+            case .start:
+                print("animation starting: guideView: \(self.guideView)")
+            case .end:
+                self.isGuideViewZoommingOut = false
+            default: break
+            }
+        }
+    }
+    
     @objc func rotatePhotoBy90DegreeClicked(_ sender: UIButton) {
         viewModel.rotationDegree.counterclockwiseRotate90Degree()
         updateCropViewRotation(-Double.pi/2, guideView.frame)
+    }
+    
+    func updateMaskTransparent(_ rect: CGRect, animated: Bool) {
+        let convertedInsideRect = self.view.convert(rect, to: self.view)
+        self.maskManager.recreateTransparentRect(convertedInsideRect, animated: animated)
     }
     
     @objc func resetPhotoButtonClicked(_ sender: UIButton) {
