@@ -126,7 +126,6 @@ public class PhotoEditorCropViewController: UIViewController {
         
         guideView.resizeEnded = { [weak self] scaledFrame in
             guard let self = self else { return }
-            
             self.animateGuideViewAfterResizing(scaledFrame)
         }
         
@@ -238,12 +237,13 @@ public class PhotoEditorCropViewController: UIViewController {
         let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
         let newRect = GeometryHelper.getAppropriateRect(fromOutside: contentBounds, inside: rect)
         
-        let guideFrameInCropView = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
-        let convertedFrame = cropView.convert(guideFrameInCropView, to: view)
-        viewModel.resetInitFrame(convertedFrame)
+        let initGuideFrameInCropView = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
+        let convertedInitFrame = cropView.convert(initGuideFrameInCropView, to: view)
+        viewModel.resetInitFrame(convertedInitFrame)
                         
         UIView.animate(withDuration: 0.25) {
-            self.guideView.frame = convertedFrame
+            let convertedGuideFrame = self.cropView.convert(newRect, to: self.view)
+            self.guideView.frame = convertedGuideFrame
             
             var size = newRect.size
             if self.viewModel.rotationDegree == .counterclockwise90 || self.viewModel.rotationDegree == .counterclockwise270 {
