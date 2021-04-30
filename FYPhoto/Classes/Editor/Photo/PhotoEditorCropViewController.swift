@@ -117,6 +117,36 @@ public class PhotoEditorCropViewController: UIViewController {
         }
     }
     
+    var guideViewResizeAnimator: UIViewPropertyAnimator?
+    
+    fileprivate func animateGuideViewAfterResizing(_ scaledFrame: CGRect) {
+        let guideViewFrame = GeometryHelper.getAppropriateRect(fromOutside: self.viewModel.initialFrame, inside: scaledFrame)
+        
+        isGuideViewZoommingOut = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            guard let self = self else { return }
+            self.updateMaskTransparent(guideViewFrame, animated: true)
+        }
+        
+        guideViewResizeAnimator?.stopAnimation(true)
+        let animator = UIViewPropertyAnimator(duration: 0.5, curve: .easeInOut) {
+            self.guideView.frame = guideViewFrame
+            self.guideViewResized(scaledFrame)
+        }
+        self.guideViewResizeAnimator = animator
+        
+        animator.startAnimation(afterDelay: 1)
+        animator.addCompletion { position in
+            switch position {
+            case .start:
+                print("animation starting: guideView: \(self.guideView)")
+            case .end:
+                self.isGuideViewZoommingOut = false
+            default: break
+            }
+        }
+    }
+    
     func setupGuideView() {
         view.addSubview(guideView)
         
@@ -127,21 +157,7 @@ public class PhotoEditorCropViewController: UIViewController {
         guideView.resizeEnded = { [weak self] scaledFrame in
             guard let self = self else { return }
             
-            let guideViewFrame = GeometryHelper.getAppropriateRect(fromOutside: self.viewModel.initialFrame, inside: scaledFrame)
-            
-            self.isGuideViewZoommingOut = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-                guard let self = self else { return }
-
-                self.updateMaskTransparent(guideViewFrame, animated: true)
-                UIView.animate(withDuration: 0.5) {
-                    self.guideView.frame = guideViewFrame
-                    self.guideViewResized(scaledFrame)
-                } completion: { _ in
-                    self.isGuideViewZoommingOut = false
-                }
-                
-            }
+            self.animateGuideViewAfterResizing(scaledFrame)
         }
         
         guideView.resizeCancelled = { [weak self] in
@@ -211,10 +227,7 @@ public class PhotoEditorCropViewController: UIViewController {
             let converted = cropView.convert(guideFrameInCropView, to: view)
             viewModel.resetInitFrame(converted)
             guideView.frame = converted
-            print("guide frame: \(converted) in viewDidLayoutSubviews")
-
             cropView.updateSubViews(guideFrameInCropView)
-//            updateMaskTransparent()
         }
         if !isGuideViewZoommingOut {
             updateMaskTransparent(guideView.frame, animated: false)
@@ -248,8 +261,6 @@ public class PhotoEditorCropViewController: UIViewController {
     
     func guideViewResized(_ scaleFrame: CGRect) {
         viewModel.status = .endTouch
-        
-//        updateMaskTransparent()
         
         // calculate the zoom area of scroll view
         var scaleFrame = scaleFrame

@@ -31,26 +31,22 @@ class CropViewMaskManager {
     func showIn(_ view: UIView) {
         view.addSubview(effectView)
         view.addSubview(dimmingView)
-//        UIApplication.shared.keyWindow?.addSubview(effectView)
-//        UIApplication.shared.keyWindow?.addSubview(dimmingView)
-            
-//        if let keyWindow = UIApplication.shared.keyWindow {
-            effectView.translatesAutoresizingMaskIntoConstraints = false
-            dimmingView.translatesAutoresizingMaskIntoConstraints = false
-            NSLayoutConstraint.activate([
-                effectView.topAnchor.constraint(equalTo: view.topAnchor),
-                effectView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                effectView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-                effectView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-            ])
 
-            NSLayoutConstraint.activate([
-                dimmingView.topAnchor.constraint(equalTo: view.topAnchor),
-                dimmingView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-                dimmingView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-                dimmingView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
-            ])
-//        }
+        effectView.translatesAutoresizingMaskIntoConstraints = false
+        dimmingView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            effectView.topAnchor.constraint(equalTo: view.topAnchor),
+            effectView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            effectView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            effectView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+
+        NSLayoutConstraint.activate([
+            dimmingView.topAnchor.constraint(equalTo: view.topAnchor),
+            dimmingView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            dimmingView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            dimmingView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
         
     }
     

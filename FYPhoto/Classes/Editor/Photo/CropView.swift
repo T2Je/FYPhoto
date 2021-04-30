@@ -24,10 +24,7 @@ class CropView: UIView {
     let imageView: ImageView
     
     lazy var scrollView = CropScrollView(frame: bounds)
-    
-    private var guideViewHasFrame = false
-        
-    
+            
     init(image: UIImage) {
         self.imageView = ImageView(image: image)
         super.init(frame: .zero)

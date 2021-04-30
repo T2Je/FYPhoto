@@ -32,6 +32,7 @@ class InteractiveCropGuideView: UIView {
 
     var constraintsWhenPanning: [NSLayoutConstraint] = []
     
+    // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
         isUserInteractionEnabled = true
@@ -148,7 +149,7 @@ class InteractiveCropGuideView: UIView {
         rightControlPointView.addGestureRecognizer(rightGesture)
     }
     
-    // Pan actions
+    // MARK: - Pan actions
     // Corner points
     @objc func handleTopLeftViewPanGesture(_ gesture: UIPanGestureRecognizer) {
         switch gesture.state {
@@ -354,18 +355,18 @@ class InteractiveCropGuideView: UIView {
     }
     
     func panGestureCancelled() {
+        deactivePanningConstraints()
         resizeCancelled()
         handlesView.endResizing()
-        deactivePanningConstraints()
     }
     
     func panGestureEnded() {
-        resizeEnded?(frame)
         handlesView.endResizing()
         deactivePanningConstraints()
+        resizeEnded?(frame)
     }
     
-    // Constraints for pan gestures
+    // MARK: - Constraints for pan gestures
     func activeBottomConstraint() {
         guard let superview = superview else { return }
         translatesAutoresizingMaskIntoConstraints = false
@@ -432,7 +433,7 @@ class InteractiveCropGuideView: UIView {
         NSLayoutConstraint.deactivate(activedCons)
     }
     
-    // Ignore touches inside the control area
+    // MARK: - Ignore touches inside the control area
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         let view = super.hitTest(point, with: event)
         
