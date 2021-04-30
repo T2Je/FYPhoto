@@ -28,6 +28,8 @@ public class PhotoEditorCropViewController: UIViewController {
     private var isGuideViewZoommingOut = false
     private var guideViewResizeAnimator: UIViewPropertyAnimator?
     
+    private var maximumRectKeyValueObservation: NSKeyValueObservation?
+    
     var orientation: UIInterfaceOrientation {
         get {
             if #available(iOS 13, macOS 10.13, *) {
@@ -51,7 +53,7 @@ public class PhotoEditorCropViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
-        
+        setupData()
         setupCropView()
         setupBlurredManager()
         setupGuideView()
@@ -62,6 +64,18 @@ public class PhotoEditorCropViewController: UIViewController {
     }
     
     var initialLayout = false
+    
+    func setupData() {        
+        viewModel.statusChanged = { [weak self] status in
+            self?.cropViewStatusChanged(status)
+        }
+        
+        maximumRectKeyValueObservation = viewModel.observe(\.maximumGuideViewRect, options: [.new]) { [weak self] (_, change) in
+            if let rect = change.newValue {
+                self?.guideView.maximumRect = rect
+            }
+        }
+    }
     
     func setupTopStackView() {
         topStackView.distribution = .equalSpacing
@@ -82,15 +96,10 @@ public class PhotoEditorCropViewController: UIViewController {
         aspectRatioButton.addTarget(self, action: #selector(aspectRatioButtonClicked(_:)), for: .touchUpInside)
         
         view.addSubview(topStackView)
-        
     }
     
     func setupCropView() {
         view.addSubview(cropView)
-
-        cropView.statusChanged = { [weak self] status in
-            self?.cropViewStatusChanged(status)
-        }
         
         cropView.scrollViewTouchesBegan = { [weak self] in
             self?.viewModel.status = .touchImage
@@ -259,11 +268,13 @@ public class PhotoEditorCropViewController: UIViewController {
     func cropViewStatusChanged(_ status: CropViewStatus) {
         switch status {
         case .initial:
+            
             maskManager.showVisualEffectBackground()
-        case .touchImage:
+        case .touchImage:            
             maskManager.showDimmingBackground()
             // TODO: 😴zZ
         case .touchHandle(_):
+            updateGuideViewMaximumRect()
             maskManager.showDimmingBackground()
         // TODO: 😴zZ
         case .imageRotation:
@@ -274,6 +285,12 @@ public class PhotoEditorCropViewController: UIViewController {
         // TODO: 😴zZ
 
         }
+    }
+    
+    func updateGuideViewMaximumRect() {
+        let intersection = self.cropView.imageViewCropViewIntersection()
+        let converted = self.cropView.convert(intersection, to: self.view)
+        viewModel.maximumGuideViewRect = converted
     }
     
     // MARK: - GuideView resized

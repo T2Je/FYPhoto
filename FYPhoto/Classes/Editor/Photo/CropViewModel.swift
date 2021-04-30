@@ -12,7 +12,7 @@ class CropViewModel: NSObject {
 //    var aspectRatioChanged: ((PhotoAspectRatio) -> Void)?
     
     /// initial frame of the imageView. Need to be reseted when device rotates.
-    @objc dynamic var initialFrame: CGRect = .zero
+    var initialFrame: CGRect = .zero
     
     var image: UIImage
     
@@ -24,6 +24,8 @@ class CropViewModel: NSObject {
         }
     }
     
+    /// ImageView and CropView intersection area
+    @objc dynamic var maximumGuideViewRect: CGRect = .zero    
     
 //    var aspectRatio: Double = 1
     var rotationDegree: PhotoRotationDegree = .zero

@@ -24,8 +24,10 @@ class InteractiveCropGuideView: UIView {
     private let bottomControlPointView = TapExpandedView(horizontal: 0, vertical: 16)
     
     private let handlesView = CropOverlayHandlesView()
-    
+        
     private let minimumSize = CGSize(width: 80, height: 80)
+    
+    var maximumRect: CGRect = .zero
     
     private var widthConstraint: NSLayoutConstraint?
     private var heightConstraint: NSLayoutConstraint?
@@ -155,6 +157,10 @@ class InteractiveCropGuideView: UIView {
         switch gesture.state {
         case .began:
             panGestureBegan(.leftTop)
+            
+            activeTopMaxConstraint()
+            activeLeadingMaxConstraint()
+            
             activeBottomConstraint()
             activeTrailingConstraint()
             activeWidthConstraint()
@@ -180,6 +186,10 @@ class InteractiveCropGuideView: UIView {
         switch gesture.state {
         case .began:
             panGestureBegan(.rightTop)
+            
+            activeTopMaxConstraint()
+            activeTrailingMaxConstraint()
+            
             activeBottomConstraint()
             activeLeadingConstraint()
             activeWidthConstraint()
@@ -205,6 +215,10 @@ class InteractiveCropGuideView: UIView {
         switch gesture.state {
         case .began:
             panGestureBegan(.leftBottom)
+            
+            activeBottomMaxConstraint()
+            activeLeadingMaxConstraint()
+            
             activeTopConstraint()
             activeTrailingConstraint()
             activeWidthConstraint()
@@ -230,6 +244,10 @@ class InteractiveCropGuideView: UIView {
         switch gesture.state {
         case .began:
             panGestureBegan(.rightBottom)
+            
+            activeTrailingMaxConstraint()
+            activeBottomMaxConstraint()
+            
             activeTopConstraint()
             activeLeadingConstraint()
             activeWidthConstraint()
@@ -256,6 +274,9 @@ class InteractiveCropGuideView: UIView {
         switch gesture.state {
         case .began:
             panGestureBegan(.top)
+            
+            activeTopMaxConstraint()
+            
             activeBottomConstraint()
             activeTrailingConstraint()
             activeHeightConstraint()
@@ -280,6 +301,8 @@ class InteractiveCropGuideView: UIView {
         switch gesture.state {
         case .began:
             panGestureBegan(.left)
+            activeLeadingConstraint()
+            
             activeTopConstraint()
             activeTrailingConstraint()
             activeWidthConstraint()
@@ -305,6 +328,9 @@ class InteractiveCropGuideView: UIView {
         switch gesture.state {
         case .began:
             panGestureBegan(.bottom)
+            
+            activeBottomMaxConstraint()
+            
             activeTopConstraint()
             activeLeadingConstraint()
             activeWidthConstraint()
@@ -329,6 +355,9 @@ class InteractiveCropGuideView: UIView {
         switch gesture.state {
         case .began:
             panGestureBegan(.right)
+            
+            activeTrailingMaxConstraint()
+            
             activeTopConstraint()
             activeLeadingConstraint()
             activeWidthConstraint()
@@ -423,8 +452,38 @@ class InteractiveCropGuideView: UIView {
     
     func activeTopMaxConstraint() {
         translatesAutoresizingMaskIntoConstraints = false
-        
-        
+        guard let superview = superview else { return }
+        translatesAutoresizingMaskIntoConstraints = false
+        let temp = topAnchor.constraint(greaterThanOrEqualTo: superview.topAnchor, constant: maximumRect.minY)
+        temp.isActive = true
+        constraintsWhenPanning.append(temp)
+    }
+    
+    func activeLeadingMaxConstraint() {
+        translatesAutoresizingMaskIntoConstraints = false
+        guard let superview = superview else { return }
+        translatesAutoresizingMaskIntoConstraints = false
+        let temp = leadingAnchor.constraint(greaterThanOrEqualTo: superview.leadingAnchor, constant: maximumRect.minX)
+        temp.isActive = true
+        constraintsWhenPanning.append(temp)
+    }
+    
+    func activeBottomMaxConstraint() {
+        translatesAutoresizingMaskIntoConstraints = false
+        guard let superview = superview else { return }
+        translatesAutoresizingMaskIntoConstraints = false
+        let temp = bottomAnchor.constraint(lessThanOrEqualTo: superview.bottomAnchor, constant: maximumRect.maxY-superview.bounds.maxY)
+        temp.isActive = true
+        constraintsWhenPanning.append(temp)
+    }
+    
+    func activeTrailingMaxConstraint() {
+        translatesAutoresizingMaskIntoConstraints = false
+        guard let superview = superview else { return }
+        translatesAutoresizingMaskIntoConstraints = false
+        let temp = trailingAnchor.constraint(lessThanOrEqualTo: superview.trailingAnchor, constant: maximumRect.maxX-superview.bounds.maxX)
+        temp.isActive = true
+        constraintsWhenPanning.append(temp)
     }
     
     func deactivePanningConstraints() {

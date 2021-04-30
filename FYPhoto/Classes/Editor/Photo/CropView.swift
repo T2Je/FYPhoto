@@ -12,8 +12,6 @@ class CropView: UIView {
         static let padding: CGFloat = 14
     }
     
-    var statusChanged: ((CropViewStatus) -> Void)?
-    
     var scrollViewTouchesBegan = {}
     var scrollViewTouchesCancelled = {}
     var scrollViewTouchesEnd = {}
@@ -51,23 +49,19 @@ class CropView: UIView {
     func setupUI() {
         setupScrollView()
     }
-    
 
     func setupScrollView() {
         scrollView.delegate = self
         scrollView.touchesBegan = { [weak self] in
             self?.scrollViewTouchesBegan()
-//            self?.viewModel.status = .touchImage
         }
         
         scrollView.touchesCancelled = { [weak self] in
             self?.scrollViewTouchesCancelled()
-//            self?.viewModel.status = .endTouch
         }
         
         scrollView.touchesEnd = { [weak self] in
             self?.scrollViewTouchesEnd()
-//            self?.viewModel.status = .endTouch
         }
     }
         
@@ -87,8 +81,7 @@ class CropView: UIView {
         let newScale = scrollView.zoomScale * scale
         scrollView.minimumZoomScale = newScale
         scrollView.zoomScale = newScale
-        
-        
+                
         scrollView.checkContentOffset()
     }
     
@@ -120,4 +113,12 @@ extension CropView {
         updateViewFrame(guideViewFrame)
     }
     
+    func imageViewCropViewIntersection() -> CGRect {
+        self.imageView
+            .convert(imageView.bounds, to: self)
+            .intersection(bounds.inset(by: UIEdgeInsets(top: Constant.padding,
+                                                       left: Constant.padding,
+                                                       bottom: Constant.padding,
+                                                       right: Constant.padding)))
+    }
 }
