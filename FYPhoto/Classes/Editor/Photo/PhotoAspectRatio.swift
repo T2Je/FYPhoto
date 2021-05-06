@@ -9,7 +9,7 @@ import Foundation
 
 public struct RatioItem {
     let title: String
-    let value: Double
+    let value: Double    
 }
 
 public struct RatioOptions: OptionSet {
@@ -51,7 +51,7 @@ class RatioManager {
         }
     }
     
-    func horizontalExtraDefault() -> [RatioItem] {
+    private func horizontalExtraDefault() -> [RatioItem] {
         [RatioItem(title: "16:9", value: 16.0 / 9.0),
          RatioItem(title: "10:8", value: 10.0 / 8.0),
          RatioItem(title: "7:5", value: 7.0 / 5.0),
@@ -61,7 +61,7 @@ class RatioManager {
         ]
     }
     
-    func verticalExtraDefault() -> [RatioItem] {
+    private func verticalExtraDefault() -> [RatioItem] {
         [RatioItem(title: "9:16", value: 9.0 / 16.0),
          RatioItem(title: "8:10", value: 8.0 / 10.0),
          RatioItem(title: "5:7", value: 5.0 / 7.0),
@@ -70,4 +70,5 @@ class RatioManager {
          RatioItem(title: "2:3", value: 2.0 / 3.0)
         ]
     }
+    
 }

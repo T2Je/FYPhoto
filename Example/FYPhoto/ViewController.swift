@@ -218,8 +218,8 @@ class ViewController: UIViewController {
         self.fyphoto.present(photoBrowser, animated: true, completion: nil)
     }
     
-    @objc func photoEditorButtonClicked(_ sender: UIButton) {
-        let vc = PhotoEditorCropViewController()
+    @objc func photoEditorButtonClicked(_ sender: UIButton) {        
+        let vc = PhotoEditorCropViewController(image: UIImage(named: "sunflower")!, customRatio: [])
         vc.modalPresentationStyle = .fullScreen
         self.present(vc, animated: true, completion: nil)
     }

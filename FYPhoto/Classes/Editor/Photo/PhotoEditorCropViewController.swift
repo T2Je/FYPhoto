@@ -9,21 +9,24 @@
 import UIKit
 
 public class PhotoEditorCropViewController: UIViewController {
+    let viewModel: CropViewModel
+    
     let rotateButton = UIButton()
     let resetButton = UIButton()
     let aspectRatioButton = UIButton()
     let topStackView = UIStackView()
     
-    let viewModel: CropViewModel
-    
     let cropView: CropView
     let guideView = InteractiveCropGuideView()
     
-    let maskManager = CropViewMaskManager()
+    let aspectRatioBar: AspectRatioBar
     
     let cancelButton = UIButton()
     let doneButton = UIButton()
     let bottomStackView = UIStackView()
+    
+    let maskManager = CropViewMaskManager()
+    let ratioManager: RatioManager
     
     private var isGuideViewZoommingOut = false
     private var guideViewResizeAnimator: UIViewPropertyAnimator?
@@ -40,9 +43,16 @@ public class PhotoEditorCropViewController: UIViewController {
         }
     }
     
-    public init(image: UIImage = UIImage(named: "sunflower")!) {
+    public init(image: UIImage, customRatio: [RatioItem] = []) {
         viewModel = CropViewModel(image: image)
         cropView = CropView(image: image)
+        ratioManager = RatioManager(ratioOptions: .all, custom: [])
+        
+        let rationButtonItems = ratioManager.horizontalItems.map {
+            AspectRatioButtonItem(title: $0.title, isSelected: false, ratio: $0.value)
+        }
+        aspectRatioBar = AspectRatioBar(items: rationButtonItems)
+        
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -59,6 +69,7 @@ public class PhotoEditorCropViewController: UIViewController {
         setupGuideView()
         setupTopStackView()
         setupBottomToolView()
+        setupAspectRatioBar()
         
         makeConstraints()
     }
@@ -148,6 +159,10 @@ public class PhotoEditorCropViewController: UIViewController {
         maskManager.showIn(view)
     }
     
+    func setupAspectRatioBar() {
+        view.addSubview(aspectRatioBar)
+    }
+    
     func setupBottomToolView() {
         bottomStackView.addArrangedSubview(cancelButton)
         bottomStackView.addArrangedSubview(doneButton)
@@ -181,8 +196,16 @@ public class PhotoEditorCropViewController: UIViewController {
         NSLayoutConstraint.activate([
             cropView.topAnchor.constraint(equalTo: topStackView.bottomAnchor, constant: 0),
             cropView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
-            cropView.bottomAnchor.constraint(equalTo: bottomStackView.topAnchor, constant: 0),
+            cropView.bottomAnchor.constraint(equalTo: aspectRatioBar.topAnchor, constant: 0),
             cropView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0)
+        ])
+        
+        aspectRatioBar.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            aspectRatioBar.heightAnchor.constraint(equalToConstant: 45),
+            aspectRatioBar.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+            aspectRatioBar.bottomAnchor.constraint(equalTo: bottomStackView.topAnchor),
+            aspectRatioBar.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
         ])
         
         bottomStackView.translatesAutoresizingMaskIntoConstraints = false
