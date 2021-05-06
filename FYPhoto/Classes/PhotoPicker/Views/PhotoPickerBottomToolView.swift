@@ -7,7 +7,7 @@
 
 import UIKit
 
-protocol PhotoPickerBottomToolViewDelegate: class {
+protocol PhotoPickerBottomToolViewDelegate: AnyObject {
     func bottomToolViewPreviewButtonClicked()
     func bottomToolViewDoneButtonClicked()
 }

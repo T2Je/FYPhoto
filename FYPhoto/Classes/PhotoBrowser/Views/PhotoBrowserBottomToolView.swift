@@ -7,7 +7,7 @@
 
 import UIKit
 
-protocol PhotoBrowserBottomToolViewDelegate: class {
+protocol PhotoBrowserBottomToolViewDelegate: AnyObject {
     func browserBottomToolViewPlayButtonClicked()
     func browserBottomToolViewDoneButtonClicked()
 }

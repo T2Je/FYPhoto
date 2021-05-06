@@ -9,7 +9,7 @@ import UIKit
 import Photos
 import SDWebImage
 
-protocol DetectingGestureViewDelegate: class {
+protocol DetectingGestureViewDelegate: AnyObject {
     func handleSingleTap(_ touchPoint: CGPoint)
     func handleDoubleTap(_ touchPoint: CGPoint)
     func handleLongPress()

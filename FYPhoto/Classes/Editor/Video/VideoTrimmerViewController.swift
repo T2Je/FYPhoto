@@ -9,7 +9,7 @@ import UIKit
 import AVFoundation
 import Photos
 
-public protocol VideoTrimmerViewControllerDelegate: class {
+public protocol VideoTrimmerViewControllerDelegate: AnyObject {
     func videoTrimmerDidCancel(_ videoTrimmer: VideoTrimmerViewController)
     func videoTrimmer(_ videoTrimmer: VideoTrimmerViewController, didFinishTrimingAt url: URL)
 }

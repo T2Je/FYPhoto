@@ -20,7 +20,7 @@ public struct WatermarkImage {
     }
 }
 
-public protocol CameraViewControllerDelegate: class {
+public protocol CameraViewControllerDelegate: AnyObject {
     func camera(_ cameraViewController: CameraViewController, didFinishCapturingMediaInfo info: [CameraViewController.InfoKey: Any])
     func cameraDidCancel(_ cameraViewController: CameraViewController)
     func watermarkImage() -> WatermarkImage?
