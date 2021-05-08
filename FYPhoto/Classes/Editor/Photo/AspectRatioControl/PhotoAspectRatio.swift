@@ -39,7 +39,7 @@ class RatioManager {
             items.append(RatioItem(title: "FreeForm", value: nil))
         }
         if ratioOptions.contains(.square) {
-            items.append(RatioItem(title: L10n.orinial, value: 1))
+            items.append(RatioItem(title: L10n.square, value: 1))
         }
         if ratioOptions.contains(.extraDefaultRatios) {
             if isHorizontal {

@@ -162,6 +162,10 @@ public class PhotoEditorCropViewController: UIViewController {
     func setupAspectRatioBar() {
         view.addSubview(aspectRatioBar)
         aspectRatioBar.isHidden = true
+        aspectRatioBar.didSelectedRatio = { [weak self] ratio in
+            guard let self = self else { return }
+            print("ratio: \(ratio)")
+        }
     }
     
     func setupBottomToolView() {

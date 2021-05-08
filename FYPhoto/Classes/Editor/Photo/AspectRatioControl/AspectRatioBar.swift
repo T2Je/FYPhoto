@@ -42,7 +42,7 @@ class AspectRatioBar: UIScrollView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func setupStackView() {
+    private func setupStackView() {
         addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -57,7 +57,6 @@ class AspectRatioBar: UIScrollView {
     }
     
     func addButtonsWithItems(_ items: [AspectRatioButtonItem]) {
-        
         for item in items {
             let button = AspectRatioButton(item: item)
             button.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
@@ -78,15 +77,12 @@ class AspectRatioBar: UIScrollView {
         addButtonsWithItems(items)
     }
     
-    @objc func buttonClicked(_ sender: AspectRatioButton) {
-        
-//        items.forEach { $0.isSelected = false }
-        
+    @objc private func buttonClicked(_ sender: AspectRatioButton) {
         handleButtonsState(sender)
         didSelectedRatio?(sender.item.ratio)
     }
     
-    func handleButtonsState(_ new: AspectRatioButton) {
+    private func handleButtonsState(_ new: AspectRatioButton) {
         if let old = selectedButton {
             if old === new {
                 return
