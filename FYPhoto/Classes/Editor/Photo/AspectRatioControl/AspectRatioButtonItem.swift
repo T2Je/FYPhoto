@@ -10,11 +10,14 @@ import Foundation
 public class AspectRatioButtonItem {
     let title: String
     var isSelected: Bool
-    var ratio: Double
+    var ratio: Double?
+    let isFreeForm: Bool
     
-    public init(title: String, isSelected: Bool, ratio: Double) {
+    public init(title: String, ratio: Double?) {
         self.title = title
-        self.isSelected = isSelected
+        
         self.ratio = ratio
+        self.isFreeForm = ratio == nil
+        self.isSelected = isFreeForm
     }
 }

@@ -17,7 +17,11 @@ class AspectRatioBar: UIScrollView {
         static let sideInset: CGFloat = 16.0
     }
  
+    var didSelectedRatio: ((Double?) -> Void)?
+    
     let items: [AspectRatioButtonItem]
+    
+    private var selectedButton: AspectRatioButton?
     
     private var stackView: UIStackView = {
         let view = UIStackView()
@@ -29,7 +33,7 @@ class AspectRatioBar: UIScrollView {
     init(items: [AspectRatioButtonItem]) {
         self.items = items
         super.init(frame: .zero)
-        
+        showsHorizontalScrollIndicator = false
         setupStackView()
         addButtonsWithItems(items)
     }
@@ -53,12 +57,47 @@ class AspectRatioBar: UIScrollView {
     }
     
     func addButtonsWithItems(_ items: [AspectRatioButtonItem]) {
+        
         for item in items {
-            let button = AspectRatioButton()
-            button.setTitle(item.title, for: .normal)
-            button.isSelected = item.isSelected
+            let button = AspectRatioButton(item: item)
+            button.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
+            if item.isSelected {
+                selectedButton = button
+            }
             stackView.addArrangedSubview(button)
         }
+    }
+    
+    func flip() {
+        let pre = stackView.axis
+        stackView.axis = (pre == .horizontal) ? .vertical : .horizontal
+    }
+    
+    func reloadItems(_ items: [AspectRatioButtonItem]) {
+        stackView.removeFullyAllArrangedSubviews()
+        addButtonsWithItems(items)
+    }
+    
+    @objc func buttonClicked(_ sender: AspectRatioButton) {
+        
+//        items.forEach { $0.isSelected = false }
+        
+        handleButtonsState(sender)
+        didSelectedRatio?(sender.item.ratio)
+    }
+    
+    func handleButtonsState(_ new: AspectRatioButton) {
+        if let old = selectedButton {
+            if old === new {
+                return
+            } else {
+                old.isSelected = false
+                new.isSelected = true
+            }
+        } else {
+            new.isSelected = true
+        }
+        selectedButton = new
     }
 }
 

@@ -19,14 +19,17 @@ public class PhotoEditorCropViewController: UIViewController {
     let cropView: CropView
     let guideView = InteractiveCropGuideView()
     
-    let aspectRatioBar: AspectRatioBar
+    lazy var aspectRatioBar: AspectRatioBar = {
+        let ratioBarItems = aspectRatioManager.items.map { AspectRatioButtonItem(title: $0.title, ratio: $0.value) }
+        let bar = AspectRatioBar(items: ratioBarItems)
+        return bar
+    }()
     
     let cancelButton = UIButton()
     let doneButton = UIButton()
     let bottomStackView = UIStackView()
     
     let maskManager = CropViewMaskManager()
-    let ratioManager: RatioManager
     
     private var isGuideViewZoommingOut = false
     private var guideViewResizeAnimator: UIViewPropertyAnimator?
@@ -43,15 +46,12 @@ public class PhotoEditorCropViewController: UIViewController {
         }
     }
     
+    let customRatio: [RatioItem]
+    
     public init(image: UIImage, customRatio: [RatioItem] = []) {
         viewModel = CropViewModel(image: image)
         cropView = CropView(image: image)
-        ratioManager = RatioManager(ratioOptions: .all, custom: [])
-        
-        let rationButtonItems = ratioManager.horizontalItems.map {
-            AspectRatioButtonItem(title: $0.title, isSelected: false, ratio: $0.value)
-        }
-        aspectRatioBar = AspectRatioBar(items: rationButtonItems)
+        self.customRatio = customRatio
         
         super.init(nibName: nil, bundle: nil)
     }
@@ -161,6 +161,7 @@ public class PhotoEditorCropViewController: UIViewController {
     
     func setupAspectRatioBar() {
         view.addSubview(aspectRatioBar)
+        aspectRatioBar.isHidden = true
     }
     
     func setupBottomToolView() {
@@ -178,7 +179,18 @@ public class PhotoEditorCropViewController: UIViewController {
         doneButton.addTarget(self, action: #selector(doneButtonClicked(_:)), for: .touchUpInside)
         
         view.addSubview(bottomStackView)
+    }
+    
+    var aspectRatioManager: RatioManager {
+        let original: Double
+        let isHorizontal = viewModel.rotationDegree == .counterclockwise90 || viewModel.rotationDegree == .counterclockwise270
+        if isHorizontal {
+            original = Double(viewModel.image.size.width / viewModel.image.size.height)
+        } else {
+            original = Double(viewModel.image.size.height / viewModel.image.size.width)
+        }
         
+        return RatioManager(ratioOptions: .all, custom: customRatio, original: original, isHorizontal: isHorizontal)
     }
     
     func makeConstraints() {
@@ -380,6 +392,7 @@ public class PhotoEditorCropViewController: UIViewController {
     
     @objc func aspectRatioButtonClicked(_ sender: UIButton) {
         // TODO: 😴zZ
+        aspectRatioBar.isHidden = !aspectRatioBar.isHidden
     }
     
     @objc func cancelButtonClicked(_ sender: UIButton) {

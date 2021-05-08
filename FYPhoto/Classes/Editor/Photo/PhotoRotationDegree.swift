@@ -12,7 +12,7 @@ enum PhotoRotationDegree: Equatable {
     case counterclockwise90
     case counterclockwise180
     case counterclockwise270
-    case custom(radians: Double)
+//    case custom(radians: Double)
     
     var radians: Double {
         switch self {
@@ -24,8 +24,8 @@ enum PhotoRotationDegree: Equatable {
             return -Double.pi
         case .counterclockwise270:
             return -Double.pi*1.5
-        case .custom(radians: let value):
-            return value
+//        case .custom(radians: let value):
+//            return value
         }
     }
     
@@ -45,8 +45,8 @@ enum PhotoRotationDegree: Equatable {
             self = .counterclockwise270
         case .counterclockwise270:
             self = .zero
-        case .custom(radians: let radians):
-            self = .custom(radians: radians + Double.pi / 2)
+//        case .custom(radians: let radians):
+//            self = .custom(radians: radians + Double.pi / 2)
         }
     }
 }

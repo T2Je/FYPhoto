@@ -8,14 +8,18 @@
 import UIKit
 
 class AspectRatioButton: UIButton {
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    let item: AspectRatioButtonItem
+    
+    init(item: AspectRatioButtonItem) {
+        self.item = item
+        super.init(frame: .zero)
         setTitleColor(UIColor(white: 1, alpha: 0.8), for: .normal)
         setTitleColor(.white, for: .selected)
         backgroundColor = .clear
+        titleLabel?.font = UIFont.systemFont(ofSize: 14)
         
         layer.masksToBounds = true
+        
         if #available(iOS 13.0, *) {
             layer.cornerCurve = .continuous
         } else {
@@ -26,6 +30,9 @@ class AspectRatioButton: UIButton {
                                          left: 16,
                                          bottom: 6,
                                          right: 16)
+        
+        isSelected = item.isSelected
+        setTitle(item.title, for: .normal)
     }
     
     required init?(coder: NSCoder) {
@@ -34,6 +41,7 @@ class AspectRatioButton: UIButton {
     
     override var isSelected: Bool {
         didSet {
+            item.isSelected = isSelected
             updateAppearance()
         }
     }
@@ -50,10 +58,7 @@ class AspectRatioButton: UIButton {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        if #available(iOS 13.0, *) {
-        } else {
-            layer.cornerRadius = bounds.height / 2
-        }
+        layer.cornerRadius = bounds.height / 2
     }
     
 //    override var intrinsicContentSize: CGSize {
