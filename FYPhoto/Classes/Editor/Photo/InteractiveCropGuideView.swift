@@ -29,6 +29,8 @@ class InteractiveCropGuideView: UIView {
     
     var maximumRect: CGRect = .zero
     
+    var aspectRatio: Double?
+    
     private var widthConstraint: NSLayoutConstraint?
     private var heightConstraint: NSLayoutConstraint?
 
@@ -158,6 +160,8 @@ class InteractiveCropGuideView: UIView {
         case .began:
             panGestureBegan(.leftTop)
             
+            activeLockedRatioConstraint()
+            
             activeTopMaxConstraint()
             activeLeadingMaxConstraint()
             
@@ -186,6 +190,8 @@ class InteractiveCropGuideView: UIView {
         switch gesture.state {
         case .began:
             panGestureBegan(.rightTop)
+            
+            activeLockedRatioConstraint()
             
             activeTopMaxConstraint()
             activeTrailingMaxConstraint()
@@ -216,6 +222,8 @@ class InteractiveCropGuideView: UIView {
         case .began:
             panGestureBegan(.leftBottom)
             
+            activeLockedRatioConstraint()
+            
             activeBottomMaxConstraint()
             activeLeadingMaxConstraint()
             
@@ -244,6 +252,8 @@ class InteractiveCropGuideView: UIView {
         switch gesture.state {
         case .began:
             panGestureBegan(.rightBottom)
+            
+            activeLockedRatioConstraint()
             
             activeTrailingMaxConstraint()
             activeBottomMaxConstraint()
@@ -275,6 +285,8 @@ class InteractiveCropGuideView: UIView {
         case .began:
             panGestureBegan(.top)
             
+            activeLockedRatioConstraint()
+            
             activeTopMaxConstraint()
             
             activeBottomConstraint()
@@ -301,6 +313,9 @@ class InteractiveCropGuideView: UIView {
         switch gesture.state {
         case .began:
             panGestureBegan(.left)
+            
+            activeLockedRatioConstraint()
+            
             activeLeadingConstraint()
             
             activeTopConstraint()
@@ -329,6 +344,8 @@ class InteractiveCropGuideView: UIView {
         case .began:
             panGestureBegan(.bottom)
             
+            activeLockedRatioConstraint()
+            
             activeBottomMaxConstraint()
             
             activeTopConstraint()
@@ -355,6 +372,8 @@ class InteractiveCropGuideView: UIView {
         switch gesture.state {
         case .began:
             panGestureBegan(.right)
+            
+            activeLockedRatioConstraint()
             
             activeTrailingMaxConstraint()
             
@@ -484,6 +503,15 @@ class InteractiveCropGuideView: UIView {
         let temp = trailingAnchor.constraint(lessThanOrEqualTo: superview.trailingAnchor, constant: maximumRect.maxX-superview.bounds.maxX)
         temp.isActive = true
         constraintsWhenPanning.append(temp)
+    }
+    
+    func activeLockedRatioConstraint() {
+        if let ratio = aspectRatio {
+            translatesAutoresizingMaskIntoConstraints = false
+            let temp = widthAnchor.constraint(equalTo: heightAnchor, multiplier: CGFloat(ratio), constant: 1)
+            temp.isActive = true
+            constraintsWhenPanning.append(temp)
+        }
     }
     
     func deactivePanningConstraints() {

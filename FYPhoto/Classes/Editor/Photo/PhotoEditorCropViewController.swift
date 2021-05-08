@@ -165,6 +165,7 @@ public class PhotoEditorCropViewController: UIViewController {
         aspectRatioBar.didSelectedRatio = { [weak self] ratio in
             guard let self = self else { return }
             print("ratio: \(ratio)")
+            self.guideView.aspectRatio = ratio
         }
     }
     
