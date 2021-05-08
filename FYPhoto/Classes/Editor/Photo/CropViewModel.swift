@@ -27,12 +27,14 @@ class CropViewModel: NSObject {
     /// ImageView and CropView intersection area
     @objc dynamic var maximumGuideViewRect: CGRect = .zero    
     
-//    var aspectRatio: Double = 1
+    var aspectRatio: Double = 0
+    
     var rotationDegree: PhotoRotationDegree = .zero
     
     init(image: UIImage) {
         self.image = image
-        
+        super.init()
+        aspectRatio = getImageRatio()        
     }
     
     func getInitialCropGuideViewRect(fromOutside outside: CGRect) -> CGRect {
@@ -90,4 +92,27 @@ class CropViewModel: NSObject {
         initialFrame = rect
     }
 
+    func calculateCropBoxFrame(by initialCropBox: CGRect) -> CGRect {
+        var cropBoxFrame = initialCropBox
+        let center = CGPoint(x: initialFrame.midX, y: initialFrame.midY)
+        let original = getImageRatio()
+        if (aspectRatio > original) {
+            cropBoxFrame.size.height = cropBoxFrame.width / CGFloat(aspectRatio)
+        } else {
+            cropBoxFrame.size.width = cropBoxFrame.height * CGFloat(aspectRatio)
+        }
+        
+        cropBoxFrame.origin.x = center.x - cropBoxFrame.width / 2
+        cropBoxFrame.origin.y = center.y - cropBoxFrame.height / 2
+        
+        return cropBoxFrame
+    }
+    
+    func getImageRatio() -> Double {
+        if rotationDegree == .zero || rotationDegree == .counterclockwise180 {
+            return Double(image.size.width / image.size.height)
+        } else {
+            return Double(image.size.height / image.size.width)
+        }
+    }
 }

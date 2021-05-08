@@ -164,8 +164,7 @@ public class PhotoEditorCropViewController: UIViewController {
         aspectRatioBar.isHidden = true
         aspectRatioBar.didSelectedRatio = { [weak self] ratio in
             guard let self = self else { return }
-            print("ratio: \(ratio)")
-            self.guideView.aspectRatio = ratio
+            self.updateCropRatio(ratio)
         }
     }
     
@@ -187,14 +186,8 @@ public class PhotoEditorCropViewController: UIViewController {
     }
     
     var aspectRatioManager: RatioManager {
-        let original: Double
+        let original = viewModel.getImageRatio()
         let isHorizontal = viewModel.rotationDegree == .counterclockwise90 || viewModel.rotationDegree == .counterclockwise270
-        if isHorizontal {
-            original = Double(viewModel.image.size.width / viewModel.image.size.height)
-        } else {
-            original = Double(viewModel.image.size.height / viewModel.image.size.width)
-        }
-        
         return RatioManager(ratioOptions: .all, custom: customRatio, original: original, isHorizontal: isHorizontal)
     }
     
@@ -390,6 +383,20 @@ public class PhotoEditorCropViewController: UIViewController {
         let convertedInsideRect = self.view.convert(rect, to: self.view)
         self.maskManager.recreateTransparentRect(convertedInsideRect, animated: animated)
     }
+    
+    func updateCropRatio(_ ratio: Double?) {
+        if let ratio = ratio {
+            self.viewModel.aspectRatio = ratio
+            let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
+            let initialCropFrame = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
+            let cropFrame = self.viewModel.calculateCropBoxFrame(by: initialCropFrame)
+            viewModel.resetInitFrame(cropFrame)
+            guideView.frame = cropFrame
+        }
+        self.guideView.aspectRatio = ratio
+    }
+    
+    // MARK: - Button actions
     
     @objc func resetPhotoButtonClicked(_ sender: UIButton) {
         // TODO: 😴zZ
