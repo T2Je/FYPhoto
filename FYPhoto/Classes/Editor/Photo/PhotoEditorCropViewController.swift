@@ -238,7 +238,7 @@ public class PhotoEditorCropViewController: UIViewController {
             let converted = cropView.convert(guideFrameInCropView, to: view)
             viewModel.resetInitFrame(converted)
             guideView.frame = converted
-            cropView.updateSubViews(guideFrameInCropView)
+            cropView.updateSubViews(guideFrameInCropView, degree: CGFloat(viewModel.rotationDegree.radians))
         }
         if !isGuideViewZoommingOut {
             updateMaskTransparent(guideView.frame, animated: false)
@@ -263,7 +263,7 @@ public class PhotoEditorCropViewController: UIViewController {
         // viewDidLayoutSubviews
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             guard let self = self else { return }
-            self.cropView.handleDeviceRotate(self.guideView.frame)
+            self.cropView.handleDeviceRotate(self.guideView.frame, degree: CGFloat(self.viewModel.rotationDegree.radians))
         }
     }
     
@@ -385,25 +385,36 @@ public class PhotoEditorCropViewController: UIViewController {
     }
     
     func updateCropRatio(_ ratio: Double?) {
-        if let ratio = ratio {
-            self.viewModel.aspectRatio = ratio
-            let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
-            let initialCropFrame = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
-            let cropFrame = self.viewModel.calculateCropBoxFrame(by: initialCropFrame)
-            viewModel.resetInitFrame(cropFrame)
-            guideView.frame = cropFrame
-        }
+        viewModel.setFixedAspectRatio(ratio)
+        
+        let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
+        let initialGuideFrame = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
+        let convertedGuideFrame = self.cropView.convert(initialGuideFrame, to: self.view)
+        let guideFrame = self.viewModel.calculateCropBoxFrame(by: convertedGuideFrame)
+        
+        viewModel.resetInitFrame(guideFrame)
+        guideView.frame = guideFrame
+        
         self.guideView.aspectRatio = ratio
     }
     
     // MARK: - Button actions
     
     @objc func resetPhotoButtonClicked(_ sender: UIButton) {
-        // TODO: 😴zZ
+        updateCropRatio(nil)
+        let ratioBarItems = aspectRatioManager.items.map { AspectRatioButtonItem(title: $0.title, ratio: $0.value) }
+        aspectRatioBar.reloadItems(ratioBarItems)
+        
+        let convertedFrame = self.view.convert(viewModel.initialFrame, to: cropView)
+        cropView.resetSubviewsFrame(convertedFrame, degree: CGFloat(viewModel.rotationDegree.radians))
+                
+        guideView.frame = viewModel.initialFrame
+
     }
     
     @objc func aspectRatioButtonClicked(_ sender: UIButton) {
         // TODO: 😴zZ
+        
         aspectRatioBar.isHidden = !aspectRatioBar.isHidden
     }
     

@@ -34,12 +34,12 @@ class CropView: UIView {
         setupUI()
     }
     
-    func updateSubViews(_ guideViewFrame: CGRect ) {
-        resetSubviewsFrame(guideViewFrame)
+    func updateSubViews(_ frame: CGRect, degree: CGFloat) {
+        resetSubviewsFrame(frame, degree: degree)
     }
     
-    func resetSubviewsFrame(_ guideViewFrame: CGRect) {
-        updateViewFrame(guideViewFrame)
+    func resetSubviewsFrame(_ frame: CGRect, degree: CGFloat) {
+        updateViewFrame(frame, degree: degree)
     }
     
     required init?(coder: NSCoder) {
@@ -93,13 +93,13 @@ class CropView: UIView {
         self.scrollView.zoom(to: convertedFrame, animated: false)
     }
     
-    fileprivate func updateViewFrame(_ guideViewFrame: CGRect) {
-        
-        scrollView.transform = .identity
-        scrollView.reset(guideViewFrame)
+    fileprivate func updateViewFrame(_ frame: CGRect, degree: CGFloat) {
+        let transform = CGAffineTransform.identity.rotated(by: degree)
+        scrollView.transform = transform
+        scrollView.reset(frame)
         
         imageView.frame = scrollView.bounds
-        imageView.center = CGPoint(x: scrollView.bounds.width/2, y: scrollView.bounds.height/2)
+//        imageView.center = CGPoint(x: scrollView.bounds.width/2, y: scrollView.bounds.height/2)
     }
         
     override func layoutSubviews() {
@@ -109,8 +109,8 @@ class CropView: UIView {
 }
 
 extension CropView {
-    func handleDeviceRotate(_ guideViewFrame: CGRect) {
-        updateViewFrame(guideViewFrame)
+    func handleDeviceRotate(_ guideViewFrame: CGRect, degree: CGFloat) {
+        updateViewFrame(guideViewFrame, degree: degree)
     }
     
     func imageViewCropViewIntersection() -> CGRect {
