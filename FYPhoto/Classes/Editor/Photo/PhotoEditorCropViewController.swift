@@ -412,15 +412,28 @@ public class PhotoEditorCropViewController: UIViewController {
 
     }
     
-    @objc func aspectRatioButtonClicked(_ sender: UIButton) {
-        // TODO: 😴zZ
-        
+    @objc func aspectRatioButtonClicked(_ sender: UIButton) {        
         aspectRatioBar.isHidden = !aspectRatioBar.isHidden
     }
     
-    @objc func cancelButtonClicked(_ sender: UIButton) {
-        // TODO: 😴zZ reminder
-        dismiss(animated: true, completion: nil)
+    @objc func cancelButtonClicked(_ sender: UIButton) {        
+        if viewModel.rotationDegree != .zero || viewModel.hasResized(guideView.frame) {
+            discardChangesWarning()
+        } else {
+            dismiss(animated: true, completion: nil)
+        }
+    }
+    
+    func discardChangesWarning() {
+        let alertVC = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let discard = UIAlertAction(title: "DiscardChanges", style: .destructive) { _ in
+            self.dismiss(animated: true, completion: nil)
+        }
+        let cancel = UIAlertAction(title: L10n.cancel, style: .cancel, handler: nil)
+        alertVC.addAction(discard)
+        alertVC.addAction(cancel)
+        
+        present(alertVC, animated: true, completion: nil)
     }
     
     @objc func doneButtonClicked(_ sender: UIButton) {

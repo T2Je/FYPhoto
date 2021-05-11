@@ -99,6 +99,10 @@ class CropViewModel: NSObject {
             aspectRatio = getImageRatio()
         }
     }
+    
+    func hasResized(_ currentRect: CGRect) -> Bool {
+        initialFrame != currentRect
+    }
 
     func calculateCropBoxFrame(by initialCropBox: CGRect) -> CGRect {
         var cropBoxFrame = initialCropBox
