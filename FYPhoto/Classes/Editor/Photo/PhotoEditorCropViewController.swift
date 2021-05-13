@@ -139,6 +139,7 @@ public class PhotoEditorCropViewController: UIViewController {
     
     func setupGuideView() {
         view.addSubview(guideView)
+        guideView.translatesAutoresizingMaskIntoConstraints = false // fix guideView's subviews constraints warning
         
         guideView.resizeBegan = { [weak self] handle in
             self?.viewModel.status = .touchHandle(handle)
@@ -230,6 +231,7 @@ public class PhotoEditorCropViewController: UIViewController {
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if !initialLayout {
+            guideView.translatesAutoresizingMaskIntoConstraints = true            
             initialLayout = true
             // set guideView from
             let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
