@@ -197,9 +197,9 @@ public class PhotoEditorCropViewController: UIViewController {
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
             topStackView.topAnchor.constraint(equalTo: safeArea.topAnchor),
-            topStackView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+            topStackView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             topStackView.heightAnchor.constraint(equalToConstant: 45),
-            topStackView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
+            topStackView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10)
         ])
         
         cropView.translatesAutoresizingMaskIntoConstraints = false
@@ -221,9 +221,9 @@ public class PhotoEditorCropViewController: UIViewController {
         bottomStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             bottomStackView.heightAnchor.constraint(equalToConstant: 45),
-            bottomStackView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+            bottomStackView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
             bottomStackView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
-            bottomStackView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
+            bottomStackView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10)
         ])
     }
     
@@ -416,7 +416,7 @@ public class PhotoEditorCropViewController: UIViewController {
         aspectRatioBar.isHidden = !aspectRatioBar.isHidden
     }
     
-    @objc func cancelButtonClicked(_ sender: UIButton) {        
+    @objc func cancelButtonClicked(_ sender: UIButton) {
         if viewModel.rotationDegree != .zero || viewModel.hasResized(guideView.frame) {
             discardChangesWarning()
         } else {
