@@ -220,6 +220,18 @@ class ViewController: UIViewController {
     
     @objc func photoEditorButtonClicked(_ sender: UIButton) {        
         let vc = PhotoEditorCropViewController(image: UIImage(named: "sunflower")!, customRatio: [])
+        vc.croppedImage = { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let image):
+                let image = Photo.photoWithUIImage(image)
+                let photoBrowser = PhotoBrowserViewController.create(photos: [image], initialIndex: 0)
+                photoBrowser.delegate = self
+                self.fyphoto.present(photoBrowser, animated: true, completion: nil)
+            case .failure(let error):
+                print("crop image failed with error: \(error)")
+            }
+        }
         vc.modalPresentationStyle = .fullScreen
         self.present(vc, animated: true, completion: nil)
     }

@@ -9,6 +9,19 @@
 import UIKit
 
 public class PhotoEditorCropViewController: UIViewController {
+    public enum CropImageError: Error, LocalizedError {
+        case invalidImage
+        
+        public var errorDescription: String? {
+            switch self {
+            case .invalidImage:
+                return "invalid image"
+            }
+        }
+    }
+    
+    public var croppedImage: ((Result<UIImage, Error>) -> Void)?
+    
     let viewModel: CropViewModel
     
     let rotateButton = UIButton()
@@ -439,6 +452,47 @@ public class PhotoEditorCropViewController: UIViewController {
     }
     
     @objc func doneButtonClicked(_ sender: UIButton) {
-        // TODO: 😴zZ
+        guard let imageViewImage = cropView.imageView.image else {
+            assertionFailure("imageView doesn't contains an image")
+            return
+        }
+        let ratio = imageViewImage.size.height / cropView.scrollView.contentSize.height
+        
+        let origin = CGPoint(x: cropView.scrollView.contentOffset.x * ratio, y: cropView.scrollView.contentOffset.y * ratio)
+        let size = CGSize(width: guideView.bounds.size.width * ratio, height: guideView.bounds.size.height * ratio)
+        let cropFrame = CGRect(origin: origin, size: size)
+        
+        let result: Result<UIImage, Error>
+        if let image = crop(imageViewImage, to: cropFrame) {
+            result = .success(image)
+        } else {
+            result = .failure(CropImageError.invalidImage)
+        }
+        self.dismiss(animated: true) {
+            self.croppedImage?(result)
+        }
+
+    }
+    
+    func crop(_ image: UIImage, to rect: CGRect) -> UIImage? {
+        func rad(_ degree: Double) -> CGFloat {
+            return CGFloat(degree / 180.0 * .pi)
+        }
+        
+        var rectTransform: CGAffineTransform
+        switch image.imageOrientation {
+        case .left:
+            rectTransform = CGAffineTransform(rotationAngle: rad(90)).translatedBy(x: 0, y: -image.size.height)
+        case .right:
+            rectTransform = CGAffineTransform(rotationAngle: rad(-90)).translatedBy(x: -image.size.width, y: 0)
+        case .down:
+            rectTransform = CGAffineTransform(rotationAngle: rad(-180)).translatedBy(x: -image.size.width, y: -image.size.height)
+        default:
+            rectTransform = .identity
+        }
+        rectTransform = rectTransform.scaledBy(x: image.scale, y: image.scale)
+        guard let cgimage = image.cgImage else { return nil }
+        guard let imageRef = cgimage.cropping(to: rect) else { return nil }
+        return UIImage(cgImage: imageRef, scale: image.scale, orientation: image.imageOrientation)
     }
 }
