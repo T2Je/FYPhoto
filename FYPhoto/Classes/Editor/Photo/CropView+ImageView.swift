@@ -25,27 +25,27 @@ extension CropView {
         
         private func setup() {
             self.contentMode = .scaleAspectFit
-            self.updateAspectRatioConstraint()
+//            self.updateAspectRatioConstraint()
         }
         
         /// Removes any pre-existing aspect ratio constraint, and adds a new one based on the current image
-        private func updateAspectRatioConstraint() {
-            // remove any existing aspect ratio constraint
-            if let cons = self.aspectRatioConstraint {
-                self.removeConstraint(cons)
-            }
-            self.aspectRatioConstraint = nil
-            
-            if let imageSize = image?.size, imageSize.height != 0
-            {
-                let aspectRatio = imageSize.width / imageSize.height
-                let cons = NSLayoutConstraint(item: self, attribute: .width,
-                                              relatedBy: .equal,
-                                              toItem: self, attribute: .height,
-                                              multiplier: aspectRatio, constant: 0)
-                self.addConstraint(cons)
-                self.aspectRatioConstraint = cons
-            }
-        }
+//        private func updateAspectRatioConstraint() {
+//            // remove any existing aspect ratio constraint
+//            if let cons = self.aspectRatioConstraint {
+//                self.removeConstraint(cons)
+//            }
+//            self.aspectRatioConstraint = nil
+//            
+//            if let imageSize = image?.size, imageSize.height != 0
+//            {
+//                let aspectRatio = imageSize.width / imageSize.height
+//                let cons = NSLayoutConstraint(item: self, attribute: .width,
+//                                              relatedBy: .equal,
+//                                              toItem: self, attribute: .height,
+//                                              multiplier: aspectRatio, constant: 0)
+//                self.addConstraint(cons)
+//                self.aspectRatioConstraint = cons
+//            }
+//        }
     }
 }

@@ -99,7 +99,7 @@ class CropView: UIView {
         scrollView.reset(frame)
         
         imageView.frame = scrollView.bounds
-//        imageView.center = CGPoint(x: scrollView.bounds.width/2, y: scrollView.bounds.height/2)
+        imageView.center = CGPoint(x: scrollView.bounds.width/2, y: scrollView.bounds.height/2)
     }
         
     override func layoutSubviews() {

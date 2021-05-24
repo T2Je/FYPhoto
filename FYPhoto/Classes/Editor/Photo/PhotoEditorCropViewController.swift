@@ -293,15 +293,14 @@ public class PhotoEditorCropViewController: UIViewController {
         
         let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
         let newRect = GeometryHelper.getAppropriateRect(fromOutside: contentBounds, inside: rect)
+        let convertedGuideFrame = self.cropView.convert(newRect, to: self.view)
         
         let initGuideFrameInCropView = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
         let convertedInitFrame = cropView.convert(initGuideFrameInCropView, to: view)
         viewModel.resetInitFrame(convertedInitFrame)
                         
         UIView.animate(withDuration: 0.25) {
-            let convertedGuideFrame = self.cropView.convert(newRect, to: self.view)
-            self.guideView.frame = convertedGuideFrame
-            
+            self.guideView.frame = convertedGuideFrame            
             var size = newRect.size
             if self.viewModel.rotationDegree == .counterclockwise90 || self.viewModel.rotationDegree == .counterclockwise270 {
                 size = CGSize(width: newRect.height, height: newRect.width)
@@ -316,12 +315,12 @@ public class PhotoEditorCropViewController: UIViewController {
     func cropViewStatusChanged(_ status: CropViewStatus) {
         switch status {
         case .initial:
-            
             maskManager.showVisualEffectBackground()
         case .touchImage:            
             maskManager.showDimmingBackground()
             // TODO: 😴zZ
         case .touchHandle(_):
+            cropView.scrollView.isUserInteractionEnabled = false
             updateGuideViewMaximumRect()
             maskManager.showDimmingBackground()
         // TODO: 😴zZ
@@ -330,6 +329,7 @@ public class PhotoEditorCropViewController: UIViewController {
         break
         case .endTouch:
             maskManager.showVisualEffectBackground()
+            cropView.scrollView.isUserInteractionEnabled = true
         // TODO: 😴zZ
 
         }
@@ -347,22 +347,27 @@ public class PhotoEditorCropViewController: UIViewController {
         
         // calculate the zoom area of scroll view
         var scaleFrame = scaleFrame
+        
         if scaleFrame.width >= cropView.scrollView.contentSize.width {
             scaleFrame.size.width = cropView.scrollView.contentSize.width
         }
         if scaleFrame.height >= cropView.scrollView.contentSize.height {
             scaleFrame.size.height = cropView.scrollView.contentSize.height
         }
-        
-        self.cropView.scrollView.update(with: guideView.frame.size)
+                
+        let transformedSize = guideView.frame.size.applying(CGAffineTransform(rotationAngle: CGFloat(viewModel.rotationDegree.radians)))
+        self.cropView.scrollView.update(with: transformedSize)
         
         let convertedFrame = self.view.convert(scaleFrame, to: self.cropView.imageView)
         
         self.cropView.scrollView.zoom(to: convertedFrame, animated: false)
+        self.cropView.scrollView.checkContentOffset()
     }
     
     fileprivate func animateGuideViewAfterResizing(_ scaledFrame: CGRect) {
-        let guideViewFrame = GeometryHelper.getAppropriateRect(fromOutside: self.viewModel.initialFrame, inside: scaledFrame)
+        let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
+        var guideViewFrame = GeometryHelper.getAppropriateRect(fromOutside: contentBounds, inside: scaledFrame)
+        guideViewFrame = cropView.convert(guideViewFrame, to: view)
         
         isGuideViewZoommingOut = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in

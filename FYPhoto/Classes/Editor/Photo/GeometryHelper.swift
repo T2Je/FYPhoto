@@ -9,7 +9,7 @@ import Foundation
 
 struct GeometryHelper {
     
-    /// Calculate appropriate rect for cropView from two rects
+    /// Calculate appropriate rect within the outside coordinator for cropView from two rects.
     /// - Parameters:
     ///   - outside: outside view
     ///   - inside: inside view (guide view)
