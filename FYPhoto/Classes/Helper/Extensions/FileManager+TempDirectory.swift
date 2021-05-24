@@ -15,8 +15,6 @@ extension FileManager {
             switch self {
             case .fileExsisted:
                 return "File exsisted"
-            default:
-                <#code#>
             }
         }
     }
@@ -25,7 +23,7 @@ extension FileManager {
     /// - Throws: error when create temp url
     /// - Returns: temp directory location
     public static func tempDirectory(with pathComponent: String? = nil) throws -> URL {
-        let cacheURL = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first!
+        let cacheURL = FileManager.default.temporaryDirectory
         do {
             // Only the volume(卷) of cache url is used.
             let temp = try FileManager.default.url(for: .itemReplacementDirectory, in: .userDomainMask, appropriateFor: cacheURL, create: true)
