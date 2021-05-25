@@ -44,7 +44,7 @@ public class PhotoEditorCropViewController: UIViewController {
     
     let maskManager = CropViewMaskManager()
     
-    private var isGuideViewZoommingOut = false
+    private var isGuideViewZoomingOut = false
     private var guideViewResizeAnimator: UIViewPropertyAnimator?
     
     private var maximumRectKeyValueObservation: NSKeyValueObservation?
@@ -246,16 +246,16 @@ public class PhotoEditorCropViewController: UIViewController {
         if !initialLayout {
             guideView.translatesAutoresizingMaskIntoConstraints = true            
             initialLayout = true
-            // set guideView from
+            
             let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
             let guideFrameInCropView = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
-            //  initialGuideFrame is related to CropView, should convert to it's subview before setted to guideView
+            //  initialGuideFrame is under CropView, should convert it to viewController's view before being set to guideView
             let converted = cropView.convert(guideFrameInCropView, to: view)
             viewModel.resetInitFrame(converted)
             guideView.frame = converted
             cropView.updateSubViews(guideFrameInCropView, degree: CGFloat(viewModel.rotationDegree.radians))
         }
-        if !isGuideViewZoommingOut {
+        if !isGuideViewZoomingOut {
             updateMaskTransparent(guideView.frame, animated: false)
         }        
     }
@@ -282,8 +282,8 @@ public class PhotoEditorCropViewController: UIViewController {
         }
     }
     
-    /// counterclock rotate image view with degree radian value
-    /// - Parameter radians: radian value
+    /// Rotate image counterclockwise at a degree
+    /// - Parameter radians: degree radian value
     /// - Parameter guideViewFrame: guide view frame
     func updateCropViewRotation(_ radians: Double, _ guideViewFrame: CGRect) {
         viewModel.status = .imageRotation
@@ -300,7 +300,7 @@ public class PhotoEditorCropViewController: UIViewController {
         viewModel.resetInitFrame(convertedInitFrame)
                         
         UIView.animate(withDuration: 0.25) {
-            self.guideView.frame = convertedGuideFrame            
+            self.guideView.frame = convertedGuideFrame
             var size = newRect.size
             if self.viewModel.rotationDegree == .counterclockwise90 || self.viewModel.rotationDegree == .counterclockwise270 {
                 size = CGSize(width: newRect.height, height: newRect.width)
@@ -318,20 +318,15 @@ public class PhotoEditorCropViewController: UIViewController {
             maskManager.showVisualEffectBackground()
         case .touchImage:            
             maskManager.showDimmingBackground()
-            // TODO: 😴zZ
         case .touchHandle(_):
             cropView.scrollView.isUserInteractionEnabled = false
             updateGuideViewMaximumRect()
             maskManager.showDimmingBackground()
-        // TODO: 😴zZ
         case .imageRotation:
-//            blurredManager.showVisualEffectBackground()
-        break
+            break
         case .endTouch:
             maskManager.showVisualEffectBackground()
             cropView.scrollView.isUserInteractionEnabled = true
-        // TODO: 😴zZ
-
         }
     }
     
@@ -369,7 +364,7 @@ public class PhotoEditorCropViewController: UIViewController {
         var guideViewFrame = GeometryHelper.getAppropriateRect(fromOutside: contentBounds, inside: scaledFrame)
         guideViewFrame = cropView.convert(guideViewFrame, to: view)
         
-        isGuideViewZoommingOut = true
+        isGuideViewZoomingOut = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
             guard let self = self else { return }
             self.updateMaskTransparent(guideViewFrame, animated: true)
@@ -388,7 +383,7 @@ public class PhotoEditorCropViewController: UIViewController {
             case .start:
                 print("animation starting: guideView: \(self.guideView)")
             case .end:
-                self.isGuideViewZoommingOut = false
+                self.isGuideViewZoomingOut = false
             default: break
             }
         }
@@ -409,13 +404,13 @@ public class PhotoEditorCropViewController: UIViewController {
         
         let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
         let initialGuideFrame = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
-        let convertedGuideFrame = self.cropView.convert(initialGuideFrame, to: self.view)
-        let guideFrame = self.viewModel.calculateCropBoxFrame(by: convertedGuideFrame)
+        let convertedGuideFrame = cropView.convert(initialGuideFrame, to: view)
+        let guideFrame = viewModel.calculateCropBoxFrame(by: convertedGuideFrame)
         
         viewModel.resetInitFrame(guideFrame)
         guideView.frame = guideFrame
         
-        self.guideView.aspectRatio = ratio
+        guideView.aspectRatio = ratio
     }
     
     // MARK: - Button actions
