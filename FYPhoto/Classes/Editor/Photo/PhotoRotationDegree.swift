@@ -14,24 +14,24 @@ enum PhotoRotationDegree: Equatable {
     case counterclockwise270
 //    case custom(radians: Double)
     
-    var radians: Double {
+    var radians: CGFloat {
         switch self {
         case .zero:
             return 0
         case .counterclockwise90:
-            return -Double.pi/2
+            return -CGFloat.pi/2
         case .counterclockwise180:
-            return -Double.pi
+            return -CGFloat.pi
         case .counterclockwise270:
-            return -Double.pi*1.5
+            return -CGFloat.pi*1.5
 //        case .custom(radians: let value):
 //            return value
         }
     }
     
-    var degree: Double {
+    var degree: CGFloat {
         get {
-            return radians / Double.pi * 180.0
+            return radians / CGFloat.pi * 180.0
         }
     }
     

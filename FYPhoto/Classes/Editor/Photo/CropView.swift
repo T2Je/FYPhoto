@@ -11,7 +11,7 @@ class CropView: UIView {
     struct Constant {
         static let padding: CGFloat = 14
     }
-    
+        
     var scrollViewTouchesBegan = {}
     var scrollViewTouchesCancelled = {}
     var scrollViewTouchesEnd = {}
@@ -30,6 +30,7 @@ class CropView: UIView {
         clipsToBounds = false
         addSubview(scrollView)
         scrollView.addSubview(imageView)
+        scrollView.imageContainer = imageView
         
         setupUI()
     }
@@ -39,7 +40,7 @@ class CropView: UIView {
     }
     
     func resetSubviewsFrame(_ frame: CGRect, degree: CGFloat) {
-        updateViewFrame(frame, degree: degree)
+        resetScrollView(frame, degree)
     }
     
     required init?(coder: NSCoder) {
@@ -65,23 +66,34 @@ class CropView: UIView {
         }
     }
         
-    func updateSubviewsRotation(_ radians: Double, _ size: CGSize) {
-        let transform = scrollView.transform.rotated(by: CGFloat(radians))
+    func updateSubviewsRotation(_ radians: CGFloat, dstGuideViewSize: CGSize, currRotation: PhotoRotationDegree) {
+        let width = abs(cos(radians)) * dstGuideViewSize.width + abs(sin(radians)) * dstGuideViewSize.height
+        let height = abs(sin(radians)) * dstGuideViewSize.width + abs(cos(radians)) * dstGuideViewSize.height
+        
+        let dstSize: CGSize
+        
+        if currRotation == .zero || currRotation == .counterclockwise180 {
+            dstSize = CGSize(width: width, height: height)
+        } else {
+            dstSize = CGSize(width: height, height: width)
+        }
+        
+        let transform = scrollView.transform.rotated(by: radians)
         self.scrollView.transform = transform
-        self.updateScrollViewBy90DegreeRotation(size)
+        self.updateScrollViewRotation(dstSize)
     }
     
     func completeRotation() {
-        self.scrollView.updateMinimumScacle(withImageViewSize: self.imageView.frame.size)
+        self.scrollView.updateMinimumScacle()
     }
     
-    func updateScrollViewBy90DegreeRotation(_ size: CGSize) {
+    func updateScrollViewRotation(_ size: CGSize) {
         let scale = computeScrollViewScale(size)
-        scrollView.update(with: size)
+        scrollView.updateBounds(with: size)
         let newScale = scrollView.zoomScale * scale
         scrollView.minimumZoomScale = newScale
         scrollView.zoomScale = newScale
-                
+        
         scrollView.checkContentOffset()
     }
     
@@ -93,7 +105,7 @@ class CropView: UIView {
         self.scrollView.zoom(to: convertedFrame, animated: false)
     }
     
-    fileprivate func updateViewFrame(_ frame: CGRect, degree: CGFloat) {
+    fileprivate func resetScrollView(_ frame: CGRect, _ degree: CGFloat) {
         let transform = CGAffineTransform.identity.rotated(by: degree)
         scrollView.transform = transform
         scrollView.reset(frame)
@@ -101,16 +113,16 @@ class CropView: UIView {
         imageView.frame = scrollView.bounds
         imageView.center = CGPoint(x: scrollView.bounds.width/2, y: scrollView.bounds.height/2)
     }
-        
-    override func layoutSubviews() {
-        super.layoutSubviews()        
+    
+    func updateScrollViewMinZoomScale() {
+        scrollView.updateMinimumScacle()
     }
     
 }
 
 extension CropView {
     func handleDeviceRotate(_ guideViewFrame: CGRect, degree: CGFloat) {
-        updateViewFrame(guideViewFrame, degree: degree)
+        resetScrollView(guideViewFrame, degree)
     }
     
     func imageViewCropViewIntersection() -> CGRect {

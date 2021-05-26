@@ -9,6 +9,8 @@ import UIKit
 
 class CropScrollView: UIScrollView {
 
+    weak var imageContainer: CropView.ImageView?
+    
     var touchesBegan = {}
     var touchesCancelled = {}
     var touchesEnd = {}
@@ -21,7 +23,7 @@ class CropScrollView: UIScrollView {
         showsVerticalScrollIndicator = false
         contentInsetAdjustmentBehavior = .never
         minimumZoomScale = 1.0
-        maximumZoomScale = 15.0
+        maximumZoomScale = 20.0
         clipsToBounds = false
         contentSize = bounds.size
         layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
@@ -33,15 +35,16 @@ class CropScrollView: UIScrollView {
 
     func reset(_ rect: CGRect) {
         // Reseting zoom need to be before resetting frame and contentsize
-        minimumZoomScale = 1.0
-        zoomScale = 1.0
+        let minimum = getBoundZoomScale()
+        minimumZoomScale = minimum
+        zoomScale = minimum
 
         frame = rect
         contentSize = rect.size
     }
     
     // Update bound size, re-center with old center, then scrollView's frame will be changed.
-    func update(with newSize: CGSize) {
+    func updateBounds(with newSize: CGSize) {
         let oldCenter = center
         let oldOffsetCenter = CGPoint(x: contentOffset.x + bounds.width/2, y: contentOffset.y + bounds.height/2)
         
@@ -51,13 +54,16 @@ class CropScrollView: UIScrollView {
         center = oldCenter
     }
     
-    func updateMinimumScacle(withImageViewSize size: CGSize) {
-        minimumZoomScale = getBoundZoomScale(size)
+    func updateMinimumScacle() {
+        minimumZoomScale = getBoundZoomScale()
     }
     
-    private func getBoundZoomScale(_ size: CGSize) -> CGFloat {
-        let scaleW = bounds.width / size.width
-        let scaleH = bounds.height / size.height
+    private func getBoundZoomScale() -> CGFloat {
+        guard let imageContainer = imageContainer, bounds.size != .zero else {
+            return 1.0
+        }
+        let scaleW = bounds.width / imageContainer.bounds.width
+        let scaleH = bounds.height / imageContainer.bounds.height
         
         return max(scaleW, scaleH)
     }

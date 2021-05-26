@@ -253,7 +253,7 @@ public class PhotoEditorCropViewController: UIViewController {
             let converted = cropView.convert(guideFrameInCropView, to: view)
             viewModel.resetInitFrame(converted)
             guideView.frame = converted
-            cropView.updateSubViews(guideFrameInCropView, degree: CGFloat(viewModel.rotationDegree.radians))
+            cropView.updateSubViews(guideFrameInCropView, degree: viewModel.rotationDegree.radians)
         }
         if !isGuideViewZoomingOut {
             updateMaskTransparent(guideView.frame, animated: false)
@@ -278,14 +278,14 @@ public class PhotoEditorCropViewController: UIViewController {
         // viewDidLayoutSubviews
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             guard let self = self else { return }
-            self.cropView.handleDeviceRotate(self.guideView.frame, degree: CGFloat(self.viewModel.rotationDegree.radians))
+            self.cropView.handleDeviceRotate(self.guideView.frame, degree: self.viewModel.rotationDegree.radians)
         }
     }
     
     /// Rotate image counterclockwise at a degree
     /// - Parameter radians: degree radian value
-    /// - Parameter guideViewFrame: guide view frame
-    func updateCropViewRotation(_ radians: Double, _ guideViewFrame: CGRect) {
+    /// - Parameter guideViewFrame: current guide view frame
+    func updateCropViewRotation(_ radians: CGFloat, _ guideViewFrame: CGRect, completion: @escaping (() -> Void)) {
         viewModel.status = .imageRotation
         var rect = guideViewFrame
         rect.size.width = guideView.frame.height
@@ -293,7 +293,7 @@ public class PhotoEditorCropViewController: UIViewController {
         
         let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
         let newRect = GeometryHelper.getAppropriateRect(fromOutside: contentBounds, inside: rect)
-        let convertedGuideFrame = self.cropView.convert(newRect, to: self.view)
+        let convertedGuideFrame = cropView.convert(newRect, to: self.view)
         
         let initGuideFrameInCropView = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
         let convertedInitFrame = cropView.convert(initGuideFrameInCropView, to: view)
@@ -301,14 +301,9 @@ public class PhotoEditorCropViewController: UIViewController {
                         
         UIView.animate(withDuration: 0.25) {
             self.guideView.frame = convertedGuideFrame
-            var size = newRect.size
-            if self.viewModel.rotationDegree == .counterclockwise90 || self.viewModel.rotationDegree == .counterclockwise270 {
-                size = CGSize(width: newRect.height, height: newRect.width)
-            }
-            self.cropView.updateSubviewsRotation(radians, size)
+            self.cropView.updateSubviewsRotation(radians, dstGuideViewSize: convertedGuideFrame.size, currRotation: self.viewModel.rotationDegree)
         } completion: { _ in
-            self.cropView.completeRotation()
-            self.viewModel.status = .endTouch
+            completion()
         }
     }
     
@@ -343,20 +338,21 @@ public class PhotoEditorCropViewController: UIViewController {
         // calculate the zoom area of scroll view
         var scaleFrame = scaleFrame
         
-        if scaleFrame.width >= cropView.scrollView.contentSize.width {
+        if scaleFrame.width > cropView.scrollView.contentSize.width {
             scaleFrame.size.width = cropView.scrollView.contentSize.width
         }
-        if scaleFrame.height >= cropView.scrollView.contentSize.height {
+        if scaleFrame.height > cropView.scrollView.contentSize.height {
             scaleFrame.size.height = cropView.scrollView.contentSize.height
         }
                 
-        let transformedSize = guideView.frame.size.applying(CGAffineTransform(rotationAngle: CGFloat(viewModel.rotationDegree.radians)))
-        self.cropView.scrollView.update(with: transformedSize)
-        
+        var rotationSize = guideView.frame.size
+        if viewModel.rotationDegree == .counterclockwise90 || viewModel.rotationDegree == .counterclockwise270 {
+            rotationSize = CGSize(width: guideView.frame.size.height, height: guideView.frame.size.width)
+        }
+        self.cropView.scrollView.updateBounds(with: rotationSize)
+
         let convertedFrame = self.view.convert(scaleFrame, to: self.cropView.imageView)
-        
         self.cropView.scrollView.zoom(to: convertedFrame, animated: false)
-        self.cropView.scrollView.checkContentOffset()
     }
     
     fileprivate func animateGuideViewAfterResizing(_ scaledFrame: CGRect) {
@@ -383,6 +379,7 @@ public class PhotoEditorCropViewController: UIViewController {
             case .start:
                 print("animation starting: guideView: \(self.guideView)")
             case .end:
+                self.cropView.updateScrollViewMinZoomScale()
                 self.isGuideViewZoomingOut = false
             default: break
             }
@@ -390,8 +387,12 @@ public class PhotoEditorCropViewController: UIViewController {
     }
     
     @objc func rotatePhotoBy90DegreeClicked(_ sender: UIButton) {
-        viewModel.rotationDegree.counterclockwiseRotate90Degree()
-        updateCropViewRotation(-Double.pi/2, guideView.frame)
+        updateCropViewRotation(-CGFloat.pi/2, guideView.frame) {
+            self.viewModel.rotationDegree.counterclockwiseRotate90Degree()
+            self.viewModel.status = .endTouch
+            self.cropView.completeRotation()
+        }
+        
     }
     
     func updateMaskTransparent(_ rect: CGRect, animated: Bool) {
@@ -416,12 +417,13 @@ public class PhotoEditorCropViewController: UIViewController {
     // MARK: - Button actions
     
     @objc func resetPhotoButtonClicked(_ sender: UIButton) {
+        // TODO: bug
         updateCropRatio(nil)
         let ratioBarItems = aspectRatioManager.items.map { AspectRatioButtonItem(title: $0.title, ratio: $0.value) }
         aspectRatioBar.reloadItems(ratioBarItems)
         
         let convertedFrame = self.view.convert(viewModel.initialFrame, to: cropView)
-        cropView.resetSubviewsFrame(convertedFrame, degree: CGFloat(viewModel.rotationDegree.radians))
+        cropView.resetSubviewsFrame(convertedFrame, degree: viewModel.rotationDegree.radians)
                 
         guideView.frame = viewModel.initialFrame
 
@@ -456,17 +458,16 @@ public class PhotoEditorCropViewController: UIViewController {
             assertionFailure("imageView doesn't contains an image")
             return
         }
-        let ratio: CGFloat
-        
+        let ratio = imageViewImage.size.height / cropView.scrollView.contentSize.height
+        let origin: CGPoint
+        let cropImageViewSize = CGSize(width: guideView.bounds.size.width * ratio, height: guideView.bounds.size.height * ratio)
         if viewModel.rotationDegree == .zero || viewModel.rotationDegree == .counterclockwise180 {
-            ratio = imageViewImage.size.height / cropView.scrollView.contentSize.height
+            origin = CGPoint(x: cropView.scrollView.contentOffset.x * ratio, y: cropView.scrollView.contentOffset.y * ratio)
         } else {
-            ratio = imageViewImage.size.width / cropView.scrollView.contentSize.width
+            origin = CGPoint(x: cropView.scrollView.contentOffset.y * ratio, y: cropView.scrollView.contentOffset.x * ratio)
         }
-        
-        let origin = CGPoint(x: cropView.scrollView.contentOffset.x * ratio, y: cropView.scrollView.contentOffset.y * ratio)
-        let size = CGSize(width: guideView.bounds.size.width * ratio, height: guideView.bounds.size.height * ratio)
-        let cropFrame = CGRect(origin: origin, size: size)
+                
+        let cropFrame = CGRect(origin: origin, size: cropImageViewSize)
         
         let result: Result<UIImage, Error>
         if let image = crop(imageViewImage, to: cropFrame, cropOrientation: viewModel.rotationDegree) {
@@ -483,3 +484,14 @@ public class PhotoEditorCropViewController: UIViewController {
         return image.cropWithFrame2(rect, isCircular: false, radians: CGFloat(cropOrientation.radians))
     }
 }
+
+//scaleFrame: (14.0, 500.33333333333326, 266.6666666666666, 80.0)
+//convertedFrame: (0.0, 0.0, 120.0, 400.00000000000006)
+//imageView: <_TtCC7FYPhoto8CropView9ImageView: 0x7fb7942f5cc0; baseClass = UIImageView; frame = (0 0; 266.667 400); transform = [0.66666666666666641, 0, 0, 0.66666666666666641, 0, 0]; opaque = NO; userInteractionEnabled = NO; layer = <CALayer: 0x7fb7942cefd0>>
+//scrollView: <FYPhoto.CropScrollView: 0x7fb7918aba00; baseClass = UIScrollView; frame = (14 315; 400 80); transform = [6.123233995736766e-17, -1, 1, 6.123233995736766e-17, 0, 0]; gestureRecognizers = <NSArray: 0x7fb79431c490>; animations = { bounds.origin=<CABasicAnimation: 0x7fb7942bdd60>; bounds.size=<CABasicAnimation: 0x7fb79428bb10>; bounds.origin-2=<CABasicAnimation: 0x7fb7942bcbb0>; bounds.size-2=<CABasicAnimation: 0x7fb7942ed7b0>; }; layer = <CALayer: 0x7fb794330f90>; contentOffset: {93.333333333333329, 0}; contentSize: {266.66666666666657, 399.99999999999983}; adjustedContentInset: {0, 0, 0, 0}>
+//
+//    contentRect: (14.0, 14.0, 400.0, 728.0), cropBoxFrame: (16.0, 437.6666666666667, 398.0, 73.66666666666663)
+//    newCropBoxFrame: (14.0, 340.9815745393635, 400.0, 74.03685092127299)
+//    scaleFrame: (16.0, 437.6666666666667, 266.66666666666663, 73.66666666666663), zoomRect: (0.02763819095468989, 2.9999999999999574, 110.5, 400.00000000000006)
+//    imageContainer: Optional(<Mantis.ImageContainer: 0x7feb804233c0; frame = (0 0; 266.667 400); transform = [0.66666666666666652, 0, 0, 0.66666666666666652, 0, 0]; layer = <CALayer: 0x6000004a7980>>)
+//    scrollView: <Mantis.CropScrollView: 0x7feb8084de00; baseClass = UIScrollView; frame = (14 340.982; 400 74.0369); transform = [6.123233995736766e-17, -1, 1, 6.123233995736766e-17, 0, 0]; gestureRecognizers = <NSArray: 0x600000a8d5c0>; layer = <CALayer: 0x6000004a6c80>; contentOffset: {96.333333333333329, 0}; contentSize: {266.66666666666663, 399.99999999999989}; adjustedContentInset: {0, 0, 0, 0}>
