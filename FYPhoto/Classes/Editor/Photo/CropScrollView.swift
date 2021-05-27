@@ -33,14 +33,15 @@ class CropScrollView: UIScrollView {
         super.init(coder: aDecoder)
     }
 
-    func reset(_ rect: CGRect) {
+    func reset(rect: CGRect, isPortrait: Bool) {
         // Reseting zoom need to be before resetting frame and contentsize
         let minimum = getBoundZoomScale()
         minimumZoomScale = minimum
         zoomScale = minimum
 
         frame = rect
-        contentSize = rect.size
+        
+        contentSize = isPortrait ? CGSize(width: rect.width, height: rect.height) : CGSize(width: rect.height, height: rect.width)
     }
     
     // Update bound size, re-center with old center, then scrollView's frame will be changed.

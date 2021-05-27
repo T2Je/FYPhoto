@@ -253,7 +253,7 @@ public class PhotoEditorCropViewController: UIViewController {
             let converted = cropView.convert(guideFrameInCropView, to: view)
             viewModel.resetInitFrame(converted)
             guideView.frame = converted
-            cropView.updateSubViews(guideFrameInCropView, degree: viewModel.rotationDegree.radians)
+            cropView.updateSubViews(guideFrameInCropView, currRotation: viewModel.rotationDegree)
         }
         if !isGuideViewZoomingOut {
             updateMaskTransparent(guideView.frame, animated: false)
@@ -278,7 +278,7 @@ public class PhotoEditorCropViewController: UIViewController {
         // viewDidLayoutSubviews
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             guard let self = self else { return }
-            self.cropView.handleDeviceRotate(self.guideView.frame, degree: self.viewModel.rotationDegree.radians)
+            self.cropView.handleDeviceRotate(self.guideView.frame, currRotation: self.viewModel.rotationDegree)
         }
     }
     
@@ -423,7 +423,7 @@ public class PhotoEditorCropViewController: UIViewController {
         aspectRatioBar.reloadItems(ratioBarItems)
         
         let convertedFrame = self.view.convert(viewModel.initialFrame, to: cropView)
-        cropView.resetSubviewsFrame(convertedFrame, degree: viewModel.rotationDegree.radians)
+        cropView.resetSubviewsFrame(convertedFrame, currRotation: viewModel.rotationDegree)
                 
         guideView.frame = viewModel.initialFrame
 
@@ -484,14 +484,3 @@ public class PhotoEditorCropViewController: UIViewController {
         return image.cropWithFrame2(rect, isCircular: false, radians: CGFloat(cropOrientation.radians))
     }
 }
-
-//scaleFrame: (14.0, 500.33333333333326, 266.6666666666666, 80.0)
-//convertedFrame: (0.0, 0.0, 120.0, 400.00000000000006)
-//imageView: <_TtCC7FYPhoto8CropView9ImageView: 0x7fb7942f5cc0; baseClass = UIImageView; frame = (0 0; 266.667 400); transform = [0.66666666666666641, 0, 0, 0.66666666666666641, 0, 0]; opaque = NO; userInteractionEnabled = NO; layer = <CALayer: 0x7fb7942cefd0>>
-//scrollView: <FYPhoto.CropScrollView: 0x7fb7918aba00; baseClass = UIScrollView; frame = (14 315; 400 80); transform = [6.123233995736766e-17, -1, 1, 6.123233995736766e-17, 0, 0]; gestureRecognizers = <NSArray: 0x7fb79431c490>; animations = { bounds.origin=<CABasicAnimation: 0x7fb7942bdd60>; bounds.size=<CABasicAnimation: 0x7fb79428bb10>; bounds.origin-2=<CABasicAnimation: 0x7fb7942bcbb0>; bounds.size-2=<CABasicAnimation: 0x7fb7942ed7b0>; }; layer = <CALayer: 0x7fb794330f90>; contentOffset: {93.333333333333329, 0}; contentSize: {266.66666666666657, 399.99999999999983}; adjustedContentInset: {0, 0, 0, 0}>
-//
-//    contentRect: (14.0, 14.0, 400.0, 728.0), cropBoxFrame: (16.0, 437.6666666666667, 398.0, 73.66666666666663)
-//    newCropBoxFrame: (14.0, 340.9815745393635, 400.0, 74.03685092127299)
-//    scaleFrame: (16.0, 437.6666666666667, 266.66666666666663, 73.66666666666663), zoomRect: (0.02763819095468989, 2.9999999999999574, 110.5, 400.00000000000006)
-//    imageContainer: Optional(<Mantis.ImageContainer: 0x7feb804233c0; frame = (0 0; 266.667 400); transform = [0.66666666666666652, 0, 0, 0.66666666666666652, 0, 0]; layer = <CALayer: 0x6000004a7980>>)
-//    scrollView: <Mantis.CropScrollView: 0x7feb8084de00; baseClass = UIScrollView; frame = (14 340.982; 400 74.0369); transform = [6.123233995736766e-17, -1, 1, 6.123233995736766e-17, 0, 0]; gestureRecognizers = <NSArray: 0x600000a8d5c0>; layer = <CALayer: 0x6000004a6c80>; contentOffset: {96.333333333333329, 0}; contentSize: {266.66666666666663, 399.99999999999989}; adjustedContentInset: {0, 0, 0, 0}>

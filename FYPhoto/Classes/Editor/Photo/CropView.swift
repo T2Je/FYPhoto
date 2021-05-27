@@ -35,12 +35,12 @@ class CropView: UIView {
         setupUI()
     }
     
-    func updateSubViews(_ frame: CGRect, degree: CGFloat) {
-        resetSubviewsFrame(frame, degree: degree)
+    func updateSubViews(_ frame: CGRect, currRotation: PhotoRotationDegree) {
+        resetSubviewsFrame(frame, currRotation: currRotation)
     }
     
-    func resetSubviewsFrame(_ frame: CGRect, degree: CGFloat) {
-        resetScrollView(frame, degree)
+    func resetSubviewsFrame(_ frame: CGRect, currRotation: PhotoRotationDegree) {
+        resetScrollView(frame, currRotation)
     }
     
     required init?(coder: NSCoder) {
@@ -105,13 +105,14 @@ class CropView: UIView {
         self.scrollView.zoom(to: convertedFrame, animated: false)
     }
     
-    fileprivate func resetScrollView(_ frame: CGRect, _ degree: CGFloat) {
-        let transform = CGAffineTransform.identity.rotated(by: degree)
+    fileprivate func resetScrollView(_ frame: CGRect, _ currentRotate: PhotoRotationDegree) {
+        let transform = CGAffineTransform.identity.rotated(by: currentRotate.radians)
         scrollView.transform = transform
-        scrollView.reset(frame)
+        scrollView.reset(rect: frame, isPortrait: (currentRotate == .zero || currentRotate == .counterclockwise180))
         
         imageView.frame = scrollView.bounds
-        imageView.center = CGPoint(x: scrollView.bounds.width/2, y: scrollView.bounds.height/2)
+//        imageView.bounds = CGRect(origin: .zero, size: scrollView.frame.size)
+//        imageView.center = CGPoint(x: scrollView.frame.width/2, y: scrollView.frame.height/2)
     }
     
     func updateScrollViewMinZoomScale() {
@@ -121,8 +122,8 @@ class CropView: UIView {
 }
 
 extension CropView {
-    func handleDeviceRotate(_ guideViewFrame: CGRect, degree: CGFloat) {
-        resetScrollView(guideViewFrame, degree)
+    func handleDeviceRotate(_ guideViewFrame: CGRect, currRotation: PhotoRotationDegree) {
+        resetScrollView(guideViewFrame, currRotation)
     }
     
     func imageViewCropViewIntersection() -> CGRect {
