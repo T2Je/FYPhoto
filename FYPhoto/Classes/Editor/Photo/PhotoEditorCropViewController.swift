@@ -201,7 +201,7 @@ public class PhotoEditorCropViewController: UIViewController {
     
     var aspectRatioManager: RatioManager {
         let original = viewModel.getImageRatio()
-        let isHorizontal = viewModel.rotationDegree == .counterclockwise90 || viewModel.rotationDegree == .counterclockwise270
+        let isHorizontal = viewModel.rotation == .counterclockwise90 || viewModel.rotation == .counterclockwise270
         return RatioManager(ratioOptions: .all, custom: customRatio, original: original, isHorizontal: isHorizontal)
     }
     
@@ -253,7 +253,7 @@ public class PhotoEditorCropViewController: UIViewController {
             let converted = cropView.convert(guideFrameInCropView, to: view)
             viewModel.resetInitFrame(converted)
             guideView.frame = converted
-            cropView.updateSubViews(guideFrameInCropView, currRotation: viewModel.rotationDegree)
+            cropView.updateSubViews(guideFrameInCropView, currRotation: viewModel.rotation)
         }
         if !isGuideViewZoomingOut {
             updateMaskTransparent(guideView.frame, animated: false)
@@ -278,7 +278,7 @@ public class PhotoEditorCropViewController: UIViewController {
         // viewDidLayoutSubviews
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             guard let self = self else { return }
-            self.cropView.handleDeviceRotate(self.guideView.frame, currRotation: self.viewModel.rotationDegree)
+            self.cropView.handleDeviceRotate(self.guideView.frame, currRotation: self.viewModel.rotation)
         }
     }
     
@@ -301,7 +301,7 @@ public class PhotoEditorCropViewController: UIViewController {
                         
         UIView.animate(withDuration: 0.25) {
             self.guideView.frame = convertedGuideFrame
-            self.cropView.updateSubviewsRotation(radians, dstGuideViewSize: convertedGuideFrame.size, currRotation: self.viewModel.rotationDegree)
+            self.cropView.updateSubviewsRotation(radians, dstGuideViewSize: convertedGuideFrame.size, currRotation: self.viewModel.rotation)
         } completion: { _ in
             completion()
         }
@@ -346,7 +346,7 @@ public class PhotoEditorCropViewController: UIViewController {
         }
                 
         var rotationSize = guideView.frame.size
-        if viewModel.rotationDegree == .counterclockwise90 || viewModel.rotationDegree == .counterclockwise270 {
+        if viewModel.rotation == .counterclockwise90 || viewModel.rotation == .counterclockwise270 {
             rotationSize = CGSize(width: guideView.frame.size.height, height: guideView.frame.size.width)
         }
         self.cropView.scrollView.updateBounds(with: rotationSize)
@@ -388,7 +388,7 @@ public class PhotoEditorCropViewController: UIViewController {
     
     @objc func rotatePhotoBy90DegreeClicked(_ sender: UIButton) {
         updateCropViewRotation(-CGFloat.pi/2, guideView.frame) {
-            self.viewModel.rotationDegree.counterclockwiseRotate90Degree()
+            self.viewModel.rotation.counterclockwiseRotate90Degree()
             self.viewModel.status = .endTouch
             self.cropView.completeRotation()
         }
@@ -423,7 +423,7 @@ public class PhotoEditorCropViewController: UIViewController {
         aspectRatioBar.reloadItems(ratioBarItems)
         
         let convertedFrame = self.view.convert(viewModel.initialFrame, to: cropView)
-        cropView.resetSubviewsFrame(convertedFrame, currRotation: viewModel.rotationDegree)
+        cropView.resetSubviewsFrame(convertedFrame, currRotation: viewModel.rotation)
                 
         guideView.frame = viewModel.initialFrame
 
@@ -434,7 +434,7 @@ public class PhotoEditorCropViewController: UIViewController {
     }
     
     @objc func cancelButtonClicked(_ sender: UIButton) {
-        if viewModel.rotationDegree != .zero || viewModel.hasResized(guideView.frame) {
+        if viewModel.rotation != .zero || viewModel.hasResized(guideView.frame) {
             discardChangesWarning()
         } else {
             dismiss(animated: true, completion: nil)
@@ -461,7 +461,7 @@ public class PhotoEditorCropViewController: UIViewController {
         let ratio = imageViewImage.size.height / cropView.scrollView.contentSize.height
         let origin: CGPoint
         let cropImageViewSize = CGSize(width: guideView.bounds.size.width * ratio, height: guideView.bounds.size.height * ratio)
-        if viewModel.rotationDegree == .zero || viewModel.rotationDegree == .counterclockwise180 {
+        if viewModel.rotation == .zero || viewModel.rotation == .counterclockwise180 {
             origin = CGPoint(x: cropView.scrollView.contentOffset.x * ratio, y: cropView.scrollView.contentOffset.y * ratio)
         } else {
             origin = CGPoint(x: cropView.scrollView.contentOffset.y * ratio, y: cropView.scrollView.contentOffset.x * ratio)
@@ -470,7 +470,7 @@ public class PhotoEditorCropViewController: UIViewController {
         let cropFrame = CGRect(origin: origin, size: cropImageViewSize)
         
         let result: Result<UIImage, Error>
-        if let image = crop(imageViewImage, to: cropFrame, cropOrientation: viewModel.rotationDegree) {
+        if let image = crop(imageViewImage, to: cropFrame, rotation: viewModel.rotation) {
             result = .success(image)
         } else {
             result = .failure(CropImageError.invalidImage)
@@ -480,7 +480,7 @@ public class PhotoEditorCropViewController: UIViewController {
         }
     }
     
-    func crop(_ image: UIImage, to rect: CGRect, cropOrientation: PhotoRotationDegree) -> UIImage? {
-        return image.cropWithFrame2(rect, isCircular: false, radians: CGFloat(cropOrientation.radians))
+    func crop(_ image: UIImage, to rect: CGRect, rotation: PhotoRotation) -> UIImage? {
+        return image.cropWithFrame2(rect, isCircular: false, radians: CGFloat(rotation.radians))
     }
 }

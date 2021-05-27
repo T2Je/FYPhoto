@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum PhotoRotationDegree: Equatable {
+enum PhotoRotation {
     case zero
     case counterclockwise90
     case counterclockwise180

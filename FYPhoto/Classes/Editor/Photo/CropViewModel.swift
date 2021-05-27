@@ -29,7 +29,7 @@ class CropViewModel: NSObject {
     
     private(set) var aspectRatio: Double = 0
     
-    var rotationDegree: PhotoRotationDegree = .zero
+    var rotation: PhotoRotation = .zero
     
     init(image: UIImage) {
         self.image = image
@@ -45,13 +45,13 @@ class CropViewModel: NSObject {
         let inside: CGRect
         
         if isPortrait {
-            if rotationDegree == .counterclockwise90 || rotationDegree == .counterclockwise270 {
+            if rotation == .counterclockwise90 || rotation == .counterclockwise270 {
                 inside = CGRect(x: 0, y: 0, width: image.size.height, height: image.size.width)
             } else {
                 inside = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
             }
         } else {
-            if rotationDegree == .counterclockwise90 || rotationDegree == .counterclockwise270 {
+            if rotation == .counterclockwise90 || rotation == .counterclockwise270 {
                 inside = CGRect(x: 0, y: 0, width: image.size.width, height: image.size.height)
             } else {
                 inside = CGRect(x: 0, y: 0, width: image.size.height, height: image.size.width)
@@ -121,7 +121,7 @@ class CropViewModel: NSObject {
     }
     
     func getImageRatio() -> Double {
-        if rotationDegree == .zero || rotationDegree == .counterclockwise180 {
+        if rotation == .zero || rotation == .counterclockwise180 {
             return Double(image.size.width / image.size.height)
         } else {
             return Double(image.size.height / image.size.width)

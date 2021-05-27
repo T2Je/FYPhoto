@@ -35,11 +35,11 @@ class CropView: UIView {
         setupUI()
     }
     
-    func updateSubViews(_ frame: CGRect, currRotation: PhotoRotationDegree) {
+    func updateSubViews(_ frame: CGRect, currRotation: PhotoRotation) {
         resetSubviewsFrame(frame, currRotation: currRotation)
     }
     
-    func resetSubviewsFrame(_ frame: CGRect, currRotation: PhotoRotationDegree) {
+    func resetSubviewsFrame(_ frame: CGRect, currRotation: PhotoRotation) {
         resetScrollView(frame, currRotation)
     }
     
@@ -66,7 +66,7 @@ class CropView: UIView {
         }
     }
         
-    func updateSubviewsRotation(_ radians: CGFloat, dstGuideViewSize: CGSize, currRotation: PhotoRotationDegree) {
+    func updateSubviewsRotation(_ radians: CGFloat, dstGuideViewSize: CGSize, currRotation: PhotoRotation) {
         let width = abs(cos(radians)) * dstGuideViewSize.width + abs(sin(radians)) * dstGuideViewSize.height
         let height = abs(sin(radians)) * dstGuideViewSize.width + abs(cos(radians)) * dstGuideViewSize.height
         
@@ -105,7 +105,7 @@ class CropView: UIView {
         self.scrollView.zoom(to: convertedFrame, animated: false)
     }
     
-    fileprivate func resetScrollView(_ frame: CGRect, _ currentRotate: PhotoRotationDegree) {
+    fileprivate func resetScrollView(_ frame: CGRect, _ currentRotate: PhotoRotation) {
         let transform = CGAffineTransform.identity.rotated(by: currentRotate.radians)
         scrollView.transform = transform
         scrollView.reset(rect: frame, isPortrait: (currentRotate == .zero || currentRotate == .counterclockwise180))
@@ -122,7 +122,7 @@ class CropView: UIView {
 }
 
 extension CropView {
-    func handleDeviceRotate(_ guideViewFrame: CGRect, currRotation: PhotoRotationDegree) {
+    func handleDeviceRotate(_ guideViewFrame: CGRect, currRotation: PhotoRotation) {
         resetScrollView(guideViewFrame, currRotation)
     }
     
