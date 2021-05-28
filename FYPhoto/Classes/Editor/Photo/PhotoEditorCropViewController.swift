@@ -7,6 +7,7 @@
 //
 
 import UIKit
+public typealias CropInfo = (translation: CGPoint, rotation: CGFloat, scale: CGFloat, cropSize: CGSize, imageViewSize: CGSize)
 
 public class PhotoEditorCropViewController: UIViewController {
     public enum CropImageError: Error, LocalizedError {
@@ -295,10 +296,10 @@ public class PhotoEditorCropViewController: UIViewController {
         let newRect = GeometryHelper.getAppropriateRect(fromOutside: contentBounds, inside: rect)
         let convertedGuideFrame = cropView.convert(newRect, to: self.view)
         
-        let initGuideFrameInCropView = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
-        let convertedInitFrame = cropView.convert(initGuideFrameInCropView, to: view)
-        viewModel.resetInitFrame(convertedInitFrame)
-                        
+//        let initGuideFrameInCropView = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
+//        let convertedInitFrame = cropView.convert(initGuideFrameInCropView, to: view)
+//        viewModel.resetInitFrame(convertedInitFrame)
+//                        
         UIView.animate(withDuration: 0.25) {
             self.guideView.frame = convertedGuideFrame
             self.cropView.updateSubviewsRotation(radians, dstGuideViewSize: convertedGuideFrame.size, currRotation: self.viewModel.rotation)
@@ -389,6 +390,13 @@ public class PhotoEditorCropViewController: UIViewController {
     @objc func rotatePhotoBy90DegreeClicked(_ sender: UIButton) {
         updateCropViewRotation(-CGFloat.pi/2, guideView.frame) {
             self.viewModel.rotation.counterclockwiseRotate90Degree()
+            
+            
+            let contentBounds = self.viewModel.getContentBounds(self.cropView.bounds, CropView.Constant.padding)
+            let initGuideFrameInCropView = self.viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
+            let convertedInitFrame = self.cropView.convert(initGuideFrameInCropView, to: self.view)
+            self.viewModel.resetInitFrame(convertedInitFrame)
+            
             self.viewModel.status = .endTouch
             self.cropView.completeRotation()
         }
@@ -458,19 +466,12 @@ public class PhotoEditorCropViewController: UIViewController {
             assertionFailure("imageView doesn't contains an image")
             return
         }
-        let ratio = imageViewImage.size.height / cropView.scrollView.contentSize.height
-        let origin: CGPoint
-        let cropImageViewSize = CGSize(width: guideView.bounds.size.width * ratio, height: guideView.bounds.size.height * ratio)
-        if viewModel.rotation == .zero || viewModel.rotation == .counterclockwise180 {
-            origin = CGPoint(x: cropView.scrollView.contentOffset.x * ratio, y: cropView.scrollView.contentOffset.y * ratio)
-        } else {
-            origin = CGPoint(x: cropView.scrollView.contentOffset.y * ratio, y: cropView.scrollView.contentOffset.x * ratio)
-        }
-                
-        let cropFrame = CGRect(origin: origin, size: cropImageViewSize)
         
         let result: Result<UIImage, Error>
-        if let image = crop(imageViewImage, to: cropFrame, rotation: viewModel.rotation) {
+        
+        let guideViewRectInCropView = view.convert(guideView.frame, to: cropView)
+        let cropInfo = cropView.getCropInfo(with: guideViewRectInCropView, radians: viewModel.rotation.radians)
+        if let image = imageViewImage.getCroppedImage(byCropInfo: cropInfo) {
             result = .success(image)
         } else {
             result = .failure(CropImageError.invalidImage)
@@ -479,8 +480,5 @@ public class PhotoEditorCropViewController: UIViewController {
             self.croppedImage?(result)
         }
     }
-    
-    func crop(_ image: UIImage, to rect: CGRect, rotation: PhotoRotation) -> UIImage? {
-        return image.cropWithFrame2(rect, isCircular: false, radians: CGFloat(rotation.radians))
-    }
+
 }

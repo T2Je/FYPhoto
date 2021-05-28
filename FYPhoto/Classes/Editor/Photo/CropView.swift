@@ -134,4 +134,23 @@ extension CropView {
                                                        bottom: Constant.padding,
                                                        right: Constant.padding)))
     }
+    
+    func getCropInfo(with guideViewRect: CGRect, radians: CGFloat) -> CropInfo {
+        
+        let rect = imageView.convert(imageView.bounds,
+                                          to: self)
+        let point = CGPoint(x: rect.midX, y: rect.midY)
+        let zeroPoint = CGPoint(x: guideViewRect.midX, y: guideViewRect.midY)
+        
+        let translation =  CGPoint(x: (point.x - zeroPoint.x), y: (point.y - zeroPoint.y))
+                
+        return CropInfo(
+            translation: translation,
+            rotation: radians,
+            scale: scrollView.zoomScale,
+            cropSize: guideViewRect.size,
+            imageViewSize: imageView.bounds.size
+        )
+        
+    }
 }
