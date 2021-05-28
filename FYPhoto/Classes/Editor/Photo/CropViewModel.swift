@@ -104,20 +104,20 @@ class CropViewModel: NSObject {
         initialFrame != currentRect
     }
 
-    func calculateCropBoxFrame(by initialCropBox: CGRect) -> CGRect {
-        var cropBoxFrame = initialCropBox
+    func calculateGuideViewFrame(by initial: CGRect) -> CGRect {
+        var guideViewFrame = initial
         let center = CGPoint(x: initialFrame.midX, y: initialFrame.midY)
         let original = getImageRatio()
         if (aspectRatio > original) {
-            cropBoxFrame.size.height = cropBoxFrame.width / CGFloat(aspectRatio)
+            guideViewFrame.size.height = guideViewFrame.width / CGFloat(aspectRatio)
         } else {
-            cropBoxFrame.size.width = cropBoxFrame.height * CGFloat(aspectRatio)
+            guideViewFrame.size.width = guideViewFrame.height * CGFloat(aspectRatio)
         }
         
-        cropBoxFrame.origin.x = center.x - cropBoxFrame.width / 2
-        cropBoxFrame.origin.y = center.y - cropBoxFrame.height / 2
+        guideViewFrame.origin.x = center.x - guideViewFrame.width / 2
+        guideViewFrame.origin.y = center.y - guideViewFrame.height / 2
         
-        return cropBoxFrame
+        return guideViewFrame
     }
     
     func getImageRatio() -> Double {

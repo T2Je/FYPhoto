@@ -248,12 +248,10 @@ public class PhotoEditorCropViewController: UIViewController {
             guideView.translatesAutoresizingMaskIntoConstraints = true            
             initialLayout = true
             
-            let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
-            let guideFrameInCropView = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
-            //  initialGuideFrame is under CropView, should convert it to viewController's view before being set to guideView
-            let converted = cropView.convert(guideFrameInCropView, to: view)
-            viewModel.resetInitFrame(converted)
-            guideView.frame = converted
+            let guideViewFrame = calculateGuideViewInitialFrame()
+            viewModel.resetInitFrame(guideViewFrame)
+            guideView.frame = guideViewFrame
+            let guideFrameInCropView = view.convert(guideViewFrame, to: cropView)
             cropView.updateSubViews(guideFrameInCropView, currRotation: viewModel.rotation)
         }
         if !isGuideViewZoomingOut {
@@ -295,11 +293,7 @@ public class PhotoEditorCropViewController: UIViewController {
         let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
         let newRect = GeometryHelper.getAppropriateRect(fromOutside: contentBounds, inside: rect)
         let convertedGuideFrame = cropView.convert(newRect, to: self.view)
-        
-//        let initGuideFrameInCropView = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
-//        let convertedInitFrame = cropView.convert(initGuideFrameInCropView, to: view)
-//        viewModel.resetInitFrame(convertedInitFrame)
-//                        
+                          
         UIView.animate(withDuration: 0.25) {
             self.guideView.frame = convertedGuideFrame
             self.cropView.updateSubviewsRotation(radians, dstGuideViewSize: convertedGuideFrame.size, currRotation: self.viewModel.rotation)
@@ -387,15 +381,18 @@ public class PhotoEditorCropViewController: UIViewController {
         }
     }
     
+    fileprivate func calculateGuideViewInitialFrame() -> CGRect {
+        let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
+        let initGuideFrameInCropView = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
+        //  initialGuideFrame is under CropView, should convert it to viewController's view before being set to guideView
+        let convertedInitFrame = cropView.convert(initGuideFrameInCropView, to: view)
+        return convertedInitFrame
+    }
+
     @objc func rotatePhotoBy90DegreeClicked(_ sender: UIButton) {
         updateCropViewRotation(-CGFloat.pi/2, guideView.frame) {
             self.viewModel.rotation.counterclockwiseRotate90Degree()
-            
-            
-            let contentBounds = self.viewModel.getContentBounds(self.cropView.bounds, CropView.Constant.padding)
-            let initGuideFrameInCropView = self.viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
-            let convertedInitFrame = self.cropView.convert(initGuideFrameInCropView, to: self.view)
-            self.viewModel.resetInitFrame(convertedInitFrame)
+            self.viewModel.resetInitFrame(self.calculateGuideViewInitialFrame())
             
             self.viewModel.status = .endTouch
             self.cropView.completeRotation()
@@ -411,12 +408,9 @@ public class PhotoEditorCropViewController: UIViewController {
     func updateCropRatio(_ ratio: Double?) {
         viewModel.setFixedAspectRatio(ratio)
         
-        let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
-        let initialGuideFrame = viewModel.getInitialCropGuideViewRect(fromOutside: contentBounds)
-        let convertedGuideFrame = cropView.convert(initialGuideFrame, to: view)
-        let guideFrame = viewModel.calculateCropBoxFrame(by: convertedGuideFrame)
-        
-        viewModel.resetInitFrame(guideFrame)
+        let initialFrame = calculateGuideViewInitialFrame()
+        viewModel.resetInitFrame(initialFrame)
+        let guideFrame = viewModel.calculateGuideViewFrame(by: initialFrame)
         guideView.frame = guideFrame
         
         guideView.aspectRatio = ratio
@@ -425,7 +419,6 @@ public class PhotoEditorCropViewController: UIViewController {
     // MARK: - Button actions
     
     @objc func resetPhotoButtonClicked(_ sender: UIButton) {
-        // TODO: bug
         updateCropRatio(nil)
         let ratioBarItems = aspectRatioManager.items.map { AspectRatioButtonItem(title: $0.title, ratio: $0.value) }
         aspectRatioBar.reloadItems(ratioBarItems)
@@ -480,5 +473,4 @@ public class PhotoEditorCropViewController: UIViewController {
             self.croppedImage?(result)
         }
     }
-
 }
