@@ -36,7 +36,7 @@ public class CropImageViewController: UIViewController {
     
     lazy var aspectRatioBar: AspectRatioBar = {
         let ratioBarItems = aspectRatioManager.items.map { AspectRatioButtonItem(title: $0.title, ratio: $0.value) }
-        let bar = AspectRatioBar(items: ratioBarItems)
+        let bar = AspectRatioBar(items: ratioBarItems, isPortrait: orientation == .portrait || orientation == .portraitUpsideDown)
         return bar
     }()
     
@@ -218,29 +218,80 @@ public class CropImageViewController: UIViewController {
             topStackView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10)
         ])
         
+        layoutCropViewAndRatioBar(orientation == .portrait || orientation == .portraitUpsideDown)
+    }
+    
+    var customLayouts: [NSLayoutConstraint] = []
+        
+    func layoutCropViewAndRatioBar(_ isPortrait: Bool) {
+        let safeArea = view.safeAreaLayoutGuide
         cropView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            cropView.topAnchor.constraint(equalTo: topStackView.bottomAnchor, constant: 0),
-            cropView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0),
-            cropView.bottomAnchor.constraint(equalTo: aspectRatioBar.topAnchor, constant: 0),
-            cropView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0)
-        ])
-        
         aspectRatioBar.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            aspectRatioBar.heightAnchor.constraint(equalToConstant: 45),
-            aspectRatioBar.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
-            aspectRatioBar.bottomAnchor.constraint(equalTo: bottomStackView.topAnchor),
-            aspectRatioBar.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
-        ])
-        
-        bottomStackView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            bottomStackView.heightAnchor.constraint(equalToConstant: 45),
-            bottomStackView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
-            bottomStackView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
-            bottomStackView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10)
-        ])
+        NSLayoutConstraint.deactivate(customLayouts)
+        customLayouts.removeAll()
+        if isPortrait {
+            if bottomStackView.superview == nil {
+                topStackView.removeFully(view: cancelButton)
+                topStackView.removeFully(view: doneButton)
+                
+                bottomStackView.addArrangedSubview(cancelButton)
+                bottomStackView.addArrangedSubview(doneButton)
+                view.addSubview(bottomStackView)
+            }
+            let cropViewContraints = [
+                cropView.topAnchor.constraint(equalTo: topStackView.bottomAnchor, constant: 0),
+                cropView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 0),
+                cropView.bottomAnchor.constraint(equalTo: aspectRatioBar.topAnchor, constant: 0),
+                cropView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0)
+            ]
+            
+            NSLayoutConstraint.activate(cropViewContraints)
+                       
+            let aspectRatioBarConstraints = [
+                aspectRatioBar.heightAnchor.constraint(equalToConstant: 45),
+                aspectRatioBar.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+                aspectRatioBar.bottomAnchor.constraint(equalTo: bottomStackView.topAnchor),
+                aspectRatioBar.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
+            ]
+            
+            NSLayoutConstraint.activate(aspectRatioBarConstraints)
+                        
+            bottomStackView.translatesAutoresizingMaskIntoConstraints = false
+            
+            let bottomStackViewConstraints = [
+                bottomStackView.heightAnchor.constraint(equalToConstant: 45),
+                bottomStackView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 10),
+                bottomStackView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
+                bottomStackView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10)
+            ]
+            NSLayoutConstraint.activate(bottomStackViewConstraints)
+            
+            customLayouts = cropViewContraints + aspectRatioBarConstraints + bottomStackViewConstraints
+        } else {
+            let cropViewContraints = [
+                cropView.topAnchor.constraint(equalTo: topStackView.bottomAnchor, constant: 0),
+                cropView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 0),
+                cropView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: 0),
+                cropView.trailingAnchor.constraint(equalTo: aspectRatioBar.leadingAnchor, constant: -20)
+            ]
+            
+            NSLayoutConstraint.activate(cropViewContraints)
+                      
+            let aspectRatioBarConstraints = [
+                aspectRatioBar.topAnchor.constraint(equalTo: topStackView.bottomAnchor, constant: 0),
+                aspectRatioBar.bottomAnchor.constraint(lessThanOrEqualTo: safeArea.bottomAnchor),
+                aspectRatioBar.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: 0),
+                aspectRatioBar.widthAnchor.constraint(equalToConstant: 100)
+            ]
+            NSLayoutConstraint.activate(aspectRatioBarConstraints)
+            
+            customLayouts = cropViewContraints + aspectRatioBarConstraints
+            bottomStackView.removeFromSuperview()
+                        
+            bottomStackView.removeFullyAllArrangedSubviews()
+            topStackView.insertArrangedSubview(cancelButton, at: 0)
+            topStackView.addArrangedSubview(doneButton)
+        }
     }
     
     public override func viewDidLayoutSubviews() {
@@ -262,29 +313,37 @@ public class CropImageViewController: UIViewController {
     
     public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
-        print(#function)
         hanleRotate()
+        
     }
     
     // MARK: - Rotation
     
     func hanleRotate() {
-//        if UIDevice.current.userInterfaceIdiom == .phone && orientation == .portraitUpsideDown {
-//            return
-//        }
+        if UIDevice.current.userInterfaceIdiom == .phone && orientation == .portraitUpsideDown {
+            return
+        }
         // When it is embedded in a container, the timing of viewDidLayoutSubviews
         // is different with the normal mode.
         // So delay the execution to make sure handleRotate runs after the final
         // viewDidLayoutSubviews
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            guard let self = self else { return }
-            let initialGuideFrame = self.calculateGuideViewInitialFrame()
-            self.viewModel.resetInitFrame(initialGuideFrame)
-            self.guideView.frame = initialGuideFrame
-            let guideViewFrameInCropView = self.view.convert(initialGuideFrame, to: self.cropView)
-            self.cropView.handleDeviceRotate(guideViewFrameInCropView, currRotation: self.viewModel.rotation)
-            self.maskManager.rotateMask(initialGuideFrame)
+//        UIDevice.current.orientation.isPortrait
+        aspectRatioBar.flip()
+        let isPortraitPrevious = orientation == .portrait || orientation == .portraitUpsideDown
+        layoutCropViewAndRatioBar(!isPortraitPrevious)
+        view.layoutIfNeeded()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.deviceRotating()
         }
+    }
+    
+    func deviceRotating() {
+        let initialGuideFrame = calculateGuideViewInitialFrame()
+        viewModel.resetInitFrame(initialGuideFrame)
+        guideView.frame = initialGuideFrame
+        let guideViewFrameInCropView = view.convert(initialGuideFrame, to: cropView)
+        cropView.handleDeviceRotate(guideViewFrameInCropView, currRotation: viewModel.rotation)
+        maskManager.rotateMask(initialGuideFrame)
     }
     
     /// Rotate image counterclockwise at a degree

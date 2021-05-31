@@ -23,15 +23,18 @@ class AspectRatioBar: UIScrollView {
     
     private var selectedButton: AspectRatioButton?
     
-    private var stackView: UIStackView = {
+    private lazy var stackView: UIStackView = {
         let view = UIStackView()
+        view.axis = isPortrait ? .horizontal : .vertical
         view.alignment = .center
         view.spacing = Constants.minButtonsSpacing
         return view
     }()
     
-    init(items: [AspectRatioButtonItem]) {
+    let isPortrait: Bool
+    init(items: [AspectRatioButtonItem], isPortrait: Bool) {
         self.items = items
+        self.isPortrait = isPortrait
         super.init(frame: .zero)
         showsHorizontalScrollIndicator = false
         setupStackView()
