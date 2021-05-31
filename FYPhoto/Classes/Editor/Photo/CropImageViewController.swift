@@ -283,6 +283,7 @@ public class CropImageViewController: UIViewController {
             self.guideView.frame = initialGuideFrame
             let guideViewFrameInCropView = self.view.convert(initialGuideFrame, to: self.cropView)
             self.cropView.handleDeviceRotate(guideViewFrameInCropView, currRotation: self.viewModel.rotation)
+            self.maskManager.rotateMask(initialGuideFrame)
         }
     }
     
@@ -406,8 +407,8 @@ public class CropImageViewController: UIViewController {
     }
     
     func updateMaskTransparent(_ rect: CGRect, animated: Bool) {
-        let convertedInsideRect = self.view.convert(rect, to: self.view)
-        self.maskManager.recreateTransparentRect(convertedInsideRect, animated: animated)
+//        let convertedInsideRect = self.view.convert(rect, to: self.view)
+        self.maskManager.recreateTransparentRect(rect, animated: animated)
     }
     
     func updateCropRatio(_ ratio: Double?) {

@@ -38,4 +38,15 @@ class CropVisualEffectView: UIVisualEffectView, CropMaskProtocol {
         }
     }
     
+    /// Create a brand new mask layer without using the exsisting shapeLayer.
+    /// - Parameter insideRect: transparent rect
+    func createBrandNewMask(_ insideRect: CGRect) {
+        guard self.bounds.size != .zero else { return }
+        let layer = createTransparentRect(withOutside: bounds, insideRect: insideRect, opacity: 0.98)
+        let maskView = UIView(frame: bounds)
+        maskView.clipsToBounds = true
+        maskView.layer.addSublayer(layer)
+        transparentLayer = layer
+        self.mask = maskView
+    }
 }

@@ -19,7 +19,7 @@ struct GeometryHelper {
         let outsideRatio = outside.width / outside.height
         let insideRatio = inside.width / inside.height
         
-        if outsideRatio > insideRatio {
+        if outsideRatio >= insideRatio {
             rect.size.width *= (outside.height / inside.height)
             rect.size.height = outside.height
         } else if outsideRatio < insideRatio {

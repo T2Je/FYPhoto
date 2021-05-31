@@ -73,6 +73,11 @@ class CropViewMaskManager {
         }
     }
     
+    func rotateMask(_ rect: CGRect) {
+        effectView.createBrandNewMask(rect)
+        dimmingView.setMask(rect, animated: false)
+    }
+    
     func recreateTransparentRect(_ rect: CGRect, animated: Bool) {
         createTransparentRect(with: rect, animated: animated)
     }
