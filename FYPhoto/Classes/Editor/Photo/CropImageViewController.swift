@@ -278,7 +278,11 @@ public class CropImageViewController: UIViewController {
         // viewDidLayoutSubviews
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
             guard let self = self else { return }
-            self.cropView.handleDeviceRotate(self.guideView.frame, currRotation: self.viewModel.rotation)
+            let initialGuideFrame = self.calculateGuideViewInitialFrame()
+            self.viewModel.resetInitFrame(initialGuideFrame)
+            self.guideView.frame = initialGuideFrame
+            let guideViewFrameInCropView = self.view.convert(initialGuideFrame, to: self.cropView)
+            self.cropView.handleDeviceRotate(guideViewFrameInCropView, currRotation: self.viewModel.rotation)
         }
     }
     
