@@ -219,7 +219,7 @@ class ViewController: UIViewController {
     }
     
     @objc func photoEditorButtonClicked(_ sender: UIButton) {        
-        let vc = PhotoEditorCropViewController(image: UIImage(named: "sunflower")!, customRatio: [])
+        let vc = CropImageViewController(image: UIImage(named: "sunflower")!, customRatio: [])
         vc.croppedImage = { [weak self] result in
             guard let self = self else { return }
             switch result {

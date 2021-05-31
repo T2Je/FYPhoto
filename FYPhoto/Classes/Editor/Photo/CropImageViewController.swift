@@ -7,9 +7,10 @@
 //
 
 import UIKit
-public typealias CropInfo = (translation: CGPoint, rotation: CGFloat, scale: CGFloat, cropSize: CGSize, imageViewSize: CGSize)
 
-public class PhotoEditorCropViewController: UIViewController {
+typealias CropInfo = (translation: CGPoint, rotation: CGFloat, scale: CGFloat, cropSize: CGSize, imageViewSize: CGSize)
+
+public class CropImageViewController: UIViewController {
     public enum CropImageError: Error, LocalizedError {
         case invalidImage
         
@@ -412,7 +413,7 @@ public class PhotoEditorCropViewController: UIViewController {
         viewModel.resetInitFrame(initialFrame)
         let guideFrame = viewModel.calculateGuideViewFrame(by: initialFrame)
         guideView.frame = guideFrame
-        
+             
         guideView.aspectRatio = ratio
     }
     
