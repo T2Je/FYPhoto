@@ -246,15 +246,6 @@ public class CropImageViewController: UIViewController {
             ]
             
             NSLayoutConstraint.activate(cropViewContraints)
-                       
-            let aspectRatioBarConstraints = [
-                aspectRatioBar.heightAnchor.constraint(equalToConstant: 45),
-                aspectRatioBar.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
-                aspectRatioBar.bottomAnchor.constraint(equalTo: bottomStackView.topAnchor),
-                aspectRatioBar.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
-            ]
-            
-            NSLayoutConstraint.activate(aspectRatioBarConstraints)
                         
             bottomStackView.translatesAutoresizingMaskIntoConstraints = false
             
@@ -265,6 +256,15 @@ public class CropImageViewController: UIViewController {
                 bottomStackView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -10)
             ]
             NSLayoutConstraint.activate(bottomStackViewConstraints)
+            
+            let aspectRatioBarConstraints = [
+                aspectRatioBar.heightAnchor.constraint(equalToConstant: 45),
+                aspectRatioBar.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+                aspectRatioBar.bottomAnchor.constraint(equalTo: bottomStackView.topAnchor),
+                aspectRatioBar.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor)
+            ]
+            
+            NSLayoutConstraint.activate(aspectRatioBarConstraints)
             
             customLayouts = cropViewContraints + aspectRatioBarConstraints + bottomStackViewConstraints
         } else {
@@ -279,7 +279,7 @@ public class CropImageViewController: UIViewController {
                       
             let aspectRatioBarConstraints = [
                 aspectRatioBar.topAnchor.constraint(equalTo: topStackView.bottomAnchor, constant: 0),
-                aspectRatioBar.bottomAnchor.constraint(lessThanOrEqualTo: safeArea.bottomAnchor),
+                aspectRatioBar.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor),
                 aspectRatioBar.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: 0),
                 aspectRatioBar.widthAnchor.constraint(equalToConstant: 100)
             ]
@@ -328,10 +328,11 @@ public class CropImageViewController: UIViewController {
         // So delay the execution to make sure handleRotate runs after the final
         // viewDidLayoutSubviews
 //        UIDevice.current.orientation.isPortrait
-        aspectRatioBar.flip()
+//        aspectRatioBar.flip()
         let isPortraitPrevious = orientation == .portrait || orientation == .portraitUpsideDown
         layoutCropViewAndRatioBar(!isPortraitPrevious)
-        view.layoutIfNeeded()
+        aspectRatioBar.flip()
+//        view.layoutIfNeeded()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             self.deviceRotating()
         }

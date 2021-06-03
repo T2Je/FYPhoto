@@ -450,9 +450,9 @@ class InteractiveCropGuideView: UIView {
     func activeWidthConstraint() {
         translatesAutoresizingMaskIntoConstraints = false
         widthConstraint = widthAnchor.constraint(equalToConstant: bounds.width)
-        widthConstraint?.isActive = true
         widthConstraint?.priority = .defaultLow
-        
+        widthConstraint?.isActive = true
+                
         let temp = widthAnchor.constraint(greaterThanOrEqualToConstant: minimumSize.width)
         temp.isActive = true
         constraintsWhenPanning.append(temp)
@@ -461,8 +461,8 @@ class InteractiveCropGuideView: UIView {
     func activeHeightConstraint() {
         translatesAutoresizingMaskIntoConstraints = false
         heightConstraint = heightAnchor.constraint(equalToConstant: bounds.height)
-        heightConstraint?.isActive = true
         heightConstraint?.priority = .defaultLow
+        heightConstraint?.isActive = true
         
         let temp = heightAnchor.constraint(greaterThanOrEqualToConstant: minimumSize.height)
         temp.isActive = true
@@ -470,7 +470,6 @@ class InteractiveCropGuideView: UIView {
     }
     
     func activeTopMaxConstraint() {
-        translatesAutoresizingMaskIntoConstraints = false
         guard let superview = superview else { return }
         translatesAutoresizingMaskIntoConstraints = false
         let temp = topAnchor.constraint(greaterThanOrEqualTo: superview.topAnchor, constant: maximumRect.minY)
@@ -479,7 +478,6 @@ class InteractiveCropGuideView: UIView {
     }
     
     func activeLeadingMaxConstraint() {
-        translatesAutoresizingMaskIntoConstraints = false
         guard let superview = superview else { return }
         translatesAutoresizingMaskIntoConstraints = false
         let temp = leadingAnchor.constraint(greaterThanOrEqualTo: superview.leadingAnchor, constant: maximumRect.minX)
@@ -488,7 +486,6 @@ class InteractiveCropGuideView: UIView {
     }
     
     func activeBottomMaxConstraint() {
-        translatesAutoresizingMaskIntoConstraints = false
         guard let superview = superview else { return }
         translatesAutoresizingMaskIntoConstraints = false
         let temp = bottomAnchor.constraint(lessThanOrEqualTo: superview.bottomAnchor, constant: maximumRect.maxY-superview.bounds.maxY)
@@ -497,7 +494,6 @@ class InteractiveCropGuideView: UIView {
     }
     
     func activeTrailingMaxConstraint() {
-        translatesAutoresizingMaskIntoConstraints = false
         guard let superview = superview else { return }
         translatesAutoresizingMaskIntoConstraints = false
         let temp = trailingAnchor.constraint(lessThanOrEqualTo: superview.trailingAnchor, constant: maximumRect.maxX-superview.bounds.maxX)

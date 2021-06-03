@@ -37,6 +37,7 @@ class AspectRatioBar: UIScrollView {
         self.isPortrait = isPortrait
         super.init(frame: .zero)
         showsHorizontalScrollIndicator = false
+        showsVerticalScrollIndicator = false
         setupStackView()
         addButtonsWithItems(items)
     }
@@ -45,6 +46,7 @@ class AspectRatioBar: UIScrollView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    var stackFrameLayoutGuides: [NSLayoutConstraint] = []
     private func setupStackView() {
         addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -54,25 +56,55 @@ class AspectRatioBar: UIScrollView {
             stackView.bottomAnchor.constraint(equalTo: contentLayoutGuide.bottomAnchor),
             stackView.trailingAnchor.constraint(equalTo: contentLayoutGuide.trailingAnchor),
             
-            stackView.topAnchor.constraint(equalTo: frameLayoutGuide.topAnchor),
-            stackView.bottomAnchor.constraint(equalTo: frameLayoutGuide.bottomAnchor)
+//            stackView.topAnchor.constraint(equalTo: frameLayoutGuide.topAnchor),
+//            stackView.bottomAnchor.constraint(equalTo: frameLayoutGuide.bottomAnchor)
+                        
         ])
+        if isPortrait {
+            stackFrameLayoutGuides = [
+                stackView.topAnchor.constraint(equalTo: frameLayoutGuide.topAnchor),
+                stackView.bottomAnchor.constraint(equalTo: frameLayoutGuide.bottomAnchor)
+            ]
+        } else {
+            stackFrameLayoutGuides = [
+                stackView.leadingAnchor.constraint(equalTo: frameLayoutGuide.leadingAnchor),
+                stackView.trailingAnchor.constraint(equalTo: frameLayoutGuide.trailingAnchor)
+            ]
+        }
+        
+        
+        NSLayoutConstraint.activate(stackFrameLayoutGuides)
     }
     
     func addButtonsWithItems(_ items: [AspectRatioButtonItem]) {
         for item in items {
             let button = AspectRatioButton(item: item)
+            button.translatesAutoresizingMaskIntoConstraints = false
             button.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
             if item.isSelected {
                 selectedButton = button
             }
             stackView.addArrangedSubview(button)
         }
+        
     }
     
     func flip() {
-        let pre = stackView.axis
-        stackView.axis = (pre == .horizontal) ? .vertical : .horizontal
+        stackView.axis = (stackView.axis == .horizontal) ? .vertical : .horizontal
+        
+        NSLayoutConstraint.deactivate(stackFrameLayoutGuides)
+        if stackView.axis == .horizontal {
+            stackFrameLayoutGuides = [
+                stackView.topAnchor.constraint(equalTo: frameLayoutGuide.topAnchor),
+                stackView.bottomAnchor.constraint(equalTo: frameLayoutGuide.bottomAnchor)
+            ]
+        } else {
+            stackFrameLayoutGuides = [
+                stackView.leadingAnchor.constraint(equalTo: frameLayoutGuide.leadingAnchor),
+                stackView.trailingAnchor.constraint(equalTo: frameLayoutGuide.trailingAnchor)
+            ]
+        }
+        NSLayoutConstraint.activate(stackFrameLayoutGuides)
     }
     
     func reloadItems(_ items: [AspectRatioButtonItem]) {
