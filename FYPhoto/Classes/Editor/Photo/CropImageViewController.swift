@@ -242,7 +242,7 @@ public class CropImageViewController: UIViewController {
                 cropView.topAnchor.constraint(equalTo: topStackView.bottomAnchor, constant: 0),
                 cropView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: 0),
                 cropView.bottomAnchor.constraint(equalTo: aspectRatioBar.topAnchor, constant: 0),
-                cropView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0)
+                cropView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: 0)
             ]
             
             NSLayoutConstraint.activate(cropViewContraints)
@@ -330,8 +330,9 @@ public class CropImageViewController: UIViewController {
 //        UIDevice.current.orientation.isPortrait
 //        aspectRatioBar.flip()
         let isPortraitPrevious = orientation == .portrait || orientation == .portraitUpsideDown
-        layoutCropViewAndRatioBar(!isPortraitPrevious)
         aspectRatioBar.flip()
+        layoutCropViewAndRatioBar(!isPortraitPrevious)
+//        aspectRatioBar.flip()
 //        view.layoutIfNeeded()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             self.deviceRotating()

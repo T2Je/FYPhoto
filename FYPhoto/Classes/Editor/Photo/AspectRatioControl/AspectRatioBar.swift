@@ -55,20 +55,14 @@ class AspectRatioBar: UIScrollView {
             stackView.leadingAnchor.constraint(equalTo: contentLayoutGuide.leadingAnchor),
             stackView.bottomAnchor.constraint(equalTo: contentLayoutGuide.bottomAnchor),
             stackView.trailingAnchor.constraint(equalTo: contentLayoutGuide.trailingAnchor),
-            
-//            stackView.topAnchor.constraint(equalTo: frameLayoutGuide.topAnchor),
-//            stackView.bottomAnchor.constraint(equalTo: frameLayoutGuide.bottomAnchor)
-                        
         ])
         if isPortrait {
             stackFrameLayoutGuides = [
-                stackView.topAnchor.constraint(equalTo: frameLayoutGuide.topAnchor),
-                stackView.bottomAnchor.constraint(equalTo: frameLayoutGuide.bottomAnchor)
+                stackView.heightAnchor.constraint(equalTo: frameLayoutGuide.heightAnchor)
             ]
         } else {
             stackFrameLayoutGuides = [
-                stackView.leadingAnchor.constraint(equalTo: frameLayoutGuide.leadingAnchor),
-                stackView.trailingAnchor.constraint(equalTo: frameLayoutGuide.trailingAnchor)
+                stackView.widthAnchor.constraint(equalTo: frameLayoutGuide.widthAnchor)
             ]
         }
         
@@ -95,16 +89,16 @@ class AspectRatioBar: UIScrollView {
         NSLayoutConstraint.deactivate(stackFrameLayoutGuides)
         if stackView.axis == .horizontal {
             stackFrameLayoutGuides = [
-                stackView.topAnchor.constraint(equalTo: frameLayoutGuide.topAnchor),
-                stackView.bottomAnchor.constraint(equalTo: frameLayoutGuide.bottomAnchor)
+                stackView.heightAnchor.constraint(equalTo: frameLayoutGuide.heightAnchor)
             ]
         } else {
             stackFrameLayoutGuides = [
-                stackView.leadingAnchor.constraint(equalTo: frameLayoutGuide.leadingAnchor),
-                stackView.trailingAnchor.constraint(equalTo: frameLayoutGuide.trailingAnchor)
+                stackView.widthAnchor.constraint(equalTo: frameLayoutGuide.widthAnchor)
             ]
         }
         NSLayoutConstraint.activate(stackFrameLayoutGuides)
+        
+        stackView.layoutIfNeeded() // fix stackview autolayout warnings after changing axis
     }
     
     func reloadItems(_ items: [AspectRatioButtonItem]) {
