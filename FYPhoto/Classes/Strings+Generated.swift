@@ -28,6 +28,8 @@ internal enum L10n {
   internal static let cancel = L10n.tr("FYPhoto", "Cancel")
   /// 确定
   internal static let confirm = L10n.tr("FYPhoto", "Confirm")
+  /// 放弃修改
+  internal static let discardChanges = L10n.tr("FYPhoto", "DiscardChanges")
   /// 完成
   internal static let done = L10n.tr("FYPhoto", "Done")
   /// 保存失败

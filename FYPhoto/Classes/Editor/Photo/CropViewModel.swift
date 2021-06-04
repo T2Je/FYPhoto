@@ -13,9 +13,10 @@ class CropViewModel: NSObject {
     
     /// initial frame of the imageView. Need to be reseted when device rotates.
     var initialFrame: CGRect = .zero
+    var imageZoomScale: CGFloat = 1
     
-    var image: UIImage
-    
+    let image: UIImage
+
     var isPortrait = true
     
     var status: CropViewStatus = .initial {
@@ -100,8 +101,12 @@ class CropViewModel: NSObject {
         }
     }
     
-    func hasResized(_ currentRect: CGRect) -> Bool {
+    private func hasResized(_ currentRect: CGRect) -> Bool {
         initialFrame != currentRect
+    }
+    
+    func hasChanges(_ currentRect: CGRect, _ zoomScale: CGFloat) -> Bool {
+        rotation != .zero || hasResized(currentRect) || zoomScale != imageZoomScale
     }
 
     func calculateGuideViewFrame(by initial: CGRect) -> CGRect {

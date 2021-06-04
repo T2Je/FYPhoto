@@ -66,6 +66,8 @@ public class CropImageViewController: UIViewController {
     public init(image: UIImage, customRatio: [RatioItem] = []) {
         viewModel = CropViewModel(image: image)
         cropView = CropView(image: image)
+        viewModel.imageZoomScale = cropView.scrollView.zoomScale
+        
         self.customRatio = customRatio
         
         super.init(nibName: nil, bundle: nil)
@@ -501,7 +503,7 @@ public class CropImageViewController: UIViewController {
     }
     
     @objc func cancelButtonClicked(_ sender: UIButton) {
-        if viewModel.rotation != .zero || viewModel.hasResized(guideView.frame) {
+        if viewModel.hasChanges(guideView.frame, cropView.scrollView.zoomScale) {
             discardChangesWarning()
         } else {
             dismiss(animated: true, completion: nil)
@@ -510,7 +512,7 @@ public class CropImageViewController: UIViewController {
     
     func discardChangesWarning() {
         let alertVC = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        let discard = UIAlertAction(title: "DiscardChanges", style: .destructive) { _ in
+        let discard = UIAlertAction(title: L10n.discardChanges, style: .destructive) { _ in
             self.dismiss(animated: true, completion: nil)
         }
         let cancel = UIAlertAction(title: L10n.cancel, style: .cancel, handler: nil)

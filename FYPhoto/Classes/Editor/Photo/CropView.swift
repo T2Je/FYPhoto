@@ -111,8 +111,6 @@ class CropView: UIView {
         scrollView.reset(rect: frame, isPortrait: (currentRotate == .zero || currentRotate == .counterclockwise180))
         
         imageView.frame = scrollView.bounds
-//        imageView.bounds = CGRect(origin: .zero, size: scrollView.frame.size)
-//        imageView.center = CGPoint(x: scrollView.frame.width/2, y: scrollView.frame.height/2)
     }
     
     func updateScrollViewMinZoomScale() {
@@ -138,7 +136,7 @@ extension CropView {
     func getCropInfo(with guideViewRect: CGRect, radians: CGFloat) -> CropInfo {
         
         let rect = imageView.convert(imageView.bounds,
-                                          to: self)
+                                     to: self)
         let point = CGPoint(x: rect.midX, y: rect.midY)
         let zeroPoint = CGPoint(x: guideViewRect.midX, y: guideViewRect.midY)
         
