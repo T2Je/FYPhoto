@@ -49,12 +49,15 @@ class ViewController: UIViewController {
         let customCameraBtn = UIButton()
         let remoteImageBtn = UIButton()
         
+        let photoEditorBtn = UIButton()
+        
         photosViewBtn.setTitle("浏览全部照片（Custom）", for: .normal)
         suishoupaiBtn.setTitle("随手拍", for: .normal)
         cameraPhotoBtn.setTitle("照片or相机", for: .normal)
         playRemoteVideoBtn.setTitle("Play remote video", for: .normal)
         customCameraBtn.setTitle("Custom Camera", for: .normal)
-        remoteImageBtn.setTitle("display remote images", for: .normal)
+        remoteImageBtn.setTitle("Display remote images", for: .normal)
+        photoEditorBtn.setTitle("Photo Editor", for: .normal)
         
         photosViewBtn.setTitleColor(.systemBlue, for: .normal)
         suishoupaiBtn.setTitleColor(.systemBlue, for: .normal)
@@ -62,6 +65,7 @@ class ViewController: UIViewController {
         playRemoteVideoBtn.setTitleColor(.systemBlue, for: .normal)
         customCameraBtn.setTitleColor(.systemPink, for: .normal)
         remoteImageBtn.setTitleColor(.systemGreen, for: .normal)
+        photoEditorBtn.setTitleColor(.systemYellow, for: .normal)
 
         photosViewBtn.addTarget(self, action: #selector(photosViewButtonClicked(_:)), for: .touchUpInside)
         suishoupaiBtn.addTarget(self, action: #selector(suiShouPaiButtonClicked(_:)), for: .touchUpInside)
@@ -69,6 +73,7 @@ class ViewController: UIViewController {
         playRemoteVideoBtn.addTarget(self, action: #selector(playRemoteVideo(_:)), for: .touchUpInside)
         customCameraBtn.addTarget(self, action: #selector(launchCustomCamera(_:)), for: .touchUpInside)
         remoteImageBtn.addTarget(self, action: #selector(displayRemoteImagesButtonClicked(_:)), for: .touchUpInside)
+        photoEditorBtn.addTarget(self, action: #selector(photoEditorButtonClicked(_:)), for: .touchUpInside)
         
         stackView.addArrangedSubview(photosViewBtn)
         stackView.addArrangedSubview(suishoupaiBtn)
@@ -76,6 +81,7 @@ class ViewController: UIViewController {
         stackView.addArrangedSubview(playRemoteVideoBtn)
         stackView.addArrangedSubview(customCameraBtn)
         stackView.addArrangedSubview(remoteImageBtn)
+        stackView.addArrangedSubview(photoEditorBtn)
         
         self.view.addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -210,6 +216,24 @@ class ViewController: UIViewController {
         let photoBrowser = PhotoBrowserViewController.create(photos: [image], initialIndex: 0)
         photoBrowser.delegate = self
         self.fyphoto.present(photoBrowser, animated: true, completion: nil)
+    }
+    
+    @objc func photoEditorButtonClicked(_ sender: UIButton) {        
+        let vc = CropImageViewController(image: UIImage(named: "sunflower")!, customRatio: [RatioItem(title: "3:20", value: 0.15)])
+        vc.croppedImage = { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let image):
+                let image = Photo.photoWithUIImage(image)
+                let photoBrowser = PhotoBrowserViewController.create(photos: [image], initialIndex: 0)
+                photoBrowser.delegate = self
+                self.fyphoto.present(photoBrowser, animated: true, completion: nil)
+            case .failure(let error):
+                print("crop image failed with error: \(error)")
+            }
+        }
+        vc.modalPresentationStyle = .fullScreen
+        self.present(vc, animated: true, completion: nil)
     }
     
     // MARK: PRESENT SELECTED

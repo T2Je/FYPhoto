@@ -8,7 +8,7 @@
 import UIKit
 import UICircularProgressRing
 
-public protocol VideoCaptureOverlayDelegate: class {
+public protocol VideoCaptureOverlayDelegate: AnyObject {
     func switchCameraDevice(_ cameraButton: UIButton)
     func takePicture()
     func startVideoCapturing()

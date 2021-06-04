@@ -28,6 +28,8 @@ internal enum L10n {
   internal static let cancel = L10n.tr("FYPhoto", "Cancel")
   /// 确定
   internal static let confirm = L10n.tr("FYPhoto", "Confirm")
+  /// 放弃修改
+  internal static let discardChanges = L10n.tr("FYPhoto", "DiscardChanges")
   /// 完成
   internal static let done = L10n.tr("FYPhoto", "Done")
   /// 保存失败
@@ -48,10 +50,14 @@ internal enum L10n {
   internal static let noVideo = L10n.tr("FYPhoto", "NoVideo")
   /// 好的
   internal static let ok = L10n.tr("FYPhoto", "OK")
+  /// 原始尺寸
+  internal static let orinial = L10n.tr("FYPhoto", "Orinial")
   /// 照片
   internal static let photo = L10n.tr("FYPhoto", "photo")
   /// 预览
   internal static let preview = L10n.tr("FYPhoto", "Preview")
+  /// 还原
+  internal static let resetPhoto = L10n.tr("FYPhoto", "ResetPhoto")
   /// 恢复
   internal static let resume = L10n.tr("FYPhoto", "Resume")
   /// 保存
@@ -68,6 +74,8 @@ internal enum L10n {
   internal static let settings = L10n.tr("FYPhoto", "Settings")
   /// 分类相簿
   internal static let smartAlbums = L10n.tr("FYPhoto", "Smart Albums")
+  /// 正方形
+  internal static let square = L10n.tr("FYPhoto", "Square")
   /// 已保存到相册
   internal static let successfullySavedMedia = L10n.tr("FYPhoto", "SuccessfullySavedMedia")
   /// 无法恢复

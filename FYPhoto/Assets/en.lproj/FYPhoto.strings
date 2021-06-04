@@ -58,3 +58,9 @@
 "Unable to resume" = "Unable to resume";
 
 "NoVideo" = "URL isn't a video";
+
+// PhotoEdit
+"Orinial" = "Original";
+"Square" = "Square";
+"ResetPhoto" = "Reset";
+"DiscardChanges" = "Discard changes";

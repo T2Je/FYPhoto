@@ -8,7 +8,7 @@
 import Foundation
 import Photos
 
-public protocol PhotoBrowserViewControllerDelegate: class {
+public protocol PhotoBrowserViewControllerDelegate: AnyObject {
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt item: Int)
     
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, selectedAssets identifiers: [String])

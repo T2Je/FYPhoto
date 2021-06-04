@@ -373,6 +373,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
         flowLayout.scrollDirection = .horizontal
         return UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
+        
     }
     
     func generateThumbnailsCollectionView() -> UICollectionView {

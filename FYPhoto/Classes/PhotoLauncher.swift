@@ -11,7 +11,7 @@ import Photos
 import MobileCoreServices
 import PhotosUI
 
-public protocol PhotoLauncherDelegate: class {
+public protocol PhotoLauncherDelegate: AnyObject {
     func selectedPhotosInPhotoLauncher(_ photos: [SelectedImage])
     func selectedVideoInPhotoLauncher(_ video: Result<SelectedVideo, Error>)
 }

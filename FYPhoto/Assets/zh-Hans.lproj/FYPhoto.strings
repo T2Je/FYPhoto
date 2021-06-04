@@ -63,3 +63,9 @@
 "Unable to resume" = "无法恢复";
 
 "NoVideo" = "URL不是一个视频";
+
+// PhotoEdit
+"Orinial" = "原始尺寸";
+"Square" = "正方形";
+"ResetPhoto" = "还原";
+"DiscardChanges" = "放弃修改";

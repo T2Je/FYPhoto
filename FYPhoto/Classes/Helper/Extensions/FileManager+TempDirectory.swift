@@ -30,7 +30,7 @@ extension FileManager {
             var compressedDirectory = temp
             if let component = pathComponent {
                 compressedDirectory.appendPathComponent(component)
-            }            
+            }
             if !FileManager.default.fileExists(atPath: compressedDirectory.absoluteString) {
                 do {
                     try FileManager.default.createDirectory(at: compressedDirectory, withIntermediateDirectories: true, attributes: nil)

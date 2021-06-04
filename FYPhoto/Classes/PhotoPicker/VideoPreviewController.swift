@@ -9,7 +9,7 @@ import UIKit
 import AVFoundation
 import AVKit
 
-public protocol VideoPreviewControllerDelegate: class {
+public protocol VideoPreviewControllerDelegate: AnyObject {
     func videoPreviewController(_ preview: VideoPreviewController, didSaveVideoAt path: URL)
     func videoPreviewControllerDidCancel(_ preview: VideoPreviewController)
 }

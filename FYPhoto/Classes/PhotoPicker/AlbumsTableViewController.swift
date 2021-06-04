@@ -8,7 +8,7 @@
 import UIKit
 import Photos
 
-protocol AlbumsTableViewControllerDelegate: class {
+protocol AlbumsTableViewControllerDelegate: AnyObject {
     func albumsTableViewController(_ albums: AlbumsTableViewController, didSelectPhassetAt indexPath: IndexPath)
 }
 

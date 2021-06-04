@@ -9,7 +9,7 @@ import UIKit
 
 import UIKit
 
-protocol GridViewCellDelegate: class {
+protocol GridViewCellDelegate: AnyObject {
     func gridCell(_ cell: GridViewCell, buttonClickedAt indexPath: IndexPath, assetIdentifier: String)
 }
 
