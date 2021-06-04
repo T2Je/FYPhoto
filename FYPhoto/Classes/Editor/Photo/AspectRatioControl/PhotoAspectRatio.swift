@@ -10,6 +10,15 @@ import Foundation
 public struct RatioItem {
     let title: String
     let value: Double?
+    
+    /// Initialize RatioItem
+    /// - Parameters:
+    ///   - title: title
+    ///   - value: ratio value, nil means without apsect ratio limit.
+    public init(title: String, value: Double?) {
+        self.title = title
+        self.value = value
+    }
 }
 
 public struct RatioOptions: OptionSet {

@@ -63,6 +63,10 @@ public class CropImageViewController: UIViewController {
     
     let customRatio: [RatioItem]
     
+    /// Initialize CropImageViewController with image and custom ratios
+    /// - Parameters:
+    ///   - image: source image
+    ///   - customRatio: customRatio, for example: you want a '1000:3' ratio, which is not included in built-in ratios
     public init(image: UIImage, customRatio: [RatioItem] = []) {
         viewModel = CropViewModel(image: image)
         cropView = CropView(image: image)
