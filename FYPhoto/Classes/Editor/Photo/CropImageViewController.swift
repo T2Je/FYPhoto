@@ -96,7 +96,8 @@ public class CropImageViewController: UIViewController {
             self?.cropViewStatusChanged(status)
         }
         
-        maximumRectKeyValueObservation = viewModel.observe(\.maximumGuideViewRect, options: [.new]) { [weak self] (_, change) in
+        maximumRectKeyValueObservation = viewModel.observe(\.maximumGuideViewRect,
+                                                           options: [.new]) { [weak self] (_, change) in
             if let rect = change.newValue {
                 self?.guideView.maximumRect = rect
             }
@@ -327,13 +328,10 @@ public class CropImageViewController: UIViewController {
         // is different with the normal mode.
         // So delay the execution to make sure handleRotate runs after the final
         // viewDidLayoutSubviews
-//        UIDevice.current.orientation.isPortrait
-//        aspectRatioBar.flip()
+
         let isPortraitPrevious = orientation == .portrait || orientation == .portraitUpsideDown
         aspectRatioBar.flip()
         layoutCropViewAndRatioBar(!isPortraitPrevious)
-//        aspectRatioBar.flip()
-//        view.layoutIfNeeded()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
             self.deviceRotating()
         }
@@ -468,10 +466,10 @@ public class CropImageViewController: UIViewController {
     }
     
     func updateMaskTransparent(_ rect: CGRect, animated: Bool) {
-//        let convertedInsideRect = self.view.convert(rect, to: self.view)
         self.maskManager.recreateTransparentRect(rect, animated: animated)
     }
     
+    // MARK: Crop ratio changed
     func updateCropRatio(_ ratio: Double?) {
         viewModel.setFixedAspectRatio(ratio)
         
@@ -481,6 +479,7 @@ public class CropImageViewController: UIViewController {
         guideView.frame = guideFrame
              
         guideView.aspectRatio = ratio
+        updateMaskTransparent(guideFrame, animated: false) // viewDidLayoutSubviews doesn't call on iOS 11
     }
     
     // MARK: - Button actions
