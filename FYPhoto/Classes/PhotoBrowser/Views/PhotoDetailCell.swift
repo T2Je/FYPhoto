@@ -14,7 +14,12 @@ class PhotoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     let zoomingView = ZoomingScrollView(frame: .zero)    
 
     var image: UIImage? {
-        zoomingView.imageView.image ?? Asset.coverPlaceholder.image
+        get {
+            zoomingView.imageView.image ?? Asset.coverPlaceholder.image
+        }
+        set {
+            zoomingView.imageView.image = newValue
+        }
     }
 
     var photo: PhotoProtocol? {

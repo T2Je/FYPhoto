@@ -445,7 +445,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         if isForSelection || canDeleteWhenPreviewingSelectedPhotos {
             bottomToolView.addDoneButton()
             bottomToolView.disableDoneButton(selectedPhotos.isEmpty)
-        }    
+        }
+        if isForSelection {
+            bottomToolView.addEditButton()
+        }
     }
 
     fileprivate func restoreOtherPreviousData() {
@@ -873,7 +876,8 @@ extension PhotoBrowserViewController {
 
     fileprivate func hideOrShowTopBottom() {
         if supportNavigationBar {
-            self.navigationController?.setNavigationBarHidden(!(self.navigationController?.isNavigationBarHidden ?? true), animated: true)
+            self.navigationController?.setNavigationBarHidden(!(self.navigationController?.isNavigationBarHidden ?? true),
+                                                              animated: true)
         }
         
         if supportBottomToolBar {
@@ -1117,6 +1121,27 @@ extension PhotoBrowserViewController {
 }
 
 extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
+    func browserBottomToolViewEditButtonClicked() {
+        
+        guard let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell,
+              let image = cell.image
+        else { return }
+        let cropViewController = CropImageViewController(image: image)
+        cropViewController.croppedImage = { [weak self] result in
+            guard let self = self else { return }
+            switch result {
+            case .success(let cropped):
+                self.currentPhoto.storeImage(cropped)
+                // TODO: 😴zZ change collection view cell image datasource when scrolling
+                cell.image = cropped
+            case .failure(let error):
+                self.showError(error)
+            }
+        }
+        cropViewController.modalPresentationStyle = .fullScreen
+        present(cropViewController, animated: true, completion: nil)
+    }
+    
     func browserBottomToolViewPlayButtonClicked() {
         guard currentPhoto.isVideo else { return }
         if isPlaying {

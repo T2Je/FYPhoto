@@ -10,6 +10,7 @@ import UIKit
 protocol PhotoBrowserBottomToolViewDelegate: AnyObject {
     func browserBottomToolViewPlayButtonClicked()
     func browserBottomToolViewDoneButtonClicked()
+    func browserBottomToolViewEditButtonClicked()
 }
 
 extension PhotoBrowserBottomToolViewDelegate {
@@ -20,6 +21,7 @@ extension PhotoBrowserBottomToolViewDelegate {
 class PhotoBrowserBottomToolView: UIView {
     weak var delegate: PhotoBrowserBottomToolViewDelegate?
     
+    let editButton = UIButton()
     let playButton = UIButton()
     let doneButton = UIButton()
     private let safeAreaInsetsBottom: CGFloat
@@ -83,7 +85,22 @@ class PhotoBrowserBottomToolView: UIView {
         let centerOffset = safeAreaInsetsBottom == 0 ? 0 : -(safeAreaInsetsBottom/2-5)
         NSLayoutConstraint.activate([
             doneButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -15),
-            doneButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: centerOffset),
+            doneButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: centerOffset)
+        ])
+    }
+    
+    func addEditButton() {
+        addSubview(editButton)
+        editButton.setTitle(L10n.cropPhoto, for: .normal)
+        editButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
+        editButton.setTitleColor(.white, for: .normal)
+        editButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
+        
+        editButton.translatesAutoresizingMaskIntoConstraints = false
+        let centerOffset = safeAreaInsetsBottom == 0 ? 0 : -(safeAreaInsetsBottom/2-5)
+        NSLayoutConstraint.activate([
+            editButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 15),
+            editButton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: centerOffset)
         ])
     }
     
@@ -100,8 +117,11 @@ class PhotoBrowserBottomToolView: UIView {
             delegate?.browserBottomToolViewPlayButtonClicked()
         } else if sender == doneButton {
             delegate?.browserBottomToolViewDoneButtonClicked()
+        } else if sender == editButton {
+            delegate?.browserBottomToolViewEditButtonClicked()
         } else {
             
         }
     }
+        
 }
