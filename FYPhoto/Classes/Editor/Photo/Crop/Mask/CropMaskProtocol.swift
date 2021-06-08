@@ -34,7 +34,7 @@ extension CropMaskProtocol {
         animation.fromValue = shapeLayer.path
         addTransparentRect(on: shapeLayer, withOutside: outsideRect, insideRect: insideRect, opacity: opacity)
         animation.toValue = shapeLayer.path
-        animation.duration = 0.5
+        animation.duration = 0.2
         animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut) // Avoid animation vibration, but still not smooth enough.
         shapeLayer.add(animation, forKey: "pathAnimation")
     }

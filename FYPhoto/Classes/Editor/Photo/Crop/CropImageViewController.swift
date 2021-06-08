@@ -61,6 +61,8 @@ public class CropImageViewController: UIViewController {
         }
     }
     
+    var initialLayout = false
+    
     let customRatio: [RatioItem]
     
     /// Initialize CropImageViewController with image and custom ratios
@@ -94,8 +96,6 @@ public class CropImageViewController: UIViewController {
         
         makeConstraints()
     }
-    
-    var initialLayout = false
     
     func setupData() {        
         viewModel.statusChanged = { [weak self] status in
@@ -169,7 +169,8 @@ public class CropImageViewController: UIViewController {
         
         guideView.resizeEnded = { [weak self] scaledFrame in
             guard let self = self else { return }
-            self.animateGuideViewAfterResizing(scaledFrame)
+            self.startTimer(scaledFrame)
+//            self.animateGuideViewAfterResizing(scaledFrame)
         }
         
         guideView.resizeCancelled = { [weak self] in
@@ -427,19 +428,16 @@ public class CropImageViewController: UIViewController {
         guideViewFrame = cropView.convert(guideViewFrame, to: view)
         
         isGuideViewZoomingOut = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
-            guard let self = self else { return }
-            self.updateMaskTransparent(guideViewFrame, animated: true)
-        }
+        self.updateMaskTransparent(guideViewFrame, animated: true)
         
         guideViewResizeAnimator?.stopAnimation(true)
-        let animator = UIViewPropertyAnimator(duration: 0.5, curve: .easeInOut) {
+        let animator = UIViewPropertyAnimator(duration: 0.2, curve: .easeInOut) {
             self.guideView.frame = guideViewFrame
             self.guideViewResized(scaledFrame)
         }
         self.guideViewResizeAnimator = animator
         
-        animator.startAnimation(afterDelay: 1)
+        animator.startAnimation()
         animator.addCompletion { position in
             switch position {
             case .start:
@@ -473,6 +471,20 @@ public class CropImageViewController: UIViewController {
     
     func updateMaskTransparent(_ rect: CGRect, animated: Bool) {
         self.maskManager.recreateTransparentRect(rect, animated: animated)
+    }
+    
+    var timer: Timer?
+    
+    func startTimer(_ rect: CGRect) {
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false, block: { _ in
+            self.stopTimer()
+            self.animateGuideViewAfterResizing(rect)
+        })
+    }
+    
+    func stopTimer() {
+        timer?.invalidate()
+        timer = nil
     }
     
     // MARK: Crop ratio changed
