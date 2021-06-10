@@ -60,7 +60,7 @@ public class CameraViewController: UIViewController {
     private let photoOutput = AVCapturePhotoOutput()
     private var inProgressPhotoCaptureDelegates = [Int64: PhotoCaptureProcessor]()
     // Devices
-    private var videoDeviceDiscoverySession: AVCaptureDevice.DiscoverySession?
+    private var videoDeviceDiscoverySession: AVCaptureDevice.DiscoverySession!
     /// the current flash mode
     private var flashMode: AVCaptureDevice.FlashMode = .auto
 
@@ -241,6 +241,15 @@ public class CameraViewController: UIViewController {
         self.present(alertController, animated: true, completion: nil)
     }
     
+    func alertNoDeviceAvailable() {
+        let message = L10n.cameraConfigurationFailed
+        let alertController = UIAlertController(title: L10n.camera, message: message, preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: L10n.ok,
+                                                style: .cancel,
+                                                handler: nil))
+        self.present(alertController, animated: true, completion: nil)
+    }
+    
     /*
      Check the video authorization status. Video access is required and audio
      access is optional. If the user denies audio access, FYphoto won't
@@ -310,17 +319,41 @@ public class CameraViewController: UIViewController {
     func addDeviceInput() {
         do {
             var defaultVideoDevice: AVCaptureDevice?
-
-            // Choose the back dual camera, if available, otherwise default to a wide angle camera.
-            if let dualCameraDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
-                defaultVideoDevice = dualCameraDevice
-            } else if let backCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
-                // If a rear dual camera is not available, default to the rear wide angle camera.
-                defaultVideoDevice = backCameraDevice
-            } else if let frontCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
-                // If the rear wide angle camera isn't available, default to the front wide angle camera.
-                defaultVideoDevice = frontCameraDevice
+            defaultVideoDevice = bestDeivice(in: .back)
+            if defaultVideoDevice == nil {
+                defaultVideoDevice = bestDeivice(in: .front)
             }
+//            if #available(iOS 13.0, *) {
+//                if let tripleCamera = AVCaptureDevice.default(.builtInTripleCamera, for: .video, position: .back) {
+//                    defaultVideoDevice = tripleCamera
+//                } else if let dualCameraDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
+//                    // Choose the back dual camera, if available, otherwise default to a wide angle camera.
+//                    defaultVideoDevice = dualCameraDevice
+//                } else if let backCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
+//                    // If a rear dual camera is not available, default to the rear wide angle camera.
+//                    defaultVideoDevice = backCameraDevice
+//                } else if let frontCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
+//                    // If the rear wide angle camera isn't available, default to the front wide angle camera.
+//                    defaultVideoDevice = frontCameraDevice
+//                }
+//            } else {
+//                // Fallback on earlier versions
+//                if let dualCameraDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
+//                // Choose the back dual camera, if available, otherwise default to a wide angle camera.
+//                    defaultVideoDevice = dualCameraDevice
+//                } else if let backCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
+//                    // If a rear dual camera is not available, default to the rear wide angle camera.
+//                    defaultVideoDevice = backCameraDevice
+//                } else if let frontCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
+//                    // If the rear wide angle camera isn't available, default to the front wide angle camera.
+//                    defaultVideoDevice = frontCameraDevice
+//                }
+//            }
+//            try? defaultVideoDevice?.lockForConfiguration()
+//            defaultVideoDevice?.videoZoomFactor = 10
+//
+//            defaultVideoDevice?.unlockForConfiguration()
+            
             guard let videoDevice = defaultVideoDevice else {
                 print("Default video device is unavailable.")
                 setupResult = .configurationFailed
@@ -421,13 +454,31 @@ public class CameraViewController: UIViewController {
         }
     }
     
+    
+    // MARK: - Sort and Filter Devices with a Discovery Session
+    
     func initVideoDeviceDiscoverySession() {
         if #available(iOS 10.2, *) {
             if #available(iOS 11.1, *) {
-                videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera, .builtInDualCamera, .builtInTrueDepthCamera],
-                                                                               mediaType: .video, position: .unspecified)
+                if #available(iOS 13, *) {
+                    videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTripleCamera,
+                                                                                                 .builtInDualWideCamera,
+                                                                                                 .builtInUltraWideCamera,
+                                                                                                 .builtInWideAngleCamera,
+                                                                                                 .builtInDualCamera,
+                                                                                                 .builtInTrueDepthCamera],
+                                                                                   mediaType: .video,
+                                                                                   position: .unspecified)
+                } else {
+                    videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera,
+                                                                                                 .builtInDualCamera,
+                                                                                                 .builtInTrueDepthCamera],
+                                                                                   mediaType: .video,
+                                                                                   position: .unspecified)
+                }
             } else {
-                videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera, .builtInDualCamera],
+                videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera,
+                                                                                             .builtInDualCamera],
                                                                                mediaType: .video, position: .unspecified)
             }
         } else {
@@ -436,7 +487,16 @@ public class CameraViewController: UIViewController {
         }
     }
 
-
+    func bestDeivice(in position: AVCaptureDevice.Position) -> AVCaptureDevice? {
+        guard !videoDeviceDiscoverySession.devices.isEmpty else {
+            alertNoDeviceAvailable()
+            return nil
+        }
+        
+        return videoDeviceDiscoverySession.devices.first
+    }
+    
+    
     // MARK: KVO and Notifications
     private var keyValueObservations = [NSKeyValueObservation]()
     /// - Tag: ObserveInterruption
@@ -445,7 +505,7 @@ public class CameraViewController: UIViewController {
             guard let isSessionRunning = change.newValue else { return }
             DispatchQueue.main.async {
                 // Only enable the ability to change camera if the device has more than one camera.
-                if let uniqueDevicePositionsCount = self.videoDeviceDiscoverySession?.uniqueDevicePositionsCount, uniqueDevicePositionsCount > 1 {
+                if self.videoDeviceDiscoverySession.uniqueDevicePositionsCount > 1 {
                     self.cameraOverlayView.enableSwitchCamera = isSessionRunning
                 }
                 self.cameraOverlayView.enableTakePicture = isSessionRunning
@@ -697,7 +757,8 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                 preferredPosition = .back
                 preferredDeviceType = .builtInDualCamera
             }
-            if let devices = self.videoDeviceDiscoverySession?.devices {
+            let devices = self.videoDeviceDiscoverySession.devices
+            if devices.count > 0 {
                 var newVideoDevice: AVCaptureDevice? = nil
 
                 // First, seek a device with both the preferred position and device type. Otherwise, seek a device with only the preferred position.
