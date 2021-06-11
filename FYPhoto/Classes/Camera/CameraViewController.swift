@@ -60,6 +60,7 @@ public class CameraViewController: UIViewController {
     private let photoOutput = AVCapturePhotoOutput()
     private var inProgressPhotoCaptureDelegates = [Int64: PhotoCaptureProcessor]()
     // Devices
+    private var currentDevice: AVCaptureDevice?
     private var videoDeviceDiscoverySession: AVCaptureDevice.DiscoverySession!
     /// the current flash mode
     private var flashMode: AVCaptureDevice.FlashMode = .auto
@@ -103,7 +104,7 @@ public class CameraViewController: UIViewController {
         view.addSubview(previewView)
         view.addSubview(cameraOverlayView)
         makeConstraints()
-                
+
         cameraOverlayView.captureMode = captureMode
         cameraOverlayView.delegate = self
 
@@ -114,6 +115,9 @@ public class CameraViewController: UIViewController {
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(focusAndExposeTap(_:)))
         view.addGestureRecognizer(tapGesture)
+        
+        let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchToScale(_:)))
+        view.addGestureRecognizer(pinchGesture)
         /*
          Setup the capture session.
          In general, it's not safe to mutate an AVCaptureSession or any of its
@@ -360,6 +364,8 @@ public class CameraViewController: UIViewController {
                 session.commitConfiguration()
                 return
             }
+            currentDevice = videoDevice
+            
             let videoDeviceInput =  try AVCaptureDeviceInput(device: videoDevice)
             if session.canAddInput(videoDeviceInput) {
                 session.addInput(videoDeviceInput)
@@ -557,6 +563,36 @@ public class CameraViewController: UIViewController {
             keyValueObservation.invalidate()
         }
         keyValueObservations.removeAll()
+    }
+        
+    @objc
+    func pinchToScale(_ gestureRecognizer: UIPinchGestureRecognizer) {
+        guard gestureRecognizer.view != nil,
+              let device = currentDevice
+        else { return }
+        
+        func zoomFactor(_ factor: CGFloat, _ maxLimit: CGFloat = 5) -> CGFloat {
+            return min(min(max(factor, device.minAvailableVideoZoomFactor), device.maxAvailableVideoZoomFactor), maxLimit)
+        }
+        
+        func updateDeviceZoomFactor(_ factor: CGFloat) {
+            try? device.lockForConfiguration()
+            device.videoZoomFactor = factor
+            device.unlockForConfiguration()
+        }
+                
+        let diff = (1 - gestureRecognizer.scale) / 10 // Reduce sensitivity        
+        let newScaleFactor = zoomFactor(device.videoZoomFactor - diff)
+        
+        switch gestureRecognizer.state {
+        case .began: fallthrough
+        case .changed: updateDeviceZoomFactor(newScaleFactor)
+        case .ended:
+            updateDeviceZoomFactor(newScaleFactor)
+        default:
+            break
+        }
+                    
     }
 
     @objc
