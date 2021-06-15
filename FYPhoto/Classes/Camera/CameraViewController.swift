@@ -744,84 +744,79 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
         sessionQueue.async {
             let currentVideoDevice = self.videoDeviceInput.device
             let currentPosition = currentVideoDevice.position
-
-            let preferredPosition: AVCaptureDevice.Position
-            let preferredDeviceType: AVCaptureDevice.DeviceType
-
+            
+            var newVideoDevice: AVCaptureDevice?
+            
             switch currentPosition {
             case .unspecified, .front:
-                preferredPosition = .back
-                preferredDeviceType = .builtInDualCamera
+                newVideoDevice = self.bestDeivice(in: .back)
             case .back:
-                preferredPosition = .front
+                let preferredDeviceType: AVCaptureDevice.DeviceType
                 if #available(iOS 11.1, *) {
                     preferredDeviceType = .builtInTrueDepthCamera
                 } else {
                     preferredDeviceType = .builtInDualCamera
                 }
+                newVideoDevice = self.videoDeviceDiscoverySession
+                    .devices
+                    .filter { $0.position == .front && $0.deviceType == preferredDeviceType }
+                    .first
+                if newVideoDevice == nil {
+                    newVideoDevice = self.videoDeviceDiscoverySession
+                        .devices
+                        .filter { $0.position == .front }
+                        .first
+                }
             @unknown default:
                 print("Unknown capture position. Defaulting to back, dual-camera.")
-                preferredPosition = .back
-                preferredDeviceType = .builtInDualCamera
+                break
             }
-            let devices = self.videoDeviceDiscoverySession.devices
-            if devices.count > 0 {
-                var newVideoDevice: AVCaptureDevice? = nil
-
-                // First, seek a device with both the preferred position and device type. Otherwise, seek a device with only the preferred position.
-                if let device = devices.first(where: { $0.position == preferredPosition && $0.deviceType == preferredDeviceType }) {
-                    newVideoDevice = device
-                } else if let device = devices.first(where: { $0.position == preferredPosition }) {
-                    newVideoDevice = device
-                }
-                if let videoDevice = newVideoDevice {
-                    do {
-                        let videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
-                        self.session.beginConfiguration()
-                        // Remove the existing device input first, because AVCaptureSession doesn't support
-                        // simultaneous use of the rear and front cameras.
-                        self.session.removeInput(self.videoDeviceInput)
-                        if self.session.canAddInput(videoDeviceInput) {
-                            self.session.addInput(videoDeviceInput)
-                            self.videoDeviceInput = videoDeviceInput
-                            NotificationCenter.default.removeObserver(self, name: .AVCaptureDeviceSubjectAreaDidChange, object: currentVideoDevice)
-                            NotificationCenter.default.addObserver(self, selector: #selector(self.subjectAreaDidChange), name: .AVCaptureDeviceSubjectAreaDidChange, object: videoDeviceInput.device)
-                        } else {
-                            self.session.addInput(self.videoDeviceInput)
-                        }
-                        if let connection = self.movieFileOutput?.connection(with: .video) {
-                            if connection.isVideoStabilizationSupported {
-                                connection.preferredVideoStabilizationMode = .auto
-                            }
-                        }
-                        /*
-                         Set Live Photo capture and depth data delivery if it's supported. When changing cameras, the
-                         `livePhotoCaptureEnabled` and `depthDataDeliveryEnabled` properties of the AVCapturePhotoOutput
-                         get set to false when a video device is disconnected from the session. After the new video device is
-                         added to the session, re-enable them on the AVCapturePhotoOutput, if supported.
-                         */
-                        self.photoOutput.isLivePhotoCaptureEnabled = self.photoOutput.isLivePhotoCaptureSupported
-                        if #available(iOS 11.0, *) {
-                            self.photoOutput.isDepthDataDeliveryEnabled = self.photoOutput.isDepthDataDeliverySupported
-                        }
-                        if #available(iOS 12.0, *) {
-                            self.photoOutput.isPortraitEffectsMatteDeliveryEnabled = self.photoOutput.isPortraitEffectsMatteDeliverySupported
-                        }
-                        if #available(iOS 13.0, *) {
-                            self.photoOutput.enabledSemanticSegmentationMatteTypes = self.photoOutput.availableSemanticSegmentationMatteTypes
-                            self.photoOutput.maxPhotoQualityPrioritization = .quality
-                        }
-                        self.session.commitConfiguration()
-                    } catch {
-                        print("Error occurred while creating video device input: \(error)")
+            if let videoDevice = newVideoDevice {
+                do {
+                    let videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
+                    self.session.beginConfiguration()
+                    // Remove the existing device input first, because AVCaptureSession doesn't support
+                    // simultaneous use of the rear and front cameras.
+                    self.session.removeInput(self.videoDeviceInput)
+                    if self.session.canAddInput(videoDeviceInput) {
+                        self.session.addInput(videoDeviceInput)
+                        self.videoDeviceInput = videoDeviceInput
+                        NotificationCenter.default.removeObserver(self, name: .AVCaptureDeviceSubjectAreaDidChange, object: currentVideoDevice)
+                        NotificationCenter.default.addObserver(self, selector: #selector(self.subjectAreaDidChange), name: .AVCaptureDeviceSubjectAreaDidChange, object: videoDeviceInput.device)
+                    } else {
+                        self.session.addInput(self.videoDeviceInput)
                     }
+                    if let connection = self.movieFileOutput?.connection(with: .video) {
+                        if connection.isVideoStabilizationSupported {
+                            connection.preferredVideoStabilizationMode = .auto
+                        }
+                    }
+                    /*
+                     Set Live Photo capture and depth data delivery if it's supported. When changing cameras, the
+                     `livePhotoCaptureEnabled` and `depthDataDeliveryEnabled` properties of the AVCapturePhotoOutput
+                     get set to false when a video device is disconnected from the session. After the new video device is
+                     added to the session, re-enable them on the AVCapturePhotoOutput, if supported.
+                     */
+                    self.photoOutput.isLivePhotoCaptureEnabled = self.photoOutput.isLivePhotoCaptureSupported
+                    if #available(iOS 11.0, *) {
+                        self.photoOutput.isDepthDataDeliveryEnabled = self.photoOutput.isDepthDataDeliverySupported
+                    }
+                    if #available(iOS 12.0, *) {
+                        self.photoOutput.isPortraitEffectsMatteDeliveryEnabled = self.photoOutput.isPortraitEffectsMatteDeliverySupported
+                    }
+                    if #available(iOS 13.0, *) {
+                        self.photoOutput.enabledSemanticSegmentationMatteTypes = self.photoOutput.availableSemanticSegmentationMatteTypes
+                        self.photoOutput.maxPhotoQualityPrioritization = .quality
+                    }
+                    self.session.commitConfiguration()
+                } catch {
+                    print("Error occurred while creating video device input: \(error)")
                 }
-
             } else {
                 print("Capture devices are unavaliable")
                 return
             }
-
+                        
             DispatchQueue.main.sync {
                 self.cameraOverlayView.enableTakeVideo = self.movieFileOutput != nil
                 self.cameraOverlayView.enableTakePicture = true
