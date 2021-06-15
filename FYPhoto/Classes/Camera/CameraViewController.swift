@@ -327,36 +327,6 @@ public class CameraViewController: UIViewController {
             if defaultVideoDevice == nil {
                 defaultVideoDevice = bestDeivice(in: .front)
             }
-//            if #available(iOS 13.0, *) {
-//                if let tripleCamera = AVCaptureDevice.default(.builtInTripleCamera, for: .video, position: .back) {
-//                    defaultVideoDevice = tripleCamera
-//                } else if let dualCameraDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
-//                    // Choose the back dual camera, if available, otherwise default to a wide angle camera.
-//                    defaultVideoDevice = dualCameraDevice
-//                } else if let backCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
-//                    // If a rear dual camera is not available, default to the rear wide angle camera.
-//                    defaultVideoDevice = backCameraDevice
-//                } else if let frontCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
-//                    // If the rear wide angle camera isn't available, default to the front wide angle camera.
-//                    defaultVideoDevice = frontCameraDevice
-//                }
-//            } else {
-//                // Fallback on earlier versions
-//                if let dualCameraDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
-//                // Choose the back dual camera, if available, otherwise default to a wide angle camera.
-//                    defaultVideoDevice = dualCameraDevice
-//                } else if let backCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
-//                    // If a rear dual camera is not available, default to the rear wide angle camera.
-//                    defaultVideoDevice = backCameraDevice
-//                } else if let frontCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
-//                    // If the rear wide angle camera isn't available, default to the front wide angle camera.
-//                    defaultVideoDevice = frontCameraDevice
-//                }
-//            }
-//            try? defaultVideoDevice?.lockForConfiguration()
-//            defaultVideoDevice?.videoZoomFactor = 10
-//
-//            defaultVideoDevice?.unlockForConfiguration()
             
             guard let videoDevice = defaultVideoDevice else {
                 print("Default video device is unavailable.")
@@ -521,7 +491,8 @@ public class CameraViewController: UIViewController {
         keyValueObservations.append(keyValueObservation)
 
         if #available(iOS 11.1, *) {
-            let systemPressureStateObservation = observe(\.videoDeviceInput.device.systemPressureState, options: .new) { _, change in
+            let systemPressureStateObservation = observe(\.videoDeviceInput.device.systemPressureState,
+                                                         options: .new) { _, change in
                 guard let systemPressureState = change.newValue else { return }
                 self.setRecommendedFrameRateRangeForPressureState(systemPressureState: systemPressureState)
             }
