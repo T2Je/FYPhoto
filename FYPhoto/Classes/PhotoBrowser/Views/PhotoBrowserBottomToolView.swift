@@ -91,6 +91,7 @@ class PhotoBrowserBottomToolView: UIView {
     
     func addEditButton() {
         addSubview(editButton)
+        editButton.isHidden = true
         editButton.setTitle(L10n.cropPhoto, for: .normal)
         editButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
         editButton.setTitleColor(.white, for: .normal)

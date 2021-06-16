@@ -394,9 +394,9 @@ extension ViewController: CameraViewControllerDelegate {
             }
             cameraViewController.dismiss(animated: true) {
                 let photo = Photo.photoWithUIImage(image)
-                let detailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0, builder: nil)
+                let detailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0)
                 detailVC.delegate = self
-                self.navigationController?.pushViewController(detailVC, animated: true)
+                self.navigationController?.fyphoto.pushViewController(detailVC, animated: true)
             }
         case String(kUTTypeMovie):
             guard

@@ -20,7 +20,7 @@ extension CameraViewController {
     }
     
     func applyWatermarkToVideoComposition(watermark: WatermarkImage, videoSize: CGSize) -> AVMutableVideoComposition {
-        let videoSizeScale = videoSize.width / view.frame.size.width
+        let videoSizeScale = min(videoSize.width / view.frame.size.width, videoSize.height / view.frame.size.height)
         let imageLayer = CALayer()
         imageLayer.contents = watermark.image.cgImage
         let fixedWatermarkOriginY = watermark.frame.origin.y + watermark.frame.height

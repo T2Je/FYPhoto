@@ -60,7 +60,11 @@ public class CameraViewController: UIViewController {
     private let photoOutput = AVCapturePhotoOutput()
     private var inProgressPhotoCaptureDelegates = [Int64: PhotoCaptureProcessor]()
     // Devices
-    private var videoDeviceDiscoverySession: AVCaptureDevice.DiscoverySession?
+    private var currentDevice: AVCaptureDevice?
+    private var videoDeviceDiscoverySession: AVCaptureDevice.DiscoverySession!
+    private var backDeviceDiscoverySession: AVCaptureDevice.DiscoverySession!
+    private var frontDeviceDiscoverySession: AVCaptureDevice.DiscoverySession!
+    
     /// the current flash mode
     private var flashMode: AVCaptureDevice.FlashMode = .auto
 
@@ -103,7 +107,7 @@ public class CameraViewController: UIViewController {
         view.addSubview(previewView)
         view.addSubview(cameraOverlayView)
         makeConstraints()
-                
+
         cameraOverlayView.captureMode = captureMode
         cameraOverlayView.delegate = self
 
@@ -114,6 +118,9 @@ public class CameraViewController: UIViewController {
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(focusAndExposeTap(_:)))
         view.addGestureRecognizer(tapGesture)
+        
+        let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchToScale(_:)))
+        view.addGestureRecognizer(pinchGesture)
         /*
          Setup the capture session.
          In general, it's not safe to mutate an AVCaptureSession or any of its
@@ -241,6 +248,15 @@ public class CameraViewController: UIViewController {
         self.present(alertController, animated: true, completion: nil)
     }
     
+    func alertNoDeviceAvailable() {
+        let message = L10n.cameraConfigurationFailed
+        let alertController = UIAlertController(title: L10n.camera, message: message, preferredStyle: .alert)
+        alertController.addAction(UIAlertAction(title: L10n.ok,
+                                                style: .cancel,
+                                                handler: nil))
+        self.present(alertController, animated: true, completion: nil)
+    }
+    
     /*
      Check the video authorization status. Video access is required and audio
      access is optional. If the user denies audio access, FYphoto won't
@@ -310,23 +326,19 @@ public class CameraViewController: UIViewController {
     func addDeviceInput() {
         do {
             var defaultVideoDevice: AVCaptureDevice?
-
-            // Choose the back dual camera, if available, otherwise default to a wide angle camera.
-            if let dualCameraDevice = AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back) {
-                defaultVideoDevice = dualCameraDevice
-            } else if let backCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) {
-                // If a rear dual camera is not available, default to the rear wide angle camera.
-                defaultVideoDevice = backCameraDevice
-            } else if let frontCameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front) {
-                // If the rear wide angle camera isn't available, default to the front wide angle camera.
-                defaultVideoDevice = frontCameraDevice
+            defaultVideoDevice = bestDeivice(in: .back)
+            if defaultVideoDevice == nil {
+                defaultVideoDevice = bestDeivice(in: .front)
             }
+            
             guard let videoDevice = defaultVideoDevice else {
                 print("Default video device is unavailable.")
                 setupResult = .configurationFailed
                 session.commitConfiguration()
                 return
             }
+            currentDevice = videoDevice
+            
             let videoDeviceInput =  try AVCaptureDeviceInput(device: videoDevice)
             if session.canAddInput(videoDeviceInput) {
                 session.addInput(videoDeviceInput)
@@ -421,22 +433,99 @@ public class CameraViewController: UIViewController {
         }
     }
     
+    
+    // MARK: - Sort and Filter Devices with a Discovery Session
     func initVideoDeviceDiscoverySession() {
         if #available(iOS 10.2, *) {
             if #available(iOS 11.1, *) {
-                videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera, .builtInDualCamera, .builtInTrueDepthCamera],
-                                                                               mediaType: .video, position: .unspecified)
+                if #available(iOS 13, *) {
+                    backDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [
+                                                                                    .builtInTripleCamera,
+                                                                                    .builtInDualCamera,
+                                                                                    .builtInDualWideCamera,
+                                                                                    .builtInWideAngleCamera],
+                                                                                  mediaType: .video,
+                                                                                  position: .back)
+                    
+                    frontDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTrueDepthCamera,
+                                                                                                      .builtInWideAngleCamera],
+                                                                                        mediaType: .video,
+                                                                                        position: .front)
+                    
+                    videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTripleCamera,
+                                                                                                 .builtInDualCamera,
+                                                                                                 .builtInDualWideCamera,
+                                                                                                 .builtInWideAngleCamera,
+                                                                                                 .builtInUltraWideCamera,
+                                                                                                 .builtInTrueDepthCamera],
+                                                                                   mediaType: .video,
+                                                                                   position: .unspecified)
+                } else {
+                    backDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [
+                                                                                    .builtInDualCamera,
+                                                                                    .builtInWideAngleCamera],
+                                                                                  mediaType: .video,
+                                                                                  position: .back)
+                    
+                    frontDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTrueDepthCamera,
+                                                                                                      .builtInWideAngleCamera],
+                                                                                        mediaType: .video,
+                                                                                        position: .front)
+                    
+                    videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera,
+                                                                                                 .builtInDualCamera,
+                                                                                                 .builtInTrueDepthCamera],
+                                                                                   mediaType: .video,
+                                                                                   position: .unspecified)
+                }
             } else {
-                videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera, .builtInDualCamera],
+                backDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [
+                                                                                .builtInDualCamera,
+                                                                                .builtInWideAngleCamera],
+                                                                              mediaType: .video,
+                                                                              position: .back)
+                
+                frontDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera],
+                                                                                    mediaType: .video,
+                                                                                    position: .front)
+                videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera,
+                                                                                             .builtInDualCamera],
                                                                                mediaType: .video, position: .unspecified)
             }
         } else {
-            videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera],
+            backDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [
+                                                                            .builtInDualCamera,
+                                                                            .builtInWideAngleCamera],
+                                                                          mediaType: .video,
+                                                                          position: .back)
+            
+            frontDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera],
+                                                                                mediaType: .video,
+                                                                                position: .front)
+            videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera,
+                                                                                         .builtInDualCamera],
                                                                            mediaType: .video, position: .unspecified)
         }
     }
 
-
+    func bestDeivice(in position: AVCaptureDevice.Position) -> AVCaptureDevice? {
+        guard !videoDeviceDiscoverySession.devices.isEmpty else {
+            alertNoDeviceAvailable()
+            return nil
+        }
+        switch position {
+        case .back:
+            return backDeviceDiscoverySession?.devices.first
+        case .front:
+            return frontDeviceDiscoverySession.devices.first
+        case .unspecified:
+            return videoDeviceDiscoverySession.devices.first
+        @unknown default:
+            return nil
+        }
+    }
+    
+    
     // MARK: KVO and Notifications
     private var keyValueObservations = [NSKeyValueObservation]()
     /// - Tag: ObserveInterruption
@@ -445,7 +534,7 @@ public class CameraViewController: UIViewController {
             guard let isSessionRunning = change.newValue else { return }
             DispatchQueue.main.async {
                 // Only enable the ability to change camera if the device has more than one camera.
-                if let uniqueDevicePositionsCount = self.videoDeviceDiscoverySession?.uniqueDevicePositionsCount, uniqueDevicePositionsCount > 1 {
+                if self.videoDeviceDiscoverySession.uniqueDevicePositionsCount > 1 {
                     self.cameraOverlayView.enableSwitchCamera = isSessionRunning
                 }
                 self.cameraOverlayView.enableTakePicture = isSessionRunning
@@ -455,7 +544,8 @@ public class CameraViewController: UIViewController {
         keyValueObservations.append(keyValueObservation)
 
         if #available(iOS 11.1, *) {
-            let systemPressureStateObservation = observe(\.videoDeviceInput.device.systemPressureState, options: .new) { _, change in
+            let systemPressureStateObservation = observe(\.videoDeviceInput.device.systemPressureState,
+                                                         options: .new) { _, change in
                 guard let systemPressureState = change.newValue else { return }
                 self.setRecommendedFrameRateRangeForPressureState(systemPressureState: systemPressureState)
             }
@@ -497,6 +587,36 @@ public class CameraViewController: UIViewController {
             keyValueObservation.invalidate()
         }
         keyValueObservations.removeAll()
+    }
+        
+    @objc
+    func pinchToScale(_ gestureRecognizer: UIPinchGestureRecognizer) {
+        guard gestureRecognizer.view != nil,
+              let device = currentDevice
+        else { return }
+        
+        func zoomFactor(_ factor: CGFloat, _ maxLimit: CGFloat = 5) -> CGFloat {
+            return min(min(max(factor, device.minAvailableVideoZoomFactor), device.maxAvailableVideoZoomFactor), maxLimit)
+        }
+        
+        func updateDeviceZoomFactor(_ factor: CGFloat) {
+            try? device.lockForConfiguration()
+            device.videoZoomFactor = factor
+            device.unlockForConfiguration()
+        }
+                
+        let diff = (1 - gestureRecognizer.scale) / 10 // Reduce sensitivity        
+        let newScaleFactor = zoomFactor(device.videoZoomFactor - diff)
+        
+        switch gestureRecognizer.state {
+        case .began: fallthrough
+        case .changed: updateDeviceZoomFactor(newScaleFactor)
+        case .ended:
+            updateDeviceZoomFactor(newScaleFactor)
+        default:
+            break
+        }
+                    
     }
 
     @objc
@@ -677,84 +797,65 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
         sessionQueue.async {
             let currentVideoDevice = self.videoDeviceInput.device
             let currentPosition = currentVideoDevice.position
-
-            let preferredPosition: AVCaptureDevice.Position
-            let preferredDeviceType: AVCaptureDevice.DeviceType
-
+            
+            var newVideoDevice: AVCaptureDevice?
+            
             switch currentPosition {
             case .unspecified, .front:
-                preferredPosition = .back
-                preferredDeviceType = .builtInDualCamera
+                newVideoDevice = self.bestDeivice(in: .back)
             case .back:
-                preferredPosition = .front
-                if #available(iOS 11.1, *) {
-                    preferredDeviceType = .builtInTrueDepthCamera
-                } else {
-                    preferredDeviceType = .builtInDualCamera
-                }
+                newVideoDevice = self.bestDeivice(in: .front)
             @unknown default:
                 print("Unknown capture position. Defaulting to back, dual-camera.")
-                preferredPosition = .back
-                preferredDeviceType = .builtInDualCamera
+                break
             }
-            if let devices = self.videoDeviceDiscoverySession?.devices {
-                var newVideoDevice: AVCaptureDevice? = nil
-
-                // First, seek a device with both the preferred position and device type. Otherwise, seek a device with only the preferred position.
-                if let device = devices.first(where: { $0.position == preferredPosition && $0.deviceType == preferredDeviceType }) {
-                    newVideoDevice = device
-                } else if let device = devices.first(where: { $0.position == preferredPosition }) {
-                    newVideoDevice = device
-                }
-                if let videoDevice = newVideoDevice {
-                    do {
-                        let videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
-                        self.session.beginConfiguration()
-                        // Remove the existing device input first, because AVCaptureSession doesn't support
-                        // simultaneous use of the rear and front cameras.
-                        self.session.removeInput(self.videoDeviceInput)
-                        if self.session.canAddInput(videoDeviceInput) {
-                            self.session.addInput(videoDeviceInput)
-                            self.videoDeviceInput = videoDeviceInput
-                            NotificationCenter.default.removeObserver(self, name: .AVCaptureDeviceSubjectAreaDidChange, object: currentVideoDevice)
-                            NotificationCenter.default.addObserver(self, selector: #selector(self.subjectAreaDidChange), name: .AVCaptureDeviceSubjectAreaDidChange, object: videoDeviceInput.device)
-                        } else {
-                            self.session.addInput(self.videoDeviceInput)
-                        }
-                        if let connection = self.movieFileOutput?.connection(with: .video) {
-                            if connection.isVideoStabilizationSupported {
-                                connection.preferredVideoStabilizationMode = .auto
-                            }
-                        }
-                        /*
-                         Set Live Photo capture and depth data delivery if it's supported. When changing cameras, the
-                         `livePhotoCaptureEnabled` and `depthDataDeliveryEnabled` properties of the AVCapturePhotoOutput
-                         get set to false when a video device is disconnected from the session. After the new video device is
-                         added to the session, re-enable them on the AVCapturePhotoOutput, if supported.
-                         */
-                        self.photoOutput.isLivePhotoCaptureEnabled = self.photoOutput.isLivePhotoCaptureSupported
-                        if #available(iOS 11.0, *) {
-                            self.photoOutput.isDepthDataDeliveryEnabled = self.photoOutput.isDepthDataDeliverySupported
-                        }
-                        if #available(iOS 12.0, *) {
-                            self.photoOutput.isPortraitEffectsMatteDeliveryEnabled = self.photoOutput.isPortraitEffectsMatteDeliverySupported
-                        }
-                        if #available(iOS 13.0, *) {
-                            self.photoOutput.enabledSemanticSegmentationMatteTypes = self.photoOutput.availableSemanticSegmentationMatteTypes
-                            self.photoOutput.maxPhotoQualityPrioritization = .quality
-                        }
-                        self.session.commitConfiguration()
-                    } catch {
-                        print("Error occurred while creating video device input: \(error)")
+            if let videoDevice = newVideoDevice {
+                do {
+                    let videoDeviceInput = try AVCaptureDeviceInput(device: videoDevice)
+                    self.session.beginConfiguration()
+                    // Remove the existing device input first, because AVCaptureSession doesn't support
+                    // simultaneous use of the rear and front cameras.
+                    self.session.removeInput(self.videoDeviceInput)
+                    if self.session.canAddInput(videoDeviceInput) {
+                        self.session.addInput(videoDeviceInput)
+                        self.videoDeviceInput = videoDeviceInput
+                        NotificationCenter.default.removeObserver(self, name: .AVCaptureDeviceSubjectAreaDidChange, object: currentVideoDevice)
+                        NotificationCenter.default.addObserver(self, selector: #selector(self.subjectAreaDidChange), name: .AVCaptureDeviceSubjectAreaDidChange, object: videoDeviceInput.device)
+                    } else {
+                        self.session.addInput(self.videoDeviceInput)
                     }
+                    if let connection = self.movieFileOutput?.connection(with: .video) {
+                        if connection.isVideoStabilizationSupported {
+                            connection.preferredVideoStabilizationMode = .auto
+                        }
+                    }
+                    /*
+                     Set Live Photo capture and depth data delivery if it's supported. When changing cameras, the
+                     `livePhotoCaptureEnabled` and `depthDataDeliveryEnabled` properties of the AVCapturePhotoOutput
+                     get set to false when a video device is disconnected from the session. After the new video device is
+                     added to the session, re-enable them on the AVCapturePhotoOutput, if supported.
+                     */
+                    self.photoOutput.isLivePhotoCaptureEnabled = self.photoOutput.isLivePhotoCaptureSupported
+                    if #available(iOS 11.0, *) {
+                        self.photoOutput.isDepthDataDeliveryEnabled = self.photoOutput.isDepthDataDeliverySupported
+                    }
+                    if #available(iOS 12.0, *) {
+                        self.photoOutput.isPortraitEffectsMatteDeliveryEnabled = self.photoOutput.isPortraitEffectsMatteDeliverySupported
+                    }
+                    if #available(iOS 13.0, *) {
+                        self.photoOutput.enabledSemanticSegmentationMatteTypes = self.photoOutput.availableSemanticSegmentationMatteTypes
+                        self.photoOutput.maxPhotoQualityPrioritization = .quality
+                    }
+                    self.session.commitConfiguration()
+                } catch {
+                    print("Error occurred while creating video device input: \(error)")
                 }
-
             } else {
                 print("Capture devices are unavaliable")
                 return
             }
-
-            DispatchQueue.main.sync {
+                        
+            DispatchQueue.main.async {
                 self.cameraOverlayView.enableTakeVideo = self.movieFileOutput != nil
                 self.cameraOverlayView.enableTakePicture = true
                 self.cameraOverlayView.enableSwitchCamera = true
