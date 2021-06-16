@@ -855,7 +855,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                 return
             }
                         
-            DispatchQueue.main.sync {
+            DispatchQueue.main.async {
                 self.cameraOverlayView.enableTakeVideo = self.movieFileOutput != nil
                 self.cameraOverlayView.enableTakePicture = true
                 self.cameraOverlayView.enableSwitchCamera = true
