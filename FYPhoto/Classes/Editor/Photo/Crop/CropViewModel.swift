@@ -11,8 +11,13 @@ class CropViewModel: NSObject {
     var statusChanged: ((CropViewStatus) -> Void)?    
 //    var aspectRatioChanged: ((PhotoAspectRatio) -> Void)?
     
+    /// initial frames of 4 rotation degrees
+    private var _initialFrames: [CGRect] = Array(repeating: .zero, count: 4)
+    
     /// initial frame of the imageView. Need to be reseted when device rotates.
-    var initialFrame: CGRect = .zero
+    var initialFrame: CGRect {
+        _initialFrames[rotation.rawValue]
+    }
     var imageZoomScale: CGFloat = 1
     
     let image: UIImage
@@ -36,6 +41,10 @@ class CropViewModel: NSObject {
         self.image = image
         super.init()
         aspectRatio = getImageRatio()        
+    }
+    
+    func set(initialFrame: CGRect, at rotation: PhotoRotation) {
+        _initialFrames[rotation.rawValue] = initialFrame
     }
     
     func getInitialCropGuideViewRect(fromOutside outside: CGRect) -> CGRect {
@@ -89,8 +98,12 @@ class CropViewModel: NSObject {
         return rect
     }
     
-    func resetInitFrame(_ rect: CGRect) {
-        initialFrame = rect
+    func resetInitialFrameAtCurrentRotation(_ rect: CGRect) {
+        set(initialFrame: rect, at: rotation)
+    }
+    
+    func resetInitFrame(_ rect: CGRect, at rotation: PhotoRotation) {
+        set(initialFrame: rect, at: rotation)
     }
     
     func setFixedAspectRatio(_ ratio: Double?) {

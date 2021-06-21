@@ -309,7 +309,7 @@ public class CropImageViewController: UIViewController {
             initialLayout = true
             
             let guideViewFrame = calculateGuideViewInitialFrame()
-            viewModel.resetInitFrame(guideViewFrame)
+            viewModel.resetInitialFrameAtCurrentRotation(guideViewFrame)
             guideView.frame = guideViewFrame
             let guideFrameInCropView = view.convert(guideViewFrame, to: cropView)
             cropView.updateSubViews(guideFrameInCropView, currRotation: viewModel.rotation)
@@ -346,7 +346,7 @@ public class CropImageViewController: UIViewController {
     
     func deviceRotating() {
         let initialGuideFrame = calculateGuideViewInitialFrame()
-        viewModel.resetInitFrame(initialGuideFrame)
+        viewModel.resetInitFrame(initialGuideFrame, at: self.viewModel.rotation)
         guideView.frame = initialGuideFrame
         let guideViewFrameInCropView = view.convert(initialGuideFrame, to: cropView)
         cropView.handleDeviceRotate(guideViewFrameInCropView, currRotation: viewModel.rotation)
@@ -461,7 +461,7 @@ public class CropImageViewController: UIViewController {
     @objc func rotatePhotoBy90DegreeClicked(_ sender: UIButton) {
         updateCropViewRotation(-CGFloat.pi/2, guideView.frame) {
             self.viewModel.rotation.counterclockwiseRotate90Degree()
-            self.viewModel.resetInitFrame(self.calculateGuideViewInitialFrame())
+            self.viewModel.resetInitFrame(self.calculateGuideViewInitialFrame(), at: self.viewModel.rotation)
             
             self.viewModel.status = .endTouch
             self.cropView.completeRotation()
@@ -492,7 +492,7 @@ public class CropImageViewController: UIViewController {
         viewModel.setFixedAspectRatio(ratio)
         
         let initialFrame = calculateGuideViewInitialFrame()
-        viewModel.resetInitFrame(initialFrame)
+        viewModel.resetInitialFrameAtCurrentRotation(initialFrame)
         let guideFrame = viewModel.calculateGuideViewFrame(by: initialFrame)
         guideView.frame = guideFrame
              
