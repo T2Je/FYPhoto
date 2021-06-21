@@ -18,6 +18,7 @@ class CropView: UIView {
     var scrollViewWillBeginDragging = {}
     var scrollViewDidEndDragging = {}
     var scrollViewDidEndDecelerating = {}
+    var scrollViewDidZoom = {}
     
     let imageView: ImageView
     
@@ -63,7 +64,7 @@ class CropView: UIView {
         
         scrollView.touchesEnd = { [weak self] in
             self?.scrollViewTouchesEnd()
-        }
+        }        
     }
         
     func updateSubviewsRotation(_ radians: CGFloat, dstGuideViewSize: CGSize, currRotation: PhotoRotation) {

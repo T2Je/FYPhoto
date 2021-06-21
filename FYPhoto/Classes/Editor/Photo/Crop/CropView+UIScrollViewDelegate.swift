@@ -26,4 +26,8 @@ extension CropView: UIScrollViewDelegate {
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         scrollViewDidEndDecelerating()
     }
+    
+    func scrollViewDidZoom(_ scrollView: UIScrollView) {
+        scrollViewDidZoom()
+    }
 }

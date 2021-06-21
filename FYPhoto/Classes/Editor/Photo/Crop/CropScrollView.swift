@@ -96,4 +96,5 @@ class CropScrollView: UIScrollView {
         super.touchesEnded(touches, with: event)
         touchesEnd()
     }
+        
 }

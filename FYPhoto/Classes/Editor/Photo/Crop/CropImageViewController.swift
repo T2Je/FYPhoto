@@ -40,16 +40,18 @@ public class CropImageViewController: UIViewController {
         return bar
     }()
     
-    let cancelButton = UIButton()
-    let doneButton = UIButton()
-    let bottomStackView = UIStackView()
+    private let cancelButton = UIButton()
+    private let doneButton = UIButton()
+    private let bottomStackView = UIStackView()
     
-    let maskManager = CropViewMaskManager()
+    private let maskManager = CropViewMaskManager()
     
     private var isGuideViewZoomingOut = false
     private var guideViewResizeAnimator: UIViewPropertyAnimator?
     
     private var maximumRectKeyValueObservation: NSKeyValueObservation?
+    
+    private var timer: Timer?
     
     var orientation: UIInterfaceOrientation {
         get {
@@ -72,8 +74,8 @@ public class CropImageViewController: UIViewController {
     public init(image: UIImage, customRatio: [RatioItem] = []) {
         viewModel = CropViewModel(image: image)
         cropView = CropView(image: image)
-        viewModel.imageZoomScale = cropView.scrollView.zoomScale
-        
+//        viewModel.imageZoomScale = cropView.scrollView.zoomScale
+        viewModel.setInitialZoomScale(cropView.scrollView.zoomScale, at: .zero)
         self.customRatio = customRatio
         
         super.init(nibName: nil, bundle: nil)
@@ -123,6 +125,7 @@ public class CropImageViewController: UIViewController {
         resetButton.setTitle(L10n.resetPhoto, for: .normal)
         resetButton.addTarget(self, action: #selector(resetPhotoButtonClicked(_:)), for: .touchUpInside)
         resetButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
+        resetButton.alpha = 0
         
         aspectRatioButton.setImage(Asset.Crop.aspectratio.image, for: .normal)
         aspectRatioButton.tintColor = .systemGray
@@ -143,7 +146,7 @@ public class CropImageViewController: UIViewController {
         }
         
         cropView.scrollViewTouchesEnd = { [weak self] in
-            self?.viewModel.status = .endTouch
+            self?.viewModel.status = .endTouch            
         }
         
         cropView.scrollViewWillBeginDragging = { [weak self] in
@@ -155,6 +158,10 @@ public class CropImageViewController: UIViewController {
         }
         
         cropView.scrollViewDidEndDecelerating = { [weak self] in
+            self?.viewModel.status = .endTouch
+        }
+        
+        cropView.scrollViewDidZoom = { [weak self] in
             self?.viewModel.status = .endTouch
         }
     }
@@ -346,7 +353,7 @@ public class CropImageViewController: UIViewController {
     
     func deviceRotating() {
         let initialGuideFrame = calculateGuideViewInitialFrame()
-        viewModel.resetInitFrame(initialGuideFrame, at: self.viewModel.rotation)
+        viewModel.resetInitFrame(initialGuideFrame, imageZoomScale: cropView.scrollView.zoomScale, at: self.viewModel.rotation)
         guideView.frame = initialGuideFrame
         let guideViewFrameInCropView = view.convert(initialGuideFrame, to: cropView)
         cropView.handleDeviceRotate(guideViewFrameInCropView, currRotation: viewModel.rotation)
@@ -356,7 +363,7 @@ public class CropImageViewController: UIViewController {
     /// Rotate image counterclockwise at a degree
     /// - Parameter radians: degree radian value
     /// - Parameter guideViewFrame: current guide view frame
-    func updateCropViewRotation(_ radians: CGFloat, _ guideViewFrame: CGRect, completion: @escaping (() -> Void)) {
+    func updateCropViewRotation(_ radians: CGFloat, _ guideViewFrame: CGRect, completion: @escaping ((CGRect) -> Void)) {
         viewModel.status = .imageRotation
         var rect = guideViewFrame
         rect.size.width = guideView.frame.height
@@ -370,7 +377,7 @@ public class CropImageViewController: UIViewController {
             self.guideView.frame = convertedGuideFrame
             self.cropView.updateSubviewsRotation(radians, dstGuideViewSize: convertedGuideFrame.size, currRotation: self.viewModel.rotation)
         } completion: { _ in
-            completion()
+            completion(convertedGuideFrame)
         }
     }
     
@@ -389,6 +396,11 @@ public class CropImageViewController: UIViewController {
         case .endTouch:
             maskManager.showVisualEffectBackground()
             cropView.scrollView.isUserInteractionEnabled = true
+            if viewModel.canReset(guideView.frame, cropView.scrollView.zoomScale) {
+                resetButton.alpha = 1
+            } else {
+                resetButton.alpha = 0
+            }
         }
     }
     
@@ -459,9 +471,11 @@ public class CropImageViewController: UIViewController {
     }
 
     @objc func rotatePhotoBy90DegreeClicked(_ sender: UIButton) {
-        updateCropViewRotation(-CGFloat.pi/2, guideView.frame) {
+        updateCropViewRotation(-CGFloat.pi/2, guideView.frame) { guideViewFrame in
             self.viewModel.rotation.counterclockwiseRotate90Degree()
-            self.viewModel.resetInitFrame(self.calculateGuideViewInitialFrame(), at: self.viewModel.rotation)
+            self.viewModel.resetInitFrame(guideViewFrame,
+                                          imageZoomScale: self.cropView.scrollView.zoomScale,
+                                          at: self.viewModel.rotation)
             
             self.viewModel.status = .endTouch
             self.cropView.completeRotation()
@@ -472,8 +486,6 @@ public class CropImageViewController: UIViewController {
     func updateMaskTransparent(_ rect: CGRect, animated: Bool) {
         self.maskManager.recreateTransparentRect(rect, animated: animated)
     }
-    
-    var timer: Timer?
     
     func startTimer(_ rect: CGRect) {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false, block: { _ in
@@ -512,6 +524,7 @@ public class CropImageViewController: UIViewController {
                 
         guideView.frame = viewModel.initialFrame
 
+        resetButton.alpha = 0
     }
     
     @objc func aspectRatioButtonClicked(_ sender: UIButton) {        
