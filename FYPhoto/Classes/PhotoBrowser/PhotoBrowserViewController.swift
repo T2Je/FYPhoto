@@ -1131,6 +1131,14 @@ extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
             guard let self = self else { return }
             switch result {
             case .success(let cropped):
+                SaveMediaTool.saveImageToAlbums(cropped) { result in
+                    switch result {
+                    case .success(_):
+                        self.showMessage(L10n.successfullySavedMedia)
+                    case .failure(let error):
+                        self.showError(error)
+                    }
+                }
                 self.currentPhoto.storeImage(cropped)
                 // TODO: 😴zZ change collection view cell image datasource when scrolling
                 cell.image = cropped

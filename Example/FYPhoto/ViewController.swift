@@ -385,11 +385,13 @@ extension ViewController: CameraViewControllerDelegate {
             // watermark
             guard let image = info[.watermarkImage] as? UIImage else { return }
 //            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
-            CameraViewController.saveImageToAlbums(image) { (error) in
-                if let error = error {
-                    print("🤢\(error)🤮")
-                } else {
-                    print("image saved")
+            CameraViewController.saveImageToAlbums(image) { (result) in
+                switch result {
+                case .success(_):
+                    
+                    print("image saved successfully")
+                case .failure(let error):
+                    print(error)
                 }
             }
             cameraViewController.dismiss(animated: true) {

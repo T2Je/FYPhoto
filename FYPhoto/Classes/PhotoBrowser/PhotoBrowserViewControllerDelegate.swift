@@ -60,16 +60,26 @@ public extension PhotoBrowserViewControllerDelegate {
                 guard let self = self else { return }
                 switch result {
                 case .success(let filePath):
-                    SaveMediaTool.saveVideoDataToAlbums(filePath) { (error) in
-                        self.photoBrowser(viewController, saveMediaCompletedWith: error)
+                    SaveMediaTool.saveVideoDataToAlbums(filePath) { (result) in
+                        switch result {
+                        case .failure(let error):
+                            self.photoBrowser(viewController, saveMediaCompletedWith: error)
+                        case .success(_):
+                            self.photoBrowser(viewController, saveMediaCompletedWith: nil)
+                        }
                     }
                 case .failure(let error):
                     self.photoBrowser(viewController, saveMediaCompletedWith: error)
                 }
             })
         } else if let image = photo.image {
-            SaveMediaTool.saveImageToAlbums(image) { (error) in
-                self.photoBrowser(viewController, saveMediaCompletedWith: error)
+            SaveMediaTool.saveImageToAlbums(image) { (result) in
+                switch result {
+                case .failure(let error):
+                    self.photoBrowser(viewController, saveMediaCompletedWith: error)
+                case .success(_):
+                    self.photoBrowser(viewController, saveMediaCompletedWith: nil)
+                }                
             }
         }
     }

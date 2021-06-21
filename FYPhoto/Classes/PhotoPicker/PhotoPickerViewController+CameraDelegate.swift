@@ -22,17 +22,18 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
             
             cameraViewController.dismiss(animated: true) {
                 
-                SaveMediaTool.saveImageDataToAlbums(data) { (error) in
+                SaveMediaTool.saveImageDataToAlbums(data) { (result) in
                     var asset: PHAsset?
-                    
-                    if let error = error {
-                        print("🤢\(error)🤮")
-                    } else {
+                    switch result {
+                    case .success(_):
                         print("image saved")
+                        self.showMessage("image saved")
                         let fetchOptions = PHFetchOptions()
                         fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
                         let result = PHAsset.fetchAssets(with: fetchOptions)
                         asset = result.firstObject
+                    case .failure(let error):
+                        self.showError(error)
                     }
                     
                     self.dismiss(animated: false) {
@@ -67,13 +68,13 @@ extension PhotoPickerViewController: VideoPreviewControllerDelegate {
     public func videoPreviewController(_ preview: VideoPreviewController, didSaveVideoAt path: URL) {
         preview.delegate = nil
 //        print("video path: \(path)\npath.path: \(path.path)")
-        SaveMediaTool.saveVideoDataToAlbums(path) { [weak self] (error) in
+        SaveMediaTool.saveVideoDataToAlbums(path) { result in
             DispatchQueue.main.async {
                 preview.dismiss(animated: true, completion: {
-                    if let error = error {
-                        print("❌ \(error)")
-                    } else {
+                    switch result {
+                    case .success(_):
                         print("video saved successfully")
+                        self.showMessage("video saved successfully")
                         guard let videoAsset = PhotoPickerResource.shared.allVideos().firstObject else { return }
                         let thumbnail = videoAsset.getThumbnailImageSynchorously()
                         PHImageManager.default().requestAVAsset(forVideo: videoAsset, options: nil) { (avAsset, _, _) in
@@ -81,10 +82,12 @@ extension PhotoPickerViewController: VideoPreviewControllerDelegate {
                             DispatchQueue.main.async {
                                 let selectedVideo = SelectedVideo(url: urlAsset.url)
                                 selectedVideo.briefImage = thumbnail
-                                self?.selectedVideo?(.success(selectedVideo))
-                                self?.dismiss(animated: true, completion: nil)
+                                self.selectedVideo?(.success(selectedVideo))
+                                self.dismiss(animated: true, completion: nil)
                             }
                         }
+                    case .failure(let error):
+                        self.showError(error)
                     }
                 })
             }
