@@ -26,10 +26,10 @@ public class CropImageViewController: UIViewController {
     public struct RestoreData {
         let initialFrame: CGRect
         let initialZoomScale: CGFloat
-//        var scaledFrame: CGRect?
         let cropFrame: CGRect
         let zoomScale: CGFloat
         var zoomRect: CGRect?
+        var contentOffset: CGPoint?
         let rotation: PhotoRotation
     }
     
@@ -76,13 +76,13 @@ public class CropImageViewController: UIViewController {
     
     var initialLayout = false
     var customLayouts: [NSLayoutConstraint] = []
-        
-    private var zoomRect: CGRect?
     
     let customRatio: [RatioItem]
     
     /// If the image is cropped before, use this data to re-create the situation of cropping the image
     public var restoreData: RestoreData?
+    private var zoomRect: CGRect?
+    private var imageContentOffset: CGPoint?
     
     //MARK: - Lifecycle
     /// Initialize CropImageViewController with image and custom ratios
@@ -95,7 +95,7 @@ public class CropImageViewController: UIViewController {
         viewModel = CropViewModel(image: image)
         cropView = CropView(image: image)
         if let previous = restoreData {
-            viewModel.setInitialZoomScale(previous.zoomScale, at: previous.rotation)
+            viewModel.setInitialZoomScale(previous.initialZoomScale, at: previous.rotation)
             viewModel.setInitialFrame(previous.initialFrame, at: previous.rotation)
             
         } else {
@@ -175,16 +175,21 @@ public class CropImageViewController: UIViewController {
             cropView.scrollView.zoom(to: zoomRect, animated: false)
         }
         
-        cropView.scrollView.zoomScale = data.zoomScale
+        cropView.scrollView.setZoomScale(data.zoomScale, animated: true)
+        if let contentOffset = data.contentOffset {
+            cropView.scrollView.contentOffset = contentOffset
+        }
     }
     
     func saveRestoreData() {
         let tempZoomRect = zoomRect ?? restoreData?.zoomRect
+        let tempContentOffset = imageContentOffset ?? restoreData?.contentOffset
         restoreData = RestoreData(initialFrame: viewModel.initialFrame,
                                   initialZoomScale: viewModel.initalZoomScale,
                                   cropFrame: guideView.frame,
                                   zoomScale: cropView.scrollView.zoomScale,
                                   zoomRect: tempZoomRect,
+                                  contentOffset: tempContentOffset,
                                   rotation: viewModel.rotation)
     }
     
@@ -265,7 +270,7 @@ public class CropImageViewController: UIViewController {
         }
         
         guideView.resizeEnded = { [weak self] scaledFrame in
-            guard let self = self else { return }            
+            guard let self = self else { return }
             self.startTimer(scaledFrame)
         }
         
@@ -469,6 +474,7 @@ public class CropImageViewController: UIViewController {
         case .endTouch:
             maskManager.showVisualEffectBackground()
             cropView.scrollView.isUserInteractionEnabled = true
+            imageContentOffset = cropView.scrollView.contentOffset
             if viewModel.canReset(guideView.frame, cropView.scrollView.zoomScale) {
                 resetButton.alpha = 1
             } else {
