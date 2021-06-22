@@ -22,6 +22,17 @@ public class CropImageViewController: UIViewController {
         }
     }
     
+    /// data for restore previous cropped data
+    public struct RestoreData {
+        let initialFrame: CGRect
+        let initialZoomScale: CGFloat
+//        var scaledFrame: CGRect?
+        let cropFrame: CGRect
+        let zoomScale: CGFloat
+        var zoomRect: CGRect?
+        let rotation: PhotoRotation
+    }
+    
     public var croppedImage: ((Result<UIImage, Error>) -> Void)?
     
     let viewModel: CropViewModel
@@ -64,21 +75,40 @@ public class CropImageViewController: UIViewController {
     }
     
     var initialLayout = false
+    var customLayouts: [NSLayoutConstraint] = []
+        
+    private var zoomRect: CGRect?
     
     let customRatio: [RatioItem]
     
+    /// If the image is cropped before, use this data to re-create the situation of cropping the image
+    public var restoreData: RestoreData?
+    
+    //MARK: - Lifecycle
     /// Initialize CropImageViewController with image and custom ratios
     /// - Parameters:
     ///   - image: source image
     ///   - customRatio: customRatio, for example: you want a '1000:3' ratio, which is not included in built-in ratios
-    public init(image: UIImage, customRatio: [RatioItem] = []) {
+    ///   - restoreData: If the image is cropped before, use this data to re-create the situation of cropping the image
+    public init(image: UIImage, customRatio: [RatioItem] = [], restoreData: RestoreData? = nil) {
+        self.restoreData = restoreData
         viewModel = CropViewModel(image: image)
         cropView = CropView(image: image)
-//        viewModel.imageZoomScale = cropView.scrollView.zoomScale
-        viewModel.setInitialZoomScale(cropView.scrollView.zoomScale, at: .zero)
+        if let previous = restoreData {
+            viewModel.setInitialZoomScale(previous.zoomScale, at: previous.rotation)
+            viewModel.setInitialFrame(previous.initialFrame, at: previous.rotation)
+            
+        } else {
+            viewModel.setInitialZoomScale(cropView.scrollView.zoomScale, at: .zero)
+        }
+        
         self.customRatio = customRatio
         
         super.init(nibName: nil, bundle: nil)
+    }
+    
+    public convenience init(image: UIImage) {
+        self.init(image: image, customRatio: [], restoreData: nil)
     }
     
     required init?(coder: NSCoder) {
@@ -99,6 +129,66 @@ public class CropImageViewController: UIViewController {
         makeConstraints()
     }
     
+    public override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if !initialLayout {
+            guideView.translatesAutoresizingMaskIntoConstraints = true
+            initialLayout = true
+            
+            let guideViewFrame = calculateGuideViewInitialFrame()
+            viewModel.resetInitialFrameAtCurrentRotation(guideViewFrame)
+            guideView.frame = guideViewFrame
+            let guideFrameInCropView = view.convert(guideViewFrame, to: cropView)
+            cropView.updateSubViews(guideFrameInCropView, currRotation: viewModel.rotation)
+            
+            if let previousData = restoreData {
+                restoreWithPreviousData(previousData)
+            }
+            
+        }
+        if !isGuideViewZoomingOut {
+            updateMaskTransparent(guideView.frame, animated: false)
+        }
+    }
+    
+    public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        super.viewWillTransition(to: size, with: coordinator)
+        hanleRotate()
+    }
+    
+    func restoreWithPreviousData(_ data: RestoreData) {
+        if data.rotation != .zero {
+            updateCropViewRotation(data.rotation.radians, data.cropFrame, animated: false) { rect in
+                self.viewModel.rotation.counterclockwiseRotate90Degree()
+                self.viewModel.resetInitFrame(rect,
+                                              imageZoomScale: self.cropView.scrollView.zoomScale,
+                                              at: self.viewModel.rotation)
+                
+                self.viewModel.status = .endTouch
+                self.cropView.completeRotation()
+            }
+        }
+        
+        if let zoomRect = data.zoomRect {
+            guideView.frame = data.cropFrame
+            updateCropViewBounds()
+            cropView.scrollView.zoom(to: zoomRect, animated: false)
+        }
+        
+        cropView.scrollView.zoomScale = data.zoomScale
+    }
+    
+    func saveRestoreData() {
+        let tempZoomRect = zoomRect ?? restoreData?.zoomRect
+        restoreData = RestoreData(initialFrame: viewModel.initialFrame,
+                                  initialZoomScale: viewModel.initalZoomScale,
+                                  cropFrame: guideView.frame,
+                                  zoomScale: cropView.scrollView.zoomScale,
+                                  zoomRect: tempZoomRect,
+                                  rotation: viewModel.rotation)
+    }
+    
+    //MARK: - Setup
     func setupData() {        
         viewModel.statusChanged = { [weak self] status in
             self?.cropViewStatusChanged(status)
@@ -126,7 +216,7 @@ public class CropImageViewController: UIViewController {
         resetButton.addTarget(self, action: #selector(resetPhotoButtonClicked(_:)), for: .touchUpInside)
         resetButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
         resetButton.alpha = 0
-        
+                
         aspectRatioButton.setImage(Asset.Crop.aspectratio.image, for: .normal)
         aspectRatioButton.tintColor = .systemGray
         aspectRatioButton.addTarget(self, action: #selector(aspectRatioButtonClicked(_:)), for: .touchUpInside)
@@ -175,9 +265,8 @@ public class CropImageViewController: UIViewController {
         }
         
         guideView.resizeEnded = { [weak self] scaledFrame in
-            guard let self = self else { return }
+            guard let self = self else { return }            
             self.startTimer(scaledFrame)
-//            self.animateGuideViewAfterResizing(scaledFrame)
         }
         
         guideView.resizeCancelled = { [weak self] in
@@ -235,8 +324,6 @@ public class CropImageViewController: UIViewController {
         
         layoutCropViewAndRatioBar(orientation == .portrait || orientation == .portraitUpsideDown)
     }
-    
-    var customLayouts: [NSLayoutConstraint] = []
         
     func layoutCropViewAndRatioBar(_ isPortrait: Bool) {
         let safeArea = view.safeAreaLayoutGuide
@@ -309,29 +396,6 @@ public class CropImageViewController: UIViewController {
         }
     }
     
-    public override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        if !initialLayout {
-            guideView.translatesAutoresizingMaskIntoConstraints = true            
-            initialLayout = true
-            
-            let guideViewFrame = calculateGuideViewInitialFrame()
-            viewModel.resetInitialFrameAtCurrentRotation(guideViewFrame)
-            guideView.frame = guideViewFrame
-            let guideFrameInCropView = view.convert(guideViewFrame, to: cropView)
-            cropView.updateSubViews(guideFrameInCropView, currRotation: viewModel.rotation)
-        }
-        if !isGuideViewZoomingOut {
-            updateMaskTransparent(guideView.frame, animated: false)
-        }        
-    }
-    
-    public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        super.viewWillTransition(to: size, with: coordinator)
-        hanleRotate()
-        
-    }
-    
     // MARK: - Rotation
     
     func hanleRotate() {
@@ -363,7 +427,10 @@ public class CropImageViewController: UIViewController {
     /// Rotate image counterclockwise at a degree
     /// - Parameter radians: degree radian value
     /// - Parameter guideViewFrame: current guide view frame
-    func updateCropViewRotation(_ radians: CGFloat, _ guideViewFrame: CGRect, completion: @escaping ((CGRect) -> Void)) {
+    func updateCropViewRotation(_ radians: CGFloat,
+                                _ guideViewFrame: CGRect,
+                                animated: Bool = true,
+                                completion: @escaping ((CGRect) -> Void)) {
         viewModel.status = .imageRotation
         var rect = guideViewFrame
         rect.size.width = guideView.frame.height
@@ -372,13 +439,19 @@ public class CropImageViewController: UIViewController {
         let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
         let newRect = GeometryHelper.getAppropriateRect(fromOutside: contentBounds, inside: rect)
         let convertedGuideFrame = cropView.convert(newRect, to: self.view)
-                          
-        UIView.animate(withDuration: 0.25) {
+        if animated {
+            UIView.animate(withDuration: 0.25) {
+                self.guideView.frame = convertedGuideFrame
+                self.cropView.updateSubviewsRotation(radians, dstGuideViewSize: convertedGuideFrame.size, currRotation: self.viewModel.rotation)
+            } completion: { _ in
+                completion(convertedGuideFrame)
+            }
+        } else {
             self.guideView.frame = convertedGuideFrame
             self.cropView.updateSubviewsRotation(radians, dstGuideViewSize: convertedGuideFrame.size, currRotation: self.viewModel.rotation)
-        } completion: { _ in
             completion(convertedGuideFrame)
         }
+        
     }
     
     func cropViewStatusChanged(_ status: CropViewStatus) {
@@ -411,9 +484,15 @@ public class CropImageViewController: UIViewController {
     }
     
     // MARK: - GuideView resized
-    func guideViewResized(_ scaleFrame: CGRect) {
-        viewModel.status = .endTouch
-        
+    fileprivate func updateCropViewBounds() {
+        var rotationSize = guideView.frame.size
+        if viewModel.rotation == .counterclockwise90 || viewModel.rotation == .counterclockwise270 {
+            rotationSize = CGSize(width: rotationSize.height, height: rotationSize.width)
+        }
+        cropView.scrollView.updateBounds(with: rotationSize)
+    }
+    
+    func calculateZoomRect(_ scaleFrame: CGRect) -> CGRect {
         // calculate the zoom area of scroll view
         var scaleFrame = scaleFrame
         
@@ -423,27 +502,31 @@ public class CropImageViewController: UIViewController {
         if scaleFrame.height > cropView.scrollView.contentSize.height {
             scaleFrame.size.height = cropView.scrollView.contentSize.height
         }
-                
-        var rotationSize = guideView.frame.size
-        if viewModel.rotation == .counterclockwise90 || viewModel.rotation == .counterclockwise270 {
-            rotationSize = CGSize(width: guideView.frame.size.height, height: guideView.frame.size.width)
-        }
-        self.cropView.scrollView.updateBounds(with: rotationSize)
 
-        let convertedFrame = self.view.convert(scaleFrame, to: self.cropView.imageView)
-        self.cropView.scrollView.zoom(to: convertedFrame, animated: false)
+        return self.view.convert(scaleFrame, to: self.cropView.imageView)
     }
     
-    fileprivate func animateGuideViewAfterResizing(_ scaledFrame: CGRect) {
+    func guideViewResized(_ scaleFrame: CGRect) {
+        viewModel.status = .endTouch
+        
+        updateCropViewBounds()
+        let zoomRect = calculateZoomRect(scaleFrame)
+        cropView.scrollView.zoom(to: zoomRect, animated: false)
+        
+        self.zoomRect = zoomRect
+    }
+    
+    fileprivate func animateGuideViewAfterResizing(_ scaledFrame: CGRect, animated: Bool) {
         let contentBounds = viewModel.getContentBounds(cropView.bounds, CropView.Constant.padding)
         var guideViewFrame = GeometryHelper.getAppropriateRect(fromOutside: contentBounds, inside: scaledFrame)
         guideViewFrame = cropView.convert(guideViewFrame, to: view)
         
         isGuideViewZoomingOut = true
-        self.updateMaskTransparent(guideViewFrame, animated: true)
+        updateMaskTransparent(guideViewFrame, animated: true)
         
         guideViewResizeAnimator?.stopAnimation(true)
-        let animator = UIViewPropertyAnimator(duration: 0.2, curve: .easeInOut) {
+        let duration: TimeInterval = animated ? 0.2 : 0
+        let animator = UIViewPropertyAnimator(duration: duration, curve: .easeInOut) {
             self.guideView.frame = guideViewFrame
             self.guideViewResized(scaledFrame)
         }
@@ -490,7 +573,7 @@ public class CropImageViewController: UIViewController {
     func startTimer(_ rect: CGRect) {
         timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: false, block: { _ in
             self.stopTimer()
-            self.animateGuideViewAfterResizing(rect)
+            self.animateGuideViewAfterResizing(rect, animated: true)
         })
     }
     
@@ -567,6 +650,7 @@ public class CropImageViewController: UIViewController {
             result = .failure(CropImageError.invalidImage)
         }
         self.dismiss(animated: true) {
+            self.saveRestoreData()
             self.croppedImage?(result)
         }
     }

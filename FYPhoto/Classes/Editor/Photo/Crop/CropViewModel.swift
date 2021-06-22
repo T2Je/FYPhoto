@@ -20,7 +20,7 @@ class CropViewModel: NSObject {
         _initialFrames[rotation.rawValue]
     }
     
-    var imageZoomScale: CGFloat {
+    var initalZoomScale: CGFloat {
         _initialZoomScales[rotation.rawValue]
     }
     
@@ -131,11 +131,11 @@ class CropViewModel: NSObject {
     }
     
     func hasChanges(_ currentRect: CGRect, _ zoomScale: CGFloat) -> Bool {
-        rotation != .zero || hasResized(currentRect) || zoomScale != imageZoomScale
+        rotation != .zero || hasResized(currentRect) || zoomScale != initalZoomScale
     }
     
     func canReset(_ currentRect: CGRect, _ zoomScale: CGFloat) -> Bool {
-        hasResized(currentRect) || zoomScale != imageZoomScale
+        hasResized(currentRect) || zoomScale != initalZoomScale
     }
 
     func calculateGuideViewFrame(by initial: CGRect) -> CGRect {

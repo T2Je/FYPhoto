@@ -111,7 +111,7 @@ class CropView: UIView {
         scrollView.transform = transform
         scrollView.reset(rect: frame, isPortrait: (currentRotate == .zero || currentRotate == .counterclockwise180))
         
-        imageView.frame = scrollView.bounds
+        imageView.frame = CGRect(origin: .zero, size: scrollView.bounds.size)
     }
     
     func updateScrollViewMinZoomScale() {
