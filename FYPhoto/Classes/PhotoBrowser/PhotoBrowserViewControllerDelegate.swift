@@ -19,6 +19,8 @@ public protocol PhotoBrowserViewControllerDelegate: AnyObject {
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, longPressedOnPhoto photo: PhotoProtocol)
     
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, saveMediaCompletedWith error: Error?)
+    
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, editedPhotos: [String: CroppedRestoreData])
 }
 
 public extension PhotoBrowserViewControllerDelegate {
@@ -27,6 +29,7 @@ public extension PhotoBrowserViewControllerDelegate {
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, selectedAssets identifiers: [String]) { }
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, didCompleteSelected photos: [PhotoProtocol]) { }
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, deletePhotoAtIndexWhenBrowsing index: Int) { }
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, editedPhotos: [String: CroppedRestoreData]) { }
 }
 
 public extension PhotoBrowserViewControllerDelegate {

@@ -23,7 +23,13 @@ class PhotoAsset: PhotoProtocol {
         return asset.mediaType == .video
     }
     
-    var restoreData: CroppedRestoreData?
+    var restoreData: CroppedRestoreData? {
+        didSet {
+            if restoreData != nil {
+                image = restoreData?.editedImage
+            }            
+        }
+    }
     
     func storeImage(_ image: UIImage?) {
         self.image = image

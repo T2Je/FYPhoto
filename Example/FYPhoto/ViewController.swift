@@ -112,7 +112,7 @@ class ViewController: UIViewController {
         pickerConfig.maximumVideoDuration = 6
         pickerConfig.compressedQuality = .mediumQuality
         pickerConfig.supportCamera = true
-        pickerConfig.mediaFilter = .image
+        pickerConfig.mediaFilter = .all
         let colorConfig = FYColorConfiguration()
         colorConfig.topBarColor = FYColorConfiguration.BarColor(itemTintColor: .red, itemDisableColor: .gray, itemBackgroundColor: .black, backgroundColor: .blue)
 
@@ -187,9 +187,9 @@ class ViewController: UIViewController {
 
     @objc func playRemoteVideo(_ sender: UIButton) {
 //        guard let url = URL(string: "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4") else { return }
-        let urlStr = "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4"
+//        let urlStr = "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4"
 //        let urlStr = "http://client.gsup.sichuanair.com/file.php?9bfc3b16aec233d025c18042e9a2b45a.mp4"
-//        let urlStr = "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4"
+        let urlStr = "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4"
 //        let urlStr = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
         guard let url = URL(string: urlStr) else { return }
 

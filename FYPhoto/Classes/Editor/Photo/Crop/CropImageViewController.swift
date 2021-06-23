@@ -174,7 +174,7 @@ public class CropImageViewController: UIViewController {
         }
     }
     
-    func saveRestoreData() {
+    func saveRestoreData(_ edited: UIImage) {
         let tempZoomRect = zoomRect ?? restoreData?.zoomRect
         let tempContentOffset = imageContentOffset ?? restoreData?.contentOffset
         restoreData = CroppedRestoreData(initialFrame: viewModel.initialFrame,
@@ -184,7 +184,8 @@ public class CropImageViewController: UIViewController {
                                          zoomRect: tempZoomRect,
                                          contentOffset: tempContentOffset,
                                          rotation: viewModel.rotation,
-                                         originImage: viewModel.image)
+                                         originImage: viewModel.image,
+                                         editedImage: edited)
     }
     
     //MARK: - Setup
@@ -646,11 +647,12 @@ public class CropImageViewController: UIViewController {
         let cropInfo = cropView.getCropInfo(with: guideViewRectInCropView, radians: viewModel.rotation.radians)
         if let image = imageViewImage.getCroppedImage(byCropInfo: cropInfo) {
             result = .success(image)
+            self.saveRestoreData(image)
         } else {
             result = .failure(CropImageError.invalidImage)
         }
         self.dismiss(animated: true) {
-            self.saveRestoreData()
+            
             self.croppedImage?(result)
         }
     }

@@ -17,4 +17,5 @@ public struct CroppedRestoreData {
     var contentOffset: CGPoint?
     let rotation: PhotoRotation
     let originImage: UIImage
+    let editedImage: UIImage
 }

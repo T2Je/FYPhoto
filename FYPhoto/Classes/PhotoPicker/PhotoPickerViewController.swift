@@ -149,6 +149,9 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         return maximumVideoSize > 0
     }
     
+    /// save edited photos in PhotoBrowser
+    var editedPhotos: [String: CroppedRestoreData] = [:]
+    
     private(set) var configuration: FYPhotoPickerConfiguration
     
     let videoValidator: VideoValidatorProtocol = FYVideoValidator()
@@ -435,14 +438,22 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         options.resizeMode = .fast
         options.isNetworkAccessAllowed = true
         options.isSynchronous = false
-        imageManager.requestImage(for: asset, targetSize: thumbnailSize, contentMode: .aspectFit, options: options, resultHandler: { image, info in
-            // The cell may have been recycled by the time this handler gets called;
-            // set the cell's thumbnail image only if it's still showing the same asset.
+        if let restore = editedPhotos[asset.localIdentifier] {            
             if cell.representedAssetIdentifier == asset.localIdentifier {
-                cell.thumbnailImage = image
-                self.configureCellState(cell, asset: asset)
+                cell.thumbnailImage = restore.editedImage
+                configureCellState(cell, asset: asset)
             }
-        })
+        } else {
+            imageManager.requestImage(for: asset, targetSize: thumbnailSize, contentMode: .aspectFit, options: options, resultHandler: { image, info in
+                // The cell may have been recycled by the time this handler gets called;
+                // set the cell's thumbnail image only if it's still showing the same asset.
+                if cell.representedAssetIdentifier == asset.localIdentifier {
+                    cell.thumbnailImage = image
+                    self.configureCellState(cell, asset: asset)
+                }
+            })
+        }
+        
     }
     
     func configureCellState(_ cell: GridViewCell, asset: PHAsset) {
@@ -554,11 +565,23 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     //  MARK: BROWSE IMAGES || VIDEO
     func browseImages(at indexPath: IndexPath) {
         var photos = [PhotoProtocol]()
-        for index in 0..<assets.count {
-            let asset = assets[index]
-            photos.append(Photo.photoWithPHAsset(asset))
-        }
         
+        if editedPhotos.isEmpty {
+            for index in 0..<assets.count {
+                let asset = assets[index]
+                photos.append(Photo.photoWithPHAsset(asset))
+            }
+        } else {
+            for index in 0..<assets.count {
+                let asset = assets[index]
+                var photo = Photo.photoWithPHAsset(asset)
+                if editedPhotos.keys.contains(asset.localIdentifier) {
+                    photo.restoreData = editedPhotos[asset.localIdentifier]
+                }
+                photos.append(photo)
+            }
+        }
+                        
         let selectedAssetsResult = selectedAssets
         let selectedPhotos = selectedAssetsResult.map { Photo.photoWithPHAsset($0) }
 
@@ -755,8 +778,15 @@ extension PhotoPickerViewController: GridViewCellDelegate {
 
 }
 
-// MARK: - PhotoDetailCollectionViewControllerDelegate
+// MARK: - PhotoBrowserViewControllerDelegate
 extension PhotoPickerViewController: PhotoBrowserViewControllerDelegate {
+    public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, editedPhotos: [String : CroppedRestoreData]) {
+        self.editedPhotos = editedPhotos
+        if let indexPath = lastSelectedIndexPath {
+            collectionView.reloadItems(at: [indexPath])
+        }
+    }
+    
     public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt item: Int) {
         let itemFromBrowser = item
         let itemInPhotoPicker = containsCamera ? itemFromBrowser - 1 : itemFromBrowser

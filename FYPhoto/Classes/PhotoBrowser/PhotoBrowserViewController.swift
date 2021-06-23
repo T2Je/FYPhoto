@@ -47,7 +47,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         return UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 0
     }
     
-    fileprivate var videoCache: VideoCache?
+    var videoCache: VideoCache?
 
     fileprivate var initialScrollDone = false
 
@@ -72,25 +72,31 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     fileprivate var resized = false
 
     // MARK: Video properties
-    var player: AVPlayer?
+    var player: AVPlayer? {
+        didSet {
+            bottomToolView.playButton.isEnabled = (player != nil)
+        }
+    }
+    
     var mPlayerItem: AVPlayerItem?
     var isPlaying = false {
         willSet {
             if currentPhoto.isVideo {
                 updateBottomViewPlayButton(newValue)
-//                updateToolBarItems(isPlaying: newValue)
             }
         }
     }
+    
     let assetKeys = [
         "playable",
         "hasProtectedContent"
     ]
+    
     var playerItemStatusToken: NSKeyValueObservation?
 
     /// After the movie has played to its end time, seek back to time zero
     /// to play it again.
-    private var seekToZeroBeforePlay: Bool = false
+    var seekToZeroBeforePlay: Bool = false
 
     var currentDisplayedIndexPath: IndexPath {
         willSet {
@@ -166,6 +172,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     fileprivate var currentPhoto: PhotoProtocol {
         willSet {
             bottomToolView.showPlayButton(newValue.isVideo)
+            bottomToolView.editButton.isHidden = newValue.asset?.mediaType != .image
         }
     }
 
@@ -627,9 +634,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         photo.targetSize = assetSize
         if photo.isVideo {
             if let videoCell = cell as? VideoDetailCell {
-                videoCell.photo = photo
-                // setup video player
-                setupPlayer(photo: photo, for: videoCell.playerView)
+                setupPlayer(photo: photo, for: videoCell)
             }
         } else {
             if let photoCell = cell as? PhotoDetailCell {
@@ -815,12 +820,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             pageControl.currentPage = page
         }
     }
-    
-    // MARK: Target action
-    @objc func playerItemDidReachEnd(_ notification: Notification) {
-        isPlaying = false
-        seekToZeroBeforePlay = true
-    }
 
     func recalculateItemSize(inBoundingSize size: CGSize) {
         guard let flowLayout = mainFlowLayout else { return }
@@ -957,133 +956,6 @@ extension PhotoBrowserViewController {
     }
 }
 
-// MARK: - Video
-extension PhotoBrowserViewController {
-    fileprivate func setupPlayer(photo: PhotoProtocol, for playerView: PlayerView) {
-        if let asset = photo.asset {
-            setupPlayer(asset: asset, for: playerView)
-        } else if let url = photo.url {
-            setupPlayer(url: url, for: playerView)
-        }
-    }
-
-    fileprivate func setupPlayer(asset: PHAsset, for playerView: PlayerView) {
-        let options = PHVideoRequestOptions()
-        options.deliveryMode = .highQualityFormat
-        options.isNetworkAccessAllowed = true
-        options.progressHandler = { progress, error, stop, info in
-            print("request video from icloud progress: \(progress)")
-        }
-        PHImageManager.default().requestPlayerItem(forVideo: asset, options: options) { (item, info) in
-            if let item = item {
-                let player = self.preparePlayer(with: item)
-                playerView.player = player
-                self.player = player
-            }
-        }
-    }
-    
-    fileprivate func setupPlayer(url: URL, for playerView: PlayerView) {
-        if url.isFileURL {
-            setupPlayerView(url, playerView: playerView)
-        } else {
-            if let cache = videoCache {
-                cache.fetchFilePathWith(key: url) { (result) in
-                    switch result {
-                    case .success(let filePath):
-                        self.setupPlayerView(filePath, playerView: playerView)
-                    case .failure(let error):
-                        print("FYPhoto fetch url error: \(error)")
-                    }
-                }
-            } else {
-                setupPlayerView(url, playerView: playerView)
-            }
-        }
-    }
-    
-    fileprivate func setupPlayerView(_ url: URL, playerView: PlayerView) {
-        // Create a new AVPlayerItem with the asset and an
-        // array of asset keys to be automatically loaded
-        let asset = AVAsset(url: url)
-        let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: self.assetKeys)
-        let player = self.preparePlayer(with: playerItem)
-        playerView.player = player
-        self.player = player
-    }
-    
-    fileprivate func preparePlayer(with playerItem: AVPlayerItem) -> AVPlayer {
-        if let currentItem = mPlayerItem {
-            playerItemStatusToken?.invalidate()
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: currentItem)
-        }
-        self.mPlayerItem = playerItem
-        // observing the player item's status property
-        playerItemStatusToken = playerItem.observe(\.status, options: .new) { (item, change) in
-            // Switch over status value
-            switch change.newValue {
-            case .readyToPlay:
-                print("Player item is ready to play.")
-            // Player item is ready to play.
-            case .failed:
-                print("Player item failed. See error.")
-            // Player item failed. See error.
-            case .unknown:
-                print("unknown status")
-            // Player item is not yet ready.
-            case .none:
-                break
-            @unknown default:
-                fatalError()
-            }
-        }
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidReachEnd(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
-
-        seekToZeroBeforePlay = false
-        // Associate the player item with the player
-
-        if let player = self.player {
-            player.pause()
-            player.replaceCurrentItem(with: playerItem)
-            return player
-        } else {
-            return AVPlayer(playerItem: playerItem)
-        }
-    }
-
-    fileprivate func playVideo() {
-        guard let player = player else { return }
-        if seekToZeroBeforePlay {
-            seekToZeroBeforePlay = false
-            player.seek(to: .zero)
-        }
-
-        player.play()
-        isPlaying = true
-    }
-
-    fileprivate func pauseVideo() {
-        player?.pause()
-        isPlaying = false
-    }
-
-    fileprivate func stopPlayingIfNeeded() {
-        guard let player = player, isPlaying else {
-            return
-        }
-        player.pause()
-        player.seek(to: .zero)
-        isPlaying = false
-    }
-    
-    func stopPlayingVideoIfNeeded(at oldIndexPath: IndexPath) {
-        if isPlaying {
-            stopPlayingIfNeeded()
-        }
-    }
-}
-
 // MARK: - PhotoDetailTransitionAnimatorDelegate
 extension PhotoBrowserViewController: PhotoTransitioning {
     public func transitionWillStart() {
@@ -1125,7 +997,6 @@ extension PhotoBrowserViewController {
 
 extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
     func browserBottomToolViewEditButtonClicked() {
-        
         guard let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell,
               let image = cell.image,
               var photo = cell.photo
@@ -1140,18 +1011,12 @@ extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
             guard let self = self else { return }
             switch result {
             case .success(let cropped):
-//                SaveMediaTool.saveImageToAlbums(cropped) { result in
-//                    switch result {
-//                    case .success(_):
-//                        self.showMessage(L10n.successfullySavedMedia)
-//                    case .failure(let error):
-//                        self.showError(error)
-//                    }
-//                }
                 photo.storeImage(cropped)
-                photo.restoreData = cropViewController.restoreData
-                // TODO: 😴zZ change collection view cell image datasource when scrolling
                 cell.image = cropped
+                if let asset = photo.asset, let restoreData = cropViewController.restoreData {
+                    photo.restoreData = restoreData
+                    self.delegate?.photoBrowser(self, editedPhotos: [asset.localIdentifier: restoreData])
+                }
             case .failure(let error):
                 self.showError(error)
             }

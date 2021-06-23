@@ -20,12 +20,12 @@ class ZoomingScrollView: UIScrollView {
         didSet {
             activityIndicator.isHidden = true
             if let photo = photo {
-                if let url = photo.url {
+                if let image = photo.image {
+                    displayImage(image)
+                } else if let url = photo.url {
                     display(url, placeholder: photo.image)
                 } else if let asset = photo.asset {
                     displayAsset(asset, targetSize: photo.targetSize ?? bounds.size)
-                } else if let image = photo.image {
-                    displayImage(image)
                 } else {
                     displayImageFailure()
                 }
@@ -95,13 +95,12 @@ class ZoomingScrollView: UIScrollView {
     }
 
     func display(_ url: URL, placeholder: UIImage? = nil) {
-//        circularProgressView.value = 0
         if activityIndicator.isHidden {
             activityIndicator.isHidden = false
         }
         activityIndicator.startAnimating()
         imageView.setImage(url: url, placeholder: placeholder) { (recieved, expected, _) in
-            let progress = recieved / expected
+            let progress = CGFloat(recieved) / CGFloat(expected)
             print("image download progress: \(CGFloat(progress * 100))")
         } completed: { [weak self] (result) in
             self?.activityIndicator.stopAnimating()
