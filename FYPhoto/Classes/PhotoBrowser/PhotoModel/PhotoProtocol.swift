@@ -13,6 +13,9 @@ public protocol PhotoProtocol: URLPhotoProtocol, AssetPhotoProtocol, PhotoCaptio
     var metaData: Data? { get }
     var isVideo: Bool { get }
     
+    /// use this data to restore cropping photo scene
+    var restoreData: CroppedRestoreData? { get set }
+    
     func storeImage(_ image: UIImage?)
     func isEqualTo(_ photo: PhotoProtocol) -> Bool
 }

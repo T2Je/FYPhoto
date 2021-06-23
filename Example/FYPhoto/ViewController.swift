@@ -218,7 +218,7 @@ class ViewController: UIViewController {
         self.fyphoto.present(photoBrowser, animated: true, completion: nil)
     }
     
-    var restoreData: CropImageViewController.RestoreData?
+    var restoreData: CroppedRestoreData?
     @objc func photoEditorButtonClicked(_ sender: UIButton) {
         
         let vc = CropImageViewController(image: UIImage(named: "sunflower")!, customRatio: [RatioItem(title: "3:20", value: 0.15)], restoreData: restoreData)

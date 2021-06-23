@@ -21,7 +21,9 @@ class PhotoAsset: PhotoProtocol {
     var isVideo: Bool {
         guard let asset = asset else { return false }
         return asset.mediaType == .video
-    }    
+    }
+    
+    var restoreData: CroppedRestoreData?
     
     func storeImage(_ image: UIImage?) {
         self.image = image

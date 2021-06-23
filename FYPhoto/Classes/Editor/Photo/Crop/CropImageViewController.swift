@@ -20,18 +20,7 @@ public class CropImageViewController: UIViewController {
                 return "invalid image"
             }
         }
-    }
-    
-    /// data for restore previous cropped data
-    public struct RestoreData {
-        let initialFrame: CGRect
-        let initialZoomScale: CGFloat
-        let cropFrame: CGRect
-        let zoomScale: CGFloat
-        var zoomRect: CGRect?
-        var contentOffset: CGPoint?
-        let rotation: PhotoRotation
-    }
+    }        
     
     public var croppedImage: ((Result<UIImage, Error>) -> Void)?
     
@@ -80,7 +69,7 @@ public class CropImageViewController: UIViewController {
     let customRatio: [RatioItem]
     
     /// If the image is cropped before, use this data to re-create the situation of cropping the image
-    public var restoreData: RestoreData?
+    public var restoreData: CroppedRestoreData?
     private var zoomRect: CGRect?
     private var imageContentOffset: CGPoint?
     
@@ -90,7 +79,7 @@ public class CropImageViewController: UIViewController {
     ///   - image: source image
     ///   - customRatio: customRatio, for example: you want a '1000:3' ratio, which is not included in built-in ratios
     ///   - restoreData: If the image is cropped before, use this data to re-create the situation of cropping the image
-    public init(image: UIImage, customRatio: [RatioItem] = [], restoreData: RestoreData? = nil) {
+    public init(image: UIImage, customRatio: [RatioItem] = [], restoreData: CroppedRestoreData? = nil) {
         self.restoreData = restoreData
         viewModel = CropViewModel(image: image)
         cropView = CropView(image: image)
@@ -109,6 +98,10 @@ public class CropImageViewController: UIViewController {
     
     public convenience init(image: UIImage) {
         self.init(image: image, customRatio: [], restoreData: nil)
+    }
+    
+    public convenience init(restoreData: CroppedRestoreData) {
+        self.init(image: restoreData.originImage, customRatio: [], restoreData: restoreData)
     }
     
     required init?(coder: NSCoder) {
@@ -156,7 +149,7 @@ public class CropImageViewController: UIViewController {
         hanleRotate()
     }
     
-    func restoreWithPreviousData(_ data: RestoreData) {
+    func restoreWithPreviousData(_ data: CroppedRestoreData) {
         if data.rotation != .zero {
             updateCropViewRotation(data.rotation.radians, data.cropFrame, animated: false) { rect in
                 self.viewModel.rotation.counterclockwiseRotate90Degree()
@@ -184,13 +177,14 @@ public class CropImageViewController: UIViewController {
     func saveRestoreData() {
         let tempZoomRect = zoomRect ?? restoreData?.zoomRect
         let tempContentOffset = imageContentOffset ?? restoreData?.contentOffset
-        restoreData = RestoreData(initialFrame: viewModel.initialFrame,
-                                  initialZoomScale: viewModel.initalZoomScale,
-                                  cropFrame: guideView.frame,
-                                  zoomScale: cropView.scrollView.zoomScale,
-                                  zoomRect: tempZoomRect,
-                                  contentOffset: tempContentOffset,
-                                  rotation: viewModel.rotation)
+        restoreData = CroppedRestoreData(initialFrame: viewModel.initialFrame,
+                                         initialZoomScale: viewModel.initalZoomScale,
+                                         cropFrame: guideView.frame,
+                                         zoomScale: cropView.scrollView.zoomScale,
+                                         zoomRect: tempZoomRect,
+                                         contentOffset: tempContentOffset,
+                                         rotation: viewModel.rotation,
+                                         originImage: viewModel.image)
     }
     
     //MARK: - Setup

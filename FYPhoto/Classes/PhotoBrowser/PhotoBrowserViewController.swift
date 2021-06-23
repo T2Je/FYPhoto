@@ -448,6 +448,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
         if isForSelection {
             bottomToolView.addEditButton()
+            if let current = currentPhoto.asset, current.mediaType == .image {
+                bottomToolView.editButton.isHidden = false
+            }
         }
     }
 
@@ -1124,22 +1127,29 @@ extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
     func browserBottomToolViewEditButtonClicked() {
         
         guard let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell,
-              let image = cell.image
+              let image = cell.image,
+              var photo = cell.photo
         else { return }
-        let cropViewController = CropImageViewController(image: image)
+        let cropViewController: CropImageViewController
+        if let restoreData = cell.photo?.restoreData {
+            cropViewController = CropImageViewController(restoreData: restoreData)
+        } else {
+            cropViewController = CropImageViewController(image: image)
+        }
         cropViewController.croppedImage = { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .success(let cropped):
-                SaveMediaTool.saveImageToAlbums(cropped) { result in
-                    switch result {
-                    case .success(_):
-                        self.showMessage(L10n.successfullySavedMedia)
-                    case .failure(let error):
-                        self.showError(error)
-                    }
-                }
-                self.currentPhoto.storeImage(cropped)
+//                SaveMediaTool.saveImageToAlbums(cropped) { result in
+//                    switch result {
+//                    case .success(_):
+//                        self.showMessage(L10n.successfullySavedMedia)
+//                    case .failure(let error):
+//                        self.showError(error)
+//                    }
+//                }
+                photo.storeImage(cropped)
+                photo.restoreData = cropViewController.restoreData
                 // TODO: 😴zZ change collection view cell image datasource when scrolling
                 cell.image = cropped
             case .failure(let error):
