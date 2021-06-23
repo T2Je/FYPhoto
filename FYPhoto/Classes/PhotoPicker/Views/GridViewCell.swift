@@ -22,7 +22,8 @@ class GridViewCell: UICollectionViewCell {
 
     var selectionButton = SelectionButton()
     var overlayView = UIView()
-
+    let editedAnnotation = UIImageView(image: Asset.Crop.icons8EditImage.image)
+    
     var representedAssetIdentifier: String!
 
     weak var delegate: GridViewCellDelegate?
@@ -82,6 +83,7 @@ class GridViewCell: UICollectionViewCell {
         selectionButton.setImage(Asset.imageSelectedSmallOff.image, for: .normal)
         indexPath = nil
         isVideoAsset = false
+        editedAnnotation.isHidden = true
     }
     
     func setupUI() {
@@ -99,11 +101,14 @@ class GridViewCell: UICollectionViewCell {
         overlayView.backgroundColor = UIColor(white: 0, alpha: 0.5)
         overlayView.isHidden = true
 
+        editedAnnotation.contentMode = .scaleAspectFit
+        
         contentView.addSubview(imageView)
         contentView.addSubview(livePhotoBadgeImageView)
         contentView.addSubview(videoDurationLabel)
         contentView.addSubview(selectionButton)
         contentView.addSubview(overlayView)
+        contentView.addSubview(editedAnnotation)
 
         imageView.translatesAutoresizingMaskIntoConstraints = false
         livePhotoBadgeImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -142,6 +147,14 @@ class GridViewCell: UICollectionViewCell {
             overlayView.topAnchor.constraint(equalTo: contentView.topAnchor),
             overlayView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             overlayView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+        ])
+        
+        editedAnnotation.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            editedAnnotation.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 10),
+            editedAnnotation.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -10),
+            editedAnnotation.widthAnchor.constraint(equalToConstant: 16),
+            editedAnnotation.heightAnchor.constraint(equalToConstant: 16)
         ])
 
     }
@@ -205,4 +218,7 @@ class GridViewCell: UICollectionViewCell {
         }
     }
     
+    func showEditAnnotation(_ show: Bool) {
+        editedAnnotation.isHidden = !show
+    }
 }

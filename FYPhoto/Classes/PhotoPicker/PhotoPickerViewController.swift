@@ -442,6 +442,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             if cell.representedAssetIdentifier == asset.localIdentifier {
                 cell.thumbnailImage = restore.editedImage
                 configureCellState(cell, asset: asset)
+                cell.showEditAnnotation(true)
             }
         } else {
             imageManager.requestImage(for: asset, targetSize: thumbnailSize, contentMode: .aspectFit, options: options, resultHandler: { image, info in
@@ -450,6 +451,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 if cell.representedAssetIdentifier == asset.localIdentifier {
                     cell.thumbnailImage = image
                     self.configureCellState(cell, asset: asset)
+                    cell.showEditAnnotation(false)                    
                 }
             })
         }

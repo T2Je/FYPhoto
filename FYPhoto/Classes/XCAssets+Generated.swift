@@ -22,6 +22,7 @@ internal enum Asset {
   internal static let browserErrorLoading = ImageAsset(name: "Browser-ErrorLoading")
   internal enum Crop {
     internal static let aspectratio = ImageAsset(name: "aspectratio")
+    internal static let icons8EditImage = ImageAsset(name: "icons8-edit-image")
     internal static let rotate = ImageAsset(name: "rotate")
   }
   internal static let flipCamera = ImageAsset(name: "FlipCamera")

@@ -28,14 +28,14 @@ class ZoomingScrollView: UIScrollView {
                     displayAsset(asset, targetSize: photo.targetSize ?? bounds.size)
                 } else {
                     displayImageFailure()
-                }
+                }                
             }
         }
     }
 
     var imageView = PhotoAnimatedImageView()
 
-    let activityIndicator = UIActivityIndicatorView()
+    let activityIndicator = UIActivityIndicatorView()    
 
     override init(frame: CGRect) {        
         super.init(frame: frame)
@@ -52,7 +52,7 @@ class ZoomingScrollView: UIScrollView {
         } else {
             activityIndicator.style = .whiteLarge
         }
-
+        
         addSubview(imageView)
         addSubview(activityIndicator)
 
