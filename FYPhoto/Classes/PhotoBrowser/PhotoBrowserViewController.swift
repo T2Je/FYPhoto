@@ -178,12 +178,17 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     fileprivate var isThumbnailIndexPathInitialized = false
     
-    // main data source
+    /// main data source
     var selectedPhotos: [PhotoProtocol] = [] {
-        didSet {
-            guard supportThumbnails else { return }
+        didSet {            
+            guard isForSelection else {
+                return
+            }
             let assetIdentifiers = selectedPhotos.compactMap { $0.asset?.localIdentifier }
             delegate?.photoBrowser(self, selectedAssets: assetIdentifiers)
+            
+            guard supportThumbnails else { return }
+            bottomToolView.disableDoneButton(selectedPhotos.isEmpty)
             
             guard !selectedPhotos.isEmpty else {
                 selectedThumbnailIndexPath = nil
@@ -702,9 +707,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
     
     @objc func addPhotoBarItemClicked(_ sender: UIButton) {
-        defer {
-            bottomToolView.disableDoneButton(selectedPhotos.isEmpty)
-        }
+//        defer {
+//            bottomToolView.disableDoneButton(selectedPhotos.isEmpty)
+//        }
 
         let photo = photos[currentDisplayedIndexPath.item]
         
@@ -720,10 +725,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         // add photo
         selectedPhotos.append(photo)
 
-        // update bar item: add, done
-        if let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) {
-            updateAddBarItem(title: "\(firstIndex + 1)")
-        }
+        updateRightBarItemCount(photo)
     }
     
     @objc func removePhotoWhenBrowsingBarItemClicked(_ sender: UIBarButtonItem) {
@@ -750,11 +752,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
     
-    func updateBottomViewPlayButton(_ showPlay: Bool) {
+    fileprivate func updateBottomViewPlayButton(_ showPlay: Bool) {
         bottomToolView.isPlaying = showPlay
     }
 
-    func updateAddBarItem(at indexPath: IndexPath) {
+    fileprivate func updateAddBarItem(at indexPath: IndexPath) {
         let photo = photos[indexPath.item]
         guard !photo.isVideo else {
             addItemButton.isHidden = true
@@ -768,7 +770,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
     
-    func updateAddBarItem(title: String) {
+    fileprivate func updateRightBarItemCount(_ currentPhoto: PhotoProtocol) {
+        // update bar item: add, done
+        if let firstIndex = self.firstIndexOfPhoto(currentPhoto, in: selectedPhotos) {
+            self.updateAddBarItem(title: "\(firstIndex + 1)")
+        }
+    }
+    
+    fileprivate func updateAddBarItem(title: String) {
         if title.isEmpty {
 //            addPhotoBarItem.title = " "
             addItemButton.isEnabled = selectedPhotos.count < maximumCanBeSelected
@@ -786,12 +795,12 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
 
-    func updateCaption(at indexPath: IndexPath) {
+    fileprivate func updateCaption(at indexPath: IndexPath) {
         let photo = photos[indexPath.item]
         captionView.setup(content: photo.captionContent, signature: photo.captionSignature)
     }
 
-    func updateNavigationTitle(at indexPath: IndexPath) {
+    fileprivate func updateNavigationTitle(at indexPath: IndexPath) {
         if supportNavigationBar {
             if isForSelection {
                 navigationItem.title = ""
@@ -803,7 +812,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
     
-    func updateThumbnails(at indexPath: IndexPath) {
+    fileprivate func updateThumbnails(at indexPath: IndexPath) {
         let photo = photos[indexPath.item]
         if let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) {
             selectedThumbnailIndexPath = IndexPath(item: firstIndex, section: 0)
@@ -821,7 +830,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
 
-    func recalculateItemSize(inBoundingSize size: CGSize) {
+    fileprivate func recalculateItemSize(inBoundingSize size: CGSize) {
         guard let flowLayout = mainFlowLayout else { return }
         let itemSize = recalculateLayout(flowLayout,
                                          inBoundingSize: size)
@@ -830,7 +839,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     @discardableResult
-    func recalculateLayout(_ layout: UICollectionViewFlowLayout, inBoundingSize size: CGSize) -> CGSize {
+    fileprivate func recalculateLayout(_ layout: UICollectionViewFlowLayout, inBoundingSize size: CGSize) -> CGSize {
         layout.minimumInteritemSpacing = 0
         layout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
         layout.scrollDirection = .horizontal;
@@ -996,6 +1005,7 @@ extension PhotoBrowserViewController {
 }
 
 extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
+    
     func browserBottomToolViewEditButtonClicked() {
         guard let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell,
               let image = cell.image,
@@ -1013,10 +1023,18 @@ extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
             case .success(let cropped):
                 photo.storeImage(cropped)
                 cell.image = cropped
-
+                
                 if let asset = photo.asset, let restoreData = cropViewController?.restoreData {
                     photo.restoreData = restoreData
                     self.delegate?.photoBrowser(self, editedPhotos: [asset.localIdentifier: restoreData])
+                    
+                    if !self.selectedPhotos.contains(where: { selected in
+                        photo.isEqualTo(selected)
+                    }) {
+                        self.selectedPhotos.append(photo)
+                        self.updateRightBarItemCount(photo)
+                    }
+                    self.thumbnailsCollectionView.reloadData()
                 }
             case .failure(let error):
                 self.showError(error)

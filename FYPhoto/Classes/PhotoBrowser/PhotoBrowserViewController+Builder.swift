@@ -121,8 +121,7 @@ extension PhotoBrowserViewController {
             return self
         }
         
-        public func build(_ photoBrowser: PhotoBrowserViewController) {
-            photoBrowser.selectedPhotos = selectedPhotos
+        public func build(_ photoBrowser: PhotoBrowserViewController) {            
             photoBrowser.maximumCanBeSelected = maximumCanBeSelected
             photoBrowser.isForSelection = isForSelection
             photoBrowser.supportThumbnails = supportThumbnails
@@ -131,6 +130,7 @@ extension PhotoBrowserViewController {
             photoBrowser.supportBottomToolBar = supportBottomToolBar || photoBrowser.photos.contains { $0.isVideo }
             photoBrowser.canDeleteWhenPreviewingSelectedPhotos = canDeleteWhenPreviewingSelectedPhotos
             photoBrowser.supportPageControl = supportPageControl
+            photoBrowser.selectedPhotos = selectedPhotos
         }
     }
 }
