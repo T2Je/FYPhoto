@@ -1007,13 +1007,14 @@ extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
         } else {
             cropViewController = CropImageViewController(image: image)
         }
-        cropViewController.croppedImage = { [weak self] result in
+        cropViewController.croppedImage = { [weak self, weak cropViewController] result in // avoid retain cycle
             guard let self = self else { return }
             switch result {
             case .success(let cropped):
                 photo.storeImage(cropped)
                 cell.image = cropped
-                if let asset = photo.asset, let restoreData = cropViewController.restoreData {
+
+                if let asset = photo.asset, let restoreData = cropViewController?.restoreData {
                     photo.restoreData = restoreData
                     self.delegate?.photoBrowser(self, editedPhotos: [asset.localIdentifier: restoreData])
                 }

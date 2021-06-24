@@ -102,6 +102,7 @@ class GridViewCell: UICollectionViewCell {
         overlayView.isHidden = true
 
         editedAnnotation.contentMode = .scaleAspectFit
+        editedAnnotation.isHidden = true
         
         contentView.addSubview(imageView)
         contentView.addSubview(livePhotoBadgeImageView)
