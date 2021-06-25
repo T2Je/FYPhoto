@@ -27,8 +27,12 @@ struct GeometryHelper {
             rect.size.width = outside.width
         }
         
-        rect.origin.x = outside.midX - rect.width / 2
-        rect.origin.y = outside.midY - rect.height / 2
+        // reset precision
+        let tempX = ((outside.midX - rect.width / 2) * 100).rounded(.toNearestOrAwayFromZero) / 100
+        let tempY = ((outside.midY - rect.height / 2) * 100).rounded(.toNearestOrAwayFromZero) / 100
+        rect.origin.x = tempX
+        rect.origin.y = tempY
+                
         return rect
     }        
 }

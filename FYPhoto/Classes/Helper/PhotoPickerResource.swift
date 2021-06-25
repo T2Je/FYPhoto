@@ -364,61 +364,6 @@ public class PhotoPickerResource {
 }
 
 extension PhotoPickerResource {
-    
-    /// Fetch hight quality images synchronously
-    /// - Parameters:
-    ///   - assets: image assets
-    ///   - completion: images call back
-    func fetchHighQualityImages(_ assets: [PHAsset], completion: @escaping (([UIImage]) -> Void)) {
-        let group = DispatchGroup()
-        var requestIDs = [PHImageRequestID]()
-
-        var imagesDic = [PHImageRequestID: UIImage]()
-        
-        assets.forEach {
-            group.enter()
-            let targetSize = CGSize(width: $0.pixelWidth, height: $0.pixelHeight)
-            let id = fetchImage($0, targetSize: targetSize) { (image, requestID)  in
-                if let image = image, let requestID = requestID {
-                    imagesDic[requestID] = image
-                }
-                group.leave()
-            }
-            requestIDs.append(id)
-        }
-
-        group.notify(queue: .main) {
-            let images = imagesDic.sorted { $0.key < $1.key }.map { $0.value }
-            completion(images)
-        }
-    }
-    
-    func fetchLowQualityImages(_ assets: [PHAsset], targetSize: CGSize, completion: @escaping (([UIImage]) -> Void)) {
-        let group = DispatchGroup()
-        var requestIDs = [PHImageRequestID]()
-
-        var imagesDic = [PHImageRequestID: UIImage]()
-        
-        let options = PHImageRequestOptions()
-        options.isNetworkAccessAllowed = true
-        options.deliveryMode = .fastFormat
-        
-        assets.forEach {
-            group.enter()
-            let id = fetchImage($0, options: options, targetSize: targetSize) { (image, requestID) in
-                if let image = image, let requestID = requestID {
-                    imagesDic[requestID] = image
-                }
-                group.leave()
-            }
-            requestIDs.append(id)
-        }
-
-        group.notify(queue: .main) {
-            let images = imagesDic.sorted { $0.key < $1.key }.map { $0.value }
-            completion(images)
-        }
-    }
 
     @discardableResult
     func fetchImage(_ asset: PHAsset, options: PHImageRequestOptions? = nil, targetSize: CGSize, completion: @escaping ((UIImage?, PHImageRequestID?) -> Void)) -> PHImageRequestID {
@@ -434,6 +379,18 @@ extension PhotoPickerResource {
         return PHImageManager.default().requestImage(for: asset, targetSize: targetSize, contentMode: .default, options: _options) { (image, info) in
             completion(image, info?["PHImageResultRequestIDKey"] as? PHImageRequestID)
         }
+    }
+    
+    func fetchImage(_ asset: PHAsset) -> UIImage? {
+        let options = PHImageRequestOptions()
+        options.isNetworkAccessAllowed = true
+        options.deliveryMode = .highQualityFormat
+        options.isSynchronous = true
+        var image: UIImage?
+        PHImageManager.default().requestImage(for: asset, targetSize: CGSize(width: asset.pixelWidth, height: asset.pixelHeight), contentMode: .default, options: options) { (_image, info) in
+            image = _image
+        }
+        return image
     }
 }
 

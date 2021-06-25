@@ -112,7 +112,7 @@ class ViewController: UIViewController {
         pickerConfig.maximumVideoDuration = 6
         pickerConfig.compressedQuality = .mediumQuality
         pickerConfig.supportCamera = true
-        pickerConfig.mediaFilter = .image
+        pickerConfig.mediaFilter = .all
         let colorConfig = FYColorConfiguration()
         colorConfig.topBarColor = FYColorConfiguration.BarColor(itemTintColor: .red, itemDisableColor: .gray, itemBackgroundColor: .black, backgroundColor: .blue)
 
@@ -187,9 +187,9 @@ class ViewController: UIViewController {
 
     @objc func playRemoteVideo(_ sender: UIButton) {
 //        guard let url = URL(string: "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4") else { return }
-        let urlStr = "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4"
+//        let urlStr = "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4"
 //        let urlStr = "http://client.gsup.sichuanair.com/file.php?9bfc3b16aec233d025c18042e9a2b45a.mp4"
-//        let urlStr = "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4"
+        let urlStr = "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4"
 //        let urlStr = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
         guard let url = URL(string: urlStr) else { return }
 
@@ -218,10 +218,13 @@ class ViewController: UIViewController {
         self.fyphoto.present(photoBrowser, animated: true, completion: nil)
     }
     
-    @objc func photoEditorButtonClicked(_ sender: UIButton) {        
-        let vc = CropImageViewController(image: UIImage(named: "sunflower")!, customRatio: [RatioItem(title: "3:20", value: 0.15)])
+    var restoreData: CroppedRestoreData?
+    @objc func photoEditorButtonClicked(_ sender: UIButton) {
+        
+        let vc = CropImageViewController(image: UIImage(named: "sunflower")!, customRatio: [RatioItem(title: "3:20", value: 0.15)], restoreData: restoreData)
         vc.croppedImage = { [weak self] result in
             guard let self = self else { return }
+            self.restoreData = vc.restoreData
             switch result {
             case .success(let image):
                 let image = Photo.photoWithUIImage(image)
@@ -385,11 +388,13 @@ extension ViewController: CameraViewControllerDelegate {
             // watermark
             guard let image = info[.watermarkImage] as? UIImage else { return }
 //            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
-            CameraViewController.saveImageToAlbums(image) { (error) in
-                if let error = error {
-                    print("🤢\(error)🤮")
-                } else {
-                    print("image saved")
+            CameraViewController.saveImageToAlbums(image) { (result) in
+                switch result {
+                case .success(_):
+                    
+                    print("image saved successfully")
+                case .failure(let error):
+                    print(error)
                 }
             }
             cameraViewController.dismiss(animated: true) {

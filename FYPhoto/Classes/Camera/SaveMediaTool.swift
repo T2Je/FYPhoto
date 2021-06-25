@@ -20,7 +20,7 @@ class SaveMediaTool {
         case withoutAuthourity
     }
     
-    static func saveImageDataToAlbums(_ photoData: Data, completion: @escaping ((Error?) -> Void)) {
+    static func saveImageDataToAlbums(_ photoData: Data, completion: @escaping ((Result<Void, Error>) -> Void)) {
         PHPhotoLibrary.requestAuthorization { status in
             if status == .authorized {
                 PHPhotoLibrary.shared().performChanges({
@@ -28,23 +28,24 @@ class SaveMediaTool {
                     let creationRequest = PHAssetCreationRequest.forAsset()
                     creationRequest.addResource(with: .photo, data: photoData, options: options)
                 }, completionHandler: { _, error in
-                    if let error = error {
-                        print("Error occurred while saving photo to photo library: \(error)")
-//                        completion(error)
-                    }
                     DispatchQueue.main.async {
-                        completion(error)
+                        if let error = error {
+                            completion(.failure(error))
+                            print("Error occurred while saving photo to photo library: \(error)")
+                        } else {
+                            completion(.success(()))
+                        }
                     }
                 })
             } else {
                 DispatchQueue.main.async {
-                    completion(SaveMediaError.withoutAuthourity)
+                    completion(.failure(SaveMediaError.withoutAuthourity))
                 }
             }
         }
     }
 
-    static func saveImageToAlbums(_ image: UIImage, completion: @escaping ((Error?) -> Void)) {
+    static func saveImageToAlbums(_ image: UIImage, completion: @escaping ((Result<Void, Error>) -> Void)) {
         PHPhotoLibrary.requestAuthorization { status in
             if status == .authorized {
                 PHPhotoLibrary.shared().performChanges({
@@ -57,21 +58,24 @@ class SaveMediaTool {
                 }, completionHandler: { _, error in
                     if let error = error {
                         print("Error occurred while saving photo to photo library: \(error)")
+                        DispatchQueue.main.async {
+                            completion(.failure(error))
+                        }
                     }
                     DispatchQueue.main.async {
-                        completion(error)
+                        completion(.success(()))
                     }                    
                 })
             } else {
                 DispatchQueue.main.async {
-                    completion(SaveMediaError.withoutAuthourity)
+                    completion(.failure(SaveMediaError.withoutAuthourity))
                 }
                 
             }
         }
     }
     
-    static func saveVideoDataToAlbums(_ videoPath: URL, completion: @escaping ((Error?) -> Void)) {
+    static func saveVideoDataToAlbums(_ videoPath: URL, completion: @escaping ((Result<Void, Error>) -> Void)) {
         // Check the authorization status.
         PHPhotoLibrary.requestAuthorization { status in
             if status == .authorized {
@@ -82,16 +86,21 @@ class SaveMediaTool {
                     let creationRequest = PHAssetCreationRequest.forAsset()
                     creationRequest.addResource(with: .video, fileURL: videoPath, options: options)
                 }, completionHandler: { success, error in
+                    DispatchQueue.main.async {
+                        if let error = error {
+                            completion(.failure(error))
+                        } else {
+                            completion(.success(()))
+                        }
+                    }
                     if !success {
                         print("FYPhoto couldn't save the movie to your photo library: \(String(describing: error))")
                     }
-                    DispatchQueue.main.async {
-                        completion(error)
-                    }
+                    
                 })
             } else {
                 DispatchQueue.main.async {
-                    completion(SaveMediaError.withoutAuthourity)
+                    completion(.failure(SaveMediaError.withoutAuthourity))
                 }
             }
         }

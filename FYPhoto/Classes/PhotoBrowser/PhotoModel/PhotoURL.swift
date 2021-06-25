@@ -29,6 +29,8 @@ class PhotoURL: PhotoProtocol {
         
     private let videoTypes = ["mp4", "m4a", "mov"]
     
+    var restoreData: CroppedRestoreData? = nil
+    
     var isVideo: Bool {
         guard let url = url else { return false }
         

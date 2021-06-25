@@ -17,7 +17,9 @@ class PhotoImage: PhotoProtocol {
     
     var asset: PHAsset?
     var targetSize: CGSize?
-        
+    
+    var restoreData: CroppedRestoreData?
+    
     private init() { }
     
     convenience init(image: UIImage) {

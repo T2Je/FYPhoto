@@ -21,7 +21,15 @@ class PhotoAsset: PhotoProtocol {
     var isVideo: Bool {
         guard let asset = asset else { return false }
         return asset.mediaType == .video
-    }    
+    }
+    
+    var restoreData: CroppedRestoreData? {
+        didSet {
+            if restoreData != nil {
+                image = restoreData?.editedImage
+            }            
+        }
+    }
     
     func storeImage(_ image: UIImage?) {
         self.image = image

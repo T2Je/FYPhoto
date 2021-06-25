@@ -47,7 +47,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         return UIApplication.shared.keyWindow?.safeAreaInsets.bottom ?? 0
     }
     
-    fileprivate var videoCache: VideoCache?
+    var videoCache: VideoCache?
 
     fileprivate var initialScrollDone = false
 
@@ -72,25 +72,31 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     fileprivate var resized = false
 
     // MARK: Video properties
-    var player: AVPlayer?
+    var player: AVPlayer? {
+        didSet {
+            bottomToolView.playButton.isEnabled = (player != nil)
+        }
+    }
+    
     var mPlayerItem: AVPlayerItem?
     var isPlaying = false {
         willSet {
             if currentPhoto.isVideo {
                 updateBottomViewPlayButton(newValue)
-//                updateToolBarItems(isPlaying: newValue)
             }
         }
     }
+    
     let assetKeys = [
         "playable",
         "hasProtectedContent"
     ]
+    
     var playerItemStatusToken: NSKeyValueObservation?
 
     /// After the movie has played to its end time, seek back to time zero
     /// to play it again.
-    private var seekToZeroBeforePlay: Bool = false
+    var seekToZeroBeforePlay: Bool = false
 
     var currentDisplayedIndexPath: IndexPath {
         willSet {
@@ -166,17 +172,23 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     fileprivate var currentPhoto: PhotoProtocol {
         willSet {
             bottomToolView.showPlayButton(newValue.isVideo)
+            bottomToolView.editButton.isHidden = newValue.asset?.mediaType != .image
         }
     }
 
     fileprivate var isThumbnailIndexPathInitialized = false
     
-    // main data source
+    /// main data source
     var selectedPhotos: [PhotoProtocol] = [] {
-        didSet {
-            guard supportThumbnails else { return }
+        didSet {            
+            guard isForSelection else {
+                return
+            }
             let assetIdentifiers = selectedPhotos.compactMap { $0.asset?.localIdentifier }
             delegate?.photoBrowser(self, selectedAssets: assetIdentifiers)
+            
+            guard supportThumbnails else { return }
+            bottomToolView.disableDoneButton(selectedPhotos.isEmpty)
             
             guard !selectedPhotos.isEmpty else {
                 selectedThumbnailIndexPath = nil
@@ -448,6 +460,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
         if isForSelection {
             bottomToolView.addEditButton()
+            if let current = currentPhoto.asset, current.mediaType == .image {
+                bottomToolView.editButton.isHidden = false
+            }
         }
     }
 
@@ -624,9 +639,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         photo.targetSize = assetSize
         if photo.isVideo {
             if let videoCell = cell as? VideoDetailCell {
-                videoCell.photo = photo
-                // setup video player
-                setupPlayer(photo: photo, for: videoCell.playerView)
+                setupPlayer(photo: photo, for: videoCell)
             }
         } else {
             if let photoCell = cell as? PhotoDetailCell {
@@ -694,9 +707,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
     
     @objc func addPhotoBarItemClicked(_ sender: UIButton) {
-        defer {
-            bottomToolView.disableDoneButton(selectedPhotos.isEmpty)
-        }
+//        defer {
+//            bottomToolView.disableDoneButton(selectedPhotos.isEmpty)
+//        }
 
         let photo = photos[currentDisplayedIndexPath.item]
         
@@ -712,10 +725,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         // add photo
         selectedPhotos.append(photo)
 
-        // update bar item: add, done
-        if let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) {
-            updateAddBarItem(title: "\(firstIndex + 1)")
-        }
+        updateRightBarItemCount(photo)
     }
     
     @objc func removePhotoWhenBrowsingBarItemClicked(_ sender: UIBarButtonItem) {
@@ -742,11 +752,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
     
-    func updateBottomViewPlayButton(_ showPlay: Bool) {
+    fileprivate func updateBottomViewPlayButton(_ showPlay: Bool) {
         bottomToolView.isPlaying = showPlay
     }
 
-    func updateAddBarItem(at indexPath: IndexPath) {
+    fileprivate func updateAddBarItem(at indexPath: IndexPath) {
         let photo = photos[indexPath.item]
         guard !photo.isVideo else {
             addItemButton.isHidden = true
@@ -760,7 +770,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
     
-    func updateAddBarItem(title: String) {
+    fileprivate func updateRightBarItemCount(_ currentPhoto: PhotoProtocol) {
+        // update bar item: add, done
+        if let firstIndex = self.firstIndexOfPhoto(currentPhoto, in: selectedPhotos) {
+            self.updateAddBarItem(title: "\(firstIndex + 1)")
+        }
+    }
+    
+    fileprivate func updateAddBarItem(title: String) {
         if title.isEmpty {
 //            addPhotoBarItem.title = " "
             addItemButton.isEnabled = selectedPhotos.count < maximumCanBeSelected
@@ -778,12 +795,12 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
 
-    func updateCaption(at indexPath: IndexPath) {
+    fileprivate func updateCaption(at indexPath: IndexPath) {
         let photo = photos[indexPath.item]
         captionView.setup(content: photo.captionContent, signature: photo.captionSignature)
     }
 
-    func updateNavigationTitle(at indexPath: IndexPath) {
+    fileprivate func updateNavigationTitle(at indexPath: IndexPath) {
         if supportNavigationBar {
             if isForSelection {
                 navigationItem.title = ""
@@ -795,7 +812,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
     
-    func updateThumbnails(at indexPath: IndexPath) {
+    fileprivate func updateThumbnails(at indexPath: IndexPath) {
         let photo = photos[indexPath.item]
         if let firstIndex = firstIndexOfPhoto(photo, in: selectedPhotos) {
             selectedThumbnailIndexPath = IndexPath(item: firstIndex, section: 0)
@@ -812,14 +829,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             pageControl.currentPage = page
         }
     }
-    
-    // MARK: Target action
-    @objc func playerItemDidReachEnd(_ notification: Notification) {
-        isPlaying = false
-        seekToZeroBeforePlay = true
-    }
 
-    func recalculateItemSize(inBoundingSize size: CGSize) {
+    fileprivate func recalculateItemSize(inBoundingSize size: CGSize) {
         guard let flowLayout = mainFlowLayout else { return }
         let itemSize = recalculateLayout(flowLayout,
                                          inBoundingSize: size)
@@ -828,7 +839,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     @discardableResult
-    func recalculateLayout(_ layout: UICollectionViewFlowLayout, inBoundingSize size: CGSize) -> CGSize {
+    fileprivate func recalculateLayout(_ layout: UICollectionViewFlowLayout, inBoundingSize size: CGSize) -> CGSize {
         layout.minimumInteritemSpacing = 0
         layout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
         layout.scrollDirection = .horizontal;
@@ -954,133 +965,6 @@ extension PhotoBrowserViewController {
     }
 }
 
-// MARK: - Video
-extension PhotoBrowserViewController {
-    fileprivate func setupPlayer(photo: PhotoProtocol, for playerView: PlayerView) {
-        if let asset = photo.asset {
-            setupPlayer(asset: asset, for: playerView)
-        } else if let url = photo.url {
-            setupPlayer(url: url, for: playerView)
-        }
-    }
-
-    fileprivate func setupPlayer(asset: PHAsset, for playerView: PlayerView) {
-        let options = PHVideoRequestOptions()
-        options.deliveryMode = .highQualityFormat
-        options.isNetworkAccessAllowed = true
-        options.progressHandler = { progress, error, stop, info in
-            print("request video from icloud progress: \(progress)")
-        }
-        PHImageManager.default().requestPlayerItem(forVideo: asset, options: options) { (item, info) in
-            if let item = item {
-                let player = self.preparePlayer(with: item)
-                playerView.player = player
-                self.player = player
-            }
-        }
-    }
-    
-    fileprivate func setupPlayer(url: URL, for playerView: PlayerView) {
-        if url.isFileURL {
-            setupPlayerView(url, playerView: playerView)
-        } else {
-            if let cache = videoCache {
-                cache.fetchFilePathWith(key: url) { (result) in
-                    switch result {
-                    case .success(let filePath):
-                        self.setupPlayerView(filePath, playerView: playerView)
-                    case .failure(let error):
-                        print("FYPhoto fetch url error: \(error)")
-                    }
-                }
-            } else {
-                setupPlayerView(url, playerView: playerView)
-            }
-        }
-    }
-    
-    fileprivate func setupPlayerView(_ url: URL, playerView: PlayerView) {
-        // Create a new AVPlayerItem with the asset and an
-        // array of asset keys to be automatically loaded
-        let asset = AVAsset(url: url)
-        let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: self.assetKeys)
-        let player = self.preparePlayer(with: playerItem)
-        playerView.player = player
-        self.player = player
-    }
-    
-    fileprivate func preparePlayer(with playerItem: AVPlayerItem) -> AVPlayer {
-        if let currentItem = mPlayerItem {
-            playerItemStatusToken?.invalidate()
-            NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: currentItem)
-        }
-        self.mPlayerItem = playerItem
-        // observing the player item's status property
-        playerItemStatusToken = playerItem.observe(\.status, options: .new) { (item, change) in
-            // Switch over status value
-            switch change.newValue {
-            case .readyToPlay:
-                print("Player item is ready to play.")
-            // Player item is ready to play.
-            case .failed:
-                print("Player item failed. See error.")
-            // Player item failed. See error.
-            case .unknown:
-                print("unknown status")
-            // Player item is not yet ready.
-            case .none:
-                break
-            @unknown default:
-                fatalError()
-            }
-        }
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidReachEnd(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
-
-        seekToZeroBeforePlay = false
-        // Associate the player item with the player
-
-        if let player = self.player {
-            player.pause()
-            player.replaceCurrentItem(with: playerItem)
-            return player
-        } else {
-            return AVPlayer(playerItem: playerItem)
-        }
-    }
-
-    fileprivate func playVideo() {
-        guard let player = player else { return }
-        if seekToZeroBeforePlay {
-            seekToZeroBeforePlay = false
-            player.seek(to: .zero)
-        }
-
-        player.play()
-        isPlaying = true
-    }
-
-    fileprivate func pauseVideo() {
-        player?.pause()
-        isPlaying = false
-    }
-
-    fileprivate func stopPlayingIfNeeded() {
-        guard let player = player, isPlaying else {
-            return
-        }
-        player.pause()
-        player.seek(to: .zero)
-        isPlaying = false
-    }
-    
-    func stopPlayingVideoIfNeeded(at oldIndexPath: IndexPath) {
-        if isPlaying {
-            stopPlayingIfNeeded()
-        }
-    }
-}
-
 // MARK: - PhotoDetailTransitionAnimatorDelegate
 extension PhotoBrowserViewController: PhotoTransitioning {
     public func transitionWillStart() {
@@ -1121,19 +1005,37 @@ extension PhotoBrowserViewController {
 }
 
 extension PhotoBrowserViewController: PhotoBrowserBottomToolViewDelegate {
+    
     func browserBottomToolViewEditButtonClicked() {
-        
         guard let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? PhotoDetailCell,
-              let image = cell.image
+              let image = cell.image,
+              var photo = cell.photo
         else { return }
-        let cropViewController = CropImageViewController(image: image)
-        cropViewController.croppedImage = { [weak self] result in
+        let cropViewController: CropImageViewController
+        if let restoreData = cell.photo?.restoreData {
+            cropViewController = CropImageViewController(restoreData: restoreData)
+        } else {
+            cropViewController = CropImageViewController(image: image)
+        }
+        cropViewController.croppedImage = { [weak self, weak cropViewController] result in // avoid retain cycle
             guard let self = self else { return }
             switch result {
             case .success(let cropped):
-                self.currentPhoto.storeImage(cropped)
-                // TODO: 😴zZ change collection view cell image datasource when scrolling
+                photo.storeImage(cropped)
                 cell.image = cropped
+                
+                if let asset = photo.asset, let restoreData = cropViewController?.restoreData {
+                    photo.restoreData = restoreData
+                    self.delegate?.photoBrowser(self, editedPhotos: [asset.localIdentifier: restoreData])
+                    
+                    if !self.selectedPhotos.contains(where: { selected in
+                        photo.isEqualTo(selected)
+                    }) {
+                        self.selectedPhotos.append(photo)
+                        self.updateRightBarItemCount(photo)
+                    }
+                    self.thumbnailsCollectionView.reloadData()
+                }
             case .failure(let error):
                 self.showError(error)
             }

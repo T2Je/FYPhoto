@@ -20,7 +20,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
 
     var imageView = UIImageView()
 
-    var videoCache: VideoCache?
+    let videoCache = VideoCache.shared
     
     var photo: PhotoProtocol? {
         didSet {
@@ -44,6 +44,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     }
 
     override init(frame: CGRect) {
+        
         super.init(frame: frame)
 //        contentView.backgroundColor = .white
         contentView.addSubview(imageView)
@@ -57,7 +58,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
 
         setupActivityIndicator()
 
-        videoCache = VideoCache.shared
+        
         
         let doubleTap = UITapGestureRecognizer(target: self, action: #selector(doubleTapVideoCell(_:)))
         doubleTap.numberOfTapsRequired = 2
@@ -96,7 +97,10 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     }
 
     fileprivate func display(url: URL) {
-        activityIndicator.startAnimating()
+        if !activityIndicator.isAnimating {
+            activityIndicator.startAnimating()
+        }
+        
         if let videoCache = videoCache {
             videoCache.fetchFilePathWith(key: url) { [weak self] (result) in
                 self?.activityIndicator.stopAnimating()
@@ -162,6 +166,15 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
         setNeedsDisplay()
     }
 
+    func startLoading() {
+        if !activityIndicator.isAnimating {
+            activityIndicator.startAnimating()
+        }
+    }
+    func endLoading() {
+        activityIndicator.stopAnimating()
+    }
+    
     @objc func tapVideoCell(_ gesture: UITapGestureRecognizer) {
         routerEvent(name: ImageViewGestureEvent.singleTap.rawValue, userInfo: nil)
     }

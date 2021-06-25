@@ -11,9 +11,18 @@ class CropViewModel: NSObject {
     var statusChanged: ((CropViewStatus) -> Void)?    
 //    var aspectRatioChanged: ((PhotoAspectRatio) -> Void)?
     
+    /// initial frames of 4 rotation degrees
+    private var _initialFrames: [CGRect] = Array(repeating: .zero, count: 4)
+    private var _initialZoomScales: [CGFloat] = Array(repeating: .zero, count: 4)
+    
     /// initial frame of the imageView. Need to be reseted when device rotates.
-    var initialFrame: CGRect = .zero
-    var imageZoomScale: CGFloat = 1
+    var initialFrame: CGRect {
+        _initialFrames[rotation.rawValue]
+    }
+    
+    var initalZoomScale: CGFloat {
+        _initialZoomScales[rotation.rawValue]
+    }
     
     let image: UIImage
 
@@ -89,8 +98,22 @@ class CropViewModel: NSObject {
         return rect
     }
     
-    func resetInitFrame(_ rect: CGRect) {
-        initialFrame = rect
+    //MARK: Setup
+    func setInitialZoomScale(_ zoomScale: CGFloat, at rotation: PhotoRotation) {
+        _initialZoomScales[rotation.rawValue] = zoomScale
+    }
+    
+    func setInitialFrame(_ frame: CGRect, at rotation: PhotoRotation) {
+        _initialFrames[rotation.rawValue] = frame
+    }
+    
+    func resetInitialFrameAtCurrentRotation(_ rect: CGRect) {
+        setInitialFrame(rect, at: rotation)
+    }
+    
+    func resetInitFrame(_ rect: CGRect, imageZoomScale: CGFloat, at rotation: PhotoRotation) {
+        setInitialZoomScale(imageZoomScale, at: rotation)
+        setInitialFrame(rect, at: rotation)
     }
     
     func setFixedAspectRatio(_ ratio: Double?) {
@@ -101,12 +124,18 @@ class CropViewModel: NSObject {
         }
     }
     
+    //MARK: -
+    
     private func hasResized(_ currentRect: CGRect) -> Bool {
         initialFrame != currentRect
     }
     
     func hasChanges(_ currentRect: CGRect, _ zoomScale: CGFloat) -> Bool {
-        rotation != .zero || hasResized(currentRect) || zoomScale != imageZoomScale
+        rotation != .zero || hasResized(currentRect) || zoomScale != initalZoomScale
+    }
+    
+    func canReset(_ currentRect: CGRect, _ zoomScale: CGFloat) -> Bool {
+        hasResized(currentRect) || zoomScale != initalZoomScale
     }
 
     func calculateGuideViewFrame(by initial: CGRect) -> CGRect {

@@ -25,6 +25,8 @@ class PhotoMetaData: PhotoProtocol {
         return false
     }
     
+    var restoreData: CroppedRestoreData?
+    
     init(data: Data) {
         self.metaData = data
     }

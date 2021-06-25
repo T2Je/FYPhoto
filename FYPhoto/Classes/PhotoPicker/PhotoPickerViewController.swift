@@ -68,6 +68,14 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             reachedMaximum = assetSelectionIdentifierCache.count >= maximumCanBeSelected
         }
     }
+    
+    fileprivate var selectedAssets: [PHAsset] {
+        // The order of Assets fetched with identifiers maybe different from input identifiers order.
+        let selectedFetchResults: [PHFetchResult<PHAsset>] = assetSelectionIdentifierCache.map {
+            PHAsset.fetchAssets(withLocalIdentifiers: [$0], options: nil)
+        }
+        return selectedFetchResults.compactMap { $0.firstObject }
+    }
 
     var safeAreaInsets: UIEdgeInsets {
         return UIApplication.shared.keyWindow?.safeAreaInsets ?? .zero
@@ -148,6 +156,9 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     fileprivate var hasMemorySizeLimit: Bool {
         return maximumVideoSize > 0
     }
+    
+    /// save edited photos in PhotoBrowser
+    var editedPhotos: [String: CroppedRestoreData] = [:]
     
     private(set) var configuration: FYPhotoPickerConfiguration
     
@@ -346,37 +357,49 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             bottomToolBar.heightAnchor.constraint(equalToConstant: height)
         ])
     }
-
-    fileprivate var selectedAssets: [PHAsset] {
-        // The order of Assets fetched with identifiers maybe different from input identifiers order.
-        let selectedFetchResults: [PHFetchResult<PHAsset>] = assetSelectionIdentifierCache.map {
-            PHAsset.fetchAssets(withLocalIdentifiers: [$0], options: nil)
-        }
-        return selectedFetchResults.compactMap { $0.firstObject }
-    }
     
-    /// complete photo selection
-    /// - Parameters:
-    ///   - assets: selected assets
-    ///   - animated: dissmiss animated
-    func selectionCompleted(assets: [PHAsset], animated: Bool) {
-        guard !assets.isEmpty else {
+    func completeSelection(photos: [PhotoProtocol], animated: Bool) {
+        guard !photos.isEmpty else {
             return
         }
-         
-        PhotoPickerResource.shared.fetchHighQualityImages(assets) { images in
-            var selectedArr = [SelectedImage]()
-            for index in 0..<images.count {
-                let asset = assets[index]
-                let image = images[index]
-                selectedArr.append(SelectedImage(asset: asset, image: image))
-            }
-
-            self.back(animated: true) {
-                self.selectedPhotos?(selectedArr)
+        var arr: [SelectedImage?] = Array(repeating: nil, count: photos.count)
+        for (index, photo) in photos.enumerated() {
+            if let image = photo.image {
+                arr[index] = SelectedImage(asset: photo.asset, image: image)
+            } else if let asset = photo.asset {
+                if let image = PhotoPickerResource.shared.fetchImage(asset) {
+                    arr[index] = SelectedImage(asset: photo.asset, image: image)
+                }
             }
         }
+        let result = arr.compactMap { $0 }
+        self.back(animated: animated) {
+            self.selectedPhotos?(result)
+        }
     }
+    
+//    /// complete photo selection
+//    /// - Parameters:
+//    ///   - assets: selected assets
+//    ///   - animated: dissmiss animated
+//    func completeSelection(assets: [PHAsset], animated: Bool) {
+//        guard !assets.isEmpty else {
+//            return
+//        }
+//
+//        PhotoPickerResource.shared.fetchHighQualityImages(assets) { images in
+//            var selectedArr = [SelectedImage]()
+//            for index in 0..<images.count {
+//                let asset = assets[index]
+//                let image = images[index]
+//                selectedArr.append(SelectedImage(asset: asset, image: image))
+//            }
+//
+//            self.back(animated: animated) {
+//                self.selectedPhotos?(selectedArr)
+//            }
+//        }
+//    }
 
     func back(animated: Bool, _ completion: (() -> Void)? = nil) {
         self.dismiss(animated: animated, completion: {
@@ -435,14 +458,24 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         options.resizeMode = .fast
         options.isNetworkAccessAllowed = true
         options.isSynchronous = false
-        imageManager.requestImage(for: asset, targetSize: thumbnailSize, contentMode: .aspectFit, options: options, resultHandler: { image, info in
-            // The cell may have been recycled by the time this handler gets called;
-            // set the cell's thumbnail image only if it's still showing the same asset.
+        if let restore = editedPhotos[asset.localIdentifier] {            
             if cell.representedAssetIdentifier == asset.localIdentifier {
-                cell.thumbnailImage = image
-                self.configureCellState(cell, asset: asset)
+                cell.thumbnailImage = restore.editedImage
+                configureCellState(cell, asset: asset)
+                cell.showEditAnnotation(true)
             }
-        })
+        } else {
+            imageManager.requestImage(for: asset, targetSize: thumbnailSize, contentMode: .aspectFit, options: options, resultHandler: { image, info in
+                // The cell may have been recycled by the time this handler gets called;
+                // set the cell's thumbnail image only if it's still showing the same asset.
+                if cell.representedAssetIdentifier == asset.localIdentifier {
+                    cell.thumbnailImage = image
+                    self.configureCellState(cell, asset: asset)
+                    cell.showEditAnnotation(false)                    
+                }
+            })
+        }
+        
     }
     
     func configureCellState(_ cell: GridViewCell, asset: PHAsset) {
@@ -547,18 +580,34 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         
         let assets = PHAsset.fetchAssets(withLocalIdentifiers: [identifier], options: nil)
         if let first = assets.firstObject {
-            selectionCompleted(assets: [first], animated: true)
+            if let image = PhotoPickerResource.shared.fetchImage(first) {
+                self.back(animated: true) {
+                    self.selectedPhotos?([SelectedImage(asset: first, image: image)])
+                }
+            }
         }
     }
     
     //  MARK: BROWSE IMAGES || VIDEO
     func browseImages(at indexPath: IndexPath) {
         var photos = [PhotoProtocol]()
-        for index in 0..<assets.count {
-            let asset = assets[index]
-            photos.append(Photo.photoWithPHAsset(asset))
-        }
         
+        if editedPhotos.isEmpty {
+            for index in 0..<assets.count {
+                let asset = assets[index]
+                photos.append(Photo.photoWithPHAsset(asset))
+            }
+        } else {
+            for index in 0..<assets.count {
+                let asset = assets[index]
+                var photo = Photo.photoWithPHAsset(asset)
+                if editedPhotos.keys.contains(asset.localIdentifier) {
+                    photo.restoreData = editedPhotos[asset.localIdentifier]
+                }
+                photos.append(photo)
+            }
+        }
+                        
         let selectedAssetsResult = selectedAssets
         let selectedPhotos = selectedAssetsResult.map { Photo.photoWithPHAsset($0) }
 
@@ -755,8 +804,9 @@ extension PhotoPickerViewController: GridViewCellDelegate {
 
 }
 
-// MARK: - PhotoDetailCollectionViewControllerDelegate
+// MARK: - PhotoBrowserViewControllerDelegate
 extension PhotoPickerViewController: PhotoBrowserViewControllerDelegate {
+    
     public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, scrollAt item: Int) {
         let itemFromBrowser = item
         let itemInPhotoPicker = containsCamera ? itemFromBrowser - 1 : itemFromBrowser
@@ -768,14 +818,20 @@ extension PhotoPickerViewController: PhotoBrowserViewControllerDelegate {
     }
 
     public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, didCompleteSelected photos: [PhotoProtocol]) {
-        let assets = photos.compactMap { $0.asset }
         photoBrowser.dismiss(animated: true) {
-            self.selectionCompleted(assets: assets, animated: true)
+            self.completeSelection(photos: photos, animated: true)
         }
     }
     
     public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, deletePhotoAtIndexWhenBrowsing index: Int) {
         assetSelectionIdentifierCache.remove(at: index)
+    }
+    
+    public func photoBrowser(_ photoBrowser: PhotoBrowserViewController, editedPhotos: [String : CroppedRestoreData]) {
+        self.editedPhotos = editedPhotos
+        if let indexPath = lastSelectedIndexPath {
+            collectionView.reloadItems(at: [indexPath])
+        }
     }
 }
 
@@ -972,7 +1028,22 @@ extension PhotoPickerViewController: PhotoPickerBottomToolViewDelegate {
     }
     
     func bottomToolViewDoneButtonClicked() {
-        self.selectionCompleted(assets: self.selectedAssets, animated: true)
+        let photos: [PhotoProtocol]
+        
+        if editedPhotos.isEmpty {
+            photos = selectedAssets.map {
+                Photo.photoWithPHAsset($0)
+            }
+        } else {
+            photos = selectedAssets.map { asset -> PhotoProtocol in
+                var photo = Photo.photoWithPHAsset(asset)
+                if editedPhotos.keys.contains(asset.localIdentifier) {
+                    photo.restoreData = editedPhotos[asset.localIdentifier]
+                }
+                return photo
+            }
+        }
+        completeSelection(photos: photos, animated: true)
     }
 }
 

@@ -55,7 +55,7 @@ class PhotoBrowserBottomToolView: UIView {
     
     fileprivate func addPlayButton() {
         addSubview(playButton)
-        
+        playButton.isEnabled = false
         playButton.setImage(Asset.icons8Play.image, for: .normal)
         playButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
         playButton.imageEdgeInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)

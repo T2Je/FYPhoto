@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum PhotoRotation {
+enum PhotoRotation: Int {
     case zero
     case counterclockwise90
     case counterclockwise180
