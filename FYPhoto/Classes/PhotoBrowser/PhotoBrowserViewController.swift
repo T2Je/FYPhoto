@@ -103,7 +103,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             stopPlayingIfNeeded()
             currentPhoto = photos[newValue.item]
             if currentDisplayedIndexPath != newValue {
-                delegate?.photoBrowser(self, scrollAt: newValue)
                 delegate?.photoBrowser(self, scrollAt: newValue.item)
             }
             if isForSelection {

@@ -110,7 +110,10 @@ class ViewController: UIViewController {
         pickerConfig.maximumVideoMemorySize = 40 // MB
         pickerConfig.maximumVideoDuration = 15 // Seconds
         let colorConfig = FYColorConfiguration()
-        colorConfig.topBarColor = FYColorConfiguration.BarColor(itemTintColor: .red, itemDisableColor: .gray, itemBackgroundColor: .black, backgroundColor: .blue)
+        colorConfig.topBarColor = FYColorConfiguration.BarColor(itemTintColor: .red,
+                                                                itemDisableColor: .gray,
+                                                                itemBackgroundColor: .black,
+                                                                backgroundColor: .blue)
 
         pickerConfig.colorConfiguration = colorConfig
         let photoPickerVC = PhotoPickerViewController(configuration: pickerConfig)
