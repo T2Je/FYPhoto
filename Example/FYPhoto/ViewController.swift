@@ -41,7 +41,6 @@ class ViewController: UIViewController {
         stackView.distribution = .equalCentering
 
         let photosViewBtn = UIButton()
-        let suishoupaiBtn = UIButton()
 
         let cameraPhotoBtn = UIButton()
         let playRemoteVideoBtn = UIButton()
@@ -52,7 +51,6 @@ class ViewController: UIViewController {
         let photoEditorBtn = UIButton()
         
         photosViewBtn.setTitle("浏览全部照片（Custom）", for: .normal)
-        suishoupaiBtn.setTitle("随手拍", for: .normal)
         cameraPhotoBtn.setTitle("照片or相机", for: .normal)
         playRemoteVideoBtn.setTitle("Play remote video", for: .normal)
         customCameraBtn.setTitle("Custom Camera", for: .normal)
@@ -60,7 +58,6 @@ class ViewController: UIViewController {
         photoEditorBtn.setTitle("Photo Editor", for: .normal)
         
         photosViewBtn.setTitleColor(.systemBlue, for: .normal)
-        suishoupaiBtn.setTitleColor(.systemBlue, for: .normal)
         cameraPhotoBtn.setTitleColor(.systemBlue, for: .normal)
         playRemoteVideoBtn.setTitleColor(.systemBlue, for: .normal)
         customCameraBtn.setTitleColor(.systemPink, for: .normal)
@@ -68,7 +65,6 @@ class ViewController: UIViewController {
         photoEditorBtn.setTitleColor(.systemYellow, for: .normal)
 
         photosViewBtn.addTarget(self, action: #selector(photosViewButtonClicked(_:)), for: .touchUpInside)
-        suishoupaiBtn.addTarget(self, action: #selector(suiShouPaiButtonClicked(_:)), for: .touchUpInside)
         cameraPhotoBtn.addTarget(self, action: #selector(cameraPhotoButtonClicked(_:)), for: .touchUpInside)
         playRemoteVideoBtn.addTarget(self, action: #selector(playRemoteVideo(_:)), for: .touchUpInside)
         customCameraBtn.addTarget(self, action: #selector(launchCustomCamera(_:)), for: .touchUpInside)
@@ -76,7 +72,6 @@ class ViewController: UIViewController {
         photoEditorBtn.addTarget(self, action: #selector(photoEditorButtonClicked(_:)), for: .touchUpInside)
         
         stackView.addArrangedSubview(photosViewBtn)
-        stackView.addArrangedSubview(suishoupaiBtn)
         stackView.addArrangedSubview(cameraPhotoBtn)
         stackView.addArrangedSubview(playRemoteVideoBtn)
         stackView.addArrangedSubview(customCameraBtn)
@@ -108,11 +103,12 @@ class ViewController: UIViewController {
     @objc func photosViewButtonClicked(_ sender: UIButton) {
         var pickerConfig = FYPhotoPickerConfiguration()
         pickerConfig.selectionLimit = 0
-//        pickerConfig.maximumVideoMemorySize = 100 // 40
-        pickerConfig.maximumVideoDuration = 6
-        pickerConfig.compressedQuality = .mediumQuality
         pickerConfig.supportCamera = true
         pickerConfig.mediaFilter = .all
+        
+        pickerConfig.compressedQuality = .mediumQuality
+        pickerConfig.maximumVideoMemorySize = 40 // MB
+        pickerConfig.maximumVideoDuration = 15 // Seconds
         let colorConfig = FYColorConfiguration()
         colorConfig.topBarColor = FYColorConfiguration.BarColor(itemTintColor: .red, itemDisableColor: .gray, itemBackgroundColor: .black, backgroundColor: .blue)
 
@@ -136,39 +132,6 @@ class ViewController: UIViewController {
         }
         photoPickerVC.modalPresentationStyle = .fullScreen
         self.present(photoPickerVC, animated: true, completion: nil)
-//        self.navigationController?.pushViewController(photoPickerVC, animated: true)
-//        let navi = UINavigationController(rootViewController: photoPickerVC)
-//        navi.modalPresentationStyle = .fullScreen
-//        self.present(navi, animated: true, completion: nil)
-    }
-
-    @objc func suiShouPaiButtonClicked(_ sender: UIButton) {
-        if #available(iOS 14, *) {
-            let addPhotoVC = AddPhotoBlogViewController()
-            addPhotoVC.selectedImageArray = []
-            self.navigationController?.pushViewController(addPhotoVC, animated: true)
-        } else {
-            PHPhotoLibrary.requestAuthorization { (status) in
-                DispatchQueue.main.async {
-                    switch status {
-                    case .authorized, .limited:
-                        let addPhotoVC = AddPhotoBlogViewController()
-                        addPhotoVC.selectedImageArray = []
-                        self.navigationController?.pushViewController(addPhotoVC, animated: true)
-                        //                            let navi = CustomTransitionNavigationController(rootViewController: addPhotoVC)
-                        //                            navi.modalPresentationStyle = .fullScreen
-                    //                            self.present(navi, animated: true, completion: nil)
-                    case .denied, .restricted, .notDetermined:
-                        print("⚠️ without authorization! ⚠️")
-                    @unknown default:
-                        fatalError()
-                    }
-                }
-
-            }
-
-        }
-
     }
 
     @objc func cameraPhotoButtonClicked(_ sender: UIButton) {
@@ -188,7 +151,6 @@ class ViewController: UIViewController {
     @objc func playRemoteVideo(_ sender: UIButton) {
 //        guard let url = URL(string: "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4") else { return }
 //        let urlStr = "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4"
-//        let urlStr = "http://client.gsup.sichuanair.com/file.php?9bfc3b16aec233d025c18042e9a2b45a.mp4"
         let urlStr = "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4"
 //        let urlStr = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
         guard let url = URL(string: urlStr) else { return }
@@ -281,18 +243,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
                     picker.dismiss(animated: true, completion: nil)
                     return
             }
-//            UISaveVideoAtPathToSavedPhotosAlbum(videoURL.path, self, #selector(video(_:didFinishSavingWithError:contextInfo:)), nil)
-
-            picker.dismiss(animated: true) {
-//                 Editor controller
-//                guard UIVideoEditorController.canEditVideo(atPath: videoURL.absoluteString) else { return }
-//                let videoEditorController = UIVideoEditorController()
-//                videoEditorController.videoPath = videoURL.path
-//                videoEditorController.delegate = self
-//                videoEditorController.videoMaximumDuration = 15
-//                videoEditorController.modalPresentationStyle = .fullScreen
-//                self.present(videoEditorController, animated: true, completion: nil)
-            }
+            picker.dismiss(animated: true) {}
         default:
             break
         }

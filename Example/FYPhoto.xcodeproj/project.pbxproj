@@ -17,9 +17,6 @@
 		A44FC3F6B130791A524B5C13 /* Pods_FYPhoto_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44B9530E860271DD96AFAFEC /* Pods_FYPhoto_Example.framework */; };
 		E31043EE25A7EFA500806F77 /* NamSpaceTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = E31043ED25A7EFA500806F77 /* NamSpaceTest.swift */; };
 		E3295DB8250F22BC00A55AEA /* TestAuthority.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3295DB7250F22BC00A55AEA /* TestAuthority.swift */; };
-		E343E62E24F7BBA8003341DE /* AddPhotoBlogViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */; };
-		E343E62F24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */; };
-		E3C6A6A0256CAC4200F81A33 /* RenderImageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3C6A69F256CAC4200F81A33 /* RenderImageViewController.swift */; };
 		E3D9590825F6081A004AAFF1 /* TestHelperExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3D9590725F6081A004AAFF1 /* TestHelperExtensions.swift */; };
 		E3D9590C25F60B57004AAFF1 /* TestVideoCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3D9590B25F60B57004AAFF1 /* TestVideoCache.swift */; };
 		E3F5F5A8259431E70044229D /* OCViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E3F5F5A7259431E70044229D /* OCViewController.m */; };
@@ -56,9 +53,6 @@
 		CC84A622A1CD7C7373A2DFE1 /* README.md */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
 		E31043ED25A7EFA500806F77 /* NamSpaceTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NamSpaceTest.swift; sourceTree = "<group>"; };
 		E3295DB7250F22BC00A55AEA /* TestAuthority.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestAuthority.swift; sourceTree = "<group>"; };
-		E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPhotoBlogViewController.swift; sourceTree = "<group>"; };
-		E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddPhotoCollectionViewCell.swift; sourceTree = "<group>"; };
-		E3C6A69F256CAC4200F81A33 /* RenderImageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderImageViewController.swift; sourceTree = "<group>"; };
 		E3D48E0225B139D3007AA8A8 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
 		E3D48E0325B139D4007AA8A8 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
 		E3D9590725F6081A004AAFF1 /* TestHelperExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelperExtensions.swift; sourceTree = "<group>"; };
@@ -127,15 +121,12 @@
 			children = (
 				E3F5F5A6259431E70044229D /* OCViewController.h */,
 				E3F5F5A7259431E70044229D /* OCViewController.m */,
-				E343E62C24F7BBA8003341DE /* AddPhotoBlogViewController.swift */,
-				E343E62D24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift */,
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
 				607FACD71AFB9204008FA782 /* ViewController.swift */,
 				607FACD91AFB9204008FA782 /* Main.storyboard */,
 				607FACDC1AFB9204008FA782 /* Images.xcassets */,
 				607FACDE1AFB9204008FA782 /* LaunchScreen.xib */,
 				607FACD31AFB9204008FA782 /* Supporting Files */,
-				E3C6A69F256CAC4200F81A33 /* RenderImageViewController.swift */,
 				E31043ED25A7EFA500806F77 /* NamSpaceTest.swift */,
 			);
 			name = "Example for FYPhoto";
@@ -345,22 +336,14 @@
 			);
 			inputPaths = (
 				"${PODS_ROOT}/Target Support Files/Pods-FYPhoto_Example/Pods-FYPhoto_Example-frameworks.sh",
-				"${BUILT_PRODUCTS_DIR}/FGBase/FGBase.framework",
 				"${BUILT_PRODUCTS_DIR}/FYPhoto/FYPhoto.framework",
-				"${BUILT_PRODUCTS_DIR}/MBProgressHUD/MBProgressHUD.framework",
 				"${BUILT_PRODUCTS_DIR}/SDWebImage/SDWebImage.framework",
-				"${BUILT_PRODUCTS_DIR}/SnapKit/SnapKit.framework",
-				"${BUILT_PRODUCTS_DIR}/Toast-Swift/Toast_Swift.framework",
 				"${BUILT_PRODUCTS_DIR}/UICircularProgressRing/UICircularProgressRing.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FGBase.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FYPhoto.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MBProgressHUD.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SDWebImage.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SnapKit.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Toast_Swift.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/UICircularProgressRing.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -375,12 +358,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E3C6A6A0256CAC4200F81A33 /* RenderImageViewController.swift in Sources */,
-				E343E62E24F7BBA8003341DE /* AddPhotoBlogViewController.swift in Sources */,
 				E3F5F5A8259431E70044229D /* OCViewController.m in Sources */,
 				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
 				E31043EE25A7EFA500806F77 /* NamSpaceTest.swift in Sources */,
-				E343E62F24F7BBA8003341DE /* AddPhotoCollectionViewCell.swift in Sources */,
 				607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -1,79 +1,16 @@
 PODS:
-  - FGBase (4.1.9):
-    - FGBase/Category (= 4.1.9)
-    - FGBase/Config (= 4.1.9)
-    - FGBase/FGPullToRefresh (= 4.1.9)
-    - FGBase/Grid (= 4.1.9)
-    - FGBase/Menu (= 4.1.9)
-    - FGBase/NavigationBar (= 4.1.9)
-    - FGBase/Picker (= 4.1.9)
-    - FGBase/Popup (= 4.1.9)
-    - FGBase/Progress (= 4.1.9)
-    - FGBase/SegmentControl (= 4.1.9)
-    - FGBase/SwipeView (= 4.1.9)
-    - FGBase/Switch (= 4.1.9)
-    - FGBase/TableView (= 4.1.9)
-    - FGBase/Text (= 4.1.9)
-    - FGBase/Tips (= 4.1.9)
-    - FGBase/ViewKit (= 4.1.9)
-  - FGBase/Category (4.1.9):
-    - FGBase/Config
-  - FGBase/Config (4.1.9)
-  - FGBase/FGPullToRefresh (4.1.9):
-    - FGBase/Category
-  - FGBase/Grid (4.1.9):
-    - FGBase/Category
-    - SnapKit
-  - FGBase/Menu (4.1.9):
-    - FGBase/Category
-    - SnapKit
-  - FGBase/NavigationBar (4.1.9):
-    - FGBase/Category
-  - FGBase/Picker (4.1.9):
-    - FGBase/Category
-    - SnapKit
-  - FGBase/Popup (4.1.9)
-  - FGBase/Progress (4.1.9):
-    - FGBase/Category
-  - FGBase/SegmentControl (4.1.9)
-  - FGBase/SwipeView (4.1.9)
-  - FGBase/Switch (4.1.9)
-  - FGBase/TableView (4.1.9):
-    - FGBase/Category
-  - FGBase/Text (4.1.9):
-    - FGBase/Category
-  - FGBase/Tips (4.1.9):
-    - FGBase/Category
-    - MBProgressHUD
-    - SnapKit
-    - Toast-Swift
-  - FGBase/ViewKit (4.1.9):
-    - FGBase/Category
-    - FGBase/Config
-    - FGBase/NavigationBar
-    - FGBase/Tips
-    - SnapKit
   - FYPhoto (1.2.0):
     - SDWebImage/Core
     - UICircularProgressRing
-  - MBProgressHUD (1.2.0)
   - SDWebImage/Core (5.10.4)
-  - SnapKit (5.0.1)
-  - Toast-Swift (5.0.1)
   - UICircularProgressRing (8.0.0)
 
 DEPENDENCIES:
-  - FGBase
   - FYPhoto (from `../`)
 
 SPEC REPOS:
-  http://git.feeyo.com/wangkun/specs.git:
-    - FGBase
   trunk:
-    - MBProgressHUD
     - SDWebImage
-    - SnapKit
-    - Toast-Swift
     - UICircularProgressRing
 
 EXTERNAL SOURCES:
@@ -81,14 +18,10 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
-  FGBase: a7318323ec4fd2ca51c4aeb792b281b898189a5a
   FYPhoto: c76417af852a9f576bdb54084629d977ec546bb0
-  MBProgressHUD: 3ee5efcc380f6a79a7cc9b363dd669c5e1ae7406
   SDWebImage: c666b97e1fa9c64b4909816a903322018f0a9c84
-  SnapKit: 97b92857e3df3a0c71833cce143274bf6ef8e5eb
-  Toast-Swift: 9b6a70f28b3bf0b96c40d46c0c4b9d6639846711
   UICircularProgressRing: 19927375b2b21b5fa5fd9582f15ccdef9659da16
 
-PODFILE CHECKSUM: ab52a93876a781552e0e74b1a724bc198b97845e
+PODFILE CHECKSUM: 81fe3f06201ddeb48f3b16203c835053bae0c7d9
 
-COCOAPODS: 1.10.1
+COCOAPODS: 1.9.1
