@@ -2,11 +2,12 @@
 
 FYPhoto is an photo/video picker and browser for iOS written in pure Swift. It is feature-rich and highly customizable to match your App's requirements.
 
-[![Version](https://img.shields.io/cocoapods/v/FYPhoto.svg?style=flat)](https://cocoapods.org/pods/FYPhoto)
+[![Version](https://img.shields.io/badge/language-swift%205-f48041.svg?style=flat)](https://developer.apple.com/swift)
 
-[![License](https://img.shields.io/cocoapods/l/FYPhoto.svg?style=flat)](https://cocoapods.org/pods/FYPhoto)
+[![License](http://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat)](https://github.com/Yummypets/YPImagePicker/blob/master/LICENSE)
 
-[![Platform](https://img.shields.io/cocoapods/p/FYPhoto.svg?style=flat)](https://cocoapods.org/pods/FYPhoto)
+[![Platform](https://img.shields.io/badge/platform-ios-lightgrey.svg)]
+(http://cocoapods.org/pods/FYPhoto)
 
 ## Example
 To run the example project, clone the repo, and run `pod install` from the Example directory first.
@@ -16,7 +17,7 @@ To run the example project, clone the repo, and run `pod install` from the Examp
 Give it a quick try :
 `pod repo update` then `pod try FYPhoto`
 
-// TODO: Need some photos.
+<img src="https://github.com/T2Je/FYPhoto/blob/main/Images/PickerBase.png?raw=true" width="200px" > <img src="https://github.com/T2Je/FYPhoto/blob/main/Images/BrowserBase.png?raw=true" width="200px" > <img src="https://github.com/T2Je/FYPhoto/blob/main/Images/CropImage.png?raw=true" width="200px" > <img src="https://github.com/T2Je/FYPhoto/blob/main/Images/VideoTrimmer.png?raw=true" width="200px" >
 
 Those features are available just with a few lines of code!
 
@@ -117,7 +118,6 @@ let photosBrowser = PhotoBrowserViewController.create(photos: [photo],
                 .showDeleteButtonForBrowser()
                 .setMaximumCanBeSelected(1)
         }
-        photosBrowser.delegate = self
 ```
 
 ## Usage
@@ -174,14 +174,15 @@ This project has been inspired by:
 - [JXPhotoBrowser](https://github.com/JiongXing/PhotoBrowser)
 
 ## Dependency
-FYPhoto relies on [SDWebImage](https://github.com/SDWebImage/SDWebImage) for provide async image downloader with cache support.
+FYPhoto relies on [SDWebImage](https://github.com/SDWebImage/SDWebImage) to provide async image downloader with cache support, relies on [UICircularProgressRing](https://github.com/luispadron/UICircularProgressRing) to render circular progress rings and timers .
 
 ## Obj-C support
 Objective-C is not supported and this is not on our roadmap.
 Swift is the future and dropping Obj-C is the price to pay to keep our velocity on this library :)
 
 ## Plan
-- Add more features to edit photo, include `Filter`, `Mosaic`, etc.
+Add more features to edit photo, include `Filter`, `Mosaic`, etc.
+
 ## License
 FYPhoto is released under the MIT license. 
 

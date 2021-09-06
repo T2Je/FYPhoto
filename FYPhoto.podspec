@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'FYPhoto'
-  s.version          = '1.2.0'
+  s.version          = '2.0.0'
   s.summary          = 'A short description of FYPhoto.'
 
 # This description is used to generate tags and improve search results.
@@ -21,11 +21,11 @@ Pod::Spec.new do |s|
 TODO: Add long description of the pod here.
                        DESC
 
-  s.homepage         = 'http://git.feeyo.com/'
+  s.homepage         = 'https://github.com/T2Je'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
-  s.author           = { 'xiaoyang' => 'xiaoyang@variflight.com' }
-  s.source           = { :git => 'http://git.feeyo.com/acdm-ios-base/fyphoto.git', :tag => s.version.to_s }
+  s.author           = { 't2je' => '827034457@qq.com' }
+  s.source           = { :git => 'https://github.com/T2Je/FYPhoto.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
    s.ios.deployment_target = '11'
