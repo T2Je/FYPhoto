@@ -21,8 +21,7 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-
-        photoLanucher.delegate = self
+        
         print("PhotosAuthority.isCameraAvailable: \(PhotosAuthority.isCameraAvailable())")
         print("PhotosAuthority.isPhotoLibraryAvailable: \(PhotosAuthority.isPhotoLibraryAvailable())")
         print("PhotosAuthority.doesCameraSupportTakingPhotos: \(PhotosAuthority.doesCameraSupportTakingPhotos())")
@@ -40,63 +39,45 @@ class ViewController: UIViewController {
         stackView.axis = .vertical
         stackView.distribution = .equalCentering
 
-        let photosViewBtn = UIButton()
-
-        let cameraPhotoBtn = UIButton()
+        let pickPhotosBtn = UIButton()
         let playRemoteVideoBtn = UIButton()
-
-        let customCameraBtn = UIButton()
-        let remoteImageBtn = UIButton()
+        let takePhotoBtn = UIButton()
+        let displayRemoteImagesBtn = UIButton()
+        let cropPhotoBtn = UIButton()
         
-        let photoEditorBtn = UIButton()
-        
-        photosViewBtn.setTitle("浏览全部照片（Custom）", for: .normal)
-        cameraPhotoBtn.setTitle("照片or相机", for: .normal)
+        pickPhotosBtn.setTitle("Pick photos", for: .normal)
         playRemoteVideoBtn.setTitle("Play remote video", for: .normal)
-        customCameraBtn.setTitle("Custom Camera", for: .normal)
-        remoteImageBtn.setTitle("Display remote images", for: .normal)
-        photoEditorBtn.setTitle("Photo Editor", for: .normal)
+        takePhotoBtn.setTitle("Take photo/video", for: .normal)
+        displayRemoteImagesBtn.setTitle("Display remote images", for: .normal)
+        cropPhotoBtn.setTitle("Crop photo", for: .normal)
         
-        photosViewBtn.setTitleColor(.systemBlue, for: .normal)
-        cameraPhotoBtn.setTitleColor(.systemBlue, for: .normal)
+        pickPhotosBtn.setTitleColor(.systemBlue, for: .normal)
         playRemoteVideoBtn.setTitleColor(.systemBlue, for: .normal)
-        customCameraBtn.setTitleColor(.systemPink, for: .normal)
-        remoteImageBtn.setTitleColor(.systemGreen, for: .normal)
-        photoEditorBtn.setTitleColor(.systemYellow, for: .normal)
+        takePhotoBtn.setTitleColor(.systemPink, for: .normal)
+        displayRemoteImagesBtn.setTitleColor(.systemGreen, for: .normal)
+        cropPhotoBtn.setTitleColor(.systemYellow, for: .normal)
 
-        photosViewBtn.addTarget(self, action: #selector(photosViewButtonClicked(_:)), for: .touchUpInside)
-        cameraPhotoBtn.addTarget(self, action: #selector(cameraPhotoButtonClicked(_:)), for: .touchUpInside)
+        pickPhotosBtn.addTarget(self, action: #selector(photosViewButtonClicked(_:)), for: .touchUpInside)
         playRemoteVideoBtn.addTarget(self, action: #selector(playRemoteVideo(_:)), for: .touchUpInside)
-        customCameraBtn.addTarget(self, action: #selector(launchCustomCamera(_:)), for: .touchUpInside)
-        remoteImageBtn.addTarget(self, action: #selector(displayRemoteImagesButtonClicked(_:)), for: .touchUpInside)
-        photoEditorBtn.addTarget(self, action: #selector(photoEditorButtonClicked(_:)), for: .touchUpInside)
+        takePhotoBtn.addTarget(self, action: #selector(launchCustomCamera(_:)), for: .touchUpInside)
+        displayRemoteImagesBtn.addTarget(self, action: #selector(displayRemoteImagesButtonClicked(_:)), for: .touchUpInside)
+        cropPhotoBtn.addTarget(self, action: #selector(photoEditorButtonClicked(_:)), for: .touchUpInside)
         
-        stackView.addArrangedSubview(photosViewBtn)
-        stackView.addArrangedSubview(cameraPhotoBtn)
+        stackView.addArrangedSubview(pickPhotosBtn)
         stackView.addArrangedSubview(playRemoteVideoBtn)
-        stackView.addArrangedSubview(customCameraBtn)
-        stackView.addArrangedSubview(remoteImageBtn)
-        stackView.addArrangedSubview(photoEditorBtn)
+        stackView.addArrangedSubview(takePhotoBtn)
+        stackView.addArrangedSubview(displayRemoteImagesBtn)
+        stackView.addArrangedSubview(cropPhotoBtn)
         
-        self.view.addSubview(stackView)
+        view.addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
 
-        if #available(iOS 11.0, *) {
-            NSLayoutConstraint.activate([
-                stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                stackView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 100),
-                stackView.widthAnchor.constraint(equalToConstant: 300),
-                stackView.heightAnchor.constraint(equalToConstant: 200)
-            ])
-        } else {
-            // Fallback on earlier versions
-            NSLayoutConstraint.activate([
-                stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                stackView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: 100),
-                stackView.widthAnchor.constraint(equalToConstant: 300),
-                stackView.heightAnchor.constraint(equalToConstant: 200)
-            ])
-        }
+        NSLayoutConstraint.activate([
+            stackView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            stackView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 100),
+            stackView.widthAnchor.constraint(equalToConstant: 300),
+            stackView.heightAnchor.constraint(equalToConstant: 200)
+        ])
     }
     
 // MARK: - Button action
@@ -137,22 +118,7 @@ class ViewController: UIViewController {
         self.present(photoPickerVC, animated: true, completion: nil)
     }
 
-    @objc func cameraPhotoButtonClicked(_ sender: UIButton) {
-        var config = PhotoLauncher.PhotoLauncherConfig()
-        config.maximumNumberCanChoose = 1
-        config.mediaOptions = [.image, .video]
-        config.sourceRect = sender.frame
-        config.videoPathExtension = "mp4"
-        config.videoMaximumDuration = 15
-        if #available(iOS 14, *) {
-            photoLanucher.showSystemPhotoPickerCameraAlertSheet(in: self, config: config)
-        } else {
-            photoLanucher.showCustomPhotoPickerCameraAlertSheet(in: self, config: config)            
-        }
-    }
-
     @objc func playRemoteVideo(_ sender: UIButton) {
-//        guard let url = URL(string: "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4") else { return }
 //        let urlStr = "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4"
         let urlStr = "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4"
 //        let urlStr = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
@@ -213,16 +179,6 @@ class ViewController: UIViewController {
 
 }
 
-extension ViewController: PhotoLauncherDelegate {
-    func selectedVideoInPhotoLauncher(_ video: Result<SelectedVideo, Error>) {
-        print("Selected video: \(try? video.get())")
-    }
-    
-    func selectedPhotosInPhotoLauncher(_ photos: [SelectedImage]) {
-        print("selected \(photos.count) images")
-    }
-}
-
 extension ViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         print(#function)
@@ -280,13 +236,6 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
 }
 
 extension ViewController: VideoPreviewControllerDelegate {
-//    func videoEditorController(_ editor: UIVideoEditorController, didSaveEditedVideoToPath editedVideoPath: String) {
-//        print(#function)
-//        editor.delegate = nil
-//        UISaveVideoAtPathToSavedPhotosAlbum(editedVideoPath, self, #selector(video(_:didFinishSavingWithError:contextInfo:)), nil)
-//        editor.dismiss(animated: true, completion: nil)
-//    }
-//
     func videoPreviewController(_ preview: VideoPreviewController, didSaveVideoAt path: URL) {
         print(#function)
         preview.delegate = nil
@@ -386,8 +335,7 @@ extension ViewController: CameraViewControllerDelegate {
         ]
     
         let string1 = "watermark 1"
-        let string2 = "watermark 2"
-        
+        let string2 = "watermark 2"        
         
         let string = String(format: "%@\n%@", string1, string2)
         
