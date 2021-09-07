@@ -161,7 +161,7 @@ If your language is not supported, you can submit an issue or pull request with 
 ## UI Customization
 We tried to keep things as native as possible, so this is done mostly through native Apis.
 
-## Original Project & Author
+## Inspired project
 
 This project has been inspired by:
 - [Pixel(has been renamed to Brightroom)](https://github.com/muukii/Brightroom)
