@@ -197,7 +197,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
             }
         case String(kUTTypeMovie):
             guard
-                let videoURL = info[.mediaURL] as? URL
+                let _ = info[.mediaURL] as? URL
                 else {
                     picker.dismiss(animated: true, completion: nil)
                     return

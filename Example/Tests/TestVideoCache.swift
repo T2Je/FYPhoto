@@ -67,8 +67,8 @@ class TestVideoCache: XCTestCase {
     }
     
     func testCompressVideo() {
-        print("cachedURL:\(TestVideoCache.cachedURL)")
         XCTAssertNotNil(TestVideoCache.cachedURL)
+        print("cachedURL:\(TestVideoCache.cachedURL!)")
         let size = TestVideoCache.cachedURL!.sizePerMB()
         print("original size: \(size)")
         let expectation = XCTestExpectation(description: "compress video")

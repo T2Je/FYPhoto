@@ -19,7 +19,6 @@
 		E3295DB8250F22BC00A55AEA /* TestAuthority.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3295DB7250F22BC00A55AEA /* TestAuthority.swift */; };
 		E3D9590825F6081A004AAFF1 /* TestHelperExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3D9590725F6081A004AAFF1 /* TestHelperExtensions.swift */; };
 		E3D9590C25F60B57004AAFF1 /* TestVideoCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3D9590B25F60B57004AAFF1 /* TestVideoCache.swift */; };
-		E3F5F5A8259431E70044229D /* OCViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = E3F5F5A7259431E70044229D /* OCViewController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,9 +56,6 @@
 		E3D48E0325B139D4007AA8A8 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
 		E3D9590725F6081A004AAFF1 /* TestHelperExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestHelperExtensions.swift; sourceTree = "<group>"; };
 		E3D9590B25F60B57004AAFF1 /* TestVideoCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestVideoCache.swift; sourceTree = "<group>"; };
-		E3F5F5A5259431E70044229D /* FYPhoto_Example-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FYPhoto_Example-Bridging-Header.h"; sourceTree = "<group>"; };
-		E3F5F5A6259431E70044229D /* OCViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = OCViewController.h; sourceTree = "<group>"; };
-		E3F5F5A7259431E70044229D /* OCViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = OCViewController.m; sourceTree = "<group>"; };
 		E7C7EF7C709122010F360A5D /* Pods-FYPhoto_Example.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-FYPhoto_Example.debug.xcconfig"; path = "Target Support Files/Pods-FYPhoto_Example/Pods-FYPhoto_Example.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -103,7 +99,6 @@
 				607FACD11AFB9204008FA782 /* Products */,
 				2C01B3034B0D00C45277FDC9 /* Pods */,
 				8BC6AF80A306F12138887717 /* Frameworks */,
-				E3F5F5A5259431E70044229D /* FYPhoto_Example-Bridging-Header.h */,
 			);
 			sourceTree = "<group>";
 		};
@@ -119,8 +114,6 @@
 		607FACD21AFB9204008FA782 /* Example for FYPhoto */ = {
 			isa = PBXGroup;
 			children = (
-				E3F5F5A6259431E70044229D /* OCViewController.h */,
-				E3F5F5A7259431E70044229D /* OCViewController.m */,
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
 				607FACD71AFB9204008FA782 /* ViewController.swift */,
 				607FACD91AFB9204008FA782 /* Main.storyboard */,
@@ -358,7 +351,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E3F5F5A8259431E70044229D /* OCViewController.m in Sources */,
 				607FACD81AFB9204008FA782 /* ViewController.swift in Sources */,
 				E31043EE25A7EFA500806F77 /* NamSpaceTest.swift in Sources */,
 				607FACD61AFB9204008FA782 /* AppDelegate.swift in Sources */,
@@ -520,7 +512,7 @@
 				MODULE_NAME = ExampleApp;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.demo.FYPhoto-Example7";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "FYPhoto_Example-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 5.0;
@@ -541,7 +533,7 @@
 				MODULE_NAME = ExampleApp;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.cocoapods.demo.FYPhoto-Example7";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "FYPhoto_Example-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "";
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
