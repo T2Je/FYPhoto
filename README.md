@@ -22,6 +22,7 @@ Those features are available just with a few lines of code!
 🎥 Video  
 ✂️ Crop  
 ⚡️ Flash    
+💧 Watermark
 📁 Albums  
 🔢 Multiple Selection  
 📏 Video Trimming  
