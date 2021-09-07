@@ -61,7 +61,7 @@ you'll need to ad these `plist entries` :
 
 ## Configuration
 
-All the configuration endpoints are in the [FYPhotoPickerConfiguration](https://github.com/T2Je/FYPhoto/blob/main/Source/Configuration/FYPhotoPickerConfiguration.swift).
+All the configuration endpoints are in the [FYPhotoPickerConfiguration](https://github.com/T2Je/FYPhoto/blob/main/FYPhoto/Classes/Configuration/FYPhotoPickerConfiguration.swift).
 Below are the default value for reference, feel free to play around :)
 
 ### Picker
@@ -161,9 +161,9 @@ If your language is not supported, you can submit an issue or pull request with 
 ## UI Customization
 We tried to keep things as native as possible, so this is done mostly through native Apis.
 
-## Inspired project
+## References
 
-This project has been inspired by:
+This project references the following projects:
 - [Pixel(has been renamed to Brightroom)](https://github.com/muukii/Brightroom)
 - [YPImagePicker](https://github.com/Yummypets/YPImagePicker)
 - [JXPhotoBrowser](https://github.com/JiongXing/PhotoBrowser)

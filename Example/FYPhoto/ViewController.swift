@@ -341,7 +341,6 @@ extension ViewController: CameraViewControllerDelegate {
 //            }
             // watermark
             guard let image = info[.watermarkImage] as? UIImage else { return }
-//            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
             CameraViewController.saveImageToAlbums(image) { (result) in
                 switch result {
                 case .success(_):
@@ -386,17 +385,13 @@ extension ViewController: CameraViewControllerDelegate {
             .foregroundColor: UIColor.white
         ]
     
-        let flightNumber = "航班号： MU5701"
-        let parkingNumber = "机位：154"
-        let nodeName = "节点名称：加清水"
-        let uploadTime = "上传时间：2020-11-25"
-        let shooterName = "拍摄人：小明"
+        let string1 = "watermark 1"
+        let string2 = "watermark 2"
         
-        let string = String(format: "%@\n%@\n%@\n%@\n%@", flightNumber, parkingNumber, nodeName, uploadTime, shooterName)
+        
+        let string = String(format: "%@\n%@", string1, string2)
         
         let attributedString = NSAttributedString(string: string, attributes: attrs)
-
-//        let feeyoImage = UIImage(named: "variflight")
         
         let waterMarkSize = CGSize(width: 180, height: 95)
         let render = UIGraphicsImageRenderer(size: waterMarkSize)
@@ -408,7 +403,6 @@ extension ViewController: CameraViewControllerDelegate {
             ctx.cgContext.drawPath(using: .fill)
 
             attributedString.draw(in: CGRect(x: 10, y: 5, width: waterMarkSize.width, height: waterMarkSize.height - 8))
-//            feeyoImage?.draw(in: CGRect(x: 0, y: 35, width: 64, height: 15))
             
         }
         return WatermarkImage(image: renderedImage, frame: CGRect(x: 15, y: view.frame.size.height - 15, width: waterMarkSize.width, height: waterMarkSize.height))
