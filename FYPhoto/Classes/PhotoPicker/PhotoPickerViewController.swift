@@ -972,41 +972,17 @@ extension PhotoPickerViewController: UIScrollViewDelegate {
 // MARK: - PHPhotoLibraryChangeObserver
 extension PhotoPickerViewController: PHPhotoLibraryChangeObserver {
     public func photoLibraryDidChange(_ changeInstance: PHChange) {
-
-        guard let changes = changeInstance.changeDetails(for: assets)
+        guard changeInstance.changeDetails(for: assets) != nil
             else { return }
 
         // Change notifications may be made on a background queue. Re-dispatch to the
         // main queue before acting on the change as we'll be updating the UI.
         DispatchQueue.main.sync {
-            // Hang on to the new fetch result.
-            self.willBatchUpdated = changes.hasIncrementalChanges
-            assets = changes.fetchResultAfterChanges
-            if changes.hasIncrementalChanges {
-                let bias = self.containsCamera ? 1 : 0
-                // If we have incremental diffs, animate them in the collection view.
-                collectionView.performBatchUpdates({
-                    // For indexes to make sense, updates must be in this order:
-                    // delete, insert, reload, move
-                    
-                    if let removed = changes.removedIndexes, removed.count > 0 {
-                        collectionView.deleteItems(at: removed.map({ IndexPath(item: $0 + bias, section: 0) }))
-                    }
-                    if let inserted = changes.insertedIndexes, inserted.count > 0 {
-                        collectionView.insertItems(at: inserted.map({ IndexPath(item: $0 + bias, section: 0) }))
-                    }
-                    if let changed = changes.changedIndexes, changed.count > 0 {
-                        collectionView.reloadItems(at: changed.map({ IndexPath(item: $0 + bias, section: 0) }))
-                    }
-                    changes.enumerateMoves { fromIndex, toIndex in
-                        self.collectionView.moveItem(at: IndexPath(item: fromIndex, section: 0),
-                                                to: IndexPath(item: toIndex, section: 0))
-                    }
-                })
-            } else {
-                // Reload the collection view if incremental diffs are not available.
-                collectionView.reloadData()
-            }
+            // Reload the collectionView.
+            // The reason for using reloadData instead of batchUpdates is to update the indexPath
+            // of the cell. (Fixed a crash bug caused by incorrect indexPaths)
+            collectionView.reloadData()
+            
             resetCachedAssets()
         }
     }
