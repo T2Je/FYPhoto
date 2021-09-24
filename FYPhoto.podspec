@@ -31,10 +31,10 @@ TODO: Add long description of the pod here.
    s.ios.deployment_target = '11'
    s.swift_version = '5'
 
-   s.source_files = 'FYPhoto/Classes/**/*'
+   s.source_files = 'Sources/FYPhoto/Classes/**/*'
 
    s.resource_bundles = {
-       'FYPhoto' => ['FYPhoto/Assets/*.{xcassets}', 'FYPhoto/Assets/*.lproj/*.strings']
+       'FYPhoto' => ['Sources/FYPhoto/Assets/*.{xcassets}', 'Sources/FYPhoto/Assets/*.lproj/*.strings']
    }
 
    s.frameworks = 'UIKit', 'Photos'

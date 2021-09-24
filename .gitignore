@@ -38,3 +38,6 @@ Pods/
 
 Example/Pods/
 fastlane/report.xml
+
+# Swift Package Manager
+.build/
