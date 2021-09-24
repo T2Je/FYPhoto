@@ -40,5 +40,4 @@ TODO: Add long description of the pod here.
    s.frameworks = 'UIKit', 'Photos'
 
    s.dependency 'SDWebImage/Core'
-   s.dependency 'UICircularProgressRing'
 end
