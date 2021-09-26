@@ -12,10 +12,10 @@
 ##   SwiftGen will parse all `.strings` files found in that folder.
  strings:
    inputs:
-     - ../FYPhoto/Assets/zh-Hans.lproj
+     - ../Sources/FYPhoto/Assets/zh-Hans.lproj
    outputs:
      - templatePath: fyphoto-custom-strings-template.stencil
-       output: ../FYPhoto/Classes/Strings+Generated.swift
+       output: ../Sources/FYPhoto/Classes/Strings+Generated.swift
 
 
 ## Generate constants for your Assets Catalogs, including constants for images, colors, ARKit resources, etc.
@@ -24,12 +24,12 @@
 ##   - To know which params are supported for a template, use `swiftgen template doc xcassets swift5` to open the template documentation on GitHub.
  xcassets:
    inputs:
-     - ../FYPhoto/Assets/FYPhoto.xcassets
+     - ../Sources/FYPhoto/Assets/FYPhoto.xcassets
    outputs:
      - templatePath: fyphoto-custom-xcassets-template.stencil
        params:
          forceProvidesNamespaces: true
-       output: ../FYPhoto/Classes/XCAssets+Generated.swift
+       output: ../Sources/FYPhoto/Classes/XCAssets+Generated.swift
 
 
 ## Generate constants for your storyboards and XIBs.

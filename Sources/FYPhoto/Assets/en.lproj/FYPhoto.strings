@@ -1,0 +1,67 @@
+/* 
+  FYPhotoPicker.strings
+  Pods
+
+  Created by xiaoyang on 2020/7/29.
+  
+*/
+
+"add" = "Add";
+"Confirm" = "Confirm";
+
+"AccessPhotosFailed" = "Unable to access the photos in the album";
+"AccessPhotosFailedMessage" = "No photo access right at present, it is recommended to go to the system Settings";
+"GoToSettings" = "Go to Settings";
+
+
+"AllPhotos" = "Recent Items";
+"Smart Albums" = "Smart Albums";
+"User Albums" = "User Albums";
+
+"hour" = "hour";
+
+"Cancel" = "Cancel";
+"Save" = "Save";
+
+"Photo" = "Photo";
+"Camera" = "Camera";
+"Front/Rear" = "Front/Rear";
+
+"AccessPhotoLibraryTitle" = "Wants to access your photos";
+"SelectMorePhotos" = "Select more photos...";
+"KeepCurrent" = "Keep current selection";
+
+"VideoDurationTooLong" = "Selected video duration larger than expected";
+"VideoMemoryOutOfSize" = "Selected video out of size";
+"UnspportedVideoFormat" = "Unspported video format";
+
+"WithoutCameraPermission" = "doesn't have permission to use the camera, please change privacy settings";
+
+"OK" = "OK";
+"Settings" = "Settings";
+
+"CameraConfigurationFailed" = "Unable to capture media";
+
+"NoPermissionToSave" = "No permission to save";
+
+"Preview" = "Preview";
+
+"SavePhoto" = "Save picture";
+"SaveVideo" = "Save video";
+
+"FailedToSaveMedia" = "Save failed";
+"SuccessfullySavedMedia" = "Successfully Saved to Photo Library";
+
+"GotIt" = "Got it";
+
+"Resume" = "Resume";
+"Unable to resume" = "Unable to resume";
+
+"NoVideo" = "URL isn't a video";
+
+// PhotoEdit
+"Orinial" = "Original";
+"Square" = "Square";
+"ResetPhoto" = "Reset";
+"DiscardChanges" = "Discard changes";
+"CropPhoto" = "Crop";

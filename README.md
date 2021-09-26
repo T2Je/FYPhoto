@@ -28,6 +28,9 @@ Those features are available just with a few lines of code!
 📏 Video Trimming  
 And many more...
 
+## Requirements
+iOS 11 or later
+
 ## Installation
 
 #### Using [CocoaPods](http://cocoapods.org/)
@@ -41,6 +44,13 @@ target 'MyApp'
 pod 'FYPhoto'
 use_frameworks!
 ```
+
+#### Using [Swift Package Manager](https://swift.org/package-manager/)
+
+[Swift Package Manager](https://swift.org/package-manager/) (SwiftPM) is a tool for managing the distribution of Swift code as well as C-family dependency. From Xcode 11, SwiftPM got natively integrated with Xcode.
+
+FYPhoto support SwiftPM from version 2.1.0. To use SwiftPM, you should use Xcode 11 to open your project. Click `File` -> `Swift Packages` -> `Add Package Dependency`, enter [FYPhoto repo's URL](https://github.com/T2Je/FYPhoto.git). Or you can login Xcode with your GitHub account and just type `FYPhoto` to search.
+
 
 ## Plist entries
 
@@ -170,7 +180,7 @@ This project references the following projects:
 - [JXPhotoBrowser](https://github.com/JiongXing/PhotoBrowser)
 
 ## Dependency
-FYPhoto relies on [SDWebImage](https://github.com/SDWebImage/SDWebImage) to provide async image downloader with cache support, relies on [UICircularProgressRing](https://github.com/luispadron/UICircularProgressRing) to render circular progress rings and timers .
+FYPhoto relies on [SDWebImage](https://github.com/SDWebImage/SDWebImage) to provide async image downloader with cache support.
 
 ## Obj-C support
 Objective-C is not supported and this is not on our roadmap.

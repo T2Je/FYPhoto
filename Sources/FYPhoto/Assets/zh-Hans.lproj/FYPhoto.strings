@@ -1,0 +1,72 @@
+/* 
+  FYPhotoPicker.strings
+  Pods
+
+  Created by xiaoyang on 2020/7/29.
+  
+*/
+
+"add" = "添加";
+"Done" = "完成";
+
+"Confirm" = "确定";
+
+"AccessPhotosFailed" = "无法访问相册中照片";
+"AccessPhotosFailedMessage" = "当前无照片访问权限，建议前往系统设置";
+"GoToSettings" = "前往设置";
+
+"AllPhotos" = "最近项目";
+"Smart Albums" = "分类相簿";
+"User Albums" = "自定义相簿";
+
+"hour" = "小时";
+"Cancel" = "取消";
+
+"Save" = "保存";
+
+"Select" = "选择";
+
+"photo" = "照片";
+"Camera" = "相机";
+
+"Front/Rear" = "前置/后置";
+
+"AccessPhotoLibraryTitle" = "想访问您的照片";
+
+"SelectMorePhotos" = "选择更多照片...";
+"KeepCurrent" = "保留当前所选内容";
+
+"VideoDurationTooLong" = "视频时间过长，请重新选择";
+"UnspportedVideoFormat" = "不支持的文件格式";
+"VideoMemoryOutOfSize" = "文件过大，请重新选择";
+
+"WithoutCameraPermission" = "没有使用相机的权限，请修改权限设置";
+
+"OK" = "好的";
+"Settings" = "设置";
+
+"CameraConfigurationFailed" = "无法拍摄视频";
+
+"NoPermissionToSave" = "没有权限将照片存储到相册中";
+
+"Preview" = "预览";
+
+"SavePhoto" = "保存图片";
+"SaveVideo" = "保存视频";
+
+"FailedToSaveMedia" = "保存失败";
+"SuccessfullySavedMedia" = "已保存到相册";
+
+"GotIt" = "知道了";
+
+"Resume" = "恢复";
+"Unable to resume" = "无法恢复";
+
+"NoVideo" = "URL不是一个视频";
+
+// PhotoEdit
+"Orinial" = "原始尺寸";
+"Square" = "正方形";
+"ResetPhoto" = "还原";
+"DiscardChanges" = "放弃修改";
+"CropPhoto" = "裁剪";
