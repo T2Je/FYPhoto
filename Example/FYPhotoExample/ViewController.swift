@@ -11,6 +11,7 @@ import FYPhoto
 import Photos
 import PhotosUI
 import MobileCoreServices
+import UniformTypeIdentifiers
 
 class ViewController: UIViewController {
 
@@ -184,27 +185,52 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
         print(#function)
         guard let mediaType = info[.mediaType] as? String else { return }
         
-        switch mediaType {
-        case String(kUTTypeImage):
-            guard let image = info[.originalImage] as? UIImage else { return }
-            UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
-            picker.dismiss(animated: true) {
-                let photo = Photo.photoWithUIImage(image)
-                let detailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0, builder: nil)
-//                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
-                detailVC.delegate = self
-                self.navigationController?.pushViewController(detailVC, animated: true)
-            }
-        case String(kUTTypeMovie):
-            guard
-                let _ = info[.mediaURL] as? URL
+        if #available(iOS 14.0, *) {
+            switch mediaType {
+            case UTType.image.identifier:
+                guard let image = info[.originalImage] as? UIImage else { return }
+                UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
+                picker.dismiss(animated: true) {
+                    let photo = Photo.photoWithUIImage(image)
+                    let detailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0, builder: nil)
+                    //                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
+                    detailVC.delegate = self
+                    self.navigationController?.pushViewController(detailVC, animated: true)
+                }
+            case UTType.movie.identifier:
+                guard
+                    let _ = info[.mediaURL] as? URL
                 else {
                     picker.dismiss(animated: true, completion: nil)
                     return
+                }
+                picker.dismiss(animated: true) {}
+            default:
+                break
             }
-            picker.dismiss(animated: true) {}
-        default:
-            break
+        } else {
+            switch mediaType {
+            case String(kUTTypeImage):
+                guard let image = info[.originalImage] as? UIImage else { return }
+                UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
+                picker.dismiss(animated: true) {
+                    let photo = Photo.photoWithUIImage(image)
+                    let detailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0, builder: nil)
+    //                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
+                    detailVC.delegate = self
+                    self.navigationController?.pushViewController(detailVC, animated: true)
+                }
+            case String(kUTTypeMovie):
+                guard
+                    let _ = info[.mediaURL] as? URL
+                else {
+                    picker.dismiss(animated: true, completion: nil)
+                    return
+                }
+                picker.dismiss(animated: true) {}
+            default:
+                break
+            }
         }
 
 

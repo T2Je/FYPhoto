@@ -9,6 +9,7 @@ import UIKit
 import AVFoundation
 import Photos
 import MobileCoreServices
+import UniformTypeIdentifiers
 
 public struct WatermarkImage {
     let image: UIImage
@@ -918,7 +919,13 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                 }
                 var mediaInfo: [InfoKey: Any] = [:]
                 mediaInfo[InfoKey.imageURL] = url
-                mediaInfo[InfoKey.mediaType] = kUTTypeImage as String
+                
+                if #available(iOS 14.0, *) {
+                    mediaInfo[InfoKey.mediaType] = UTType.image.identifier
+                } else {
+                    mediaInfo[InfoKey.mediaType] = kUTTypeImage as String
+                }
+                
                 if let data = data {
                     let image = UIImage(data: data)
                     mediaInfo[InfoKey.originalImage] = image
@@ -1070,7 +1077,13 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
 
         if success {
             var mediaInfo: [CameraViewController.InfoKey: Any] = [:]
-            mediaInfo[CameraViewController.InfoKey.mediaType] = kUTTypeMovie as String
+            
+            if #available(iOS 14.0, *) {
+                mediaInfo[CameraViewController.InfoKey.mediaType] = UTType.movie.identifier
+            } else {
+                mediaInfo[CameraViewController.InfoKey.mediaType] = kUTTypeMovie as String
+            }
+            
             mediaInfo[CameraViewController.InfoKey.mediaURL] = outputFileURL
             
             if let waterMark = self.delegate?.watermarkImage() {
