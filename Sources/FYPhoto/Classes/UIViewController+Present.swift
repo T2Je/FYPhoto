@@ -22,7 +22,7 @@ extension TypeWrapperProtocol where WrappedType: UIViewController {
     ///   - animated: Pass true to animate the presentation; otherwise, pass false.
     ///   - completion: The block to execute after the presentation finishes. This block has no return value and takes no parameters. You may specify nil for this parameter.
     ///   - transitionEssential: A closure to generate animation essentials with current item. Set this parameter if you don't want your presentingViewController conforms to **PhotoTransition** protocol.
-    public func present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)?, transitionEssential: ((_ page: Int) -> TransitionEssential?)? = nil) {
+    public func present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)? = nil, transitionEssential: ((_ page: Int) -> TransitionEssential?)? = nil) {
         let transition = PhotoPresentTransitionController(viewController: viewControllerToPresent, transitionEssential: transitionEssential)
         viewControllerToPresent.modalPresentationStyle = .custom
         viewControllerToPresent.transitioningDelegate = transition
