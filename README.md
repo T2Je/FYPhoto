@@ -170,7 +170,7 @@ This project references the following projects:
 - [JXPhotoBrowser](https://github.com/JiongXing/PhotoBrowser)
 
 ## Dependency
-FYPhoto relies on [SDWebImage](https://github.com/SDWebImage/SDWebImage) to provide async image downloader with cache support, relies on [UICircularProgressRing](https://github.com/luispadron/UICircularProgressRing) to render circular progress rings and timers .
+FYPhoto relies on [SDWebImage](https://github.com/SDWebImage/SDWebImage) to provide async image downloader with cache support.
 
 ## Obj-C support
 Objective-C is not supported and this is not on our roadmap.
