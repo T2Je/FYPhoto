@@ -51,6 +51,20 @@ use_frameworks!
 
 FYPhoto support SwiftPM from version 2.1.0. To use SwiftPM, you should use Xcode 11 to open your project. Click `File` -> `Swift Packages` -> `Add Package Dependency`, enter [FYPhoto repo's URL](https://github.com/T2Je/FYPhoto.git). Or you can login Xcode with your GitHub account and just type `FYPhoto` to search.
 
+After select the package, you can choose the dependency type (tagged version, branch or commit). Then Xcode will setup all the stuff for you.
+
+If you're a framework author and use FYPhoto as a dependency, update your Package.swift file:
+
+``` swift
+let package = Package(
+    dependencies: [
+        .package(url: "https://github.com/T2Je/FYPhoto.git", from: "2.1.0")
+    ],
+    // ...
+)
+```
+
+
 
 ## Plist entries
 
