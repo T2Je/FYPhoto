@@ -28,7 +28,8 @@ let package = Package(
 			dependencies: [
                 "SDWebImage"
             ],
-			path: "Sources"),
+			path: "Sources",
+            exclude: ["Example"]),
         .testTarget(
             name: "FYPhotoTests",
             dependencies: ["FYPhoto"],
