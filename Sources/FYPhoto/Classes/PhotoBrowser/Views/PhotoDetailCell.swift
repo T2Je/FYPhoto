@@ -29,7 +29,7 @@ class PhotoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     }
     
     // Fixed a bug that could not display long images
-    var maximumZoomScale: CGFloat = 12 {
+    var maximumZoomScale: CGFloat = 15 {
         willSet {
             zoomingView.maximumZoomScale = newValue
         }
@@ -45,6 +45,7 @@ class PhotoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
         super.init(frame: frame)
         contentView.addSubview(zoomingView)
         contentView.backgroundColor = .black
+        zoomingView.maximumZoomScale = 15
         zoomingView.delegate = self
         zoomingView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([

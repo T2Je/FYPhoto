@@ -1,6 +1,6 @@
 //
 //  UICollectionView+IndexPathsInRect.swift
-//  FYPhotoPicker
+//  FYPhoto
 //
 //  Created by xiaoyang on 2020/7/30.
 //

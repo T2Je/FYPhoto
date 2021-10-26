@@ -11,7 +11,9 @@ import MobileCoreServices
 import Foundation
 
 /// use static method `create(photos:initialIndex:builder:)` to create PhotoBrowser instance
-public class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
+public class PhotoBrowserViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout {
+    static let minimumLineSpacing: CGFloat = 20
+
     public weak var delegate: PhotoBrowserViewControllerDelegate?
 
     // bar item
@@ -70,7 +72,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     fileprivate var assetSize: CGSize?
 
-    fileprivate var resized = false
+    fileprivate var initTargetSize = false
 
     // MARK: Video properties
     var player: AVPlayer? {
@@ -151,7 +153,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             if !thumbnailPhoto.isEqualTo(mainPhoto), mainCollectionView.superview != nil {
                 if let firstIndex = firstIndexOfPhoto(thumbnailPhoto, in: photos) { // 点击thumbnail cell 滑动主collectionView
                     let mainPhotoIndexPath = IndexPath(item: firstIndex, section: 0)
-                    mainCollectionView.scrollToItem(at: mainPhotoIndexPath, at: .centeredHorizontally, animated: true)
+                    let offset = CGPoint(x: (view.bounds.width + PhotoBrowserViewController.minimumLineSpacing) * CGFloat(firstIndex), y: 0)
+                    mainCollectionView.setContentOffset(offset, animated: true)
                     // scroll to item function doesn't trigger scrollview did end decelerating delegate function
                     currentDisplayedIndexPath = mainPhotoIndexPath
                 }
@@ -180,7 +183,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     
     /// main data source
     var selectedPhotos: [PhotoProtocol] = [] {
-        didSet {            
+        didSet {
             guard isForSelection else {
                 return
             }
@@ -263,8 +266,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         currentPhoto = photos[currentDisplayedIndexPath.item]
                 
         super.init(nibName: nil, bundle: nil)
-        
-        mainCollectionView = generateMainCollectionView()
     }
     
     /// Create PhotoBrowser.
@@ -302,19 +303,26 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     public override func viewDidLoad() {
         super.viewDidLoad()
         view.clipsToBounds = true
-        view.backgroundColor = UIColor.white
+        view.backgroundColor = .black
         edgesForExtendedLayout = .all
         cachePreviousData()
         // Set this value to true to fix a bug: when NavigationBar is opaque, photoBrowser show navigationbar again after hiding it,
         // but photoBrowser view is under a navigationBar height space
         extendedLayoutIncludesOpaqueBars = true
         setupVideoCache()
+        mainCollectionView = generateMainCollectionView()
         setupCollectionView()
         setupNavigationBar()
         setupBottomToolBar()
         addSubviews()
         
-        self.view.bringSubviewToFront(bottomToolView)
+        // fix collectionView can't scrollTo correct position on iOS 14.4 and above system.
+        mainCollectionView.layoutIfNeeded()
+//        mainCollectionView.reloadData()
+        
+        if supportBottomToolBar {
+            self.view.bringSubviewToFront(bottomToolView)
+        }
     }
 
     public override func viewWillAppear(_ animated: Bool) {
@@ -329,6 +337,56 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         super.viewWillDisappear(animated)
         stopPlayingIfNeeded()
         restorePreviousNavigationControllerData()
+    }
+
+    public override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        
+        self.mainCollectionView.frame = CGRect(x: -PhotoBrowserViewController.minimumLineSpacing/2,
+                                               y: 0,
+                                               width: view.bounds.width + PhotoBrowserViewController.minimumLineSpacing,
+                                               height: view.bounds.height)
+        if !initTargetSize && view.bounds.size != .zero {
+            initTargetSize = true
+            recalculateAseetTargetSize(inBoundingSize: view.bounds.size)
+        }
+        
+        if !initialScrollDone {
+            initialScrollDone = true
+            
+            let offset = CGPoint(x: (view.bounds.width + PhotoBrowserViewController.minimumLineSpacing) * CGFloat(currentDisplayedIndexPath.item), y: 0)
+            mainCollectionView.setContentOffset(offset, animated: true)
+
+            if isForSelection {
+                updateAddBarItem(at: currentDisplayedIndexPath)
+            }
+            if supportCaption {
+                updateCaption(at: currentDisplayedIndexPath)
+            }
+        }
+    }
+    
+    public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
+        // Device rotating
+        // Instruct collection view how to handle changes in page size
+
+        recalculateAseetTargetSize(inBoundingSize: size)
+        if view.window == nil {
+            view.frame = CGRect(origin: view.frame.origin, size: size)
+            view.layoutIfNeeded()
+        } else {
+            let indexPath = self.mainCollectionView.indexPathsForVisibleItems.last
+            coordinator.animate(alongsideTransition: { ctx in
+                self.mainCollectionView.layoutIfNeeded()
+                if let indexPath = indexPath {
+                    self.mainCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
+                }
+            }, completion: { _ in
+
+            })
+        }
+
+        super.viewWillTransition(to: size, with: coordinator)
     }
 
     fileprivate func cachePreviousData() {
@@ -380,12 +438,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     
     func generateMainCollectionView() -> UICollectionView {
         let flowLayout = UICollectionViewFlowLayout()
-        flowLayout.minimumInteritemSpacing = 0
-        flowLayout.minimumLineSpacing = 20
-        flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
+        flowLayout.minimumInteritemSpacing = PhotoBrowserViewController.minimumLineSpacing
+        flowLayout.minimumLineSpacing = PhotoBrowserViewController.minimumLineSpacing
+        flowLayout.sectionInset = UIEdgeInsets(top: 0,
+                                               left: PhotoBrowserViewController.minimumLineSpacing / 2.0,
+                                               bottom: 0,
+                                               right: PhotoBrowserViewController.minimumLineSpacing / 2.0)
         flowLayout.scrollDirection = .horizontal
         return UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
-        
     }
     
     func generateThumbnailsCollectionView() -> UICollectionView {
@@ -611,8 +671,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 }
             } else {
                 if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoDetailCell.reuseIdentifier,
-                                                                 for: indexPath) as? PhotoDetailCell {
-                    cell.maximumZoomScale = 15
+                                                                 for: indexPath) as? PhotoDetailCell {                    
                     return cell
                 }
             }
@@ -654,50 +713,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             selectedThumbnailIndexPath = indexPath
         }
     }
-
-    public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        // Device rotating
-        // Instruct collection view how to handle changes in page size
-
-        recalculateItemSize(inBoundingSize: size)
-        if view.window == nil {
-            view.frame = CGRect(origin: view.frame.origin, size: size)
-            view.layoutIfNeeded()
-        } else {
-            let indexPath = self.mainCollectionView.indexPathsForVisibleItems.last
-            coordinator.animate(alongsideTransition: { ctx in
-                self.mainCollectionView.layoutIfNeeded()
-                if let indexPath = indexPath {
-                    self.mainCollectionView.scrollToItem(at: indexPath, at: .centeredHorizontally, animated: false)
-                }
-            }, completion: { _ in
-
-            })
-        }
-
-        super.viewWillTransition(to: size, with: coordinator)
-    }
-
-    public override func viewDidLayoutSubviews() {
-        super.viewDidLayoutSubviews()
-        if self.mainCollectionView.frame != view.frame.insetBy(dx: -10.0, dy: 0.0) {
-            self.mainCollectionView.frame = view.frame.insetBy(dx: -10.0, dy: 0.0)
-        }
-        if !resized && view.bounds.size != .zero {
-            resized = true
-            recalculateItemSize(inBoundingSize: view.bounds.size)
-        }
-
-        if (!self.initialScrollDone) {
-            self.initialScrollDone = true
-            self.mainCollectionView.scrollToItem(at: currentDisplayedIndexPath, at: .centeredHorizontally, animated: false)
-            if isForSelection {
-                updateAddBarItem(at: currentDisplayedIndexPath)
-            }
-            if supportCaption {
-                updateCaption(at: currentDisplayedIndexPath)
-            }
-        }
+    
+    // UICollectionViewDelegateFlowLayout
+    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return view.bounds.size
     }
 
     // MARK: Bar item actions
@@ -707,9 +726,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
     
     @objc func addPhotoBarItemClicked(_ sender: UIButton) {
-//        defer {
-//            bottomToolView.disableDoneButton(selectedPhotos.isEmpty)
-//        }
 
         let photo = photos[currentDisplayedIndexPath.item]
         
@@ -798,6 +814,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     fileprivate func updateCaption(at indexPath: IndexPath) {
         let photo = photos[indexPath.item]
         captionView.setup(content: photo.captionContent, signature: photo.captionSignature)
+        // fix caption size not correctly calculated
+        captionView.invalidateIntrinsicContentSize()
+        view.setNeedsLayout()
     }
 
     fileprivate func updateNavigationTitle(at indexPath: IndexPath) {
@@ -830,24 +849,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
 
-    fileprivate func recalculateItemSize(inBoundingSize size: CGSize) {
-        guard let flowLayout = mainFlowLayout else { return }
-        let itemSize = recalculateLayout(flowLayout,
-                                         inBoundingSize: size)
+    fileprivate func recalculateAseetTargetSize(inBoundingSize size: CGSize) {
         let scale = UIScreen.main.scale
-        assetSize = CGSize(width: itemSize.width * scale, height: itemSize.height * scale)
+        assetSize = CGSize(width: size.width * scale, height: size.height * scale)
     }
-
-    @discardableResult
-    fileprivate func recalculateLayout(_ layout: UICollectionViewFlowLayout, inBoundingSize size: CGSize) -> CGSize {
-        layout.minimumInteritemSpacing = 0
-        layout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 0, right: 10)
-        layout.scrollDirection = .horizontal;
-        layout.minimumLineSpacing = 20
-        layout.itemSize = size
-        return size
-    }
-
+    
     public override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         stopPlayingIfNeeded()
@@ -857,8 +863,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
 extension PhotoBrowserViewController: UIScrollViewDelegate {
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-//        let pageWidth = view.bounds.size.width
-//        let currentPage = Int((scrollView.contentOffset.x + pageWidth / 2) / pageWidth)
         if scrollView == mainCollectionView {
             isOperatingMainPhotos = true
             let indexPath = mainCollectionView.indexPathsForVisibleItems.last ?? IndexPath(row: 0, section: 0)
