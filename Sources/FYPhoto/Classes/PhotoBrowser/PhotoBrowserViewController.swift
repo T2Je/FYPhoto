@@ -355,7 +355,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             initialScrollDone = true
             
             let offset = CGPoint(x: (view.bounds.width + PhotoBrowserViewController.minimumLineSpacing) * CGFloat(currentDisplayedIndexPath.item), y: 0)
-            mainCollectionView.setContentOffset(offset, animated: true)
+            mainCollectionView.setContentOffset(offset, animated: false)
 
             if isForSelection {
                 updateAddBarItem(at: currentDisplayedIndexPath)
