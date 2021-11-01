@@ -468,8 +468,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         let flowLayout = UICollectionViewFlowLayout()
         flowLayout.minimumInteritemSpacing = 0
         flowLayout.minimumLineSpacing = 10
-        flowLayout.scrollDirection = .horizontal
-        flowLayout.itemSize = CGSize(width: 70, height: 70)
+        flowLayout.scrollDirection = .horizontal        
         flowLayout.sectionInset = UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15)
         return UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
     }
@@ -732,7 +731,11 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     
     // UICollectionViewDelegateFlowLayout
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return view.bounds.size
+        if collectionView == self.mainCollectionView {
+            return view.bounds.size
+        } else {
+            return CGSize(width: 70, height: 70)
+        }
     }
 
     // MARK: Bar item actions
