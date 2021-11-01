@@ -274,6 +274,22 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     ///   - initialIndex: the index of the first photo to be displayed.
     ///   - builder: construct photoBrowser with custom builder. By default, can only browse, not manipulate.
     /// - Returns: PhotoBrowserViewController
+    public static func browse(photos: [PhotoProtocol],
+                              at initialIndex: Int = 0,
+                              builder: ((Builder) -> Builder)? = quickBuildPhotoBrowser()) -> PhotoBrowserViewController {
+        let photoBrowser = PhotoBrowserViewController(photos: photos, initialIndex: initialIndex)
+        let concretBuilder = Builder()
+        builder?(concretBuilder).build(photoBrowser)
+        return photoBrowser
+    }
+    
+    /// Create PhotoBrowser.
+    /// - Parameters:
+    ///   - photos: photo data source to be browsed.
+    ///   - initialIndex: the index of the first photo to be displayed.
+    ///   - builder: construct photoBrowser with custom builder. By default, can only browse, not manipulate.
+    /// - Returns: PhotoBrowserViewController
+    @available(swift, deprecated: 3.0.0, message: "use `browse(photos:...)` instead")
     public static func create(photos: [PhotoProtocol],
                               initialIndex: Int,
                               builder: ((Builder) -> Builder)? = quickBuildPhotoBrowser()) -> PhotoBrowserViewController {
