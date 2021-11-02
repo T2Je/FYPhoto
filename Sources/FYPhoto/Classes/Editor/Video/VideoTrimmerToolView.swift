@@ -44,7 +44,7 @@ class VideoTrimmerToolView: UIView {
     
     var isEnable: Bool = false {
         didSet {
-            rangeSlider.isEnabled = isEnable            
+            rangeSlider.isEnabled = isEnable
         }
     }
     /// Init VideoTimmerToolView.
@@ -163,6 +163,7 @@ class VideoTrimmerToolView: UIView {
             }
             lastFrameView = imageView
         }
+        layoutIfNeeded()
     }
     
     func setupRangeSlider() {

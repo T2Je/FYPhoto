@@ -197,6 +197,7 @@ public class VideoTrimmerViewController: UIViewController {
         pauseButton.tintColor = .white
         pauseButton.imageEdgeInsets = UIEdgeInsets(top: 10, left: 10, bottom: 10, right: 10)
         pauseButton.addTarget(self, action: #selector(pauseButtonClicked(_:)), for: .touchUpInside)
+        pauseButton.isEnabled = false
         
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         confirmButton.translatesAutoresizingMaskIntoConstraints = false
@@ -284,7 +285,6 @@ public class VideoTrimmerViewController: UIViewController {
     }
     
     //
-    
     func createImageFrames() {
         //creating assets
         self.activityIndicator.startAnimating()
@@ -321,8 +321,11 @@ public class VideoTrimmerViewController: UIViewController {
             
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()
-                self.isPlaying = true
-                self.trimmerToolView.videoFrames = frames
+                if !frames.isEmpty {
+                    self.pauseButton.isEnabled = true
+                    self.trimmerToolView.videoFrames = frames
+                    self.isPlaying = true
+                }
             }
         }        
     }
