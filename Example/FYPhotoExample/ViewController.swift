@@ -53,7 +53,7 @@ class ViewController: UIViewController {
         cropPhotoBtn.setTitle("Crop photo", for: .normal)
         
         pickPhotosBtn.setTitleColor(.systemBlue, for: .normal)
-        playRemoteVideoBtn.setTitleColor(.systemBlue, for: .normal)
+        playRemoteVideoBtn.setTitleColor(.orange, for: .normal)
         takePhotoBtn.setTitleColor(.systemPink, for: .normal)
         displayRemoteImagesBtn.setTitleColor(.systemGreen, for: .normal)
         cropPhotoBtn.setTitleColor(.systemYellow, for: .normal)
@@ -90,11 +90,11 @@ class ViewController: UIViewController {
         
         pickerConfig.compressedQuality = .mediumQuality
         pickerConfig.maximumVideoMemorySize = 40 // MB
-        pickerConfig.maximumVideoDuration = 15 // Seconds
+        pickerConfig.maximumVideoDuration = 10 // Seconds
         let colorConfig = FYColorConfiguration()
         colorConfig.topBarColor = FYColorConfiguration.BarColor(itemTintColor: .black,
                                                                 itemDisableColor: .gray,
-                                                                itemBackgroundColor: .white,
+                                                                itemBackgroundColor: .clear,
                                                                 backgroundColor: .systemBlue)
                 
         pickerConfig.colorConfiguration = colorConfig
@@ -110,6 +110,7 @@ class ViewController: UIViewController {
             case .success(let video):
                 print("selected video: \(video)")
                 let previewVideo = VideoPreviewController(videoURL: video.url)
+                previewVideo.delegate = self
                 self?.present(previewVideo, animated: true, completion: nil)
             case .failure(let error):
                 print("selected video error: \(error)")
@@ -127,7 +128,7 @@ class ViewController: UIViewController {
 
         let photo = Photo.photoWithURL(url)
         
-        let photosDetailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0) {
+        let photosDetailVC = PhotoBrowserViewController.browse(photos: [photo]) {
             $0
                 .buildBottomToolBar()
                 .buildNavigationBar()
@@ -145,7 +146,7 @@ class ViewController: UIViewController {
             return
         }
         let image = Photo.photoWithURL(url)
-        let photoBrowser = PhotoBrowserViewController.create(photos: [image], initialIndex: 0)
+        let photoBrowser = PhotoBrowserViewController.browse(photos: [image])
         photoBrowser.delegate = self
         self.fyphoto.present(photoBrowser, animated: true, completion: nil)
     }
@@ -160,7 +161,7 @@ class ViewController: UIViewController {
             switch result {
             case .success(let image):
                 let image = Photo.photoWithUIImage(image)
-                let photoBrowser = PhotoBrowserViewController.create(photos: [image], initialIndex: 0)
+                let photoBrowser = PhotoBrowserViewController.browse(photos: [image])
                 photoBrowser.delegate = self
                 self.fyphoto.present(photoBrowser, animated: true, completion: nil)
             case .failure(let error):
@@ -174,7 +175,7 @@ class ViewController: UIViewController {
     // MARK: PRESENT SELECTED
     func presentSelectedPhotos(_ images: [SelectedImage]) {
         let photos = images.map { Photo.photoWithUIImage($0.image) }
-        let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: 0)
+        let photoBrowser = PhotoBrowserViewController.browse(photos: photos)
         self.fyphoto.present(photoBrowser, animated: true, completion: nil)
     }
 
@@ -192,7 +193,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
                 UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
                 picker.dismiss(animated: true) {
                     let photo = Photo.photoWithUIImage(image)
-                    let detailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0, builder: nil)
+                    let detailVC = PhotoBrowserViewController.browse(photos: [photo])
                     //                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
                     detailVC.delegate = self
                     self.navigationController?.pushViewController(detailVC, animated: true)
@@ -327,7 +328,7 @@ extension ViewController: CameraViewControllerDelegate {
             }
             cameraViewController.dismiss(animated: true) {
                 let photo = Photo.photoWithUIImage(image)
-                let detailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0)
+                let detailVC = PhotoBrowserViewController.browse(photos: [photo])
                 detailVC.delegate = self
                 self.navigationController?.fyphoto.pushViewController(detailVC, animated: true)
             }

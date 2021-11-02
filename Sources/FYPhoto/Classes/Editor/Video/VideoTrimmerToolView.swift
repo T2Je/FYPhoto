@@ -29,7 +29,12 @@ class VideoTrimmerToolView: UIView {
         
     var videoFrames: [UIImage] = [] {
         didSet {
-            setupVideoFrames(videoFrames)
+            if videoFrames.isEmpty {
+                isEnable = false
+            } else {
+                isEnable = true
+                setupVideoFrames(videoFrames)
+            }
         }
     }
 
@@ -37,6 +42,11 @@ class VideoTrimmerToolView: UIView {
     let assetDuration: Double
     let numberOfFramesInSlider: Int
     
+    var isEnable: Bool = false {
+        didSet {
+            rangeSlider.isEnabled = isEnable            
+        }
+    }
     /// Init VideoTimmerToolView.
     ///
     /// Trim the video duration less than maximumDuration.
@@ -156,6 +166,7 @@ class VideoTrimmerToolView: UIView {
     }
     
     func setupRangeSlider() {
+        rangeSlider.isEnabled = isEnable
         rangeSlider.addTarget(self, action: #selector(rangeSliderValueChanged(_:)), for: .valueChanged)
         rangeSlider.addTarget(self, action: #selector(rangeSliderTouchDragExit(_:)), for: .touchDragExit)
         
