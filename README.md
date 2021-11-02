@@ -12,7 +12,7 @@ To run the example project, clone the repo, and run `pod install` from the Examp
 Give it a quick try :
 `pod repo update` then `pod try FYPhoto`
 
-<img src="https://github.com/T2Je/FYPhoto/blob/main/Images/PickerBase.png?raw=true" width="200px" > <img src="https://github.com/T2Je/FYPhoto/blob/main/Images/BrowserBase.png?raw=true" width="200px" > <img src="https://github.com/T2Je/FYPhoto/blob/main/Images/CropImage.png?raw=true" width="200px" > <img src="https://github.com/T2Je/FYPhoto/blob/main/Images/VideoTrimmer.png?raw=true" width="200px" >
+<img src="https://github.com/T2Je/FYPhoto/blob/main/Images/PickerPhotos.gif?raw=true" width="200px" > <img src="https://github.com/T2Je/FYPhoto/blob/main/Images/CropVideo.gif?raw=true" width="200px" > <img src="https://github.com/T2Je/FYPhoto/blob/main/Images/CropImage.png?raw=true" width="200px" > <img src="https://github.com/T2Je/FYPhoto/blob/main/Images/CustomCamera.png?raw=true" width="200px" >
 
 Those features are available just with a few lines of code!
 

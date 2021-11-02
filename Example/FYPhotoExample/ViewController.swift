@@ -84,7 +84,7 @@ class ViewController: UIViewController {
 // MARK: - Button action
     @objc func photosViewButtonClicked(_ sender: UIButton) {
         var pickerConfig = FYPhotoPickerConfiguration()
-        pickerConfig.selectionLimit = 0
+        pickerConfig.selectionLimit = 3
         pickerConfig.supportCamera = true
         pickerConfig.mediaFilter = .all
         
