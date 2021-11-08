@@ -30,6 +30,9 @@ public struct MediaOptions: OptionSet {
 /// PhotoPickerViewController is intended to be used as-is and does not support subclassing
 /// Support dark mode for devices running iOS 13 or above. Customize color with FYColorConfiguration.
 public final class PhotoPickerViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
+    static let topBarHeight: CGFloat = 44
+    static let bottomBarHeight: CGFloat = 45
+    
     // call back for photo, video selections
     public var selectedPhotos: (([SelectedImage]) -> Void)?
     public var selectedVideo: ((Result<SelectedVideo, Error>) -> Void)?
@@ -63,8 +66,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         didSet {
             updateSelectedAssetIsVideo(with: assetSelectionIdentifierCache)
             updateSelectedAssetsCount(with: assetSelectionIdentifierCache)
-            updateVisibleCells(with: assetSelectionIdentifierCache)
             reachedMaximum = assetSelectionIdentifierCache.count >= maximumCanBeSelected
+            updateVisibleCells(with: assetSelectionIdentifierCache)
         }
     }
     
@@ -237,6 +240,19 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             }
         }
     }
+    var isCollectionViewContentInsetSet = false
+    
+    public override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if !isCollectionViewContentInsetSet {
+            isCollectionViewContentInsetSet = true
+            let insets = self.view.safeAreaInsets
+            let collectionTopInset = PhotoPickerViewController.topBarHeight
+            let collectionBottomInset = PhotoPickerViewController.bottomBarHeight + insets.bottom
+            
+            collectionView.contentInset = UIEdgeInsets(top: collectionTopInset, left: 0, bottom: collectionBottomInset, right: 0)
+        }
+    }
     
     func alertPhotoLibraryLimitedAuthority() {
         if #available(iOS 14, *) {
@@ -326,8 +342,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
     
     func addSubViews() {
-        view.addSubview(topBar)
         view.addSubview(collectionView)
+        view.addSubview(topBar)
         view.addSubview(bottomToolBar)
         
         let safeArea = self.view.safeAreaLayoutGuide
@@ -343,8 +359,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         NSLayoutConstraint.activate([
             collectionView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor),
-            collectionView.topAnchor.constraint(equalTo: self.topBar.bottomAnchor),
-            collectionView.bottomAnchor.constraint(equalTo: self.bottomToolBar.topAnchor)
+            collectionView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor)
         ])
         
         bottomToolBar.translatesAutoresizingMaskIntoConstraints = false
@@ -376,29 +392,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             self.selectedPhotos?(result)
         }
     }
-    
-//    /// complete photo selection
-//    /// - Parameters:
-//    ///   - assets: selected assets
-//    ///   - animated: dissmiss animated
-//    func completeSelection(assets: [PHAsset], animated: Bool) {
-//        guard !assets.isEmpty else {
-//            return
-//        }
-//
-//        PhotoPickerResource.shared.fetchHighQualityImages(assets) { images in
-//            var selectedArr = [SelectedImage]()
-//            for index in 0..<images.count {
-//                let asset = assets[index]
-//                let image = images[index]
-//                selectedArr.append(SelectedImage(asset: asset, image: image))
-//            }
-//
-//            self.back(animated: animated) {
-//                self.selectedPhotos?(selectedArr)
-//            }
-//        }
-//    }
 
     func back(animated: Bool, _ completion: (() -> Void)? = nil) {
         self.dismiss(animated: animated, completion: {
@@ -536,7 +529,14 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         }
         return UICollectionViewCell()
     }
-
+        
+    public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        guard let gridCell = cell as? GridViewCell else { return }
+        // fix the bug that cells aren't reloaded when selecting other cells
+        let asset = assets.object(at: regenerate(indexPath: indexPath, if: containsCamera).item)
+        self.configureCellState(gridCell, asset: asset)
+    }
+    
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         lastSelectedIndexPath = indexPath
         if containsCamera {
@@ -610,7 +610,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         let selectedAssetsResult = selectedAssets
         let selectedPhotos = selectedAssetsResult.map { Photo.photoWithPHAsset($0) }
 
-        let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: indexPath.item, builder: { builder -> PhotoBrowserViewController.Builder in
+        let photoBrowser = PhotoBrowserViewController.browse(photos: photos, at: indexPath.item, builder: { builder -> PhotoBrowserViewController.Builder in
             builder
                 .buildForSelection(true)
                 .setSelectedPhotos(selectedPhotos)
@@ -761,8 +761,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
 
 extension PhotoPickerViewController: GridViewCellDelegate {
     func gridCell(_ cell: GridViewCell, buttonClickedAt indexPath: IndexPath, assetIdentifier: String) {
-        collectionView.reloadItems(at: [indexPath])
-        
         if let exsist = assetSelectionIdentifierCache.firstIndex(of: assetIdentifier) {
             assetSelectionIdentifierCache.remove(at: exsist)
         } else {
@@ -990,7 +988,7 @@ extension PhotoPickerViewController: PHPhotoLibraryChangeObserver {
 extension PhotoPickerViewController: PhotoPickerBottomToolViewDelegate {
     func bottomToolViewPreviewButtonClicked() {
         let photos = selectedAssets.map { Photo.photoWithPHAsset($0) }
-        let photoBrowser = PhotoBrowserViewController.create(photos: photos, initialIndex: 0) {
+        let photoBrowser = PhotoBrowserViewController.browse(photos: photos) {
             $0
                 .setSelectedPhotos(photos)
                 .buildNavigationBar()
