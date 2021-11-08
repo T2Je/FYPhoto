@@ -66,7 +66,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         didSet {
             updateSelectedAssetIsVideo(with: assetSelectionIdentifierCache)
             updateSelectedAssetsCount(with: assetSelectionIdentifierCache)
-            reachedMaximum = assetSelectionIdentifierCache.count >= maximumCanBeSelected
             updateVisibleCells(with: assetSelectionIdentifierCache)
         }
     }
@@ -83,9 +82,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         return UIApplication.shared.keyWindow?.safeAreaInsets ?? .zero
     }
     
-    /// if true, unable to select more photos
-    fileprivate var reachedMaximum: Bool = false
-
     internal let imageManager = PHCachingImageManager()
     fileprivate var thumbnailSize: CGSize = .zero
     fileprivate var previousPreheatRect = CGRect.zero
@@ -499,12 +495,15 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             cell.hideUselessViewsForSingleSelection(true)
         }
         
-        if self.reachedMaximum {
+        // disable selection for unselected photos
+        if assetSelectionIdentifierCache.count >= maximumCanBeSelected {
             if self.assetSelectionIdentifierCache.contains(asset.localIdentifier) {
                 cell.isEnable = true
             } else {
                 cell.isEnable = false
             }
+        } else {
+            cell.isEnable = true
         }
     }
     
@@ -635,7 +634,6 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
             
             return TransitionEssential(transitionImage: cell.imageView.image, convertedFrame: rect)
         }
-//        self.navigationController?.fyphoto.push(photoBrowser, animated: true)
     }
     
     func browseVideoIfValid(_ asset: PHAsset) {
@@ -968,19 +966,28 @@ extension PhotoPickerViewController: UIScrollViewDelegate {
 
 // MARK: - PHPhotoLibraryChangeObserver
 extension PhotoPickerViewController: PHPhotoLibraryChangeObserver {
+    fileprivate func handleObservingPhotosRemoved(_ ids: [String]) {
+        for removedID in ids {
+            assetSelectionIdentifierCache.removeAll {
+                removedID == $0
+            }
+        }
+    }
+    
     public func photoLibraryDidChange(_ changeInstance: PHChange) {
-        guard changeInstance.changeDetails(for: assets) != nil
-            else { return }
+        guard let changes = changeInstance.changeDetails(for: assets) else { return }
 
         // Change notifications may be made on a background queue. Re-dispatch to the
         // main queue before acting on the change as we'll be updating the UI.
         DispatchQueue.main.sync {
-            // Reload the collectionView.
-            // The reason for using reloadData instead of batchUpdates is to update the indexPath
-            // of the cell. (Fixed a crash bug caused by incorrect indexPaths)
-            collectionView.reloadData()
+            self.requestAlbumsData()
             
-            resetCachedAssets()
+            if changes.removedObjects.count > 0 {
+                handleObservingPhotosRemoved(changes.removedObjects.map {$0.localIdentifier} )
+            }
+            
+            self.collectionView.reloadData()
+            self.resetCachedAssets()
         }
     }
 }
