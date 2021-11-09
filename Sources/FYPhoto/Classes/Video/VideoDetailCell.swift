@@ -57,9 +57,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
         imageView.contentMode = .scaleAspectFit
 
         setupActivityIndicator()
-
-        
-        
+                    
         let doubleTap = UITapGestureRecognizer(target: self, action: #selector(doubleTapVideoCell(_:)))
         doubleTap.numberOfTapsRequired = 2
         contentView.addGestureRecognizer(doubleTap)

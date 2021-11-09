@@ -10,10 +10,13 @@ import Photos
 import UIKit
 
 public class PhotoPickerResource {
-
+    let cacheDir: URL
     static var shared = PhotoPickerResource()
 
-    private init() { }
+    private init() {
+        let url = try? FileManager.tempDirectory(with: FileManager.avCompositionDirName)
+        cacheDir = url ?? URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(FileManager.avCompositionDirName)
+    }
 
     // image & video
     public func allAssets(ascending: Bool = false) -> PHFetchResult<PHAsset> {
@@ -274,93 +277,47 @@ public class PhotoPickerResource {
     
     // Export Slow Mode video url
     func exportAVComposition(_ composition: AVComposition, completion: @escaping (Result<URL, Error>) -> Void) {
-        do {
-            var tempDirectory = try FileManager.tempDirectory(with: "avComposition")
-            let videoName = UUID().uuidString + ".mp4"
-            tempDirectory.appendPathComponent("\(videoName)")
-            
-            guard let exporter = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
-                completion(.failure(AVAssetExportSessionError.exportSessionCreationFailed))
-                return
-            }
-            
-            exporter.outputURL = tempDirectory
-            exporter.outputFileType = .mp4
-            exporter.shouldOptimizeForNetworkUse = true
-            exporter.exportAsynchronously {
-                DispatchQueue.main.async {
-                    switch exporter.status {
-                    case .waiting:
-                        #if DEBUG
-                        print("waiting to be exported")
-                        #endif
-                    case .exporting:
-                        #if DEBUG
-                        print("exporting video")
-                        #endif
-                    case .cancelled, .failed:
-                        completion(.failure(exporter.error!))
-                    case .completed:
-                        #if DEBUG
-                        print("finish exporting, video size: \(tempDirectory.sizePerMB()) MB")
-                        #endif
-                        completion(.success(tempDirectory))
-                    case .unknown:
-                        completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
-                    @unknown default:
-                        completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
-                    }
+        var tempDirectory = cacheDir
+        let videoName = UUID().uuidString + ".mp4"
+        tempDirectory.appendPathComponent("\(videoName)")
+        
+        guard let exporter = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
+            completion(.failure(AVAssetExportSessionError.exportSessionCreationFailed))
+            return
+        }
+        
+        exporter.outputURL = tempDirectory
+        exporter.outputFileType = .mp4
+        exporter.shouldOptimizeForNetworkUse = true
+        exporter.exportAsynchronously {
+            DispatchQueue.main.async {
+                switch exporter.status {
+                case .waiting:
+                    #if DEBUG
+                    print("waiting to be exported")
+                    #endif
+                case .exporting:
+                    #if DEBUG
+                    print("exporting video")
+                    #endif
+                case .cancelled, .failed:
+                    completion(.failure(exporter.error!))
+                case .completed:
+                    #if DEBUG
+                    print("finish exporting, video size: \(tempDirectory.sizePerMB()) MB")
+                    #endif
+                    completion(.success(tempDirectory))
+                case .unknown:
+                    completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
+                @unknown default:
+                    completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
                 }
             }
-        } catch {
-            completion(.failure(error))
         }
     }
     
-    func trimVideo(_ asset: AVAsset, from startTime: Double, to endTime: Double, completion: @escaping((Result<URL, Error>) -> Void)) {
-        do {
-            var tempDirectory = try FileManager.tempDirectory(with: "trimmedVideo")
-            let videoName = UUID().uuidString + ".mp4"
-            tempDirectory.appendPathComponent("\(videoName)")
-            
-            guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
-                completion(.failure(AVAssetExportSessionError.exportSessionCreationFailed))
-                return
-            }
-            
-            let start = CMTime(seconds: startTime, preferredTimescale: 600)
-            let end = CMTime(seconds: endTime, preferredTimescale: 600)
-            exporter.timeRange = CMTimeRange(start: start, end: end)
-            exporter.outputURL = tempDirectory
-            exporter.outputFileType = .mp4
-            exporter.exportAsynchronously {
-                DispatchQueue.main.async {
-                    switch exporter.status {
-                    case .waiting:
-                        #if DEBUG
-                        print("waiting to be exported")
-                        #endif
-                    case .exporting:
-                        #if DEBUG
-                        print("exporting video")
-                        #endif
-                    case .cancelled, .failed:
-                        completion(.failure(exporter.error!))
-                    case .completed:
-                        #if DEBUG
-                        print("finish exporting, video size: \(tempDirectory.sizePerMB()) MB")
-                        #endif
-                        completion(.success(tempDirectory))
-                    case .unknown:
-                        completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
-                    @unknown default:
-                        completion(.failure(AVAssetExportSessionError.exportStatuUnknown))
-                    }
-                }
-            }
-        } catch {
-            completion(.failure(error))
-        }
+    func clearCache() {
+        try? FileManager.default.removeItem(at: cacheDir)
     }
 }
 

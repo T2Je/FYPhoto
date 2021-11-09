@@ -383,6 +383,8 @@ public class VideoTrimmerViewController: UIViewController {
     fileprivate func activateOtherInterruptedAudioSessions() {
         isPlaying = false
         removePeriodicTimeObserver()
+        player.seek(to: .zero)
+        player.pause()
         // fix error: AVAudioSession: Deactivating an audio session that has running I/O
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             do {
@@ -411,7 +413,7 @@ public class VideoTrimmerViewController: UIViewController {
     @objc func confirmButtonClicked(_ sender: UIButton) {
         var realEnd = endTime+offsetTime
         realEnd = realEnd > videoDuration ? videoDuration : realEnd
-        PhotoPickerResource.shared.trimVideo(avAsset, from: startTime+offsetTime, to: realEnd) { [weak self] (result) in
+        VideoTrimmer.shared.trimVideo(avAsset, from: startTime+offsetTime, to: realEnd) { [weak self] (result) in
             guard let self = self else { return }
             self.delegate?.videoTrimmerDidCancel(self)
             switch result {

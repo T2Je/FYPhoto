@@ -37,20 +37,10 @@ public class VideoCache {
         return config
     }
     
-    static var videoCacheTmpDirectory: URL? {
-        return try? FileManager.tempDirectory(with: "FYPhotoVideoCache")
-    }
+    static let videoCacheTmpDirectory: URL? = try? FileManager.tempDirectory(with: FileManager.cachedWebVideoDirName)
     
-    static var diskCache: SDDiskCache? {
-        if let temp = videoCacheTmpDirectory {
-            #if DEBUG
-            print("Video cached path: \(temp.path)")
-            #endif
-            return SDDiskCache(cachePath: temp.path, config: sdDiskConfig)
-        } else {
-            return nil
-        }
-    }
+    static let diskCache: SDDiskCache? = SDDiskCache(cachePath: videoCacheTmpDirectory?.path ?? URL(fileURLWithPath: NSTemporaryDirectory()).path,
+                                                     config: sdDiskConfig)
     
     private static let movieTypes: [String] = ["mp4", "m4v", "mov"]
     
@@ -61,7 +51,6 @@ public class VideoCache {
     // request
     private var activeTaskMap: [URL: URLSessionDataTask] = [:]
     private let underlyingQueue = DispatchQueue(label: "com.fyphoto.underlyingQueue")
-    private let requestQueue = DispatchQueue(label: "com.fyphoto.requestQueue")
     
     private init?(cache: CacheProtocol? = VideoCache.diskCache) {
         self.cache = cache
@@ -210,45 +199,4 @@ public class VideoCache {
 }
 
 
-extension SDDiskCache: CacheProtocol {
-}
-
-//extension Storage: CacheProtocol where T == Data {
-//    func setData(_ data: Data?, forKey key: String) {
-//        guard let data = data else { return }
-//        do {
-//            try setObject(data, forKey: key)
-//        } catch {
-//            print("store data error: \(error)")
-//        }
-//    }
-//
-//    func data(forKey key: String) -> Data? {
-//        do {
-//            return try object(forKey: key)
-//        } catch {
-//            print("get data error: \(error)")
-//            return nil
-//        }
-//    }
-//
-//    func removeAllData() {
-//        do {
-//            try removeAll()
-//        } catch {
-//            print("get data error: \(error)")
-//        }
-//    }
-//
-//    func cachePath(forKey key: String) -> String? {
-//        do {
-//            let en = try entry(forKey: key)
-//            return en.filePath
-//        } catch {
-//            #if DEBUG
-//            print("❌ error: \(error)")
-//            #endif
-//            return nil
-//        }
-//    }
-//}
+extension SDDiskCache: CacheProtocol { }

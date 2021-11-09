@@ -45,30 +45,35 @@ class ViewController: UIViewController {
         let takePhotoBtn = UIButton()
         let displayRemoteImagesBtn = UIButton()
         let cropPhotoBtn = UIButton()
+        let clearWebCacheBtn = UIButton()
         
         pickPhotosBtn.setTitle("Pick photos", for: .normal)
         playRemoteVideoBtn.setTitle("Play remote video", for: .normal)
         takePhotoBtn.setTitle("Take photo/video", for: .normal)
         displayRemoteImagesBtn.setTitle("Display remote images", for: .normal)
         cropPhotoBtn.setTitle("Crop photo", for: .normal)
+        clearWebCacheBtn.setTitle("Clear cached content", for: .normal)
         
         pickPhotosBtn.setTitleColor(.systemBlue, for: .normal)
         playRemoteVideoBtn.setTitleColor(.orange, for: .normal)
         takePhotoBtn.setTitleColor(.systemPink, for: .normal)
         displayRemoteImagesBtn.setTitleColor(.systemGreen, for: .normal)
         cropPhotoBtn.setTitleColor(.systemYellow, for: .normal)
+        clearWebCacheBtn.setTitleColor(.gray, for: .normal)
 
         pickPhotosBtn.addTarget(self, action: #selector(photosViewButtonClicked(_:)), for: .touchUpInside)
         playRemoteVideoBtn.addTarget(self, action: #selector(playRemoteVideo(_:)), for: .touchUpInside)
         takePhotoBtn.addTarget(self, action: #selector(launchCustomCamera(_:)), for: .touchUpInside)
         displayRemoteImagesBtn.addTarget(self, action: #selector(displayRemoteImagesButtonClicked(_:)), for: .touchUpInside)
         cropPhotoBtn.addTarget(self, action: #selector(photoEditorButtonClicked(_:)), for: .touchUpInside)
+        clearWebCacheBtn.addTarget(self, action: #selector(clearCached(_:)), for: .touchUpInside)
         
         stackView.addArrangedSubview(pickPhotosBtn)
         stackView.addArrangedSubview(playRemoteVideoBtn)
         stackView.addArrangedSubview(takePhotoBtn)
         stackView.addArrangedSubview(displayRemoteImagesBtn)
         stackView.addArrangedSubview(cropPhotoBtn)
+        stackView.addArrangedSubview(clearWebCacheBtn)
         
         view.addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
@@ -121,8 +126,8 @@ class ViewController: UIViewController {
     }
 
     @objc func playRemoteVideo(_ sender: UIButton) {
-//        let urlStr = "https://www.radiantmediaplayer.com/media/big-buck-bunny-360p.mp4"
-        let urlStr = "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4"
+        let urlStr = "http://techslides.com/demos/sample-videos/small.mp4"
+//        let urlStr = "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4"
 //        let urlStr = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
         guard let url = URL(string: urlStr) else { return }
 
@@ -172,6 +177,21 @@ class ViewController: UIViewController {
         self.present(vc, animated: true, completion: nil)
     }
     
+    @objc
+    func clearCached(_ sender: UIButton) {
+        let alertController = UIAlertController(title: "Ready to remove cached data?", message: nil, preferredStyle: .alert)
+        let confirm = UIAlertAction(title: "Yes", style: .destructive, handler: { _ in
+            FYPhotoCacheCleaner.clearMemory()
+            FYPhotoCacheCleaner.clearDisk()
+        })
+                                    
+        let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        alertController.addAction(confirm)
+        alertController.addAction(cancel)
+        present(alertController, animated: true, completion: nil)
+    }
+    
+                                    
     // MARK: PRESENT SELECTED
     func presentSelectedPhotos(_ images: [SelectedImage]) {
         let photos = images.map { Photo.photoWithUIImage($0.image) }
@@ -216,7 +236,7 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
                 UIImageWriteToSavedPhotosAlbum(image, self, #selector(image(_:didFinishSavingWithError:contextInfo:)), nil)
                 picker.dismiss(animated: true) {
                     let photo = Photo.photoWithUIImage(image)
-                    let detailVC = PhotoBrowserViewController.create(photos: [photo], initialIndex: 0, builder: nil)
+                    let detailVC = PhotoBrowserViewController.browse(photos: [photo])
     //                let detailVC = PhotoBrowserViewController(photos: [photo], initialIndex: 0)
                     detailVC.delegate = self
                     self.navigationController?.pushViewController(detailVC, animated: true)

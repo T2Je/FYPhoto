@@ -14,7 +14,10 @@ class TestVideoCache: XCTestCase {
     let videoCache = VideoCache.shared
     
     /// Test video, this video memory size is 10.1 MB
+    /// https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4
     static let testVideoURL = URL(string: "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4")!
+//    static let testVideoURL = URL(string: "http://techslides.com/demos/sample-videos/small.mp4")!
+//    static let testVideoURL = URL(string: "http://clips.vorwaerts-gmbh.de/VfE_html5.mp4")!
     static var cachedURL: URL?
     static var compressedURL: URL?
     
@@ -35,7 +38,7 @@ class TestVideoCache: XCTestCase {
             }
         })
 
-        wait(for: [expectation], timeout: 50)
+        wait(for: [expectation], timeout: 100)
         if let error = error {
             throw error
         }
@@ -81,11 +84,12 @@ class TestVideoCache: XCTestCase {
             switch result {
             case .success(let url):
                 TestVideoCache.compressedURL = url
-            case .failure(_): break
+            case .failure(let error):
+                XCTFail(error.localizedDescription)
             }
         }   
         
-        wait(for: [expectation], timeout: 50)
+        wait(for: [expectation], timeout: 100)
         
         XCTAssertNotNil(TestVideoCache.compressedURL)
         let compressedSize = TestVideoCache.compressedURL!.sizePerMB()        
