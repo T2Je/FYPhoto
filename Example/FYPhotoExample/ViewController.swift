@@ -94,8 +94,8 @@ class ViewController: UIViewController {
         pickerConfig.mediaFilter = .all
         
         pickerConfig.compressedQuality = .mediumQuality
-        pickerConfig.maximumVideoMemorySize = 40 // MB
-        pickerConfig.maximumVideoDuration = 10 // Seconds
+        pickerConfig.maximumVideoMemorySize = 200 // MB
+        pickerConfig.maximumVideoDuration = 60 * 60 // Seconds
         let colorConfig = FYColorConfiguration()
         colorConfig.topBarColor = FYColorConfiguration.BarColor(itemTintColor: .black,
                                                                 itemDisableColor: .gray,

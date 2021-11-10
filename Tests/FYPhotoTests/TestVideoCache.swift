@@ -14,10 +14,9 @@ class TestVideoCache: XCTestCase {
     let videoCache = VideoCache.shared
     
     /// Test video, this video memory size is 10.1 MB
-    /// https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4
-    static let testVideoURL = URL(string: "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4")!
+//    static let testVideoURL = URL(string: "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4")!
 //    static let testVideoURL = URL(string: "http://techslides.com/demos/sample-videos/small.mp4")!
-//    static let testVideoURL = URL(string: "http://clips.vorwaerts-gmbh.de/VfE_html5.mp4")!
+    static let testVideoURL = URL(string: "http://clips.vorwaerts-gmbh.de/VfE_html5.mp4")!
     static var cachedURL: URL?
     static var compressedURL: URL?
     
@@ -66,7 +65,7 @@ class TestVideoCache: XCTestCase {
         
         let size = TestVideoCache.cachedURL!.sizePerMB()
         print("size: \(size)")
-        XCTAssertEqual(size, Double(10), accuracy: 1.0)
+        XCTAssertEqual(size, Double(5), accuracy: 1.0)
     }
     
     func testCompressVideo() {
@@ -75,10 +74,7 @@ class TestVideoCache: XCTestCase {
         let size = TestVideoCache.cachedURL!.sizePerMB()
         print("original size: \(size)")
         let expectation = XCTestExpectation(description: "compress video")
-//        let assetURL: URL = {
-//            guard let path = Bundle.main.path(forResource: "zoo.mov", ofType: nil) else { fatalError() }
-//            return URL.init(fileURLWithPath: path)
-//        }()
+        
         VideoCompressor.shared.compressVideo(TestVideoCache.cachedURL!, quality: .mediumQuality) { (result) in
             expectation.fulfill()
             switch result {

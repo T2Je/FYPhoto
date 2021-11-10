@@ -66,6 +66,7 @@ public final class VideoCompressor {
     ///   - url: video file path
     ///   - quality: target quality
     ///   - completion: completion callBack with a compressed video or a failed error.
+    ///   - Caution: compress video method uses many AVFoundation APIs, it's better to test it via real device otherwise odd errors will occurr.
     public func compressVideo(_ url: URL, quality: VideoQuality, completion: @escaping (Result<URL, Error>) -> Void) {
         do {
             let asset = AVAsset.init(url: url)
@@ -102,9 +103,8 @@ public final class VideoCompressor {
                 let adOutput = AVAssetReaderTrackOutput.init(track: audioTrack, outputSettings: [AVFormatIDKey: kAudioFormatLinearPCM])
                 audioOutput = adOutput
                 
-                let settings = audioCompressSettings(audioTrack)
-//                print("audio compress settings: \(settings)")
-                let adInput = AVAssetWriterInput.init(mediaType: .audio, outputSettings: settings)
+                let audioSettings = audioCompressSettings(audioTrack)
+                let adInput = AVAssetWriterInput.init(mediaType: .audio, outputSettings: audioSettings)
                 audioInput = adInput
                 if reader.canAdd(adOutput) {
                     reader.add(adOutput)
@@ -113,19 +113,19 @@ public final class VideoCompressor {
                     writer.add(adInput)
                 }
             }
-            // 开始读写
+            
             reader.startReading()
             writer.startWriting()
             writer.startSession(atSourceTime: CMTime.zero)
-            group.enter()
             
+            // output video
+            group.enter()
             let reduceFPS = quality.value.0 < videoTrack.nominalFrameRate
             if reduceFPS {
                 outputMediaDataByReducingFPS(originFPS: videoTrack.nominalFrameRate,
                                              targetFPS: quality.value.0,
                                              videoInput: videoInput,
                                              videoOutput: videoOutput) {
-//                    print("finish video appending")
                     self.group.leave()
                 }
             } else {
@@ -135,6 +135,7 @@ public final class VideoCompressor {
                 }
             }
             
+            // output audio
             if let realAudioInput = audioInput, let realAudioOutput = audioOutput {
                 group.enter()
                 realAudioInput.requestMediaDataWhenReady(on: audioCompressQueue) {
@@ -150,6 +151,7 @@ public final class VideoCompressor {
                     }
                 }
             }
+            
             group.notify(queue: .main) {
                 switch writer.status {
                 case .writing, .completed:
@@ -213,7 +215,7 @@ public final class VideoCompressor {
             let compressSetting: [String: Any] = [
                 AVFormatIDKey: kAudioFormatMPEG4AAC,
                 AVNumberOfChannelsKey: 2,
-                AVEncoderBitRateKey: 128000,
+                AVEncoderBitRateKey: 96_000,
                 AVSampleRateKey: 44100,
                 AVChannelLayoutKey: Data(bytes: &channelLayout, count: MemoryLayout<AudioChannelLayout>.size),
             ]
@@ -226,7 +228,9 @@ public final class VideoCompressor {
         var formatID: AudioFormatID = kAudioFormatMPEG4AAC
         
         if let streamBasicDescription = CMAudioFormatDescriptionGetStreamBasicDescription(formatDesc) {
-            sampleRate = streamBasicDescription.pointee.mSampleRate
+            if sampleRate > streamBasicDescription.pointee.mSampleRate {
+                sampleRate = streamBasicDescription.pointee.mSampleRate
+            }
             channels = streamBasicDescription.pointee.mChannelsPerFrame
             formatID = streamBasicDescription.pointee.mFormatID
         }
@@ -245,7 +249,7 @@ public final class VideoCompressor {
         let compressSetting: [String: Any] = [
             AVFormatIDKey: formatID,
             AVNumberOfChannelsKey: channels,
-            AVEncoderBitRateKey: 128000,
+            AVEncoderBitRateKey: 96_000,
             AVSampleRateKey: sampleRate,
             AVChannelLayoutKey: layoutData,
         ]
