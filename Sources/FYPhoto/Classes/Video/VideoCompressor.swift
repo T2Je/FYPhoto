@@ -52,6 +52,20 @@ public final class VideoCompressor {
         }
     }
     
+    // Globals to store during compression
+    class CompressionContext {
+        var cgContext: CGContext?
+        var pxbuffer: CVPixelBuffer?
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+    }
+    
+    // Compression Transformation Configuration
+    public enum CompressionTransform {
+        case keepSame
+        case fixForBackCamera
+        case fixForFrontCamera
+    }
+    
     let group = DispatchGroup.init()
     let videoCompressQueue = DispatchQueue.init(label: "video_compress_queue")
     lazy var audioCompressQueue = DispatchQueue.init(label: "audio_compress_queue")
@@ -67,7 +81,7 @@ public final class VideoCompressor {
     ///   - quality: target quality
     ///   - completion: completion callBack with a compressed video or a failed error.
     ///   - Caution: compress video method uses many AVFoundation APIs, it's better to test it via real device otherwise odd errors will occurr.
-    public func compressVideo(_ url: URL, quality: VideoQuality, completion: @escaping (Result<URL, Error>) -> Void) {
+    public func compressVideo(_ url: URL, quality: VideoQuality, compressionTransform: CompressionTransform = .keepSame, completion: @escaping (Result<URL, Error>) -> Void) {
         do {
             let asset = AVAsset.init(url: url)
             let reader = try AVAssetReader(asset: asset)
@@ -77,6 +91,7 @@ public final class VideoCompressor {
             let writer =  try AVAssetWriter.init(url: outputURL, fileType: .mp4)
             self.reader = reader
             self.writer = writer
+            
             // video
             guard let videoTrack = asset.tracks(withMediaType: .video).first else {
                 completion(.failure(VideoCompressorError.noVideo))
@@ -85,9 +100,9 @@ public final class VideoCompressor {
             let videoOutput = AVAssetReaderTrackOutput.init(track: videoTrack, outputSettings: [kCVPixelBufferPixelFormatTypeKey as String:  kCVPixelFormatType_32BGRA])
             
             let outputSettings = videoCompressSettings(videoTrack, quality: quality)
-//            print("output setting: \(outputSettings)")
             
             let videoInput = AVAssetWriterInput.init(mediaType: .video, outputSettings: outputSettings)
+            videoInput.transform = videoTrack.preferredTransform // fix output video transform
             
             if reader.canAdd(videoOutput) {
                 reader.add(videoOutput)
@@ -96,6 +111,7 @@ public final class VideoCompressor {
             if writer.canAdd(videoInput) {
                 writer.add(videoInput)
             }
+            
             // audio
             var audioInput: AVAssetWriterInput?
             var audioOutput: AVAssetReaderTrackOutput?
@@ -114,6 +130,8 @@ public final class VideoCompressor {
                 }
             }
             
+            let startTime = Date()
+            // start compressing
             reader.startReading()
             writer.startWriting()
             writer.startSession(atSourceTime: CMTime.zero)
@@ -122,15 +140,14 @@ public final class VideoCompressor {
             group.enter()
             let reduceFPS = quality.value.0 < videoTrack.nominalFrameRate
             if reduceFPS {
-                outputMediaDataByReducingFPS(originFPS: videoTrack.nominalFrameRate,
+                outputVideoDataByReducingFPS(originFPS: videoTrack.nominalFrameRate,
                                              targetFPS: quality.value.0,
                                              videoInput: videoInput,
                                              videoOutput: videoOutput) {
                     self.group.leave()
                 }
             } else {
-                outputMediaData(videoInput, videoOutput: videoOutput) {
-//                    print("finish video appending")
+                outputVideoData(videoInput, videoOutput: videoOutput) {
                     self.group.leave()
                 }
             }
@@ -152,10 +169,16 @@ public final class VideoCompressor {
                 }
             }
             
+            // completion
             group.notify(queue: .main) {
                 switch writer.status {
                 case .writing, .completed:
                     writer.finishWriting {
+                        #if DEBUG
+                        let endTime = Date()
+                        let elapse = endTime.timeIntervalSince(startTime)
+                        print("compression time: \(elapse)")
+                        #endif
                         DispatchQueue.main.sync {
                             completion(.success(outputURL))
                         }
@@ -175,8 +198,7 @@ public final class VideoCompressor {
         let originBitRate = videoTrack.estimatedDataRate
         let tempBitRate = originBitRate / Float(targetBitRateTimes)
         let compressedBitRate = tempBitRate > 200_000 ? tempBitRate : 200_000
-        print("original bit rate: \(originBitRate) b/s")
-        print("target bit rate: \(compressedBitRate) b/s")
+        
         // aspect ratio
         var compressedWidth: CGFloat = videoTrack.naturalSize.width
         var compressedHeight: CGFloat = videoTrack.naturalSize.height
@@ -185,9 +207,13 @@ public final class VideoCompressor {
             compressedWidth = 640
             compressedHeight = compressedWidth / aspectRatio
         }
-        
+        #if DEBUG
+        print("original bit rate: \(originBitRate) b/s")
+        print("target bit rate: \(compressedBitRate) b/s")
         print("original size: \(videoTrack.naturalSize)")
         print("target size: (\(compressedWidth), \(compressedHeight))")
+        #endif
+        
         
         let outputSeting: [String : Any] = [AVVideoCodecKey: AVVideoCodecType.h264,
                                             AVVideoWidthKey: compressedWidth,
@@ -221,8 +247,7 @@ public final class VideoCompressor {
             ]
             return compressSetting
         }
-//        print(formatDescription)
-        
+
         var sampleRate: Float64 = 44100
         var channels: UInt32 = 2
         var formatID: AudioFormatID = kAudioFormatMPEG4AAC
@@ -256,7 +281,7 @@ public final class VideoCompressor {
         return compressSetting
     }
     
-    private func outputMediaDataByReducingFPS(originFPS: Float,
+    private func outputVideoDataByReducingFPS(originFPS: Float,
                                               targetFPS: Float,
                                               videoInput: AVAssetWriterInput,
                                               videoOutput: AVAssetReaderTrackOutput,
@@ -299,13 +324,14 @@ public final class VideoCompressor {
         }
     }
 
-    func outputMediaData(_ videoInput: AVAssetWriterInput,
+    func outputVideoData(_ videoInput: AVAssetWriterInput,
                          videoOutput: AVAssetReaderTrackOutput,
                          completion: @escaping(() -> Void)) {
+        // Loop Video Frames
         videoInput.requestMediaDataWhenReady(on: videoCompressQueue) {
             while videoInput.isReadyForMoreMediaData {
-                if let buffer = videoOutput.copyNextSampleBuffer() {
-                    videoInput.append(buffer)
+                if let vBuffer = videoOutput.copyNextSampleBuffer(), CMSampleBufferDataIsReady(vBuffer) {
+                    videoInput.append(vBuffer)
                 } else {
                     videoInput.markAsFinished()
                     completion()
