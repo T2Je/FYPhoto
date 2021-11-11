@@ -8,6 +8,7 @@
 
 import XCTest
 @testable import FYPhoto
+import AVFoundation
 
 /// Could failed due to the network request timeout
 class TestVideoCache: XCTestCase {
@@ -126,5 +127,19 @@ class TestVideoCache: XCTestCase {
         let result = FYVideoValidator().validVideoSize(TestVideoCache.cachedURL!, limit: 5)
         XCTAssert(!result, "video url size less than 5")
     }
+    
+    func testMP4FileExtension() {
+        let fileType = AVFileType.mp4
+        XCTAssertEqual(fileType.fileExtension, "mp4")
+    }
 
+    func testM4aFileExtension() {
+        let fileType = AVFileType.m4a
+        XCTAssertEqual(fileType.fileExtension, "m4a")
+    }
+    
+    func testMovFileExtension() {
+        let fileType = AVFileType.mov
+        XCTAssertEqual(fileType.fileExtension, "mov")
+    }
 }
