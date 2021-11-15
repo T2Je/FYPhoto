@@ -27,8 +27,9 @@ public struct FYPhotoPickerConfiguration {
     /// Maximum video size can pick. Default is 0, not limit.
     public var maximumVideoMemorySize: Double = 0
     
-    /// If true, compress video larger than 10 MB before giving it to user. Default is true.
-    public var compressedVideoBeforeSelected: Bool = true
+    /// If true, compress video which is larger than `compressVideoLimitSize` MB before giving it to user. Default is true.
+    public var compressVideoBeforeSelected: Bool = true
+    public var compressVideoLimitSize: Double = 10 // MB
     
     /// Video compressed quality. Default is 640x480.
     public var compressedQuality: VideoCompressor.VideoQuality = .mediumQuality

@@ -671,8 +671,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         let videoPlayer = PlayVideoForSelectionViewController.playVideo(asset)
         videoPlayer.selectedVideo = { [weak self] url in
             guard let self = self else { return }
-            if self.configuration.compressedVideoBeforeSelected {
-                if url.sizePerMB() <= 5 {
+            if self.configuration.compressVideoBeforeSelected {
+                if url.sizePerMB() <= self.configuration.compressVideoLimitSize {
                     let thumbnailImage = asset.getThumbnailImageSynchorously()
                     let selectedVideo = SelectedVideo(url: url)
                     selectedVideo.briefImage = thumbnailImage
