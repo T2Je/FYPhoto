@@ -218,6 +218,8 @@ public final class VideoCompressor {
             
             // output video
             group.enter()
+            
+// TODO: 😴zZ Reduce FPS
 //            let reduceFPS = quality.value.0 < videoTrack.nominalFrameRate
 //            if reduceFPS {
 //                outputVideoDataByReducingFPS(originFPS: videoTrack.nominalFrameRate,
