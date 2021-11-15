@@ -19,26 +19,60 @@ public class PhotoPickerResource {
     }
 
     // image & video
-    public func allAssets(ascending: Bool = false) -> PHFetchResult<PHAsset> {
-        let allPhotosOptions = PHFetchOptions()
-        allPhotosOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: ascending)]
-        return PHAsset.fetchAssets(with: allPhotosOptions)
+    
+    /// all recent items like system Photos.app
+    func recentAssetsWith(_ mediaOptions: MediaOptions, ascending: Bool = false) -> PHFetchResult<PHAsset> {
+        let fetchOptions: PHFetchOptions = PHFetchOptions()
+        let predicate: NSPredicate?
+        if mediaOptions == .image {
+            predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue)
+        } else if mediaOptions == .video {
+            predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.video.rawValue)
+        } else {
+            predicate = nil
+        }
+        fetchOptions.predicate = predicate
+        fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: ascending)]
+
+        if let userLibrary = PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumUserLibrary, options: nil).firstObject {
+            return PHAsset.fetchAssets(in: userLibrary, options: fetchOptions)
+        } else {
+            return PHAsset.fetchAssets(with: fetchOptions)
+        }
+    }
+    
+    public func allAssets(ascending: Bool = false, in collection: PHAssetCollection? = nil) -> PHFetchResult<PHAsset> {
+        let fetchOptions = PHFetchOptions()
+        fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: ascending)]
+        if let collection = collection {
+            return PHAsset.fetchAssets(in: collection, options: fetchOptions)
+        } else {
+            return PHAsset.fetchAssets(with: fetchOptions)
+        }
     }
 
-    public func allImages(_ ascending: Bool = false) -> PHFetchResult<PHAsset> {
+    public func allImages(_ ascending: Bool = false, in collection: PHAssetCollection? = nil) -> PHFetchResult<PHAsset> {
         let predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue)
         let fetchOptions = PHFetchOptions()
         fetchOptions.predicate = predicate
         fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: ascending)]
-        return PHAsset.fetchAssets(with: fetchOptions)
+        if let collection = collection {
+            return PHAsset.fetchAssets(in: collection, options: fetchOptions)
+        } else {
+            return PHAsset.fetchAssets(with: fetchOptions)
+        }
     }
     
-    public func allVideos(_ ascending: Bool = false) -> PHFetchResult<PHAsset> {
+    public func allVideos(_ ascending: Bool = false, in collection: PHAssetCollection? = nil) -> PHFetchResult<PHAsset> {
         let predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.video.rawValue)
         let fetchOptions = PHFetchOptions()
         fetchOptions.predicate = predicate
         fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: ascending)]
-        return PHAsset.fetchAssets(with: fetchOptions)
+        if let collection = collection {
+            return PHAsset.fetchAssets(in: collection, options: fetchOptions)
+        } else {
+            return PHAsset.fetchAssets(with: fetchOptions)
+        }
     }
 
     public func smartAlbums() -> PHFetchResult<PHAssetCollection> {
@@ -47,32 +81,22 @@ public class PhotoPickerResource {
 
     public func userCollection() -> PHFetchResult<PHCollection> {
         return PHCollectionList.fetchTopLevelUserCollections(with: nil)
-    }
-
-    public func getAssets(withMediaOptions options: MediaOptions) -> PHFetchResult<PHAsset> {
-        if options == .image {
-            return allImages()
-        } else if options == .video {
-            return allVideos()
-        } else {
-            return allAssets()
-        }
-    }
-    
-    public func getSmartAlbums(withMediaOptions options: MediaOptions) -> [PHAssetCollection] {
-        if options == .all {
+    }    
+        
+    public func smartAlbumsWith(_ mediaOptions: MediaOptions) -> [PHAssetCollection] {
+        if mediaOptions == .all {
             if let favoritesAlbum = favorites() {
                 return allImageAlbums() + allVideoAlbums() + [favoritesAlbum]
             } else {
                 return allImageAlbums() + allVideoAlbums()
             }
-        } else if options == .image {
+        } else if mediaOptions == .image {
             if let favoritesAlbum = favorites() {
                 return allImageAlbums() + [favoritesAlbum]
             } else {
                 return allImageAlbums()
             }
-        } else if options == .video {
+        } else if mediaOptions == .video {
             if let favoritesAlbum = favorites() {
                 return allImageAlbums() + [favoritesAlbum]
             } else {
@@ -182,6 +206,7 @@ public class PhotoPickerResource {
     }
 
     // MARK: smart albums. Contains videos and images
+    
     func favorites() -> PHAssetCollection? {
         return PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumFavorites, options: nil).firstObject
     }

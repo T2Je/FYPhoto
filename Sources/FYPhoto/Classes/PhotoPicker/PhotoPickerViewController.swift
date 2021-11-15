@@ -263,8 +263,8 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
     
     func requestAlbumsData() {
-        allPhotos = PhotoPickerResource.shared.getAssets(withMediaOptions: mediaOptions)
-        smartAlbums = PhotoPickerResource.shared.getSmartAlbums(withMediaOptions: mediaOptions)
+        allPhotos = PhotoPickerResource.shared.recentAssetsWith(mediaOptions)
+        smartAlbums = PhotoPickerResource.shared.smartAlbumsWith(mediaOptions)
         userCollections = PhotoPickerResource.shared.userCollection()
         
         assets = allPhotos
@@ -835,22 +835,18 @@ extension PhotoPickerViewController: AlbumsTableViewControllerDelegate {
     func albumsTableViewController(_ albums: AlbumsTableViewController, didSelectPhassetAt indexPath: IndexPath) {
         self.selectedAlbumIndexPath = indexPath
         switch AlbumsTableViewController.Section(rawValue: indexPath.section)! {
-        case .allPhotos:
+        case .recentPhotos:
             assets = allPhotos
             topBar.setTitle(L10n.allPhotos)
         case .smartAlbums:
             let collection = smartAlbums[indexPath.row]
             topBar.setTitle(collection.localizedTitle ?? "")
             if mediaOptions == .image {
-                let fetchOptions = PHFetchOptions()
-                fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue)
-                assets = PHAsset.fetchAssets(in: collection, options: fetchOptions)
+                assets = PhotoPickerResource.shared.allVideos(in: collection)
             } else if mediaOptions == .video {
-                let fetchOptions = PHFetchOptions()
-                fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.video.rawValue)
-                assets = PHAsset.fetchAssets(in: collection, options: fetchOptions)
+                assets = PhotoPickerResource.shared.allVideos(in: collection)
             } else {
-                assets = PHAsset.fetchAssets(in: collection, options: nil)
+                assets = PhotoPickerResource.shared.allAssets(in: collection)
             }
         case .userCollections:
             let collection: PHCollection = userCollections.object(at: indexPath.row)
@@ -860,15 +856,11 @@ extension PhotoPickerViewController: AlbumsTableViewControllerDelegate {
             }
             topBar.setTitle(collection.localizedTitle ?? "")
             if mediaOptions == .image {
-                let fetchOptions = PHFetchOptions()
-                fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue)
-                assets = PHAsset.fetchAssets(in: assetCollection, options: fetchOptions)
+                assets = PhotoPickerResource.shared.allVideos(in: assetCollection)
             } else if mediaOptions == .video {
-                let fetchOptions = PHFetchOptions()
-                fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.video.rawValue)
-                assets = PHAsset.fetchAssets(in: assetCollection, options: fetchOptions)
+                assets = PhotoPickerResource.shared.allVideos(in: assetCollection)
             } else {
-                assets = PHAsset.fetchAssets(in: assetCollection, options: nil)
+                assets = PhotoPickerResource.shared.allAssets(in: assetCollection)
             }
         }
     }

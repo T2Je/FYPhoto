@@ -15,7 +15,7 @@ protocol AlbumsTableViewControllerDelegate: AnyObject {
 class AlbumsTableViewController: UITableViewController {
     // MARK: Types for managing sections, cell, and segue identifiers
     enum Section: Int {
-        case allPhotos = 0
+        case recentPhotos = 0
         case smartAlbums
         case userCollections
 
@@ -75,7 +75,7 @@ class AlbumsTableViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch Section(rawValue: section)! {
-        case .allPhotos: return 1
+        case .recentPhotos: return 1
         
         case .smartAlbums: return smartAlbums.count
         case .userCollections: return userCollections.count
@@ -89,7 +89,7 @@ class AlbumsTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell: UITableViewCell!
         switch Section(rawValue: indexPath.section)! {
-        case .allPhotos:
+        case .recentPhotos:
             cell = tableView.dequeueReusableCell(withIdentifier: CellIdentifier.allPhotos.rawValue, for: indexPath)
             cell.textLabel?.text = L10n.allPhotos
         case .smartAlbums:
