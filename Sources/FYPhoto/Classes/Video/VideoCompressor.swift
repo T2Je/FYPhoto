@@ -66,12 +66,18 @@ public final class VideoCompressor {
         
         let fileType: AVFileType
         
+        /// size: nil
+        /// videoBitrate: 1MBbps
+        /// videomaxKeyFrameInterval: 10
+        /// audioSampleRate: 44100
+        /// audioBitrate: 128_000
+        /// fileType: mp4
         public static let `default` = CompressionConfig(
             size: nil,
-            videoBitrate: 5000_000,
-            videomaxKeyFrameInterval: 2,
+            videoBitrate: 1024*1024,
+            videomaxKeyFrameInterval: 10,
             audioSampleRate: 44100,
-            audioBitrate: 320_000,
+            audioBitrate: 128_000,
             fileType: .mp4
         )
     }
@@ -84,9 +90,9 @@ public final class VideoCompressor {
         
     static public let shared: VideoCompressor = VideoCompressor()
     
-    static public var minimumVideoBitrate = 199100// 1000_000 // youtube suggests 1Mbps for 24 frame rate 360p video
+    static public var minimumVideoBitrate = 1000 * 250 // youtube suggests 1Mbps for 24 frame rate 360p video, 1Mbps = 1000_000bps
     
-    public func compressVideo(_ url: URL, quality: VideoQuality, completion: @escaping (Result<URL, Error>) -> Void) {
+    public func compressVideo(_ url: URL, quality: VideoQuality = .mediumQuality, completion: @escaping (Result<URL, Error>) -> Void) {
         let asset = AVAsset(url: url)
         // setup
         guard let videoTrack = asset.tracks(withMediaType: .video).first else {
@@ -103,6 +109,7 @@ public final class VideoCompressor {
         // aspect ratio
         var compressedWidth: CGFloat = videoTrack.naturalSize.width
         var compressedHeight: CGFloat = videoTrack.naturalSize.height
+        
         if compressedWidth > 640 { // 360p
             let aspectRatio: CGFloat = videoTrack.naturalSize.width / videoTrack.naturalSize.height
             compressedWidth = 640
@@ -128,16 +135,15 @@ public final class VideoCompressor {
 #if DEBUG
         print("Original video size: \(url.sizePerMB())")
         print("########## Video ##########")
-        print("Original:")
+        print("ORIGINAL:")
         print("bitrate: \(originVideoBitrate) b/s")
         
         print("size: \(videoTrack.naturalSize)")
 
-        print("Target:")
+        print("TARGET:")
         print("video bitrate: \(targetVideoBitRate) b/s")
         print("size: (\(compressedWidth), \(compressedHeight))")
 #endif
-        
         _compress(asset: asset, fileType: .mp4, videoTrack, videoSettings, audioTrack, audioSettings, completion: completion)
     }
     
@@ -163,16 +169,14 @@ public final class VideoCompressor {
         }
         
         _compress(asset: asset, fileType: config.fileType, videoTrack, videoSettings, audioTrack, audioSettings, completion: completion)
-        
-        
     }
     
-    func _compress(asset: AVAsset, fileType: AVFileType, _ videoTrack: AVAssetTrack, _ videoSettings: [String: Any], _ audioTrack: AVAssetTrack?, _ audioSettings: [String: Any]?, completion: @escaping (Result<URL, Error>) -> Void) {
+    private func _compress(asset: AVAsset, fileType: AVFileType, _ videoTrack: AVAssetTrack, _ videoSettings: [String: Any], _ audioTrack: AVAssetTrack?, _ audioSettings: [String: Any]?, completion: @escaping (Result<URL, Error>) -> Void) {
         // video
         let videoOutput = AVAssetReaderTrackOutput.init(track: videoTrack,
                                                         outputSettings: [kCVPixelBufferPixelFormatTypeKey as String:
                                                                                                 kCVPixelFormatType_32BGRA])
-        let videoInput = AVAssetWriterInput.init(mediaType: .video, outputSettings: videoSettings)
+        let videoInput = AVAssetWriterInput(mediaType: .video, outputSettings: videoSettings)
         videoInput.transform = videoTrack.preferredTransform // fix output video orientation
         do {
             var outputURL = try FileManager.tempDirectory(with: "CompressedVideo")
@@ -197,8 +201,11 @@ public final class VideoCompressor {
             var audioInput: AVAssetWriterInput?
             var audioOutput: AVAssetReaderTrackOutput?
             if let audioTrack = audioTrack, let audioSettings = audioSettings {
-                audioOutput = AVAssetReaderTrackOutput.init(track: audioTrack, outputSettings: [AVFormatIDKey: kAudioFormatLinearPCM])
-                let adInput = AVAssetWriterInput.init(mediaType: .audio, outputSettings: audioSettings)
+                // Specify the number of audio channels we want when decompressing the audio from the asset to avoid error when handling audio data.
+                // It really matters when the audio has more than 2 channels, e.g: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+                audioOutput = AVAssetReaderTrackOutput(track: audioTrack, outputSettings: [AVFormatIDKey: kAudioFormatLinearPCM,
+                                                                                   AVNumberOfChannelsKey: 2])
+                let adInput = AVAssetWriterInput(mediaType: .audio, outputSettings: audioSettings)
                 audioInput = adInput
                 if reader.canAdd(audioOutput!) {
                     reader.add(audioOutput!)
@@ -276,128 +283,6 @@ public final class VideoCompressor {
         }
         
     }
-    
-    /// Compress video method.
-    ///
-    /// - Parameters:
-    ///   - url: video file path
-    ///   - quality: target quality
-    ///   - completion: completion callBack with a compressed video or a failed error.
-    ///   - Caution: compress video method uses many AVFoundation APIs, it's better to test it via real device otherwise odd errors will occurr.
-//    public func compressVideo(_ url: URL, quality: VideoQuality, config: CompressionConfig = .default, completion: @escaping (Result<URL, Error>) -> Void) {
-//        do {
-//            let asset = AVAsset.init(url: url)
-//            let reader = try AVAssetReader(asset: asset)
-//
-//            let writer =  try AVAssetWriter.init(url: outputURL, fileType: config.fileType)
-//            self.reader = reader
-//            self.writer = writer
-//
-//            // setup
-//            guard let videoTrack = asset.tracks(withMediaType: .video).first else {
-//                completion(.failure(VideoCompressorError.noVideo))
-//                return
-//            }
-//
-//            // video
-//            let videoOutput = AVAssetReaderTrackOutput.init(track: videoTrack,
-//                                                            outputSettings: [kCVPixelBufferPixelFormatTypeKey as String:
-//                                                                                                    kCVPixelFormatType_32BGRA])
-//
-//            let outputSettings = videoCompressSettings(videoTrack, quality: quality)
-//
-//            let videoInput = AVAssetWriterInput.init(mediaType: .video, outputSettings: outputSettings)
-//            videoInput.transform = videoTrack.preferredTransform // fix output video transform
-//
-//            if reader.canAdd(videoOutput) {
-//                reader.add(videoOutput)
-//                videoOutput.alwaysCopiesSampleData = false
-//            }
-//            if writer.canAdd(videoInput) {
-//                writer.add(videoInput)
-//            }
-//
-//            // audio
-//            var audioInput: AVAssetWriterInput?
-//            var audioOutput: AVAssetReaderTrackOutput?
-//            if let audioTrack = asset.tracks(withMediaType: .audio).first {
-//                let adOutput = AVAssetReaderTrackOutput.init(track: audioTrack, outputSettings: [AVFormatIDKey: kAudioFormatLinearPCM])
-//                audioOutput = adOutput
-//
-//                let audioSettings = audioCompressSettings(audioTrack)
-//                let adInput = AVAssetWriterInput.init(mediaType: .audio, outputSettings: audioSettings)
-//                audioInput = adInput
-//                if reader.canAdd(adOutput) {
-//                    reader.add(adOutput)
-//                }
-//                if writer.canAdd(adInput) {
-//                    writer.add(adInput)
-//                }
-//            }
-//
-//            #if DEBUG
-//            let startTime = Date()
-//            #endif
-//            // start compressing
-//            reader.startReading()
-//            writer.startWriting()
-//            writer.startSession(atSourceTime: CMTime.zero)
-//
-//            // output video
-//            group.enter()
-//            let reduceFPS = quality.value.0 < videoTrack.nominalFrameRate
-//            if reduceFPS {
-//                outputVideoDataByReducingFPS(originFPS: videoTrack.nominalFrameRate,
-//                                             targetFPS: quality.value.0,
-//                                             videoInput: videoInput,
-//                                             videoOutput: videoOutput) {
-//                    self.group.leave()
-//                }
-//            } else {
-//                outputVideoData(videoInput, videoOutput: videoOutput) {
-//                    self.group.leave()
-//                }
-//            }
-//
-//            // output audio
-//            if let realAudioInput = audioInput, let realAudioOutput = audioOutput {
-//                group.enter()
-//                realAudioInput.requestMediaDataWhenReady(on: audioCompressQueue) {
-//                    while realAudioInput.isReadyForMoreMediaData {
-//                        if let buffer = realAudioOutput.copyNextSampleBuffer() {
-//                            realAudioInput.append(buffer)
-//                        } else {
-////                            print("finish audio appending")
-//                            realAudioInput.markAsFinished()
-//                            self.group.leave()
-//                            break
-//                        }
-//                    }
-//                }
-//            }
-//
-//            // completion
-//            group.notify(queue: .main) {
-//                switch writer.status {
-//                case .writing, .completed:
-//                    writer.finishWriting {
-//                        #if DEBUG
-//                        let endTime = Date()
-//                        let elapse = endTime.timeIntervalSince(startTime)
-//                        print("compression time: \(elapse)")
-//                        #endif
-//                        DispatchQueue.main.sync {
-//                            completion(.success(outputURL))
-//                        }
-//                    }
-//                default:
-//                    completion(.failure(writer.error!))
-//                }
-//            }
-//        } catch {
-//            completion(.failure(error))
-//        }
-//    }
         
     func createVideoSettingsWithBitrate(_ bitrate: Int, maxKeyFrameInterval: Int, size: CGSize) -> [String : Any] {
         return [AVVideoCodecKey: AVVideoCodecType.h264,
@@ -413,172 +298,39 @@ AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: bitrate,
     }
     
     func createAudioSettingsWithAudioTrack(_ audioTrack: AVAssetTrack, bitrate: Int, sampleRate: Int) -> [String : Any] {
-        var formatDescription: CMFormatDescription?
-        if let audioFormatDescs = audioTrack.formatDescriptions as? [CMFormatDescription] {
-            formatDescription = audioFormatDescs.first
-        }
 #if DEBUG
-        print("########## Audio ##########")
-        print("Original:")
-        print("bitrate: \(audioTrack.estimatedDataRate)")
-#endif
-        var channelLayout = AudioChannelLayout()
-        channelLayout.mChannelLayoutTag = kAudioChannelLayoutTag_Stereo
-        channelLayout.mChannelBitmap = AudioChannelBitmap(rawValue: 0)
-        channelLayout.mNumberChannelDescriptions = 0
-        
-        var layoutData = Data(bytes: &channelLayout, count: MemoryLayout<AudioChannelLayout>.size)
-        guard let formatDesc = formatDescription else {
-//            var channelLayout = AudioChannelLayout()
-//            channelLayout.mChannelLayoutTag = kAudioChannelLayoutTag_Stereo
-//            channelLayout.mChannelBitmap = AudioChannelBitmap(rawValue: 0)
-//            channelLayout.mNumberChannelDescriptions = 0
-                    
-            let compressSetting: [String: Any] = [
-                AVFormatIDKey: kAudioFormatMPEG4AAC,
-                AVNumberOfChannelsKey: 2,
-                AVEncoderBitRateKey: bitrate,
-                AVSampleRateKey: sampleRate,
-                AVChannelLayoutKey: layoutData,
-            ]
-            return compressSetting
+        if let audioFormatDescs = audioTrack.formatDescriptions as? [CMFormatDescription], let formatDescription = audioFormatDescs.first {
+            print("########## Audio ##########")
+            print("ORINGIAL:")
+            print("bitrate: \(audioTrack.estimatedDataRate)")
+            if let streamBasicDescription = CMAudioFormatDescriptionGetStreamBasicDescription(formatDescription) {
+                print("sampleRate: \(streamBasicDescription.pointee.mSampleRate)")
+                print("channels: \(streamBasicDescription.pointee.mChannelsPerFrame)")
+                print("formatID: \(streamBasicDescription.pointee.mFormatID)")
+            }
+            
+            print("TARGET:")
+            print("bitrate: \(bitrate)")
+            print("sampleRate: \(sampleRate)")
+            print("channels: \(2)")
+            print("formatID: \(kAudioFormatMPEG4AAC)")
         }
         
-//        var sampleRate: Float64 = 44100
-        var channels: UInt32 = 2
-        var formatID: AudioFormatID = kAudioFormatMPEG4AAC
-        
-        if let streamBasicDescription = CMAudioFormatDescriptionGetStreamBasicDescription(formatDesc) {
-//            if sampleRate > streamBasicDescription.pointee.mSampleRate {
-//                sampleRate = streamBasicDescription.pointee.mSampleRate
-            //            }
-#if DEBUG
-            print("sampleRate: \(streamBasicDescription.pointee.mSampleRate)")
-            print("channels: \(streamBasicDescription.pointee.mChannelsPerFrame)")
-            print("formatID: \(streamBasicDescription.pointee.mFormatID)")
-#endif
-//            channels = streamBasicDescription.pointee.mChannelsPerFrame
-//            formatID = streamBasicDescription.pointee.mFormatID
-        }
-        
-        var layoutSize: Int = 0
-//        var layoutData: Data = Data()
-        if let currentChannelLayout = CMAudioFormatDescriptionGetChannelLayout(formatDesc, sizeOut: &layoutSize) {
-            // handle a special case 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
-            // use AAC_HE instead of AAC
-//            if currentChannelLayout.pointee.mChannelLayoutTag == kAudioChannelLayoutTag_MPEG_5_1_D && formatID != kAudioFormatMPEG4AAC_HE {
-//                formatID = kAudioFormatMPEG4AAC_HE
-//            }
-//            layoutData = layoutSize > 0 ? Data(bytes: currentChannelLayout, count: layoutSize) : Data()
-        }
-        
-        
-#if DEBUG
-        print("Target:")
-        print("bitrate: \(bitrate)")
-        print("sampleRate: \(sampleRate)")
-        print("channels: \(channels)")
-        print("formatID: \(formatID)")
 #endif
         
-        let compressSetting: [String: Any] = [
-            AVFormatIDKey: formatID,
-            AVNumberOfChannelsKey: channels,
+        var audioChannelLayout = AudioChannelLayout()
+        memset(&audioChannelLayout, 0, MemoryLayout<AudioChannelLayout>.size)
+        audioChannelLayout.mChannelLayoutTag = kAudioChannelLayoutTag_Stereo
+        
+        return [
+            AVFormatIDKey: kAudioFormatMPEG4AAC,
+            AVSampleRateKey: sampleRate,
             AVEncoderBitRateKey: bitrate,
-            AVSampleRateKey: sampleRate,
-            AVChannelLayoutKey: layoutData,
+            AVNumberOfChannelsKey: 2,
+            AVChannelLayoutKey: Data(bytes: &audioChannelLayout, count: MemoryLayout<AudioChannelLayout>.size)
         ]
-        return compressSetting
     }
     
-    func videoCompressSettings(_ videoTrack: AVAssetTrack, quality: VideoQuality) -> [String : Any] {
-        let targetBitRateTimes = quality.value.1
-        // bit rate
-        let originBitRate = Int(videoTrack.estimatedDataRate)
-        let tempBitRate = originBitRate / targetBitRateTimes
-        let compressedBitRate = tempBitRate > VideoCompressor.minimumVideoBitrate ? tempBitRate : VideoCompressor.minimumVideoBitrate
-        
-        // aspect ratio
-        var compressedWidth: CGFloat = videoTrack.naturalSize.width
-        var compressedHeight: CGFloat = videoTrack.naturalSize.height
-        if compressedWidth > 640 {
-            let aspectRatio: CGFloat = videoTrack.naturalSize.width / videoTrack.naturalSize.height
-            compressedWidth = 640
-            compressedHeight = compressedWidth / aspectRatio
-        }
-        #if DEBUG
-        print("original bit rate: \(originBitRate) b/s")
-        print("target bit rate: \(compressedBitRate) b/s")
-        print("original size: \(videoTrack.naturalSize)")
-        print("target size: (\(compressedWidth), \(compressedHeight))")
-        #endif
-        
-        
-        let outputSeting: [String : Any] = [AVVideoCodecKey: AVVideoCodecType.h264,
-                                            AVVideoWidthKey: compressedWidth,
-                                            AVVideoHeightKey: compressedHeight,
-                                            AVVideoScalingModeKey: AVVideoScalingModeResizeAspectFill,
-                                            AVVideoCompressionPropertiesKey: [AVVideoAverageBitRateKey: compressedBitRate,
-                                                                              AVVideoProfileLevelKey: AVVideoProfileLevelH264HighAutoLevel,
-                                                                              AVVideoH264EntropyModeKey: AVVideoH264EntropyModeCABAC
-                                            ]
-        ]
-        return outputSeting
-    }
-    
-    func audioCompressSettings(_ audioTrack: AVAssetTrack) -> [String: Any] {
-        var formatDescription: CMFormatDescription?
-        if let audioFormatDescs = audioTrack.formatDescriptions as? [CMFormatDescription] {
-            formatDescription = audioFormatDescs.first
-        }
-        guard let formatDesc = formatDescription else {
-            var channelLayout = AudioChannelLayout.init()
-            channelLayout.mChannelLayoutTag = kAudioChannelLayoutTag_Stereo
-            channelLayout.mChannelBitmap = AudioChannelBitmap(rawValue: 0)
-            channelLayout.mNumberChannelDescriptions = 0
-                    
-            let compressSetting: [String: Any] = [
-                AVFormatIDKey: kAudioFormatMPEG4AAC,
-                AVNumberOfChannelsKey: 2,
-                AVEncoderBitRateKey: 96_000,
-                AVSampleRateKey: 44100,
-                AVChannelLayoutKey: Data(bytes: &channelLayout, count: MemoryLayout<AudioChannelLayout>.size),
-            ]
-            return compressSetting
-        }
-
-        var sampleRate: Float64 = 44100
-        var channels: UInt32 = 2
-        var formatID: AudioFormatID = kAudioFormatMPEG4AAC
-        
-        if let streamBasicDescription = CMAudioFormatDescriptionGetStreamBasicDescription(formatDesc) {
-            if sampleRate > streamBasicDescription.pointee.mSampleRate {
-                sampleRate = streamBasicDescription.pointee.mSampleRate
-            }
-            channels = streamBasicDescription.pointee.mChannelsPerFrame
-            formatID = streamBasicDescription.pointee.mFormatID
-        }
-        
-        var layoutSize: Int = 0
-        var layoutData: Data = Data()
-        if let currentChannelLayout = CMAudioFormatDescriptionGetChannelLayout(formatDescription!, sizeOut: &layoutSize) {
-            // handle a special case 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
-            // use AAC_HE instead of AAC
-            if currentChannelLayout.pointee.mChannelLayoutTag == kAudioChannelLayoutTag_MPEG_5_1_D && formatID != kAudioFormatMPEG4AAC_HE {
-                formatID = kAudioFormatMPEG4AAC_HE
-            }
-            layoutData = layoutSize > 0 ? Data(bytes: currentChannelLayout, count: layoutSize) : Data()
-        }
-        
-        let compressSetting: [String: Any] = [
-            AVFormatIDKey: formatID,
-            AVNumberOfChannelsKey: channels,
-            AVEncoderBitRateKey: 96_000,
-            AVSampleRateKey: sampleRate,
-            AVChannelLayoutKey: layoutData,
-        ]
-        return compressSetting
-    }
     
     private func outputVideoDataByReducingFPS(originFPS: Float,
                                               targetFPS: Float,
