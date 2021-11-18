@@ -128,7 +128,7 @@ public final class VideoCompressor {
             let audioBitrate: Int
             let audioSampleRate: Int
             
-            audioBitrate = 96_000
+            audioBitrate = quality == .lowQuality ? 96_000 : 128_000 // 96_000
             audioSampleRate = 44100
             audioSettings = createAudioSettingsWithAudioTrack(adTrack, bitrate: audioBitrate, sampleRate: audioSampleRate)
         }
