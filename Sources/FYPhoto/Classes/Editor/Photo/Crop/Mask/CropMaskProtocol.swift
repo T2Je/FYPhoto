@@ -16,12 +16,12 @@ protocol CropMaskProtocol where Self: UIView {
 extension CropMaskProtocol {
     func createTransparentRect(withOutside outsideRect: CGRect, insideRect: CGRect, opacity: Float) -> CAShapeLayer {
         let path = UIBezierPath(rect: outsideRect)
-        
+
         let innerPath = UIBezierPath(rect: insideRect)
-        
+
         path.append(innerPath)
         path.usesEvenOddFillRule = true
-        
+
         let fillLayer = CAShapeLayer()
         fillLayer.path = path.cgPath
         fillLayer.fillRule = .evenOdd
@@ -29,7 +29,7 @@ extension CropMaskProtocol {
         fillLayer.opacity = opacity
         return fillLayer
     }
-    
+
     func animateTransparentLayer(_ shapeLayer: CAShapeLayer, withOutside outsideRect: CGRect, insideRect: CGRect, opacity: Float) {
         let animation = CABasicAnimation(keyPath: "path")
         animation.fromValue = shapeLayer.path
@@ -39,14 +39,14 @@ extension CropMaskProtocol {
         animation.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut) // Avoid animation vibration, but still not smooth enough.
         shapeLayer.add(animation, forKey: "pathAnimation")
     }
-    
+
     func addTransparentRect(on fillLayer: CAShapeLayer, withOutside outsideRect: CGRect, insideRect: CGRect, opacity: Float) {
         let path = UIBezierPath(rect: outsideRect)
         let innerPath = UIBezierPath(rect: insideRect)
-        
+
         path.append(innerPath)
         path.usesEvenOddFillRule = true
-        
+
         fillLayer.path = path.cgPath
         fillLayer.fillRule = .evenOdd
         fillLayer.fillColor = UIColor.black.cgColor

@@ -45,10 +45,10 @@ extension PhotoBrowserViewController {
         let options = PHVideoRequestOptions()
         options.deliveryMode = .highQualityFormat
         options.isNetworkAccessAllowed = true
-        options.progressHandler = { progress, error, stop, info in
+        options.progressHandler = { progress, _, _, _ in
             print("request video from icloud progress: \(progress)")
         }
-        PHImageManager.default().requestPlayerItem(forVideo: asset, options: options) { (item, info) in
+        PHImageManager.default().requestPlayerItem(forVideo: asset, options: options) { (item, _) in
             if let item = item {
                 let player = self.preparePlayer(with: item)
                 playerView.player = player
@@ -56,7 +56,7 @@ extension PhotoBrowserViewController {
             }
         }
     }
-    
+
     fileprivate func setupPlayer(url: URL, for playerView: PlayerView, completion: @escaping ((URL?) -> Void)) {
         if url.isFileURL {
             setupPlayerView(url, playerView: playerView)
@@ -80,7 +80,7 @@ extension PhotoBrowserViewController {
             }
         }
     }
-    
+
     fileprivate func setupPlayerView(_ url: URL, playerView: PlayerView) {
         // Create a new AVPlayerItem with the asset and an
         // array of asset keys to be automatically loaded
@@ -90,7 +90,7 @@ extension PhotoBrowserViewController {
         playerView.player = player
         self.player = player
     }
-    
+
     fileprivate func preparePlayer(with playerItem: AVPlayerItem) -> AVPlayer {
         if let currentItem = mPlayerItem {
             playerItemStatusToken?.invalidate()
@@ -98,7 +98,7 @@ extension PhotoBrowserViewController {
         }
         self.mPlayerItem = playerItem
         // observing the player item's status property
-        playerItemStatusToken = playerItem.observe(\.status, options: .new) { (item, change) in
+        playerItemStatusToken = playerItem.observe(\.status, options: .new) { (_, change) in
             // Switch over status value
             switch change.newValue {
             case .readyToPlay:
@@ -116,7 +116,7 @@ extension PhotoBrowserViewController {
                 fatalError()
             }
         }
-        
+
         NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidReachEnd(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
 
         seekToZeroBeforePlay = false
@@ -155,13 +155,13 @@ extension PhotoBrowserViewController {
         player.seek(to: .zero)
         isPlaying = false
     }
-    
+
     func stopPlayingVideoIfNeeded(at oldIndexPath: IndexPath) {
         if isPlaying {
             stopPlayingIfNeeded()
         }
     }
-    
+
     // MARK: Target action
     @objc func playerItemDidReachEnd(_ notification: Notification) {
         isPlaying = false

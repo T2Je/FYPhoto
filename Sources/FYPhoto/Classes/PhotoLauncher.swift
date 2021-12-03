@@ -142,16 +142,16 @@ public extension PhotoLauncherDelegate {
         configuration.supportCamera = false
 //        configuration.filterdMedia = mediaOptions
         configuration.mediaFilter = mediaOptions
-        
+
         let photoPicker = PhotoPickerViewController(configuration: configuration)
-        
+
         photoPicker.selectedPhotos = { [weak self] images in
             self?.delegate?.selectedPhotosInPhotoLauncher(images)
         }
         photoPicker.selectedVideo = { [weak self] video in
             self?.delegate?.selectedVideoInPhotoLauncher(video)
         }
-        
+
         viewController.present(photoPicker, animated: true, completion: nil)
     }
 
@@ -202,7 +202,7 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
         alert.popoverPresentationController?.sourceRect = config.sourceRect
         container.present(alert, animated: true, completion: nil)
     }
-    
+
     /// Launch system PhotoPicker with selectionLimit, mediaOptions in viewcontroller
     /// mediaOptions parameter should be ethier `.image` or `.video`.
     ///
@@ -225,7 +225,7 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
 //            filter = PHPickerFilter.any(of: [.images, .videos])
         }
         configuration.filter = filter
-        
+
         let pickerController = PHPickerViewController(configuration: configuration)
         pickerController.delegate = self
         viewController.present(pickerController, animated: true, completion: nil)
@@ -243,7 +243,7 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
                 self.delegate?.selectedVideoInPhotoLauncher(result)
             }
         }
-        
+
         picker.dismiss(animated: true, completion: nil)
     }
 
@@ -255,7 +255,7 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
 
         var items: [T] = []
         let group = DispatchGroup()
-        
+
         results.forEach { result in
             if result.itemProvider.canLoadObject(ofClass: UIImage.self) {
                 group.enter()
@@ -296,7 +296,7 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
                     }
                     group.leave()
                 }
-            } else if result.itemProvider.hasRepresentationConforming(toTypeIdentifier: AVFileType.mov.rawValue, fileOptions: []){
+            } else if result.itemProvider.hasRepresentationConforming(toTypeIdentifier: AVFileType.mov.rawValue, fileOptions: []) {
                 group.enter()
                 result.itemProvider.loadFileRepresentation(forTypeIdentifier: AVFileType.mov.rawValue) { (url, error) in
                     if let error = error {

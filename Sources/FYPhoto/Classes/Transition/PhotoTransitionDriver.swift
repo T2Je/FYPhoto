@@ -8,8 +8,8 @@
 import Foundation
 import UIKit
 
-class PhotoTransitionDriver: TransitionDriver {    
-    
+class PhotoTransitionDriver: TransitionDriver {
+
     var transitionAnimator: UIViewPropertyAnimator!
     var isInteractive: Bool {
         return transitionContext.isInteractive
@@ -18,9 +18,9 @@ class PhotoTransitionDriver: TransitionDriver {
     let isPresenting: Bool
     let isNavigationAnimation: Bool
     let transitionEssential: TransitionEssentialClosure?
-    
+
     var fromAssetTransitioning: PhotoTransitioning?
-    
+
     private let duration: TimeInterval
 
     var toView: UIView? // toView is nil when dismissing
@@ -38,8 +38,8 @@ class PhotoTransitionDriver: TransitionDriver {
 //        imageView.backgroundColor = .black
         return imageView
     }()
-    
-    var transitionType: TransitionType = .noTransitionAnimation        
+
+    var transitionType: TransitionType = .noTransitionAnimation
 
     // MARK: Initialization
 
@@ -68,22 +68,22 @@ class PhotoTransitionDriver: TransitionDriver {
         if !isPresenting {
             self.fromView = context.view(forKey: .from)
         }
-        
+
         let containerView = context.containerView
-        
+
         if fromViewController is UINavigationController {
             if let naviTopViewController = (fromViewController as? UINavigationController)?.topViewController {
                 fromViewController = naviTopViewController
             }
         }
         fromAssetTransitioning = fromViewController as? PhotoTransitioning
-        
+
         if toViewController is UINavigationController {
             if let naviTopViewController = (toViewController as? UINavigationController)?.topViewController {
                 toViewController = naviTopViewController
             }
         }
-        
+
         var currentPage: Int = 0
         if isPresenting {
             if let photoBrowser = toViewController as? PhotoBrowserCurrentPage {
@@ -94,14 +94,14 @@ class PhotoTransitionDriver: TransitionDriver {
                 currentPage = photoBrowser.currentPage
             }
         }
-        
+
         if let toView = self.toView {
             toView.alpha = 0.0
             containerView.addSubview(toView)
             // Ensure the toView has the correct size and position
             // toView.frame = context.finalFrame(for: toViewController)
         }
-        
+
         // transitionImageView should be the top view of containerView
         if let fromTransition = fromAssetTransitioning, let toTransition = toViewController as? PhotoTransitioning {
             transitionType = .photoTransitionProtocol(from: fromTransition, to: toTransition)
@@ -110,10 +110,10 @@ class PhotoTransitionDriver: TransitionDriver {
             }
 //            addEffectView(on: containerView)
             containerView.addSubview(transitionImageView)
-            
+
             transitionImageView.image = fromTransition.referenceImage()
             transitionImageView.frame = fromTransition.imageFrame() ?? containerView.frame
-            
+
             // Inform the view controller's the transition is about to start
             fromTransition.transitionWillStart()
             toTransition.transitionWillStart()
@@ -140,14 +140,14 @@ class PhotoTransitionDriver: TransitionDriver {
             containerView.addSubview(transitionImageView)
         } else {
             transitionType = .noTransitionAnimation
-            
+
             if let fromTransition = fromAssetTransitioning {
                 containerView.addSubview(transitionImageView)
                 transitionImageView.image = fromTransition.referenceImage()
-                transitionImageView.frame = fromTransition.imageFrame() ?? containerView.frame                
+                transitionImageView.frame = fromTransition.imageFrame() ?? containerView.frame
             }
         }
-        
+
         // Insert the toViewController's view into the transition container view
         var topView: UIView?
         var topViewTargetAlpha: CGFloat = 0.0
@@ -186,7 +186,7 @@ class PhotoTransitionDriver: TransitionDriver {
                 }
             }
         }
-        
+
         transitionAnimator.startAnimation()
 
         transitionAnimator.addCompletion { _ in
@@ -196,7 +196,7 @@ class PhotoTransitionDriver: TransitionDriver {
             if self.isNavigationAnimation {
                 self.toView?.alpha = 1
             }
-            
+
             // Finish the protocol handshake
             switch self.transitionType {
             case .photoTransitionProtocol(from: let fromTransition, to: let toTransition):
@@ -213,17 +213,17 @@ class PhotoTransitionDriver: TransitionDriver {
             self.transitionContext.completeTransition(true)
         }
     }
-    
+
     fileprivate func addEffectView(on containerView: UIView) {
         // Create a visual effect view and animate the effect in the transition animator
         let effect: UIVisualEffect? = isPresenting ? nil : UIBlurEffect(style: .extraLight)
         visualEffectView.effect = effect
         visualEffectView.frame = containerView.bounds
-        visualEffectView.autoresizingMask = [.flexibleWidth,.flexibleHeight]
-        
+        visualEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+
         containerView.addSubview(visualEffectView)
     }
-    
+
     func animateTransitionImageViewForPresenting(_ isPresenting: Bool) {
         switch transitionType {
         case .photoTransitionProtocol(from: let fromTransition, to: let toTransition):
@@ -258,5 +258,5 @@ class PhotoTransitionDriver: TransitionDriver {
             }
         }
     }
-    
+
 }

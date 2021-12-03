@@ -25,7 +25,7 @@ class AlbumsTableViewController: UITableViewController {
     enum CellIdentifier: String {
         case allPhotos, collection
     }
-    
+
     weak var delegate: AlbumsTableViewControllerDelegate?
 
     let allPhotos: PHFetchResult<PHAsset>
@@ -76,7 +76,7 @@ class AlbumsTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch Section(rawValue: section)! {
         case .recentPhotos: return 1
-        
+
         case .smartAlbums: return smartAlbums.count
         case .userCollections: return userCollections.count
         }

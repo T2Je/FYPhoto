@@ -10,7 +10,7 @@ import UIKit
 class GridCameraCell: UICollectionViewCell {
     static let reuseIdentifier = "GridCameraCell"
     let imageView = UIImageView()
-        
+
     override init(frame: CGRect = .zero) {
         super.init(frame: frame)
         contentView.backgroundColor = UIColor.color(light: #colorLiteral(red: 0.9294117647, green: 0.937254902, blue: 0.9450980392, alpha: 1), dark: #colorLiteral(red: 0.1843137255, green: 0.1843137255, blue: 0.1843137255, alpha: 1))
@@ -19,7 +19,7 @@ class GridCameraCell: UICollectionViewCell {
         imageView.tintColor = UIColor.color(light: #colorLiteral(red: 0.1843137255, green: 0.1843137255, blue: 0.1843137255, alpha: 1), dark: #colorLiteral(red: 0.9294117647, green: 0.937254902, blue: 0.9450980392, alpha: 1))
         contentView.addSubview(imageView)
         imageView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         NSLayoutConstraint.activate([
             imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
@@ -27,9 +27,9 @@ class GridCameraCell: UICollectionViewCell {
             imageView.topAnchor.constraint(equalTo: contentView.topAnchor)
         ])
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
 }

@@ -30,7 +30,6 @@ public extension CGRect {
     }
 }
 
-
 public extension CGFloat {
     /// Returns the value, scaled-and-shifted to the targetRange.
     /// If no target range is provided, we assume the unit range (0, 1)

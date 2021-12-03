@@ -10,7 +10,7 @@ import Foundation
 extension FileManager {
     public enum CreateTempDirectoryError: Error, LocalizedError {
         case fileExsisted
-        
+
         public var errorDescription: String? {
             switch self {
             case .fileExsisted:
@@ -25,7 +25,7 @@ extension FileManager {
     /// - Warning: Every time you call this function will return a different directory or throw an error.
     public static func tempDirectory(with pathComponent: String = ProcessInfo.processInfo.globallyUniqueString) throws -> URL {
         var tempURL: URL
-        
+
         // Only the volume(卷) of cache url is used.
         let cacheURL = FileManager.default.temporaryDirectory
         if let url = try? FileManager.default.url(for: .itemReplacementDirectory,
@@ -36,9 +36,9 @@ extension FileManager {
         } else {
             tempURL = URL(fileURLWithPath: NSTemporaryDirectory())
         }
-                
+
         tempURL.appendPathComponent(pathComponent)
-                
+
         if !FileManager.default.fileExists(atPath: tempURL.absoluteString) {
             do {
                 try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true, attributes: nil)

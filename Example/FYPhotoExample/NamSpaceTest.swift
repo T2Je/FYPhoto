@@ -14,6 +14,6 @@ extension UICollectionView: FYNameSpaceProtocol {}
 
 extension TypeWrapperProtocol where WrappedType == UICollectionView {
     func registerCell<T: UITableViewCell>(_ cell: T.Type) {
-        
+
     }
 }

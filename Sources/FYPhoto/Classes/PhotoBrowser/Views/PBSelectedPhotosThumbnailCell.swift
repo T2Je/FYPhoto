@@ -10,7 +10,7 @@ import Photos
 
 class PBSelectedPhotosThumbnailCell: UICollectionViewCell {
     static let reuseIdentifier = "PBSelectedPhotosThumbnailCell"
-    
+
     let imageView = UIImageView()
     var photo: PhotoProtocol? {
         willSet {
@@ -34,7 +34,7 @@ class PBSelectedPhotosThumbnailCell: UICollectionViewCell {
     }
 
     var cellBorderColor: UIColor = UIColor.systemBlue
-    
+
     var thumbnailIsSelected: Bool = false {
         willSet {
             if newValue {
@@ -46,7 +46,7 @@ class PBSelectedPhotosThumbnailCell: UICollectionViewCell {
             }
         }
     }
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.layer.cornerRadius = 4
@@ -56,7 +56,7 @@ class PBSelectedPhotosThumbnailCell: UICollectionViewCell {
         imageView.contentMode = .scaleAspectFill
         imageView.layer.masksToBounds = true
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }

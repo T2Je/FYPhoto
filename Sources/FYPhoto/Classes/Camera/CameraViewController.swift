@@ -14,7 +14,7 @@ import UniformTypeIdentifiers
 public struct WatermarkImage {
     let image: UIImage
     let frame: CGRect
-    
+
     public init(image: UIImage, frame: CGRect) {
         self.image = image
         self.frame = frame
@@ -34,7 +34,7 @@ public class CameraViewController: UIViewController {
 
     /// capture mode. Default is image.
     public var captureMode: MediaOptions = .image
-    
+
     public var cameraOverlayView: VideoCaptureOverlay!
     public var moviePathExtension = "mov"
     /// maximum video capture duration. Default 15s
@@ -42,7 +42,7 @@ public class CameraViewController: UIViewController {
 
     var previewView = VideoPreviewView()
     var bundleDisplayName: String = "App"
-    
+
     // Session
     private enum SessionSetupResult {
         case success
@@ -65,14 +65,14 @@ public class CameraViewController: UIViewController {
     private var videoDeviceDiscoverySession: AVCaptureDevice.DiscoverySession!
     private var backDeviceDiscoverySession: AVCaptureDevice.DiscoverySession!
     private var frontDeviceDiscoverySession: AVCaptureDevice.DiscoverySession!
-    
+
     /// the current flash mode
     private var flashMode: AVCaptureDevice.FlashMode = .auto
 
     // Movie
     private var movieFileOutput: AVCaptureMovieFileOutput?
     private var backgroundRecordingID: UIBackgroundTaskIdentifier?
-    
+
     var windowOrientation: UIInterfaceOrientation {
         if #available(iOS 13.0, *) {
             return view.window?.windowScene?.interfaceOrientation ?? .unknown
@@ -86,7 +86,7 @@ public class CameraViewController: UIViewController {
     }
 
     private let tintColor: UIColor
-    
+
     public init(tintColor: UIColor = .systemBlue) {
         self.tintColor = tintColor
         super.init(nibName: nil, bundle: nil)
@@ -96,13 +96,13 @@ public class CameraViewController: UIViewController {
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override public func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .black
-        
+
         bundleDisplayName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "APP"
-        
+
         cameraOverlayView = VideoCaptureOverlay(videoMaximumDuration: videoMaximumDuration, tintColor: tintColor)
 
         view.addSubview(previewView)
@@ -113,13 +113,13 @@ public class CameraViewController: UIViewController {
         cameraOverlayView.delegate = self
 
         previewView.session = session
-        
+
         // there is no need to request microphone authorization when only taking photos
         handleVideoAuthority(for: captureMode)
-        
+
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(focusAndExposeTap(_:)))
         view.addGestureRecognizer(tapGesture)
-        
+
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(pinchToScale(_:)))
         view.addGestureRecognizer(pinchGesture)
         /*
@@ -209,7 +209,7 @@ public class CameraViewController: UIViewController {
             previewView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             previewView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-        
+
         cameraOverlayView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             cameraOverlayView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
@@ -222,11 +222,11 @@ public class CameraViewController: UIViewController {
     func alertNotAuthorized() {
         let changePrivacySetting = bundleDisplayName + L10n.withoutCameraPermission
         let alertController = UIAlertController(title: "\(bundleDisplayName)", message: changePrivacySetting, preferredStyle: .alert)
-        
+
         alertController.addAction(UIAlertAction(title: L10n.ok,
                                                 style: .cancel,
                                                 handler: nil))
-        
+
         alertController.addAction(UIAlertAction(title: L10n.settings,
                                                 style: .`default`,
                                                 handler: { _ in
@@ -234,11 +234,10 @@ public class CameraViewController: UIViewController {
                                                                               options: [:],
                                                                               completionHandler: nil)
                                                 }))
-        
+
         self.present(alertController, animated: true, completion: nil)
     }
-    
-    
+
     func alertCameraConfigurationFailed() {
 //        let alertMsg = "Alert message when something goes wrong during capture session configuration"
         let message = L10n.cameraConfigurationFailed
@@ -248,7 +247,7 @@ public class CameraViewController: UIViewController {
                                                 handler: nil))
         self.present(alertController, animated: true, completion: nil)
     }
-    
+
     func alertNoDeviceAvailable() {
         let message = L10n.cameraConfigurationFailed
         let alertController = UIAlertController(title: L10n.camera, message: message, preferredStyle: .alert)
@@ -257,7 +256,7 @@ public class CameraViewController: UIViewController {
                                                 handler: nil))
         self.present(alertController, animated: true, completion: nil)
     }
-    
+
     /*
      Check the video authorization status. Video access is required and audio
      access is optional. If the user denies audio access, FYphoto won't
@@ -292,9 +291,9 @@ public class CameraViewController: UIViewController {
             // The user has previously denied access.
             setupResult = .notAuthorized
         }
-                
+
     }
-    
+
     // MARK: Session Management
 
     // Call this on the session queue.
@@ -310,17 +309,17 @@ public class CameraViewController: UIViewController {
          Live Photo is not supported when AVCaptureMovieFileOutput is added to the session.
          */
         session.sessionPreset = .high
-        
+
         // Input
         addDeviceInput()
         if captureMode.contains(.video) {
             addAudioInput()
         }
-        
+
         // Output
         addPhotoOutput()
         addMovieOutput()
-        
+
         session.commitConfiguration()
     }
 
@@ -331,7 +330,7 @@ public class CameraViewController: UIViewController {
             if defaultVideoDevice == nil {
                 defaultVideoDevice = bestDeivice(in: .front)
             }
-            
+
             guard let videoDevice = defaultVideoDevice else {
                 print("Default video device is unavailable.")
                 setupResult = .configurationFailed
@@ -339,7 +338,7 @@ public class CameraViewController: UIViewController {
                 return
             }
             currentDevice = videoDevice
-            
+
             let videoDeviceInput =  try AVCaptureDeviceInput(device: videoDevice)
             if session.canAddInput(videoDeviceInput) {
                 session.addInput(videoDeviceInput)
@@ -375,7 +374,7 @@ public class CameraViewController: UIViewController {
             return
         }
     }
-    
+
     func addAudioInput() {
         // Add an audio input device.
         do {
@@ -393,7 +392,7 @@ public class CameraViewController: UIViewController {
             print("Could not create audio device input: \(error)")
         }
     }
-    
+
     func addPhotoOutput() {
         if session.canAddOutput(photoOutput) {
             session.addOutput(photoOutput)
@@ -415,7 +414,7 @@ public class CameraViewController: UIViewController {
             session.commitConfiguration()
         }
     }
-    
+
     func addMovieOutput() {
         let movieFileOutput = AVCaptureMovieFileOutput()
 
@@ -433,8 +432,7 @@ public class CameraViewController: UIViewController {
             session.commitConfiguration()
         }
     }
-    
-    
+
     // MARK: - Sort and Filter Devices with a Discovery Session
     func initVideoDeviceDiscoverySession() {
         if #available(iOS 10.2, *) {
@@ -447,12 +445,12 @@ public class CameraViewController: UIViewController {
                                                                                     .builtInWideAngleCamera],
                                                                                   mediaType: .video,
                                                                                   position: .back)
-                    
+
                     frontDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTrueDepthCamera,
                                                                                                       .builtInWideAngleCamera],
                                                                                         mediaType: .video,
                                                                                         position: .front)
-                    
+
                     videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTripleCamera,
                                                                                                  .builtInDualCamera,
                                                                                                  .builtInDualWideCamera,
@@ -467,12 +465,12 @@ public class CameraViewController: UIViewController {
                                                                                     .builtInWideAngleCamera],
                                                                                   mediaType: .video,
                                                                                   position: .back)
-                    
+
                     frontDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTrueDepthCamera,
                                                                                                       .builtInWideAngleCamera],
                                                                                         mediaType: .video,
                                                                                         position: .front)
-                    
+
                     videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera,
                                                                                                  .builtInDualCamera,
                                                                                                  .builtInTrueDepthCamera],
@@ -485,7 +483,7 @@ public class CameraViewController: UIViewController {
                                                                                 .builtInWideAngleCamera],
                                                                               mediaType: .video,
                                                                               position: .back)
-                
+
                 frontDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera],
                                                                                     mediaType: .video,
                                                                                     position: .front)
@@ -499,7 +497,7 @@ public class CameraViewController: UIViewController {
                                                                             .builtInWideAngleCamera],
                                                                           mediaType: .video,
                                                                           position: .back)
-            
+
             frontDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera],
                                                                                 mediaType: .video,
                                                                                 position: .front)
@@ -525,8 +523,7 @@ public class CameraViewController: UIViewController {
             return nil
         }
     }
-    
-    
+
     // MARK: KVO and Notifications
     private var keyValueObservations = [NSKeyValueObservation]()
     /// - Tag: ObserveInterruption
@@ -552,7 +549,6 @@ public class CameraViewController: UIViewController {
             }
             keyValueObservations.append(systemPressureStateObservation)
         }
-
 
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(subjectAreaDidChange),
@@ -589,26 +585,26 @@ public class CameraViewController: UIViewController {
         }
         keyValueObservations.removeAll()
     }
-        
+
     @objc
     func pinchToScale(_ gestureRecognizer: UIPinchGestureRecognizer) {
         guard gestureRecognizer.view != nil,
               let device = currentDevice
         else { return }
-        
+
         func zoomFactor(_ factor: CGFloat, _ maxLimit: CGFloat = 5) -> CGFloat {
             return min(min(max(factor, device.minAvailableVideoZoomFactor), device.maxAvailableVideoZoomFactor), maxLimit)
         }
-        
+
         func updateDeviceZoomFactor(_ factor: CGFloat) {
             try? device.lockForConfiguration()
             device.videoZoomFactor = factor
             device.unlockForConfiguration()
         }
-                
+
         let diff = (1 - gestureRecognizer.scale) / 10 // Reduce sensitivity        
         let newScaleFactor = zoomFactor(device.videoZoomFactor - diff)
-        
+
         switch gestureRecognizer.state {
         case .began: fallthrough
         case .changed: updateDeviceZoomFactor(newScaleFactor)
@@ -617,7 +613,7 @@ public class CameraViewController: UIViewController {
         default:
             break
         }
-                    
+
     }
 
     @objc
@@ -741,7 +737,7 @@ public class CameraViewController: UIViewController {
             )
         }
     }
-    
+
     @objc
     func focusAndExposeTap(_ gestureRecognizer: UITapGestureRecognizer) {
         let devicePoint = previewView.videoPreviewLayer.captureDevicePointConverted(fromLayerPoint: gestureRecognizer.location(in: gestureRecognizer.view))
@@ -798,9 +794,9 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
         sessionQueue.async {
             let currentVideoDevice = self.videoDeviceInput.device
             let currentPosition = currentVideoDevice.position
-            
+
             var newVideoDevice: AVCaptureDevice?
-            
+
             switch currentPosition {
             case .unspecified, .front:
                 newVideoDevice = self.bestDeivice(in: .back)
@@ -855,7 +851,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                 print("Capture devices are unavaliable")
                 return
             }
-                        
+
             DispatchQueue.main.async {
                 self.cameraOverlayView.enableTakeVideo = self.movieFileOutput != nil
                 self.cameraOverlayView.enableTakePicture = true
@@ -882,7 +878,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                 photoOutputConnection.videoOrientation = videoPreviewLayerOrientation!
             }
             var photoSettings = AVCapturePhotoSettings()
-            
+
             // Capture HEIF photos when supported. Enable auto-flash and high-resolution photos.
             if  self.photoOutput.availablePhotoCodecTypes.contains(.hevc) {
                 photoSettings = AVCapturePhotoSettings(format: [AVVideoCodecKey: AVVideoCodecType.hevc])
@@ -919,13 +915,13 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                 }
                 var mediaInfo: [InfoKey: Any] = [:]
                 mediaInfo[InfoKey.imageURL] = url
-                
+
                 if #available(iOS 14.0, *) {
                     mediaInfo[InfoKey.mediaType] = UTType.image.identifier
                 } else {
                     mediaInfo[InfoKey.mediaType] = kUTTypeImage as String
                 }
-                
+
                 if let data = data {
                     let image = UIImage(data: data)
                     mediaInfo[InfoKey.originalImage] = image
@@ -943,8 +939,8 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
             self.inProgressPhotoCaptureDelegates[photoCaptureProcessor.requestedPhotoSettings.uniqueID] = photoCaptureProcessor
             self.photoOutput.capturePhoto(with: photoSettings, delegate: photoCaptureProcessor)
         }
-    }    
-    
+    }
+
     public func startVideoCapturing() {
         guard captureDeviceIsAvailable else {
             print("Default video device is unavailable.", #file)
@@ -954,7 +950,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
             return
         }
         cameraOverlayView.enableFlash = false
-        
+
         let videoPreviewLayerOrientation = previewView.videoPreviewLayer.connection?.videoOrientation ?? .portrait
         sessionQueue.async {
             if !movieFileOutput.isRecording {
@@ -967,11 +963,11 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                         self.backgroundRecordingID = UIBackgroundTaskIdentifier.invalid
                     })
                 }
-                
+
                 // Update the orientation on the movie file output video connection before recording.
                 let movieFileOutputConnection = movieFileOutput.connection(with: .video)
                 movieFileOutputConnection?.videoOrientation = videoPreviewLayerOrientation
-                
+
                 let availableVideoCodecTypes = movieFileOutput.availableVideoCodecTypes
 
                 if availableVideoCodecTypes.contains(.hevc) {
@@ -1077,26 +1073,26 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
 
         if success {
             var mediaInfo: [CameraViewController.InfoKey: Any] = [:]
-            
+
             if #available(iOS 14.0, *) {
                 mediaInfo[CameraViewController.InfoKey.mediaType] = UTType.movie.identifier
             } else {
                 mediaInfo[CameraViewController.InfoKey.mediaType] = kUTTypeMovie as String
             }
-            
+
             mediaInfo[CameraViewController.InfoKey.mediaURL] = outputFileURL
-            
+
             if let waterMark = self.delegate?.watermarkImage() {
                 delegate?.cameraViewControllerStartAddingWatermark(self)
                 createWaterMark(waterMarkImage: waterMark, onVideo: outputFileURL) { (url) in
                     DispatchQueue.main.async {
                         self.delegate?.camera(self, didFinishAddingWatermarkAt: url)
-                        
+
                         mediaInfo[CameraViewController.InfoKey.watermarkVideoURL] = url
                         self.delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
                     }
                 }
-                
+
             } else {
                 delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
             }
@@ -1106,7 +1102,7 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
             delegate?.cameraDidCancel(self)
         }
     }
-    
+
     func getVideoSize(with assetTrack: AVAssetTrack) -> CGSize {
 //        var videoAssetOrientation = UIImage.Orientation.up
         var isVideoAssetPortrait = false

@@ -15,7 +15,6 @@ protocol DetectingGestureViewDelegate: AnyObject {
     func handleLongPress()
 }
 
-
 protocol DetectingTapView {
     var gestureDelegate: DetectingGestureViewDelegate? { get set }
     var singleTap: UITapGestureRecognizer { get }
@@ -32,7 +31,7 @@ class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
 
         doubleTap = UITapGestureRecognizer()
         doubleTap.numberOfTapsRequired = 2
-        
+
         singleTap = UITapGestureRecognizer()
         singleTap.numberOfTapsRequired = 1
 
@@ -41,12 +40,12 @@ class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
         super.init(frame: frame)
         isUserInteractionEnabled = true
         addGestureRecognizer(doubleTap)
-        
+
         singleTap.require(toFail: doubleTap)
         addGestureRecognizer(singleTap)
-        
+
         addGestureRecognizer(longPress)
-        
+
         doubleTap.addTarget(self, action: #selector(doubleTap(_:)))
         singleTap.addTarget(self, action: #selector(singleTap(_:)))
         longPress.addTarget(self, action: #selector(longPressed(_:)))
@@ -63,13 +62,13 @@ class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
     @objc func doubleTap(_ tap: UITapGestureRecognizer) {
         gestureDelegate?.handleDoubleTap(tap.location(in: self))
     }
-    
+
     @objc func longPressed(_ gesture: UILongPressGestureRecognizer) {
         if gesture.state == .began {
             gestureDelegate?.handleLongPress()
         }
     }
-    
+
     func setAsset(_ asset: PHAsset, targeSize: CGSize, resultHandler: ((UIImage?) -> Void)? = nil) {
         let options = PHImageRequestOptions()
         options.deliveryMode = .highQualityFormat
@@ -93,7 +92,7 @@ class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
             }
         }
     }
-    
+
     func setImage(url: URL, placeholder: UIImage?, contentMode: ContentMode = .scaleAspectFit, progress: ((Int, Int, URL?) -> Void)? = nil, completed: ((Result<UIImage, Error>) -> Void)? = nil) {
         self.contentMode = contentMode
         if url.isFileURL {
@@ -115,7 +114,7 @@ class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
                 completed?(.failure(error))
             }
         } else {
-            sd_setImage(with: url, placeholderImage: placeholder, progress: progress) { (image, error, cacheType, url) in
+            sd_setImage(with: url, placeholderImage: placeholder, progress: progress) { (image, error, _, _) in
                 if let error = error {
                     completed?(.failure(error))
                 } else if let image = image {
@@ -123,6 +122,6 @@ class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
                 }
             }
         }
-        
+
     }
 }

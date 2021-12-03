@@ -20,7 +20,7 @@ extension PhotoBrowserBottomToolViewDelegate {
 
 class PhotoBrowserBottomToolView: UIView {
     weak var delegate: PhotoBrowserBottomToolViewDelegate?
-    
+
     let editButton = UIButton()
     let playButton = UIButton()
     let doneButton = UIButton()
@@ -35,24 +35,24 @@ class PhotoBrowserBottomToolView: UIView {
         self.layer.masksToBounds = true
         addPlayButton()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     var isVideo: Bool = false {
         willSet {
             playButton.isHidden = !newValue
         }
     }
-    
+
     var isPlaying: Bool = false {
         willSet {
             let image = newValue ? Asset.icons8Pause.image : Asset.icons8Play.image
             playButton.setImage(image, for: .normal)
         }
     }
-    
+
     fileprivate func addPlayButton() {
         addSubview(playButton)
         playButton.isEnabled = false
@@ -68,7 +68,7 @@ class PhotoBrowserBottomToolView: UIView {
             playButton.heightAnchor.constraint(equalToConstant: 35)
         ])
     }
-    
+
     func addDoneButton() {
         addSubview(doneButton)
         doneButton.backgroundColor = colorStyle.itemBackgroundColor
@@ -88,7 +88,7 @@ class PhotoBrowserBottomToolView: UIView {
             doneButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: centerOffset)
         ])
     }
-    
+
     func addEditButton() {
         addSubview(editButton)
         editButton.isHidden = true
@@ -96,7 +96,7 @@ class PhotoBrowserBottomToolView: UIView {
         editButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
         editButton.setTitleColor(.white, for: .normal)
         editButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
-        
+
         editButton.translatesAutoresizingMaskIntoConstraints = false
         let centerOffset = safeAreaInsetsBottom == 0 ? 0 : -(safeAreaInsetsBottom/2-5)
         NSLayoutConstraint.activate([
@@ -104,15 +104,15 @@ class PhotoBrowserBottomToolView: UIView {
             editButton.centerYAnchor.constraint(equalTo: centerYAnchor, constant: centerOffset)
         ])
     }
-    
+
     func showPlayButton(_ show: Bool) {
         playButton.isHidden = !show
     }
-    
+
     func disableDoneButton(_ disable: Bool) {
         doneButton.isEnabled = !disable
     }
-    
+
     @objc func buttonClicked(_ sender: UIButton) {
         if sender == playButton {
             delegate?.browserBottomToolViewPlayButtonClicked()
@@ -121,8 +121,8 @@ class PhotoBrowserBottomToolView: UIView {
         } else if sender == editButton {
             delegate?.browserBottomToolViewEditButtonClicked()
         } else {
-            
+
         }
     }
-        
+
 }

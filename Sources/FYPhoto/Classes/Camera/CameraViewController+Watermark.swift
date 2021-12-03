@@ -13,13 +13,13 @@ extension CameraViewController {
     func addWaterMarkImage(_ waterMark: WatermarkImage, on image: UIImage) -> UIImage {
         let imageSize = view.frame.size
         let render = UIGraphicsImageRenderer(size: imageSize)
-        let renderedImage = render.image { (ctx) in
+        let renderedImage = render.image { (_) in
             image.draw(in: CGRect(x: 0, y: 0, width: imageSize.width, height: imageSize.height))
             waterMark.image.draw(in: waterMark.frame)
         }
         return renderedImage
     }
-    
+
     func applyWatermarkToVideoComposition(watermark: WatermarkImage, videoSize: CGSize) -> AVMutableVideoComposition {
         let videoSizeScale = min(videoSize.width / view.frame.size.width, videoSize.height / view.frame.size.height)
         let imageLayer = CALayer()
@@ -31,7 +31,7 @@ extension CameraViewController {
         imageLayer.frame = CGRect(origin: imageLayerOrigin, size: imageLayerSize)
         imageLayer.opacity = 1.0
         imageLayer.contentsGravity = .resizeAspectFill
-        
+
         let parentLayer = CALayer()
         let videoLayer = CALayer()
         parentLayer.frame = CGRect(origin: .zero, size: videoSize)
@@ -39,19 +39,19 @@ extension CameraViewController {
         parentLayer.addSublayer(videoLayer)
         parentLayer.addSublayer(imageLayer)
 //            parentLayer.addSublayer(textLayer)
-        
+
         let videoComp = AVMutableVideoComposition()
         videoComp.renderSize = videoSize
         videoComp.frameDuration = CMTime(value: 1, timescale: 30)
         videoComp.animationTool = AVVideoCompositionCoreAnimationTool(postProcessingAsVideoLayer: videoLayer, in: parentLayer)
         return videoComp
     }
-    
+
     func createWaterMark(waterMarkImage: WatermarkImage, onVideo url: URL, completion: @escaping ((URL) -> Void)) {
         #if DEBUG
         let startDate = Date()
         #endif
-        
+
         let videoAsset = AVURLAsset(url: url)
         let mixComposition = AVMutableComposition()
         guard let compositionVideoTrack = mixComposition.addMutableTrack(withMediaType: .video, preferredTrackID: kCMPersistentTrackID_Invalid) else {
@@ -71,13 +71,13 @@ extension CameraViewController {
             print("video water mark error:\(error)")
             completion(url)
         }
-        
+
         let videoSize = getVideoSize(with: clipVideoTrack)
         let videoComp = applyWatermarkToVideoComposition(watermark: waterMarkImage, videoSize: videoSize)
-        
+
         let instrutction = AVMutableVideoCompositionInstruction()
         instrutction.timeRange = CMTimeRange(start: .zero, duration: mixComposition.duration)
-        
+
         guard let videoCompositionTrack = mixComposition.tracks(withMediaType: .video).last else {
             completion(url)
             return
@@ -89,9 +89,9 @@ extension CameraViewController {
         let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoCompositionTrack)
         layerInstruction.setTransform(clipVideoTrack.preferredTransform, at: .zero)
         instrutction.layerInstructions = [layerInstruction]
-            
+
         videoComp.instructions = [instrutction]
-        
+
         guard
             let assetExport = AVAssetExportSession(asset: mixComposition,
                                                    presetName: AVAssetExportPresetHighestQuality) else {
@@ -101,7 +101,7 @@ extension CameraViewController {
         assetExport.videoComposition = videoComp
         let videoName = "watermark-" + url.lastPathComponent
         let exportPath = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(videoName)
-        
+
         if FileManager.default.fileExists(atPath: exportPath.absoluteString) {
             try? FileManager.default.removeItem(at: exportPath)
         }
@@ -128,11 +128,11 @@ extension CameraViewController {
             }
         })
     }
-    
+
 //    func deg2rad(_ number: Double) -> Double {
 //        return number * .pi / 180
 //    }
-    
+
     func watermark(video: AVAsset, with image: UIImage, outputURL: URL, completion: @escaping ((URL) -> Void)) {
         #if DEBUG
         let startDate = Date()
@@ -169,7 +169,7 @@ extension CameraViewController {
                     let distance = startDate.distance(to: endDate)
                     print("It took \(distance) to create water mark for \(video.duration.seconds) seconds video")
                 } else {
-                    
+
                 }
                 #endif
             case .failed:

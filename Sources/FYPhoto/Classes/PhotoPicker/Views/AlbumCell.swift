@@ -34,7 +34,7 @@ class AlbumCell: UITableViewCell {
         NSLayoutConstraint.activate([
             nameLabel.leadingAnchor.constraint(equalTo: coverImage.trailingAnchor, constant: 10),
             nameLabel.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            nameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10),
+            nameLabel.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -10)
         ])
     }
 
@@ -61,6 +61,4 @@ class AlbumCell: UITableViewCell {
         }
     }
 
-
 }
-

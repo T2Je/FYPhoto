@@ -11,18 +11,18 @@ import Photos
 import UIKit
 
 extension PhotoPickerViewController: CameraViewControllerDelegate {
-    public func camera(_ cameraViewController: CameraViewController, didFinishCapturingMediaInfo info: [CameraViewController.InfoKey : Any]) {
+    public func camera(_ cameraViewController: CameraViewController, didFinishCapturingMediaInfo info: [CameraViewController.InfoKey: Any]) {
         self.willDismiss = true
         guard let mediaType = info[.mediaType] as? String else {
             cameraViewController.dismiss(animated: true, completion: nil)
             return
-        }        
+        }
         switch mediaType {
         case String(kUTTypeImage):
             guard let data = info[.mediaMetadata] as? Data else { return }
-            
+
             cameraViewController.dismiss(animated: true) {
-                
+
                 SaveMediaTool.saveImageDataToAlbums(data) { (result) in
                     var asset: PHAsset?
                     switch result {
@@ -36,11 +36,11 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
                     case .failure(let error):
                         self.showError(error)
                     }
-                    
+
                     self.dismiss(animated: false) {
                         guard let image = info[.originalImage] as? UIImage else { return }
                         self.selectedPhotos?([SelectedImage(asset: asset, image: image)])
-                    }                    
+                    }
                 }
             }
         case String(kUTTypeMovie):
@@ -58,7 +58,7 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
             break
         }
     }
-    
+
     public func cameraDidCancel(_ cameraViewController: CameraViewController) {
         cameraViewController.dismiss(animated: true, completion: nil)
     }
@@ -94,7 +94,7 @@ extension PhotoPickerViewController: VideoPreviewControllerDelegate {
             }
         }
     }
-    
+
     public func videoPreviewControllerDidCancel(_ preview: VideoPreviewController) {
         preview.dismiss(animated: true, completion: nil)
     }

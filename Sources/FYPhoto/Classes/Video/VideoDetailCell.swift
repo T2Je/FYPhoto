@@ -13,7 +13,7 @@ import MobileCoreServices
 
 class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     static let reuseIdentifier = "VideoDetailCell"
-    
+
     var playerView = PlayerView()
 
     var activityIndicator = UIActivityIndicatorView(style: .white)
@@ -21,7 +21,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     var imageView = UIImageView()
 
     let videoCache = VideoCache.shared
-    
+
     var photo: PhotoProtocol? {
         didSet {
             activityIndicator.isHidden = true
@@ -44,7 +44,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     }
 
     override init(frame: CGRect) {
-        
+
         super.init(frame: frame)
 //        contentView.backgroundColor = .white
         contentView.addSubview(imageView)
@@ -57,7 +57,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
         imageView.contentMode = .scaleAspectFit
 
         setupActivityIndicator()
-                    
+
         let doubleTap = UITapGestureRecognizer(target: self, action: #selector(doubleTapVideoCell(_:)))
         doubleTap.numberOfTapsRequired = 2
         contentView.addGestureRecognizer(doubleTap)
@@ -68,7 +68,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
 
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(longPressed(_:)))
         contentView.addGestureRecognizer(longPress)
-        
+
         makeConstraints()
     }
 
@@ -98,7 +98,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
         if !activityIndicator.isAnimating {
             activityIndicator.startAnimating()
         }
-        
+
         if let videoCache = videoCache {
             videoCache.fetchFilePathWith(key: url) { [weak self] (result) in
                 self?.activityIndicator.stopAnimating()
@@ -116,12 +116,12 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
             generateThumnbnail(url)
         }
     }
-    
+
     func generateThumnbnail(_ url: URL) {
         photo?.generateThumbnail(url, size: .zero) { (result) in
             self.activityIndicator.stopAnimating()
             switch result {
-            case .success(let image):                
+            case .success(let image):
                 self.display(image: image)
             case .failure(_):
                 self.displayErrorThumbnail()
@@ -142,7 +142,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
         PHImageManager.default().requestImage(for: asset,
                                               targetSize: targetSize,
                                               contentMode: PHImageContentMode.aspectFit,
-                                              options: options) { [weak self] (image, info) in
+                                              options: options) { [weak self] (image, _) in
             if let image = image {
                 self?.photo?.storeImage(image)
                 self?.display(image: image)
@@ -172,7 +172,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     func endLoading() {
         activityIndicator.stopAnimating()
     }
-    
+
     @objc func tapVideoCell(_ gesture: UITapGestureRecognizer) {
         routerEvent(name: ImageViewGestureEvent.singleTap.rawValue, userInfo: nil)
     }
@@ -186,7 +186,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     @objc func longPressed(_ gesture: UILongPressGestureRecognizer) {
         routerEvent(name: ImageViewGestureEvent.longPress.rawValue, userInfo: nil)
     }
-    
+
     fileprivate func makeConstraints() {
         playerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -201,9 +201,9 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
             imageView.topAnchor.constraint(equalTo: contentView.topAnchor),
             imageView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor),
             imageView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
-            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
+            imageView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor)
         ])
-        
+
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             activityIndicator.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),

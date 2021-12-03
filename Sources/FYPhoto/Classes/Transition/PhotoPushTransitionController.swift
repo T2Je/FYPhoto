@@ -10,17 +10,17 @@ import UIKit
 
 class PhotoPushTransitionController: NSObject {
     weak var navigationController: UINavigationController?
-    
+
     /// An alternative way when viewController doesn't conform to PhotoTransition
     let transitionEssential: TransitionEssentialClosure?
-    
+
     var initiallyInteractive = false
     var panGesture: UIPanGestureRecognizer = UIPanGestureRecognizer()
 
     var pushPopTransitioning: PhotoHideShowAnimator?
     var interactiveTransitioning: PhotoInteractiveAnimator?
-    
-    fileprivate var currentAnimationTransition: UIViewControllerAnimatedTransitioning? = nil
+
+    fileprivate var currentAnimationTransition: UIViewControllerAnimatedTransitioning?
 
     init(navigationController nc: UINavigationController, transitionEssential: TransitionEssentialClosure?) {
         navigationController = nc
@@ -44,14 +44,13 @@ class PhotoPushTransitionController: NSObject {
     @objc func initiateTransitionInteractively(_ panGesture: UIPanGestureRecognizer) {
         if panGesture.state == .began && interactiveTransitioning?.transitionDriver == nil {
             initiallyInteractive = true
-            let _ = navigationController?.popViewController(animated: true)
+            _ = navigationController?.popViewController(animated: true)
             UIViewController.TransitionHolder.clearNaviTransition()
         } else {
             initiallyInteractive = false
         }
     }
 }
-
 
 extension PhotoPushTransitionController: UIGestureRecognizerDelegate {
 
@@ -75,7 +74,7 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
                                      animationControllerFor operation: UINavigationController.Operation,
                                      from fromVC: UIViewController,
                                      to toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        var result: UIViewControllerAnimatedTransitioning? = nil
+        var result: UIViewControllerAnimatedTransitioning?
         if operation == .push {
             if fromVC is PhotoTransitioning {
                 if let transitionToVC = toVC as? PhotoTransitioning {
@@ -94,7 +93,7 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
                             result = PhotoInteractiveAnimator(panGestureRecognizer: panGesture,
                                                               isNavigationDismiss: true,
                                                               transitionEssential: nil,
-                                                              completion: { [weak self] (isCancelled, isNavigation) in
+                                                              completion: { [weak self] (isCancelled, _) in
                                                                 self?.initiallyInteractive = false
                                                                 if !isCancelled {
                                                                     self?.completePopTransition()
@@ -112,11 +111,11 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
                     result = PhotoInteractiveAnimator(panGestureRecognizer: panGesture,
                                                       isNavigationDismiss: true,
                                                       transitionEssential: transitionEssential,
-                                                      completion: { [weak self] (isCancelled, isNavigation) in
+                                                      completion: { [weak self] (isCancelled, _) in
                                                         self?.initiallyInteractive = false
                                                         if !isCancelled {
                                                             self?.completePopTransition()
-                                                        }                        
+                                                        }
                     })
                 } else {
                     result = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: true, transitionEssential: transitionEssential, completion: { [weak self] in
@@ -138,11 +137,11 @@ extension PhotoPushTransitionController: UINavigationControllerDelegate {
                                      interactionControllerFor animationController: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
         return currentAnimationTransition as? UIViewControllerInteractiveTransitioning
     }
-    
+
     func completePopTransition() {
         UIViewController.TransitionHolder.clearViewControllerTransition()
         navigationController?.view.removeGestureRecognizer(panGesture)
         navigationController?.delegate = nil
     }
-    
+
 }

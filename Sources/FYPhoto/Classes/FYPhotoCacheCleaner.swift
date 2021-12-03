@@ -12,7 +12,7 @@ public class FYPhotoCacheCleaner {
     public static func clearMemory() {
         SDImageCache.shared.clearMemory()
     }
-    
+
     public static func clearDisk() {
         SDImageCache.shared.clearDisk {}
         VideoCache.shared?.clearAll()

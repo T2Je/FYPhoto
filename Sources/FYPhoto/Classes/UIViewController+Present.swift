@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 extension TypeWrapperProtocol where WrappedType: UIViewController {
-    
+
     /// Presents PhotoBrowser with fyphoto transition animation.
     ///
     /// Support three ways to display photos (if parameter `animated` is true):
@@ -31,7 +31,7 @@ extension TypeWrapperProtocol where WrappedType: UIViewController {
         })
         UIViewController.TransitionHolder.storeViewControllerTransition(transition)
     }
-    
+
 //    @available(swift, deprecated: 1.1.0, message: "Use present(_ viewControllerToPresent:, animated:, completion:, transitionEssential:) instead")
 //    public func present(_ viewControllerToPresent: UIViewController, animated: Bool, completion: (() -> Void)?, transitionView: (() -> UIImageView?)?) {
 //
@@ -52,11 +52,11 @@ extension TypeWrapperProtocol where WrappedType: UIViewController {
 //        })
 //        UIViewController.TransitionHolder.storeViewControllerTransition(transition)
 //    }
-    
+
 }
 
 extension TypeWrapperProtocol where WrappedType: UINavigationController {
-    
+
     @available(swift, deprecated: 1.2.0, message: "Use pushViewController(_ viewController:, animated:, transitionEssential:) instead")
     public func push(_ viewController: UIViewController, animated: Bool, transitionEssential: ((_ page: Int) -> TransitionEssential)? = nil) {
         let transition = PhotoPushTransitionController(navigationController: wrappedValue, transitionEssential: transitionEssential)
@@ -64,7 +64,7 @@ extension TypeWrapperProtocol where WrappedType: UINavigationController {
         wrappedValue.pushViewController(viewController, animated: true)
         UIViewController.TransitionHolder.storeNaviTransition(transition)
     }
-    
+
     /// Pushes PhotoBrowser onto the receiver’s stack and updates the display with fyphoto transition.
     ///
     /// Support three ways to display photos:
@@ -82,7 +82,7 @@ extension TypeWrapperProtocol where WrappedType: UINavigationController {
         wrappedValue.pushViewController(viewController, animated: true)
         UIViewController.TransitionHolder.storeNaviTransition(transition)
     }
-    
+
 //    @available(swift, deprecated: 1.1.0, message: "Use push(_ viewController:, animated:, transitionEssential:) instead")
 //    public func push(_ viewController: UIViewController, animated: Bool, transitionView: (() -> UIImageView?)?) {
 //        let transition = PhotoPushTransitionController(navigationController: wrappedValue) { (_) -> PresentingVCTransitionEssential? in
@@ -101,12 +101,11 @@ extension TypeWrapperProtocol where WrappedType: UINavigationController {
 //    }
 }
 
-
 extension UIViewController: FYNameSpaceProtocol {
     struct TransitionHolder {
         private static var _viewControllerTransition: UIViewControllerTransitioningDelegate?
         private static var _naviTransition: UINavigationControllerDelegate?
-        
+
         static func storeViewControllerTransition(_ transition: UIViewControllerTransitioningDelegate) {
             _viewControllerTransition = transition
         }
@@ -116,7 +115,7 @@ extension UIViewController: FYNameSpaceProtocol {
         static func clearViewControllerTransition() {
             _viewControllerTransition = nil
         }
-        
+
         static func clearNaviTransition() {
             _viewControllerTransition = nil
         }

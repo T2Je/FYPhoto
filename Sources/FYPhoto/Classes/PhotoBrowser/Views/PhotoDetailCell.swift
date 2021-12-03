@@ -10,8 +10,8 @@ import Photos
 
 class PhotoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     static let reuseIdentifier = "PhotoDetailCell"
-    
-    let zoomingView = ZoomingScrollView(frame: .zero)    
+
+    let zoomingView = ZoomingScrollView(frame: .zero)
 
     var image: UIImage? {
         get {
@@ -27,7 +27,7 @@ class PhotoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
             zoomingView.photo = photo
         }
     }
-    
+
     // Fixed a bug that could not display long images
     var maximumZoomScale: CGFloat = 15 {
         willSet {
@@ -40,7 +40,7 @@ class PhotoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
             zoomingView.minimumZoomScale = newValue
         }
     }
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         contentView.addSubview(zoomingView)

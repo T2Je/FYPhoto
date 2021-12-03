@@ -12,15 +12,15 @@ protocol CircularProgressValueFormatter: AnyObject {
 }
 
 class CircularProgressView: UIView {
-    
+
     // First create two layer properties
     private var circleLayer = CAShapeLayer()
     private var progressLayer = CAShapeLayer()
-    
+
     var progressLabel = UILabel()
-    
+
     var valueFormatter: CircularProgressValueFormatter?
-    
+
     var outerCircleColor: UIColor = .systemGray {
         didSet {
             circleLayer.strokeColor = outerCircleColor.cgColor
@@ -31,10 +31,10 @@ class CircularProgressView: UIView {
             progressLayer.strokeColor = innerCircleColor.cgColor
         }
     }
-    
+
     var minValue: CGFloat = 0.0
     var maxValue: CGFloat = 100.0
-    
+
     private var _value: CGFloat = 0.0
     var value: CGFloat = 0.0 {
         didSet {
@@ -47,7 +47,7 @@ class CircularProgressView: UIView {
             }
         }
     }
-    
+
     var currentValue: CGFloat = 0.0 {
         didSet {
             if let valueFormatter = valueFormatter {
@@ -57,29 +57,29 @@ class CircularProgressView: UIView {
             }
         }
     }
-    
+
     private var timer: Timer?
-    
+
     var progressCompletion: (() -> Void)?
-    
+
     init() {
         super.init(frame: .zero)
         createCircularPath()
         addProgressLabel()
     }
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         createCircularPath()
         addProgressLabel()
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         createCircularPath()
         addProgressLabel()
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         if frame.size != .zero {
@@ -88,13 +88,13 @@ class CircularProgressView: UIView {
             bringSubviewToFront(progressLabel)
         }
     }
-    
+
     func createCircularPath() {
         circleLayer.fillColor = UIColor.clear.cgColor
         circleLayer.lineCap = .round
         circleLayer.lineWidth = 10.0
         circleLayer.strokeColor = outerCircleColor.cgColor
-        
+
         progressLayer.fillColor = UIColor.clear.cgColor
         progressLayer.lineCap = .round
         progressLayer.lineWidth = 10.0
@@ -103,7 +103,7 @@ class CircularProgressView: UIView {
         layer.addSublayer(circleLayer)
         layer.addSublayer(progressLayer)
     }
-    
+
     func updatePaths() {
         let radius = min(frame.size.width, frame.size.height) / 2
         let circularPath = UIBezierPath(arcCenter: CGPoint(x: frame.size.width / 2, y: frame.size.height / 2),
@@ -115,13 +115,13 @@ class CircularProgressView: UIView {
         circleLayer.frame = bounds
         progressLayer.frame = bounds
     }
-    
+
     func addProgressLabel() {
         addSubview(progressLabel)
         progressLabel.textAlignment = .center
         progressLabel.font = .systemFont(ofSize: 21)
     }
-        
+
     // MARK: Animation
     fileprivate func createAnimation(_ duration: TimeInterval, _ from: CGFloat) {
         let circularProgressAnimation = CABasicAnimation(keyPath: "strokeEnd")
@@ -132,7 +132,7 @@ class CircularProgressView: UIView {
         circularProgressAnimation.isRemovedOnCompletion = false
         progressLayer.add(circularProgressAnimation, forKey: "progressAnim")
     }
-    
+
     func startAnimation() {
         currentValue = _value
         if let timer = timer {
@@ -142,9 +142,9 @@ class CircularProgressView: UIView {
                 self?.timerAction(_timer)
             })
         }
-                
+
         createAnimation(maxValue, value / (maxValue - minValue))
-        
+
         timer?.fire()
     }
 
@@ -154,7 +154,7 @@ class CircularProgressView: UIView {
         timer = nil
         progressLabel.text = nil
     }
-    
+
     func timerAction(_ timer: Timer) {
         currentValue += 1
 //        print("current value\(self.currentValue)")

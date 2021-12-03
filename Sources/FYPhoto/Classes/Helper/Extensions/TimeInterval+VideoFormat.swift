@@ -27,7 +27,7 @@ extension Double {
             return String(format: "%d:%@", minutes, fixedSeconds)
         }
     }
-    
+
     static func zeroDurationFormat() -> String {
         return 0.videoDurationFormat()
     }

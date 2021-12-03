@@ -12,10 +12,10 @@ public class AspectRatioButtonItem {
     var isSelected: Bool
     var ratio: Double?
     let isFreeForm: Bool
-    
+
     public init(title: String, ratio: Double?) {
         self.title = title
-        
+
         self.ratio = ratio
         self.isFreeForm = ratio == nil
         self.isSelected = isFreeForm

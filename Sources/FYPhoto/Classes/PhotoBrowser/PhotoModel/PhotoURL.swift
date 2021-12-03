@@ -16,25 +16,25 @@ class PhotoURL: PhotoProtocol {
         }
         return photoUrl == url!
     }
-    
+
     private(set) var image: UIImage?
     var metaData: Data?
-    
+
     var url: URL?
-    
+
     var asset: PHAsset?
     var targetSize: CGSize?
-    
+
     private(set) var captionContent: String?
     private(set) var captionSignature: String?
-        
+
     private let videoTypes = ["mp4", "m4a", "mov"]
-    
-    var restoreData: CroppedRestoreData? = nil
-    
+
+    var restoreData: CroppedRestoreData?
+
     var isVideo: Bool {
         guard let url = url else { return false }
-        
+
         if url.isImage() {
             return false
         }
@@ -48,24 +48,24 @@ class PhotoURL: PhotoProtocol {
             return false
         }
     }
-    
+
     init(url: URL) {
         self.url = url
     }
-    
+
     func storeImage(_ image: UIImage?) {
         self.image = image
     }
-        
+
     func generateThumbnail(_ url: URL, size: CGSize, completion: @escaping ((Result<UIImage, Error>) -> Void)) {
         url.generateThumbnail { (result) in
             if let image = try? result.get() {
                 self.storeImage(image)
-            }            
+            }
             completion(result)
         }
     }
-    
+
     func clearThumbnail() {
         image = nil
         guard let url = url else {
@@ -80,13 +80,13 @@ class PhotoURL: PhotoProtocol {
         self.asset = nil
         self.image = nil
     }
-    
+
     func setCaptionContent(_ content: String) {
         self.captionContent = content
     }
-    
+
     func setCaptionSignature(_ signature: String) {
         self.captionSignature = signature
     }
-    
+
 }

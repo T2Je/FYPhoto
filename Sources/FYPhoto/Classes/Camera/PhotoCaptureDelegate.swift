@@ -10,27 +10,27 @@ import Photos
 
 class PhotoCaptureProcessor: NSObject {
     private(set) var requestedPhotoSettings: AVCapturePhotoSettings
-    
+
     private let willCapturePhotoAnimation: () -> Void
-    
+
     private let livePhotoCaptureHandler: (Bool) -> Void
-    
+
     lazy var context = CIContext()
-    
+
     private let completionHandler: (PhotoCaptureProcessor, URL?, Data?) -> Void
-    
+
     private let photoProcessingHandler: (Bool) -> Void
-    
+
     private var photoData: Data?
-    
+
     private var livePhotoCompanionMovieURL: URL?
-    
+
     private var portraitEffectsMatteData: Data?
-    
+
     private var semanticSegmentationMatteDataArray = [Data]()
-    
+
     private var maxPhotoProcessingTime: CMTime?
-    
+
     init(with requestedPhotoSettings: AVCapturePhotoSettings,
          willCapturePhotoAnimation: @escaping () -> Void,
          livePhotoCaptureHandler: @escaping (Bool) -> Void,
@@ -42,7 +42,7 @@ class PhotoCaptureProcessor: NSObject {
         self.completionHandler = completionHandler
         self.photoProcessingHandler = photoProcessingHandler
     }
-    
+
     private func didFinish(_ url: URL?, data: Data?) {
         if let livePhotoCompanionMoviePath = livePhotoCompanionMovieURL?.path {
             if FileManager.default.fileExists(atPath: livePhotoCompanionMoviePath) {
@@ -53,17 +53,17 @@ class PhotoCaptureProcessor: NSObject {
                 }
             }
         }
-        
+
         completionHandler(self, url, data)
     }
-    
+
 }
 
 extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
     /*
      This extension adopts all of the AVCapturePhotoCaptureDelegate protocol methods.
      */
-    
+
     /// - Tag: WillBeginCapture
     func photoOutput(_ output: AVCapturePhotoOutput, willBeginCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings) {
         if resolvedSettings.livePhotoMovieDimensions.width > 0 && resolvedSettings.livePhotoMovieDimensions.height > 0 {
@@ -73,37 +73,37 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
             maxPhotoProcessingTime = resolvedSettings.photoProcessingTimeRange.start + resolvedSettings.photoProcessingTimeRange.duration
         }
     }
-    
+
     /// - Tag: WillCapturePhoto
     func photoOutput(_ output: AVCapturePhotoOutput, willCapturePhotoFor resolvedSettings: AVCaptureResolvedPhotoSettings) {
         willCapturePhotoAnimation()
-        
+
         guard let maxPhotoProcessingTime = maxPhotoProcessingTime else {
             return
         }
-        
+
         // Show a spinner if processing time exceeds one second.
         let oneSecond = CMTime(seconds: 1, preferredTimescale: 1)
         if maxPhotoProcessingTime > oneSecond {
             photoProcessingHandler(true)
         }
     }
-    
+
     @available(iOS 13.0, *)
     func handleMatteData(_ photo: AVCapturePhoto, ssmType: AVSemanticSegmentationMatte.MatteType) {
-        
+
         // Find the semantic segmentation matte image for the specified type.
         guard var segmentationMatte = photo.semanticSegmentationMatte(for: ssmType) else { return }
-        
+
         // Retrieve the photo orientation and apply it to the matte image.
         if let orientation = photo.metadata[String(kCGImagePropertyOrientation)] as? UInt32,
             let exifOrientation = CGImagePropertyOrientation(rawValue: orientation) {
             // Apply the Exif orientation to the matte image.
             segmentationMatte = segmentationMatte.applyingExifOrientation(exifOrientation)
         }
-        
+
         var imageOption: CIImageOption!
-        
+
         // Switch on the AVSemanticSegmentationMatteType value.
         switch ssmType {
         case .hair:
@@ -116,28 +116,28 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
             print("This semantic segmentation type is not supported!")
             return
         }
-        
+
         guard let perceptualColorSpace = CGColorSpace(name: CGColorSpace.sRGB) else { return }
-        
+
         // Create a new CIImage from the matte's underlying CVPixelBuffer.
         let ciImage = CIImage(cvImageBuffer: segmentationMatte.mattingImage,
                               options: [imageOption: true,
                                          .colorSpace: perceptualColorSpace])
-        
+
         // Get the HEIF representation of this image.
         guard let imageData = context.heifRepresentation(of: ciImage,
                                                          format: .RGBA8,
                                                          colorSpace: perceptualColorSpace,
                                                          options: [.depthImage: ciImage]) else { return }
-        
+
         // Add the image data to the SSM data array for writing to the photo library.
         semanticSegmentationMatteDataArray.append(imageData)
     }
-    
+
     /// - Tag: DidFinishProcessingPhoto
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
         photoProcessingHandler(false)
-        
+
         if let error = error {
             print("Error capturing photo: \(error)")
         } else {
@@ -165,19 +165,19 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
                 portraitEffectsMatteData = nil
             }
         }
-        
+
         if #available(iOS 13.0, *) {
             for semanticSegmentationType in output.enabledSemanticSegmentationMatteTypes {
                 handleMatteData(photo, ssmType: semanticSegmentationType)
             }
         }
     }
-    
+
     /// - Tag: DidFinishRecordingLive
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishRecordingLivePhotoMovieForEventualFileAt outputFileURL: URL, resolvedSettings: AVCaptureResolvedPhotoSettings) {
         livePhotoCaptureHandler(false)
     }
-    
+
     /// - Tag: DidFinishProcessingLive
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingLivePhotoToMovieFileAt outputFileURL: URL, duration: CMTime, photoDisplayTime: CMTime, resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
         if error != nil {
@@ -186,7 +186,7 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
         }
         livePhotoCompanionMovieURL = outputFileURL
     }
-    
+
     /// - Tag: DidFinishCapture
     func photoOutput(_ output: AVCapturePhotoOutput, didFinishCaptureFor resolvedSettings: AVCaptureResolvedPhotoSettings, error: Error?) {
         if let error = error {
@@ -195,7 +195,7 @@ extension PhotoCaptureProcessor: AVCapturePhotoCaptureDelegate {
             didFinish(nil, data: nil)
             return
         }
-        
+
         guard let photoData = photoData else {
             print("No photo data resource")
             var url: URL?

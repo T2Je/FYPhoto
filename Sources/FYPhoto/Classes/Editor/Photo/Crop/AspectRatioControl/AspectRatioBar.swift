@@ -16,13 +16,13 @@ class AspectRatioBar: UIScrollView {
         static let minHeight: CGFloat = 28.0
         static let sideInset: CGFloat = 16.0
     }
- 
+
     var didSelectedRatio: ((Double?) -> Void)?
-    
+
     let items: [AspectRatioButtonItem]
-    
+
     private var selectedButton: AspectRatioButton?
-    
+
     private lazy var stackView: UIStackView = {
         let view = UIStackView()
         view.axis = isPortrait ? .horizontal : .vertical
@@ -30,7 +30,7 @@ class AspectRatioBar: UIScrollView {
         view.spacing = Constants.minButtonsSpacing
         return view
     }()
-    
+
     let isPortrait: Bool
     init(items: [AspectRatioButtonItem], isPortrait: Bool) {
         self.items = items
@@ -41,11 +41,11 @@ class AspectRatioBar: UIScrollView {
         setupStackView()
         addButtonsWithItems(items)
     }
-        
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     var stackFrameLayoutGuides: [NSLayoutConstraint] = []
     private func setupStackView() {
         addSubview(stackView)
@@ -54,7 +54,7 @@ class AspectRatioBar: UIScrollView {
             stackView.topAnchor.constraint(equalTo: contentLayoutGuide.topAnchor),
             stackView.leadingAnchor.constraint(equalTo: contentLayoutGuide.leadingAnchor),
             stackView.bottomAnchor.constraint(equalTo: contentLayoutGuide.bottomAnchor),
-            stackView.trailingAnchor.constraint(equalTo: contentLayoutGuide.trailingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: contentLayoutGuide.trailingAnchor)
         ])
         if isPortrait {
             stackFrameLayoutGuides = [
@@ -65,11 +65,10 @@ class AspectRatioBar: UIScrollView {
                 stackView.widthAnchor.constraint(equalTo: frameLayoutGuide.widthAnchor)
             ]
         }
-        
-        
+
         NSLayoutConstraint.activate(stackFrameLayoutGuides)
     }
-    
+
     func addButtonsWithItems(_ items: [AspectRatioButtonItem]) {
         for item in items {
             let button = AspectRatioButton(item: item)
@@ -80,12 +79,12 @@ class AspectRatioBar: UIScrollView {
             }
             stackView.addArrangedSubview(button)
         }
-        
+
     }
-    
+
     func flip() {
         stackView.axis = (stackView.axis == .horizontal) ? .vertical : .horizontal
-        
+
         NSLayoutConstraint.deactivate(stackFrameLayoutGuides)
         if stackView.axis == .horizontal {
             stackFrameLayoutGuides = [
@@ -97,20 +96,20 @@ class AspectRatioBar: UIScrollView {
             ]
         }
         NSLayoutConstraint.activate(stackFrameLayoutGuides)
-        
+
         stackView.layoutIfNeeded() // fix stackview autolayout warnings after changing axis
     }
-    
+
     func reloadItems(_ items: [AspectRatioButtonItem]) {
         stackView.removeFullyAllArrangedSubviews()
         addButtonsWithItems(items)
     }
-    
+
     @objc private func buttonClicked(_ sender: AspectRatioButton) {
         handleButtonsState(sender)
         didSelectedRatio?(sender.item.ratio)
     }
-    
+
     private func handleButtonsState(_ new: AspectRatioButton) {
         if let old = selectedButton {
             if old === new {
@@ -125,5 +124,3 @@ class AspectRatioBar: UIScrollView {
         selectedButton = new
     }
 }
-
-

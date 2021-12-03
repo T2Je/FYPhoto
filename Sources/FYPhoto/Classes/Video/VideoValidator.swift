@@ -26,7 +26,7 @@ class FYVideoValidator: VideoValidatorProtocol {
             return asset.duration <= limit
         }
     }
-    
+
     /// Validate the asset's memory footprint is within the limit.
     /// - Parameters:
     ///   - asset: selected video asset url

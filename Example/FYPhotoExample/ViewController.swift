@@ -12,6 +12,7 @@ import Photos
 import PhotosUI
 import MobileCoreServices
 import UniformTypeIdentifiers
+import FYVideoCompressor
 
 class ViewController: UIViewController {
 
@@ -22,7 +23,7 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         setupUI()
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
-        
+
         print("PhotosAuthority.isCameraAvailable: \(PhotosAuthority.isCameraAvailable())")
         print("PhotosAuthority.isPhotoLibraryAvailable: \(PhotosAuthority.isPhotoLibraryAvailable())")
         print("PhotosAuthority.doesCameraSupportTakingPhotos: \(PhotosAuthority.doesCameraSupportTakingPhotos())")
@@ -46,14 +47,14 @@ class ViewController: UIViewController {
         let displayRemoteImagesBtn = UIButton()
         let cropPhotoBtn = UIButton()
         let clearWebCacheBtn = UIButton()
-        
+
         pickPhotosBtn.setTitle("Pick photos", for: .normal)
         playRemoteVideoBtn.setTitle("Play remote video", for: .normal)
         takePhotoBtn.setTitle("Take photo/video", for: .normal)
         displayRemoteImagesBtn.setTitle("Display remote images", for: .normal)
         cropPhotoBtn.setTitle("Crop photo", for: .normal)
         clearWebCacheBtn.setTitle("Clear cached content", for: .normal)
-        
+
         pickPhotosBtn.setTitleColor(.systemBlue, for: .normal)
         playRemoteVideoBtn.setTitleColor(.orange, for: .normal)
         takePhotoBtn.setTitleColor(.systemPink, for: .normal)
@@ -67,14 +68,14 @@ class ViewController: UIViewController {
         displayRemoteImagesBtn.addTarget(self, action: #selector(displayRemoteImagesButtonClicked(_:)), for: .touchUpInside)
         cropPhotoBtn.addTarget(self, action: #selector(photoEditorButtonClicked(_:)), for: .touchUpInside)
         clearWebCacheBtn.addTarget(self, action: #selector(clearCached(_:)), for: .touchUpInside)
-        
+
         stackView.addArrangedSubview(pickPhotosBtn)
         stackView.addArrangedSubview(playRemoteVideoBtn)
         stackView.addArrangedSubview(takePhotoBtn)
         stackView.addArrangedSubview(displayRemoteImagesBtn)
         stackView.addArrangedSubview(cropPhotoBtn)
         stackView.addArrangedSubview(clearWebCacheBtn)
-        
+
         view.addSubview(stackView)
         stackView.translatesAutoresizingMaskIntoConstraints = false
 
@@ -85,14 +86,14 @@ class ViewController: UIViewController {
             stackView.heightAnchor.constraint(equalToConstant: 200)
         ])
     }
-    
+
 // MARK: - Button action
     @objc func photosViewButtonClicked(_ sender: UIButton) {
         var pickerConfig = FYPhotoPickerConfiguration()
         pickerConfig.selectionLimit = 3
         pickerConfig.supportCamera = true
         pickerConfig.mediaFilter = .all
-        
+
         pickerConfig.compressedQuality = .mediumQuality
         pickerConfig.maximumVideoMemorySize = 200 // MB
         pickerConfig.maximumVideoDuration = 60 * 60 // Seconds
@@ -101,15 +102,15 @@ class ViewController: UIViewController {
                                                                 itemDisableColor: .gray,
                                                                 itemBackgroundColor: .clear,
                                                                 backgroundColor: .systemBlue)
-                
+
         pickerConfig.colorConfiguration = colorConfig
         let photoPickerVC = PhotoPickerViewController(configuration: pickerConfig)
-    
+
         photoPickerVC.selectedPhotos = { [weak self] images in
             print("selected \(images.count) photos: \(images)")
             self?.presentSelectedPhotos(images)
         }
-        
+
         photoPickerVC.selectedVideo = { [weak self] selectedResult in
             switch selectedResult {
             case .success(let video):
@@ -132,7 +133,7 @@ class ViewController: UIViewController {
         guard let url = URL(string: urlStr) else { return }
 
         let photo = Photo.photoWithURL(url)
-        
+
         let photosDetailVC = PhotoBrowserViewController.browse(photos: [photo]) {
             $0
                 .buildBottomToolBar()
@@ -145,7 +146,7 @@ class ViewController: UIViewController {
     @objc func launchCustomCamera(_ sender: UIButton) {
         photoLanucher.launchCamera(in: self, captureMode: [.image, .video])
     }
-    
+
     @objc func displayRemoteImagesButtonClicked(_ sender: UIButton) {
         guard let url = URL(string: "https://images.unsplash.com/photo-1546608235-3310a2494cdf?ixlib=rb-1.2.1&ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&auto=format&fit=crop&w=3161&q=80") else {
             return
@@ -155,10 +156,10 @@ class ViewController: UIViewController {
         photoBrowser.delegate = self
         self.fyphoto.present(photoBrowser, animated: true, completion: nil)
     }
-    
+
     var restoreData: CroppedRestoreData?
     @objc func photoEditorButtonClicked(_ sender: UIButton) {
-        
+
         let vc = CropImageViewController(image: UIImage(named: "StarrySky")!, customRatio: [RatioItem(title: "3:20", value: 0.15)], restoreData: restoreData)
         vc.croppedImage = { [weak self] result in
             guard let self = self else { return }
@@ -176,22 +177,21 @@ class ViewController: UIViewController {
         vc.modalPresentationStyle = .fullScreen
         self.present(vc, animated: true, completion: nil)
     }
-    
+
     @objc
-    func clearCached(_ sender: UIButton) {
+    func clearCached(_ sender: UIButton) {    
         let alertController = UIAlertController(title: "Ready to remove cached data?", message: nil, preferredStyle: .alert)
         let confirm = UIAlertAction(title: "Yes", style: .destructive, handler: { _ in
             FYPhotoCacheCleaner.clearMemory()
             FYPhotoCacheCleaner.clearDisk()
         })
-                                    
+
         let cancel = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         alertController.addAction(confirm)
         alertController.addAction(cancel)
         present(alertController, animated: true, completion: nil)
     }
-    
-                                    
+
     // MARK: PRESENT SELECTED
     func presentSelectedPhotos(_ images: [SelectedImage]) {
         let photos = images.map { Photo.photoWithUIImage($0.image) }
@@ -202,10 +202,10 @@ class ViewController: UIViewController {
 }
 
 extension ViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate {
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
         print(#function)
         guard let mediaType = info[.mediaType] as? String else { return }
-        
+
         if #available(iOS 14.0, *) {
             switch mediaType {
             case UTType.image.identifier:
@@ -254,14 +254,13 @@ extension ViewController: UIImagePickerControllerDelegate, UINavigationControlle
             }
         }
 
-
     }
 
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         picker.dismiss(animated: true, completion: nil)
     }
 
-    //MARK: - Add image to Library
+    // MARK: - Add image to Library
     @objc func image(_ image: UIImage, didFinishSavingWithError error: Error?, contextInfo: UnsafeRawPointer) {
         if let error = error {
             // we got back an error!
@@ -296,15 +295,15 @@ extension ViewController: VideoPreviewControllerDelegate {
 }
 
 extension ViewController: PhotoBrowserViewControllerDelegate {
-    
+
 }
 
 extension ViewController: CameraViewControllerDelegate {
-    
+
     func cameraViewControllerStartAddingWatermark() {
         print("Processing video......")
     }
-    
+
     func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL) {
         print("End processing.")
         cameraViewController.dismiss(animated: true) {
@@ -314,12 +313,12 @@ extension ViewController: CameraViewControllerDelegate {
             self.present(previewVC, animated: true, completion: nil)
         }
     }
-    
+
     func cameraDidCancel(_ cameraViewController: CameraViewController) {
         cameraViewController.dismiss(animated: true, completion: nil)
     }
-    
-    func camera(_ cameraViewController: CameraViewController, didFinishCapturingMediaInfo info: [CameraViewController.InfoKey : Any]) {
+
+    func camera(_ cameraViewController: CameraViewController, didFinishCapturingMediaInfo info: [CameraViewController.InfoKey: Any]) {
         print(#function)
         guard let mediaType = info[.mediaType] as? String else { return }
 
@@ -340,7 +339,7 @@ extension ViewController: CameraViewControllerDelegate {
             CameraViewController.saveImageToAlbums(image) { (result) in
                 switch result {
                 case .success(_):
-                    
+
                     print("image saved successfully")
                 case .failure(let error):
                     print(error)
@@ -369,25 +368,25 @@ extension ViewController: CameraViewControllerDelegate {
             break
         }
     }
-    
+
     func watermarkImage() -> WatermarkImage? {
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.alignment = .left
         paragraphStyle.lineSpacing = 3
-        
+
         let attrs: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 12),
             .paragraphStyle: paragraphStyle,
             .foregroundColor: UIColor.white
         ]
-    
+
         let string1 = "watermark 1"
-        let string2 = "watermark 2"        
-        
+        let string2 = "watermark 2"
+
         let string = String(format: "%@\n%@", string1, string2)
-        
+
         let attributedString = NSAttributedString(string: string, attributes: attrs)
-        
+
         let waterMarkSize = CGSize(width: 180, height: 95)
         let render = UIGraphicsImageRenderer(size: waterMarkSize)
         let renderedImage = render.image { (ctx) in
@@ -398,7 +397,7 @@ extension ViewController: CameraViewControllerDelegate {
             ctx.cgContext.drawPath(using: .fill)
 
             attributedString.draw(in: CGRect(x: 10, y: 5, width: waterMarkSize.width, height: waterMarkSize.height - 8))
-            
+
         }
         return WatermarkImage(image: renderedImage, frame: CGRect(x: 15, y: view.frame.size.height - 15, width: waterMarkSize.width, height: waterMarkSize.height))
     }
@@ -408,7 +407,7 @@ extension ViewController: VideoTrimmerViewControllerDelegate {
     func videoTrimmerDidCancel(_ videoTrimmer: VideoTrimmerViewController) {
         videoTrimmer.dismiss(animated: true, completion: nil)
     }
-    
+
     func videoTrimmer(_ videoTrimmer: VideoTrimmerViewController, didFinishTrimingAt url: URL) {
         print("trimmed video url: \(url)")
     }

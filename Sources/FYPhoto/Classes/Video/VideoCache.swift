@@ -6,19 +6,19 @@
 //
 
 import Foundation
-//import Alamofire
+// import Alamofire
 import SDWebImage
-//import Cache
+// import Cache
 
 protocol CacheProtocol {
     func cachePath(forKey key: String) -> String?
-    
+
     func setData(_ data: Data?, forKey key: String)
-    
+
     func data(forKey key: String) -> Data?
-    
+
     func removeData(forKey key: String)
-    
+
     func removeAllData()
 }
 
@@ -28,49 +28,49 @@ public class VideoCache {
 //    private static let storageDiskConfig = DiskConfig(name: "VideoReourceCache", expiry: .seconds(3600*24*3))
 //    private static let storageMemoryConfig = MemoryConfig(expiry: .never, countLimit: 10, totalCostLimit: 10)
 //    private static let storage = try? Storage.init(diskConfig: VideoCache.storageDiskConfig, memoryConfig: VideoCache.storageMemoryConfig, transformer: TransformerFactory.forData())
-    
+
     // SDWebImage framework
-    static var sdDiskConfig: SDImageCacheConfig  {
+    static var sdDiskConfig: SDImageCacheConfig {
         let config = SDImageCacheConfig()
         config.diskCacheExpireType = .accessDate
         config.maxDiskSize = 1024 * 1024 * 512 // 500M
         return config
     }
-    
+
     static let videoCacheTmpDirectory: URL? = try? FileManager.tempDirectory(with: FileManager.cachedWebVideoDirName)
-    
+
     static let diskCache: SDDiskCache? = SDDiskCache(cachePath: videoCacheTmpDirectory?.path ?? URL(fileURLWithPath: NSTemporaryDirectory()).path,
                                                      config: sdDiskConfig)
-    
+
     private static let movieTypes: [String] = ["mp4", "m4v", "mov"]
-    
+
     public static let shared: VideoCache? = VideoCache()
-    
+
     private var cache: CacheProtocol?
-    
+
     // request
     private var activeTaskMap: [URL: URLSessionDataTask] = [:]
     private let underlyingQueue = DispatchQueue(label: "com.fyphoto.underlyingQueue")
-    
+
     private init?(cache: CacheProtocol? = VideoCache.diskCache) {
         self.cache = cache
     }
-    
+
     public func clearAll() {
         cache?.removeAllData()
     }
-    
+
     public func removeData(forKey key: URL) {
         let cKey = getCacheKey(with: key)
         cache?.removeData(forKey: cKey)
-        
+
     }
-    
+
     public func save(data: Data, key: URL) {
         let cKey = getCacheKey(with: key)
         cache?.setData(data, forKey: cKey)
     }
-    
+
     public func fetchDataWith(key: URL, completion: @escaping ((Swift.Result<Data, Error>) -> Void)) {
         let cKey = getCacheKey(with: key)
         if let data = cache?.data(forKey: cKey) {
@@ -89,7 +89,7 @@ public class VideoCache {
             }
         }
     }
-    
+
     fileprivate func request(_ url: URL, completion: @escaping ((Result<Data, Error>) -> Void)) {
         if let task = activeTaskMap[url] {
             task.cancel()
@@ -103,14 +103,14 @@ public class VideoCache {
                 self.removeTask(url)
                 return
             }
-            
+
             guard let httpResponse = response as? HTTPURLResponse else {
                 return
             }
             if let _url = httpResponse.url {
                 self.removeTask(_url)
             }
-            
+
             if (200...299).contains(httpResponse.statusCode) {
                 if let data = data {
                     DispatchQueue.main.async {
@@ -128,18 +128,18 @@ public class VideoCache {
         task.resume()
         activeTaskMap[url] = task
     }
-    
+
     public func fetchFilePathWith(key: URL, completion: @escaping ((Swift.Result<URL, Error>) -> Void)) {
         guard !key.isFileURL else {
             completion(.success(key))
             return
         }
         guard let cache = cache else { return }
-        
+
         // Use the code below to get the real video suffix.
         // "http://client.gsup.sichuanair.com/file.php?9bfc3b16aec233d025c18042e9a2b45a.mp4", this url will get `php` as it's path extension
         let keyString = getCacheKey(with: key)
-                        
+
         if cache.data(forKey: keyString) != nil,
            let filePath = cache.cachePath(forKey: keyString) {
             let url = URL(fileURLWithPath: filePath)
@@ -164,7 +164,7 @@ public class VideoCache {
             }
         }
     }
-    
+
     func cancelAllTask(completingOnQueue queue: DispatchQueue = .main, completion: (() -> Void)? = nil) {
         underlyingQueue.async {
             self.activeTaskMap.values.forEach { $0.cancel() }
@@ -173,7 +173,7 @@ public class VideoCache {
             }
         }
     }
-    
+
     func getCacheKey(with url: URL) -> String {
         let pathExtension = url.pathExtension
         if VideoCache.movieTypes.contains(pathExtension) {
@@ -188,15 +188,14 @@ public class VideoCache {
             }
         }
     }
-    
+
     func handleServerError(_ response: URLResponse) {
         print("fetch video failed with system error response: \(response)")
     }
-    
+
     func removeTask(_ url: URL) {
         activeTaskMap[url] = nil
     }
 }
-
 
 extension SDDiskCache: CacheProtocol { }

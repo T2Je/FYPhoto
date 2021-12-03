@@ -10,9 +10,9 @@ import AVFoundation
 
 class VideoTrimmer {
     static let shared = VideoTrimmer()
-    
+
     let tempDirectory: URL
-    
+
     private init() {
         if let url = try? FileManager.tempDirectory(with: FileManager.trimmedVideoDirName) {
             tempDirectory = url
@@ -20,17 +20,17 @@ class VideoTrimmer {
             tempDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
         }
     }
-    
+
     func trimVideo(_ asset: AVAsset, from startTime: Double, to endTime: Double, completion: @escaping((Result<URL, Error>) -> Void)) {
         var tempFile = tempDirectory
         let videoName = UUID().uuidString + ".mp4"
         tempFile.appendPathComponent("\(videoName)")
-        
+
         guard let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
             completion(.failure(AVAssetExportSessionError.exportSessionCreationFailed))
             return
         }
-        
+
         let start = CMTime(seconds: startTime, preferredTimescale: 600)
         let end = CMTime(seconds: endTime, preferredTimescale: 600)
         exporter.timeRange = CMTimeRange(start: start, end: end)
@@ -62,7 +62,7 @@ class VideoTrimmer {
             }
         }
     }
-    
+
     func clear() {
         try? FileManager.default.removeItem(at: tempDirectory)
     }

@@ -42,7 +42,7 @@ import UIKit
         guard let sources = UIImagePickerController.availableMediaTypes(for: sourceType) else { return false }
         return sources.contains(paramMediaType)
     }
-    
+
     static func requestPhotoAuthority(_ completion: @escaping (_ isSuccess: Bool) -> Void) {
         let status = PHPhotoLibrary.authorizationStatus()
         switch status {
@@ -68,14 +68,14 @@ import UIKit
             completion(false)
         }
     }
-    
+
     @available(iOS 14, *)
     static func presentLimitedLibraryPicker(title: String, message: String?, from viewController: UIViewController) {
         guard PHPhotoLibrary.authorizationStatus(for: .readWrite) == .limited else {
             return
         }
         let alert = UIAlertController.init(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction.init(title: L10n.selectMorePhotos, style: .default, handler: { (a) in
+        alert.addAction(UIAlertAction.init(title: L10n.selectMorePhotos, style: .default, handler: { (_) in
             PHPhotoLibrary.shared().presentLimitedLibraryPicker(from: viewController)
         }))
         alert.addAction(UIAlertAction.init(title: L10n.keepCurrent, style: .default))

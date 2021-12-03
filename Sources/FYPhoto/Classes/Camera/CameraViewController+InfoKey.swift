@@ -8,12 +8,12 @@
 import Foundation
 
 extension CameraViewController {
-    public struct InfoKey : Hashable, Equatable, RawRepresentable {
+    public struct InfoKey: Hashable, Equatable, RawRepresentable {
         public let rawValue: String
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
-        
+
         public static let mediaType: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "mediaType")
 
         public static let originalImage: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "originalImage") // a UIImage
@@ -28,9 +28,9 @@ extension CameraViewController {
         public static let livePhoto: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "livePhoto") // a PHLivePhoto
 
         public static let imageURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "imageURL") // a URL
-        
+
         public static let watermarkImage: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "watermarkImage") // a UIImage
         public static let watermarkVideoURL: CameraViewController.InfoKey = CameraViewController.InfoKey(rawValue: "watermarkVideoURL") // a URL
     }
-    
+
 }

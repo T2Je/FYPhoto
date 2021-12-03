@@ -16,7 +16,7 @@ public protocol TypeWrapperProtocol {
 
 public struct TypeWrapper<T>: TypeWrapperProtocol {
     public let wrappedValue: T
-    
+
     public init(value: T) {
         self.wrappedValue = value
     }
@@ -34,7 +34,7 @@ public extension FYNameSpaceProtocol {
     var fyphoto: TypeWrapper<Self> {
         TypeWrapper(value: self)
     }
-    
+
     static var fyphoto: TypeWrapper<Self>.Type {
         return TypeWrapper.self
     }

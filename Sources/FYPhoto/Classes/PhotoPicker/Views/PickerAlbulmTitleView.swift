@@ -38,9 +38,9 @@ class PickerAlbulmTitleView: UIView {
     }
 
     fileprivate let titleLabel = UILabel()
-    
+
     let imageView = UIImageView(image: Asset.albumArrow.image)
-    
+
     var tapped: (() -> Void)?
 
     override init(frame: CGRect = .zero) {
@@ -49,13 +49,13 @@ class PickerAlbulmTitleView: UIView {
         titleLabel.font = UIFont.systemFont(ofSize: 17)
         titleLabel.adjustsFontSizeToFitWidth = true
         titleLabel.textAlignment = .center
-        
+
         imageView.transform = CGAffineTransform(rotationAngle: CGFloat.pi)
         imageView.isUserInteractionEnabled = true
         imageView.contentMode = .scaleAspectFit
         addSubview(titleLabel)
         addSubview(imageView)
-        
+
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             titleLabel.topAnchor.constraint(equalTo: self.topAnchor),
@@ -63,7 +63,7 @@ class PickerAlbulmTitleView: UIView {
             titleLabel.leadingAnchor.constraint(equalTo: self.leadingAnchor),
             titleLabel.trailingAnchor.constraint(equalTo: self.imageView.leadingAnchor, constant: -2)
         ])
-        
+
         imageView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             imageView.centerYAnchor.constraint(equalTo: self.centerYAnchor),
@@ -83,5 +83,5 @@ class PickerAlbulmTitleView: UIView {
     @objc fileprivate func tap(_ gesture: UITapGestureRecognizer) {
         tapped?()
     }
-    
+
 }

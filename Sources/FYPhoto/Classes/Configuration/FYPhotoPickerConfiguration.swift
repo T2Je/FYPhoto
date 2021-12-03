@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import FYVideoCompressor
 
 /// A configuration for `FYPhoto.PickerViewController`.
 public struct FYPhotoPickerConfiguration {
@@ -14,39 +15,39 @@ public struct FYPhotoPickerConfiguration {
     ///
     /// Setting `selectionLimit` to 0 means maximum supported by the system.
     public var selectionLimit: Int = 1
-    
+
     @available(swift, deprecated: 1.2.0, message: "use mediaFilter instead")
     public var filterdMedia: MediaOptions = .all
-    
+
     /// Filter the media types PhotoPickerController can display. Default are video and image.
     public var mediaFilter: MediaOptions = .all
-        
+
     /// Maximum video duration can pick. Default is 15 seconds.
     public var maximumVideoDuration: Double = 15
-    
+
     /// Maximum video size can pick. Default is 0, not limit.
     public var maximumVideoMemorySize: Double = 0
-    
+
     /// If true, compress video which is larger than `compressVideoLimitSize` MB before giving it to user. Default is true.
     public var compressVideoBeforeSelected: Bool = true
     public var compressVideoLimitSize: Double = 1 // MB
-    
+
     /// Video compressed quality. Default is 640x480.
-    public var compressedQuality: VideoCompressor.VideoQuality = .mediumQuality
-    
+    public var compressedQuality: FYVideoCompressor.VideoQuality = .mediumQuality
+
     /// Captured movie path extension. Default is `mp4`.
     public var moviePathExtension: String = "mp4"
-    
+
     /// whether first cell is camera cell or not. Default is true.
     public var supportCamera: Bool = true
 
     @available(swift, deprecated: 1.2.0, message: "custom color with colorConfiguration")
     public var uiConfiguration = FYUIConfiguration()
-    
+
     public var colorConfiguration = FYColorConfiguration()
-    
+
     public init() {
-        
+
     }
 }
 
@@ -81,7 +82,6 @@ public class FYUIConfiguration {
                       itemDisableColor: .systemGray,
                       itemBackgroundColor: .white,
                       backgroundColor: .white)
-
 
     public var pickerBottomBarColorStyle =
         BarColorSytle(itemTintColor: UIColor.fyBlueTintColor,

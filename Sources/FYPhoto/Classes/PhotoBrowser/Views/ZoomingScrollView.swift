@@ -28,16 +28,16 @@ class ZoomingScrollView: UIScrollView {
                     displayAsset(asset, targetSize: photo.targetSize ?? bounds.size)
                 } else {
                     displayImageFailure()
-                }                
+                }
             }
         }
     }
 
     var imageView = PhotoAnimatedImageView()
 
-    let activityIndicator = UIActivityIndicatorView()    
+    let activityIndicator = UIActivityIndicatorView()
 
-    override init(frame: CGRect) {        
+    override init(frame: CGRect) {
         super.init(frame: frame)
         setup()
     }
@@ -52,7 +52,7 @@ class ZoomingScrollView: UIScrollView {
         } else {
             activityIndicator.style = .whiteLarge
         }
-        
+
         addSubview(imageView)
         addSubview(activityIndicator)
 
@@ -108,7 +108,7 @@ class ZoomingScrollView: UIScrollView {
             switch result {
             case .failure(let error):
                 #if DEBUG
-                print("❌ \(error) in ",  #file)
+                print("❌ \(error) in ", #file)
                 #endif
                 self?.displayImageFailure()
             case .success(let image):
@@ -129,14 +129,14 @@ extension ZoomingScrollView: DetectingGestureViewDelegate {
     func handleSingleTap(_ touchPoint: CGPoint) {
         routerEvent(name: ImageViewGestureEvent.singleTap.rawValue, userInfo: nil)
     }
-    
+
     func handleDoubleTap(_ touchPoint: CGPoint) {
         var info = [String: Any]()
         info["touchPoint"] = touchPoint
         info["mediaType"] = kUTTypeImage
         routerEvent(name: ImageViewGestureEvent.doubleTap.rawValue, userInfo: info)
     }
-    
+
     func handleLongPress() {
         routerEvent(name: ImageViewGestureEvent.longPress.rawValue, userInfo: nil)
     }

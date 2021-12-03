@@ -40,4 +40,6 @@ Pod::Spec.new do |s|
    s.frameworks = 'UIKit', 'Photos'
 
    s.dependency 'SDWebImage/Core'
+   s.dependency 'FYVideoCompressor'
+   
 end

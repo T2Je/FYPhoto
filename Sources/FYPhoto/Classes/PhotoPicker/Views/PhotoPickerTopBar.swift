@@ -10,15 +10,15 @@ import UIKit
 class PhotoPickerTopBar: UIView {
     let cancelButton = UIButton()
     let titleView = PickerAlbulmTitleView()
-    
+
     var dismiss: (() -> Void)?
-    
+
     var albulmTitleTapped: (() -> Void)? {
         didSet {
             titleView.tapped = albulmTitleTapped
         }
     }
-    
+
     init(colorStyle: FYColorConfiguration.BarColor, safeAreaInsetsTop: CGFloat) {
         super.init(frame: .zero)
         backgroundColor = colorStyle.backgroundColor
@@ -30,30 +30,30 @@ class PhotoPickerTopBar: UIView {
         cancelButton.setTitleColor(colorStyle.itemTintColor, for: .normal)
         cancelButton.titleLabel?.font = UIFont.systemFont(ofSize: 15)
         cancelButton.addTarget(self, action: #selector(cancelButtonClicked(_:)), for: .touchUpInside)
-        
+
         addSubview(cancelButton)
         addSubview(titleView)
         titleView.titleColor = colorStyle.itemTintColor
         titleView.imageColor = colorStyle.itemTintColor
-        
+
         makeConstraints(safeAreaInsetsTop: safeAreaInsetsTop)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func setTitle(_ title: String) {
         titleView.title = title
     }
-    
+
     fileprivate func makeConstraints(safeAreaInsetsTop: CGFloat) {
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             cancelButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: safeAreaInsetsTop/2),
             cancelButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 15)
         ])
-        
+
         titleView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             titleView.centerYAnchor.constraint(equalTo: cancelButton.centerYAnchor),
@@ -62,10 +62,10 @@ class PhotoPickerTopBar: UIView {
             titleView.heightAnchor.constraint(equalToConstant: 40)
         ])
     }
-    
+
     @objc
     fileprivate func cancelButtonClicked(_ sender: UIButton) {
         dismiss?()
     }
-    
+
 }

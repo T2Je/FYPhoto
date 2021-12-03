@@ -13,21 +13,21 @@ extension CropView: UIScrollViewDelegate {
     func viewForZooming(in scrollView: UIScrollView) -> UIView? {
         return imageView
     }
-    
+
     func scrollViewWillBeginDragging(_ scrollView: UIScrollView) {
         scrollViewWillBeginDragging()
     }
-    
+
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
             scrollViewDidEndDragging()
         }
     }
-    
+
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         scrollViewDidEndDecelerating()
     }
-    
+
     func scrollViewDidZoom(_ scrollView: UIScrollView) {
         scrollViewDidZoom()
     }

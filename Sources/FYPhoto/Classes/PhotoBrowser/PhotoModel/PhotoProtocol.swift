@@ -13,17 +13,17 @@ public protocol PhotoProtocol: URLPhotoProtocol, AssetPhotoProtocol, PhotoCaptio
     var image: UIImage? { get }
     var metaData: Data? { get }
     var isVideo: Bool { get }
-    
+
     /// use this data to restore cropping photo scene
     var restoreData: CroppedRestoreData? { get set }
-    
+
     func storeImage(_ image: UIImage?)
     func isEqualTo(_ photo: PhotoProtocol) -> Bool
 }
 
 public extension PhotoProtocol {
     var isVideo: Bool { return false }
-    func storeImage(_ image: UIImage?) { }    
+    func storeImage(_ image: UIImage?) { }
 }
 
 public protocol PhotoCaption {
@@ -43,7 +43,7 @@ public protocol AssetPhotoProtocol {
 
 public protocol URLPhotoProtocol {
     var url: URL? { get set }
-        
+
     func generateThumbnail(_ url: URL, size: CGSize, completion: @escaping ((Result<UIImage, Error>) -> Void))
     func clearThumbnail()
     func setCaptionContent(_ content: String)
@@ -51,7 +51,7 @@ public protocol URLPhotoProtocol {
 }
 
 public extension URLPhotoProtocol {
-    
+
     func generateThumbnail(_ url: URL, size: CGSize, completion: @escaping ((Result<UIImage, Error>) -> Void)) {}
     func clearThumbnail() {}
     func setCaptionContent(_ content: String) {}

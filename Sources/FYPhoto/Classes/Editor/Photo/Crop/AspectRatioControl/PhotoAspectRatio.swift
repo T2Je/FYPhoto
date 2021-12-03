@@ -10,7 +10,7 @@ import Foundation
 public struct RatioItem {
     let title: String
     let value: Double?
-    
+
     /// Initialize RatioItem
     /// - Parameters:
     ///   - title: title
@@ -26,20 +26,20 @@ public struct RatioOptions: OptionSet {
     public init(rawValue: Int) {
         self.rawValue = rawValue
     }
-    
+
     static public let original = RatioOptions(rawValue: 1 << 0)
     static public let freeform = RatioOptions(rawValue: 1 << 1)
     static public let square = RatioOptions(rawValue: 1 << 2)
     static public let extraDefaultRatios = RatioOptions(rawValue: 1 << 3)
     static public let custom = RatioOptions(rawValue: 1 << 4)
-    
+
     static public let all: RatioOptions = [original, freeform, square, extraDefaultRatios, custom]
 }
 
 class RatioManager {
 
     private(set) var items: [RatioItem] = []
-    
+
     init(ratioOptions: RatioOptions, custom: [RatioItem], original: Double, isHorizontal: Bool) {
         if ratioOptions.contains(.original) {
             items.append(RatioItem(title: L10n.orinial, value: original))
@@ -61,7 +61,7 @@ class RatioManager {
             items += custom
         }
     }
-    
+
     private func horizontalExtraDefault() -> [RatioItem] {
         [RatioItem(title: "16:9", value: 16.0 / 9.0),
          RatioItem(title: "10:8", value: 10.0 / 8.0),
@@ -71,7 +71,7 @@ class RatioManager {
          RatioItem(title: "3:2", value: 3.0 / 2.0)
         ]
     }
-    
+
     private func verticalExtraDefault() -> [RatioItem] {
         [RatioItem(title: "9:16", value: 9.0 / 16.0),
          RatioItem(title: "8:10", value: 8.0 / 10.0),
@@ -81,5 +81,5 @@ class RatioManager {
          RatioItem(title: "2:3", value: 2.0 / 3.0)
         ]
     }
-        
+
 }

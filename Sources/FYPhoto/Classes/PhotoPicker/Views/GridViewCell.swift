@@ -15,7 +15,7 @@ protocol GridViewCellDelegate: AnyObject {
 
 class GridViewCell: UICollectionViewCell {
     static let reuseIdentifier = "GridViewCell"
-    
+
     var imageView = UIImageView()
     var livePhotoBadgeImageView = UIImageView()
     var videoDurationLabel = UILabel()
@@ -23,7 +23,7 @@ class GridViewCell: UICollectionViewCell {
     var selectionButton = SelectionButton()
     var overlayView = UIView()
     let editedAnnotation = UIImageView(image: Asset.Crop.icons8EditImage.image)
-    
+
     var representedAssetIdentifier: String!
 
     weak var delegate: GridViewCellDelegate?
@@ -58,7 +58,7 @@ class GridViewCell: UICollectionViewCell {
             selectionButton.isHidden = isVideoAsset
         }
     }
-    
+
     var isEnable: Bool = false {
         willSet {
             overlayView.isHidden = newValue
@@ -70,7 +70,7 @@ class GridViewCell: UICollectionViewCell {
         super.init(frame: frame)
         setupUI()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -85,7 +85,7 @@ class GridViewCell: UICollectionViewCell {
         isVideoAsset = false
         editedAnnotation.isHidden = true
     }
-    
+
     func setupUI() {
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
@@ -103,7 +103,7 @@ class GridViewCell: UICollectionViewCell {
 
         editedAnnotation.contentMode = .scaleAspectFit
         editedAnnotation.isHidden = true
-        
+
         contentView.addSubview(imageView)
         contentView.addSubview(livePhotoBadgeImageView)
         contentView.addSubview(videoDurationLabel)
@@ -133,7 +133,7 @@ class GridViewCell: UICollectionViewCell {
 
         NSLayoutConstraint.activate([
             videoDurationLabel.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 5),
-            videoDurationLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5),
+            videoDurationLabel.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -5)
         ])
 
         NSLayoutConstraint.activate([
@@ -149,7 +149,7 @@ class GridViewCell: UICollectionViewCell {
             overlayView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor),
             overlayView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
         ])
-        
+
         editedAnnotation.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             editedAnnotation.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 10),
@@ -184,7 +184,7 @@ class GridViewCell: UICollectionViewCell {
             selectionButton.transform = CGAffineTransform(scaleX: 0.7, y: 0.7)
         }
     }
-    
+
     func updateSelectionButtonTitle(_ title: String, _ isAnimated: Bool) {
         let isSelected = !title.isEmpty
         displayButtonTitle(title)
@@ -192,7 +192,7 @@ class GridViewCell: UICollectionViewCell {
             selectionButtonAnimation(isSelected: isSelected)
         }
     }
-    
+
     func selectionButtonAnimation(isSelected: Bool) {
         let animationValues: [CGFloat]
         if isSelected {
@@ -206,7 +206,7 @@ class GridViewCell: UICollectionViewCell {
         keyAnimation.values = animationValues
         selectionButton.layer.add(keyAnimation, forKey: "selectionButtonAnimation")
     }
-    
+
     func hideUselessViewsForSingleSelection(_ isSingleSelection: Bool) {
         if isSingleSelection {
             selectionButton.isHidden = true
@@ -218,7 +218,7 @@ class GridViewCell: UICollectionViewCell {
             livePhotoBadgeImageView.isHidden = false
         }
     }
-    
+
     func showEditAnnotation(_ show: Bool) {
         editedAnnotation.isHidden = !show
     }

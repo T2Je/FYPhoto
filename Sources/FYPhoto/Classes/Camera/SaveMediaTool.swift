@@ -20,7 +20,7 @@ class SaveMediaTool {
 
         case withoutAuthourity
     }
-    
+
     static func saveImageDataToAlbums(_ photoData: Data, completion: @escaping ((Result<Void, Error>) -> Void)) {
         PHPhotoLibrary.requestAuthorization { status in
             if status == .authorized {
@@ -65,17 +65,17 @@ class SaveMediaTool {
                     }
                     DispatchQueue.main.async {
                         completion(.success(()))
-                    }                    
+                    }
                 })
             } else {
                 DispatchQueue.main.async {
                     completion(.failure(SaveMediaError.withoutAuthourity))
                 }
-                
+
             }
         }
     }
-    
+
     static func saveVideoDataToAlbums(_ videoPath: URL, completion: @escaping ((Result<Void, Error>) -> Void)) {
         // Check the authorization status.
         PHPhotoLibrary.requestAuthorization { status in
@@ -97,7 +97,7 @@ class SaveMediaTool {
                     if !success {
                         print("FYPhoto couldn't save the movie to your photo library: \(String(describing: error))")
                     }
-                    
+
                 })
             } else {
                 DispatchQueue.main.async {

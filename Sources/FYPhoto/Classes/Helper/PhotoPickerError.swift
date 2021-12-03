@@ -10,7 +10,7 @@ import Foundation
 public enum PhotoPickerError: Error {
     case VideoDurationTooLong
     case VideoMemoryOutOfSize
-    case UnspportedVideoFormat    
+    case UnspportedVideoFormat
 }
 
 extension PhotoPickerError: LocalizedError {

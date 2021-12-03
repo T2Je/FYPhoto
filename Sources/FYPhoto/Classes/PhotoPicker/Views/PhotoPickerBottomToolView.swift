@@ -14,7 +14,7 @@ protocol PhotoPickerBottomToolViewDelegate: AnyObject {
 
 final class PhotoPickerBottomToolView: UIView {
     weak var delegate: PhotoPickerBottomToolViewDelegate?
-    
+
     private let previewButton = UIButton()
     private let countLabel = UILabel()
     private let doneButton = UIButton()
@@ -31,20 +31,20 @@ final class PhotoPickerBottomToolView: UIView {
             doneButton.isEnabled = newValue > 0
         }
     }
-    
+
     private let selectionLimit: Int
     private let safeAreaInsetsBottom: CGFloat
-    
+
     init(selectionLimit: Int, colorStyle: FYColorConfiguration.BarColor, safeAreaInsetsBottom: CGFloat = 0) {
         self.selectionLimit = selectionLimit
         self.safeAreaInsetsBottom = safeAreaInsetsBottom
         super.init(frame: .zero)
         backgroundColor = colorStyle.backgroundColor
-        
+
         addSubview(previewButton)
         addSubview(countLabel)
         addSubview(doneButton)
-        
+
         previewButton.setTitle(L10n.preview, for: .normal)
         previewButton.layer.cornerRadius = 4
         previewButton.layer.masksToBounds = true
@@ -55,7 +55,7 @@ final class PhotoPickerBottomToolView: UIView {
         previewButton.addTarget(self, action: #selector(buttonClicked(_:)), for: .touchUpInside)
         previewButton.isEnabled = false
         previewButton.setTitleColor(colorStyle.itemDisableColor, for: .disabled)
-        
+
         doneButton.setTitle(L10n.done, for: .normal)
         doneButton.layer.cornerRadius = 4
         doneButton.layer.masksToBounds = true
@@ -71,31 +71,31 @@ final class PhotoPickerBottomToolView: UIView {
         countLabel.font = UIFont.systemFont(ofSize: 13, weight: .thin)
         countLabel.textAlignment = .right
         countLabel.text = "0/\(selectionLimit)"
-        
+
         makeConstraints()
     }
-    
-    func makeConstraints() {        
+
+    func makeConstraints() {
         previewButton.translatesAutoresizingMaskIntoConstraints = false
-                
+
         NSLayoutConstraint.activate([
             previewButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 15),
             previewButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -safeAreaInsetsBottom/2)
         ])
-        
+
         doneButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             doneButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -15),
             doneButton.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -safeAreaInsetsBottom/2)
         ])
-        
+
         countLabel.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             countLabel.trailingAnchor.constraint(equalTo: self.doneButton.leadingAnchor, constant: -10),
             countLabel.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -safeAreaInsetsBottom/2)
         ])
     }
-    
+
     @objc func buttonClicked(_ sender: UIButton) {
         if sender == previewButton {
             delegate?.bottomToolViewPreviewButtonClicked()
@@ -103,13 +103,13 @@ final class PhotoPickerBottomToolView: UIView {
             delegate?.bottomToolViewDoneButtonClicked()
         }
     }
-            
+
     func updateCount(_ count: Int) {
         self.count = count
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
- 
+

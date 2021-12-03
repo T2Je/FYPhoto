@@ -7,22 +7,22 @@
 
 import UIKit
 
-class CropVisualEffectView: UIVisualEffectView, CropMaskProtocol {        
+class CropVisualEffectView: UIVisualEffectView, CropMaskProtocol {
 
     var transparentLayer: CAShapeLayer?
-    
+
     override init(effect: UIVisualEffect?) {
         super.init(effect: effect)
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func setMask(_ insideRect: CGRect, animated: Bool) {
         guard self.bounds.size != .zero else { return }
         let layer = createTransparentRect(withOutside: bounds, insideRect: insideRect, opacity: 0.98)
-        
+
         if let shapeLayer = transparentLayer {
             if animated {
                 animateTransparentLayer(shapeLayer, withOutside: bounds, insideRect: insideRect, opacity: 0.98)
@@ -37,7 +37,7 @@ class CropVisualEffectView: UIVisualEffectView, CropMaskProtocol {
             self.mask = maskView
         }
     }
-    
+
     /// Create a brand new mask layer without using the exsisting shapeLayer.
     /// - Parameter insideRect: transparent rect
     func createBrandNewMask(_ insideRect: CGRect) {

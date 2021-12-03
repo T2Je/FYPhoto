@@ -14,7 +14,7 @@ enum PhotoRotation: Int {
     case counterclockwise180
     case counterclockwise270
 //    case custom(radians: Double)
-    
+
     var radians: CGFloat {
         switch self {
         case .zero:
@@ -29,13 +29,13 @@ enum PhotoRotation: Int {
 //            return value
         }
     }
-    
+
     var degree: CGFloat {
         get {
             return radians / CGFloat.pi * 180.0
         }
     }
-    
+
     mutating func counterclockwiseRotate90Degree() {
         switch self {
         case .zero:

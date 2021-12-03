@@ -16,7 +16,7 @@ class PhotoHideShowAnimator: NSObject, UIViewControllerAnimatedTransitioning {
     let isNavigationAnimation: Bool
     let transitionEssential: TransitionEssentialClosure?
     let completion: (() -> Void)?
-    
+
     init(isPresenting: Bool, isNavigationAnimation: Bool, transitionEssential: TransitionEssentialClosure?, completion: (() -> Void)?) {
         self.isPresenting = isPresenting
         self.isNavigationAnimation = isNavigationAnimation
@@ -47,16 +47,14 @@ class PhotoHideShowAnimator: NSObject, UIViewControllerAnimatedTransitioning {
     }
 }
 
-
-
 // MARK: - InteractiveTransitioning
 class PhotoInteractiveAnimator: NSObject, UIViewControllerInteractiveTransitioning {
     var transitionDriver: TransitionDriver?
     let panGestureRecognizer: UIPanGestureRecognizer
     let isNavigationDismiss: Bool
     let transitionEssential: TransitionEssentialClosure?
-    let completion: ((_ isCancelled: Bool,_ isNavigation: Bool) -> Void)?
-    
+    let completion: ((_ isCancelled: Bool, _ isNavigation: Bool) -> Void)?
+
     init(panGestureRecognizer: UIPanGestureRecognizer, isNavigationDismiss: Bool, transitionEssential: TransitionEssentialClosure?, completion: ((_ isCancelled: Bool, _ isNavigation: Bool) -> Void)?) {
         self.panGestureRecognizer = panGestureRecognizer
         self.isNavigationDismiss = isNavigationDismiss

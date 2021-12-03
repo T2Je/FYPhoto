@@ -26,7 +26,7 @@ public protocol PhotoTransitioning {
     /// The location onscreen for the imageView provided in `referenceImageView(for:)`.
     /// If image frame is right, but image shows in wrong origin, consider set edgesForExtendedLayout to .all.
     func imageFrame() -> CGRect?
-    
+
     /// if true, self is pushed by navigation controller using Photo transition.
     func enablePhotoTransitionPush() -> Bool
 }
@@ -38,5 +38,3 @@ extension PhotoTransitioning {
         true
     }
 }
-
-

@@ -13,7 +13,7 @@ public struct TransitionEssential {
     let transitionImage: UIImage?
     /// frame coverted to viewController view
     let convertedFrame: CGRect
-    
+
     /// Initial essentials
     /// - Parameters:
     ///   - transitionImage: Transition uses the image for animation

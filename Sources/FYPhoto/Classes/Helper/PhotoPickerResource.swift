@@ -19,7 +19,7 @@ public class PhotoPickerResource {
     }
 
     // image & video
-    
+
     /// all recent items like system Photos.app
     func recentAssetsWith(_ mediaOptions: MediaOptions, ascending: Bool = false) -> PHFetchResult<PHAsset> {
         let fetchOptions: PHFetchOptions = PHFetchOptions()
@@ -40,7 +40,7 @@ public class PhotoPickerResource {
             return PHAsset.fetchAssets(with: fetchOptions)
         }
     }
-    
+
     public func allAssets(ascending: Bool = false, in collection: PHAssetCollection? = nil) -> PHFetchResult<PHAsset> {
         let fetchOptions = PHFetchOptions()
         fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: ascending)]
@@ -62,7 +62,7 @@ public class PhotoPickerResource {
             return PHAsset.fetchAssets(with: fetchOptions)
         }
     }
-    
+
     public func allVideos(_ ascending: Bool = false, in collection: PHAssetCollection? = nil) -> PHFetchResult<PHAsset> {
         let predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.video.rawValue)
         let fetchOptions = PHFetchOptions()
@@ -81,8 +81,8 @@ public class PhotoPickerResource {
 
     public func userCollection() -> PHFetchResult<PHCollection> {
         return PHCollectionList.fetchTopLevelUserCollections(with: nil)
-    }    
-        
+    }
+
     public func smartAlbumsWith(_ mediaOptions: MediaOptions) -> [PHAssetCollection] {
         if mediaOptions == .all {
             if let favoritesAlbum = favorites() {
@@ -106,10 +106,10 @@ public class PhotoPickerResource {
             return []
         }
     }
-    
+
     func allImageAlbums() -> [PHAssetCollection] {
         var albums = [PHAssetCollection]()
-                
+
         if let selfies = selfies() {
             if selfies.getAssetCount(.image) > 0 {
                 albums.append(selfies)
@@ -142,7 +142,7 @@ public class PhotoPickerResource {
         }
         return albums
     }
-    
+
     func allVideoAlbums() -> [PHAssetCollection] {
         var albums = [PHAssetCollection]()
         if let videos = videos() {
@@ -152,7 +152,7 @@ public class PhotoPickerResource {
         }
         return albums
     }
-    
+
     /// favorites, selfies, live(>=iOS10.3), panoramas, slomos, videos, screenshots, animated(>= iOS11), longExposure(>= iOS11)
     public func filteredSmartAlbums(isOnlyImage: Bool = false) -> [PHAssetCollection] {
         var albums = [PHAssetCollection]()
@@ -206,7 +206,7 @@ public class PhotoPickerResource {
     }
 
     // MARK: smart albums. Contains videos and images
-    
+
     func favorites() -> PHAssetCollection? {
         return PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .smartAlbumFavorites, options: nil).firstObject
     }
@@ -266,12 +266,12 @@ public class PhotoPickerResource {
             completion(nil)
         }
     }
-    
+
     func requestAVAsset(for video: PHAsset, completion: @escaping((AVAsset?) -> Void)) {
         let options = PHVideoRequestOptions()
         options.deliveryMode = .highQualityFormat
         options.isNetworkAccessAllowed = true
-        
+
         PHImageManager.default().requestAVAsset(forVideo: video, options: options) { (avasset, _, _) in
             DispatchQueue.main.async {
                 completion(avasset)
@@ -283,7 +283,7 @@ public class PhotoPickerResource {
         let options = PHVideoRequestOptions()
         options.deliveryMode = .highQualityFormat
         options.isNetworkAccessAllowed = true
-        
+
         PHImageManager.default().requestAVAsset(forVideo: video, options: options) { (avasset, _, _) in
             DispatchQueue.main.async {
                 if let avURLAsset = avasset as? AVURLAsset {
@@ -299,18 +299,18 @@ public class PhotoPickerResource {
             }
         }
     }
-    
+
     // Export Slow Mode video url
     func exportAVComposition(_ composition: AVComposition, completion: @escaping (Result<URL, Error>) -> Void) {
         var tempDirectory = cacheDir
         let videoName = UUID().uuidString + ".mp4"
         tempDirectory.appendPathComponent("\(videoName)")
-        
+
         guard let exporter = AVAssetExportSession(asset: composition, presetName: AVAssetExportPresetHighestQuality) else {
             completion(.failure(AVAssetExportSessionError.exportSessionCreationFailed))
             return
         }
-        
+
         exporter.outputURL = tempDirectory
         exporter.outputFileType = .mp4
         exporter.shouldOptimizeForNetworkUse = true
@@ -340,7 +340,7 @@ public class PhotoPickerResource {
             }
         }
     }
-    
+
     func clearCache() {
         try? FileManager.default.removeItem(at: cacheDir)
     }
@@ -363,14 +363,14 @@ extension PhotoPickerResource {
             completion(image, info?["PHImageResultRequestIDKey"] as? PHImageRequestID)
         }
     }
-    
+
     func fetchImage(_ asset: PHAsset) -> UIImage? {
         let options = PHImageRequestOptions()
         options.isNetworkAccessAllowed = true
         options.deliveryMode = .highQualityFormat
         options.isSynchronous = true
         var image: UIImage?
-        PHImageManager.default().requestImage(for: asset, targetSize: CGSize(width: asset.pixelWidth, height: asset.pixelHeight), contentMode: .default, options: options) { (_image, info) in
+        PHImageManager.default().requestImage(for: asset, targetSize: CGSize(width: asset.pixelWidth, height: asset.pixelHeight), contentMode: .default, options: options) { (_image, _) in
             image = _image
         }
         return image

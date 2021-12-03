@@ -11,9 +11,9 @@ import UIKit
 class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningDelegate {
     let panGesture = UIPanGestureRecognizer()
     let transitionEssential: TransitionEssentialClosure?
-    
+
     var isInteractive: Bool = false
-    
+
     weak var viewController: UIViewController?
     init(viewController: UIViewController?, transitionEssential: TransitionEssentialClosure?) {
         self.viewController = viewController
@@ -21,15 +21,15 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
         super.init()
         configurePanGestureRecognizer()
     }
-    
+
     deinit {
 //        UIViewController.TransitionHolder.clearViewControllerTransition()
 //        self.viewController?.view.removeGestureRecognizer(panGesture)
     }
-    
+
     var interactiveAnimator: PhotoInteractiveAnimator?
     var normalAnimator: UIViewControllerAnimatedTransitioning?
-    
+
     func configurePanGestureRecognizer() {
         panGesture.delegate = self
         panGesture.maximumNumberOfTouches = 1
@@ -43,21 +43,21 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
             viewController?.dismiss(animated: true) {}
         }
     }
-    
+
     func animationController(forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         let animator = PhotoHideShowAnimator(isPresenting: true, isNavigationAnimation: false, transitionEssential: transitionEssential, completion: nil)
         normalAnimator = animator
         return animator
     }
-    
+
     func interactionControllerForDismissal(using animator: UIViewControllerAnimatedTransitioning) -> UIViewControllerInteractiveTransitioning? {
         return interactiveAnimator
     }
-    
+
     func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
         let animator: UIViewControllerAnimatedTransitioning
         if isInteractive {
-            let interactiveAnimator = PhotoInteractiveAnimator(panGestureRecognizer: panGesture, isNavigationDismiss: false, transitionEssential: transitionEssential, completion: { [weak self] (isCancelled, isNavi) in
+            let interactiveAnimator = PhotoInteractiveAnimator(panGestureRecognizer: panGesture, isNavigationDismiss: false, transitionEssential: transitionEssential, completion: { [weak self] (isCancelled, _) in
                 self?.interactiveAnimator = nil
                 self?.isInteractive = false
                 if !isCancelled {
@@ -70,9 +70,9 @@ class PhotoPresentTransitionController: NSObject, UIViewControllerTransitioningD
             animator = PhotoHideShowAnimator(isPresenting: false, isNavigationAnimation: false, transitionEssential: transitionEssential, completion: { [weak self] in
                 self?.completePresentationTransition()
             })
-            normalAnimator = animator            
+            normalAnimator = animator
         }
-        
+
         return animator
     }
 

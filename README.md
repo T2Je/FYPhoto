@@ -2,7 +2,7 @@
 
 FYPhoto is an photo/video picker and browser for iOS written in pure Swift. It is feature-rich and highly customizable to match your App's requirements.
 
-[![Version](https://img.shields.io/badge/language-swift%205-f48041.svg?style=flat)](https://developer.apple.com/swift) [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat)](https://github.com/Yummypets/YPImagePicker/blob/master/LICENSE) [![Platform](https://img.shields.io/badge/platform-ios-lightgrey.svg)](http://cocoapods.org/pods/FYPhoto)
+[![Version](https://img.shields.io/badge/language-swift%205-f48041.svg?style=flat)](https://developer.apple.com/swift) [![License](https://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat)](https://github.com/T2Je/FYPhoto) [![Platform](https://img.shields.io/badge/platform-ios-lightgrey.svg)](http://cocoapods.org/pods/FYPhoto)
 
 ## Example
 To run the example project, clone the repo, and run `pod install` from the Example directory first.
