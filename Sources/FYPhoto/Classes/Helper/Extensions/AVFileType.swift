@@ -13,8 +13,7 @@ extension AVFileType {
     /// Fetch and extension for a file from UTI string
     var fileExtension: String {
         if #available(iOS 14.0, *) {
-            if let utType = UTType(self.rawValue) {
-                print("utType.preferredMIMEType: \(utType.preferredMIMEType)")
+            if let utType = UTType(self.rawValue) {                
                 return utType.preferredFilenameExtension ?? "None"
             }
             return "None"

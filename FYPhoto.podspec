@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'FYPhoto'
-  s.version          = '2.2.3'
+  s.version          = '2.2.4'
   s.summary          = 'FYPhoto is a photo/video picker and image browser library for iOS written in pure Swift'
 
 # This description is used to generate tags and improve search results.
@@ -24,7 +24,7 @@ Pod::Spec.new do |s|
   s.homepage         = 'https://github.com/T2Je'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
-  s.author           = { 't2je' => '827034457@qq.com' }
+  s.author           = { 't2je' => 't2je@icloud.com' }
   s.source           = { :git => 'https://github.com/T2Je/FYPhoto.git', :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 

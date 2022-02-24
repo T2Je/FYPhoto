@@ -17,7 +17,6 @@ let package = Package(
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
-        // .package(url: /* package url */, from: "1.0.0"),
 		.package(url: "https://github.com/SDWebImage/SDWebImage.git", from: "5.1.0"),
         .package(url: "https://github.com/T2Je/FYVideoCompressor.git", from: "0.0.1")
     ],
@@ -30,8 +29,7 @@ let package = Package(
                 "SDWebImage",
                 "FYVideoCompressor"
             ],
-			path: "Sources",
-            exclude: ["Example"]),
+			path: "Sources"),
         .testTarget(
             name: "FYPhotoTests",
             dependencies: ["FYPhoto"],
