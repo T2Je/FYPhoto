@@ -13,30 +13,10 @@ extension PhotoBrowserViewController {
     func setupPlayer(photo: PhotoProtocol, for cell: VideoDetailCell) {
         if let asset = photo.asset {
             setupPlayer(asset: asset, for: cell.playerView)
-            cell.photo = photo
         } else if let url = photo.url {
             cell.startLoading()
             setupPlayer(url: url, for: cell.playerView, completion: { url in
-                if let url = url {
-                    photo.generateThumbnail(url, size: .zero) { result in
-                        cell.endLoading()
-                        let image: UIImage
-                        switch result {
-                        case .success(let thumbnail):
-                            image = thumbnail
-                        case .failure(let error):
-                            image = Asset.imageError.image
-                            #if DEBUG
-                            print("❌ generate thumbnail failed: \(error)")
-                            #endif
-                        }
-                        let videoThumbnail = Photo.photoWithUIImage(image)
-                        cell.photo = videoThumbnail
-                    }
-                } else {
-                    let videoThumbnail = Photo.photoWithUIImage(Asset.imageError.image)
-                    cell.photo = videoThumbnail
-                }
+                cell.endLoading()
             })
         }
     }
@@ -50,33 +30,32 @@ extension PhotoBrowserViewController {
         }
         PHImageManager.default().requestPlayerItem(forVideo: asset, options: options) { (item, _) in
             if let item = item {
-                let player = self.preparePlayer(with: item)
-                playerView.player = player
-                self.player = player
+                self.configurePlayer(with: item)
+                playerView.player = self.player
             }
         }
     }
 
-    fileprivate func setupPlayer(url: URL, for playerView: PlayerView, completion: @escaping ((URL?) -> Void)) {
+    fileprivate func setupPlayer(url: URL, for playerView: PlayerView, completion: ((URL?) -> Void)?) {
         if url.isFileURL {
             setupPlayerView(url, playerView: playerView)
-            completion(url)
+            completion?(url)
         } else {
             if let cache = videoCache {
                 cache.fetchFilePathWith(key: url) { (result) in
                     switch result {
                     case .success(let filePath):
                         self.setupPlayerView(filePath, playerView: playerView)
-                        completion(filePath)
+                        completion?(filePath)
                     case .failure(let error):
                         self.showError(error)
                         print("FYPhoto fetch url error: \(error)")
-                        completion(nil)
+                        completion?(nil)
                     }
                 }
             } else {
                 setupPlayerView(url, playerView: playerView)
-                completion(url)
+                completion?(url)
             }
         }
     }
@@ -86,16 +65,24 @@ extension PhotoBrowserViewController {
         // array of asset keys to be automatically loaded
         let asset = AVAsset(url: url)
         let playerItem = AVPlayerItem(asset: asset, automaticallyLoadedAssetKeys: self.assetKeys)
-        let player = self.preparePlayer(with: playerItem)
-        playerView.player = player
-        self.player = player
+        configurePlayer(with: playerItem)
+        playerView.player = self.player
     }
 
-    fileprivate func preparePlayer(with playerItem: AVPlayerItem) -> AVPlayer {
+    fileprivate func configurePlayer(with playerItem: AVPlayerItem) {
         if let currentItem = mPlayerItem {
             playerItemStatusToken?.invalidate()
             NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: currentItem)
         }
+        // Associate the player item with the player
+                
+        if let player = self.player {
+            player.pause()
+            player.replaceCurrentItem(with: playerItem)
+        } else {
+            player = AVPlayer(playerItem: playerItem)
+        }
+        
         self.mPlayerItem = playerItem
         // observing the player item's status property
         playerItemStatusToken = playerItem.observe(\.status, options: .new) { (_, change) in
@@ -120,15 +107,6 @@ extension PhotoBrowserViewController {
         NotificationCenter.default.addObserver(self, selector: #selector(playerItemDidReachEnd(_:)), name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
 
         seekToZeroBeforePlay = false
-        // Associate the player item with the player
-
-        if let player = self.player {
-            player.pause()
-            player.replaceCurrentItem(with: playerItem)
-            return player
-        } else {
-            return AVPlayer(playerItem: playerItem)
-        }
     }
 
     func playVideo() {
@@ -147,12 +125,18 @@ extension PhotoBrowserViewController {
         isPlaying = false
     }
 
-    func stopPlayingIfNeeded() {
-        guard let player = player, isPlaying else {
+    func stopPlayingIfNeeded(at indexPath: IndexPath) {
+        guard player != nil,
+                photos[indexPath.item].isVideo,
+              isPlaying else {
             return
         }
-        player.pause()
-        player.seek(to: .zero)
+        stopPlayingAnyway()
+    }
+
+    func stopPlayingAnyway() {
+        player?.pause()
+        player?.seek(to: .zero)
         isPlaying = false
     }
 

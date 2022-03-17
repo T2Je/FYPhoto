@@ -122,7 +122,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             }
             updateNavigationTitle(at: newValue)
             if newValue != currentDisplayedIndexPath {
-                stopPlayingIfNeeded()
+                stopPlayingIfNeeded(at: currentDisplayedIndexPath)
             }
         }
     }
@@ -355,7 +355,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     public override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        stopPlayingIfNeeded()
+        stopPlayingAnyway()
         restorePreviousNavigationControllerData()
     }
 
@@ -691,7 +691,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             if photo.isVideo {
                 if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VideoDetailCell.reuseIdentifier,
                                                                  for: indexPath) as? VideoDetailCell {
-                    setupPlayer(photo: photo, for: cell)
+                    cell.photo = photo
                     return cell
                 }
             } else {
@@ -719,8 +719,15 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
     
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        if collectionView == mainCollectionView, indexPath != currentDisplayedIndexPath {
-            stopPlayingIfNeeded()
+        if collectionView == mainCollectionView {
+            var photo = photos[indexPath.item]
+            photo.targetSize = assetSize
+            if photo.isVideo {
+                // a scroll action may cause the `cellForItem` method to be called twice, and will cause a bug when setting up avplayer, so I decide to move setup player code here.
+                if let videoCell = cell as? VideoDetailCell {
+                    setupPlayer(photo: photo, for: videoCell)
+                }
+            }
         }
     }
 
@@ -878,7 +885,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     public override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        stopPlayingIfNeeded()
+        stopPlayingAnyway()
         player = nil
     }
 }

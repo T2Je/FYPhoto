@@ -98,28 +98,31 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
         if !activityIndicator.isAnimating {
             activityIndicator.startAnimating()
         }
-
         if let videoCache = videoCache {
             videoCache.fetchFilePathWith(key: url) { [weak self] (result) in
-                self?.activityIndicator.stopAnimating()
                 switch result {
                 case .success(let filePath):
-                    self?.generateThumnbnail(filePath)
+                    self?.generateThumnbnail(filePath, completion: {
+                        self?.activityIndicator.stopAnimating()
+                    })
                 case .failure(let error):
                     self?.displayImageFailure()
+                    self?.activityIndicator.stopAnimating()
                     #if DEBUG
                     print("❌ cache video error: \(error)")
                     #endif
                 }
             }
         } else {
-            generateThumnbnail(url)
+            generateThumnbnail(url) {
+                self.activityIndicator.stopAnimating()
+            }
         }
     }
 
-    func generateThumnbnail(_ url: URL) {
+    func generateThumnbnail(_ url: URL, completion: (() -> Void)?) {
         photo?.generateThumbnail(url, size: .zero) { (result) in
-            self.activityIndicator.stopAnimating()
+            completion?()
             switch result {
             case .success(let image):
                 self.display(image: image)
@@ -144,7 +147,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
                                               contentMode: PHImageContentMode.aspectFit,
                                               options: options) { [weak self] (image, _) in
             if let image = image {
-                self?.photo?.storeImage(image)
+//                self?.photo?.storeImage(image)
                 self?.display(image: image)
             } else {
                 self?.displayImageFailure()
