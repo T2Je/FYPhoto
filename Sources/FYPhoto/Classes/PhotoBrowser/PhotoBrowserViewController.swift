@@ -102,8 +102,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     var seekToZeroBeforePlay: Bool = false
 
     var currentDisplayedIndexPath: IndexPath {
-        willSet {
-            stopPlayingIfNeeded()
+        willSet {            
             currentPhoto = photos[newValue.item]
             if currentDisplayedIndexPath != newValue {
                 delegate?.photoBrowser(self, scrollAt: newValue.item)
@@ -122,7 +121,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 }
             }
             updateNavigationTitle(at: newValue)
-            stopPlayingVideoIfNeeded(at: currentDisplayedIndexPath)
+            if newValue != currentDisplayedIndexPath {
+                stopPlayingIfNeeded()
+            }
         }
     }
 
@@ -153,9 +154,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             if !thumbnailPhoto.isEqualTo(mainPhoto), mainCollectionView.superview != nil {
                 if let firstIndex = firstIndexOfPhoto(thumbnailPhoto, in: photos) { // 点击thumbnail cell 滑动主collectionView
                     let mainPhotoIndexPath = IndexPath(item: firstIndex, section: 0)
-                    let offset = CGPoint(x: (view.bounds.width + PhotoBrowserViewController.minimumLineSpacing) * CGFloat(firstIndex), y: 0)
-                    mainCollectionView.setContentOffset(offset, animated: true)
+//                    let offset = CGPoint(x: (view.bounds.width + PhotoBrowserViewController.minimumLineSpacing) * CGFloat(firstIndex), y: 0)
+//                    mainCollectionView.setContentOffset(offset, animated: true)
                     // scroll to item function doesn't trigger scrollview did end decelerating delegate function
+                    mainCollectionView.scrollToItem(at: mainPhotoIndexPath, at: .left, animated: true)
                     currentDisplayedIndexPath = mainPhotoIndexPath
                 }
             }
@@ -226,7 +228,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             }
         }
     }
-
+    
+    private var scrollOnlyOnce = false
+    
     fileprivate let initialIndex: Int
     /// the maximum number of photos you can select
     var maximumCanBeSelected: Int = 0
@@ -263,7 +267,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         self.photos = photos
         self.initialIndex = initialIndex
         currentDisplayedIndexPath = IndexPath(row: initialIndex, section: 0)
-        currentPhoto = photos[currentDisplayedIndexPath.item]
+        currentPhoto = photos[initialIndex]
 
         super.init(nibName: nil, bundle: nil)
     }
@@ -333,7 +337,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         addSubviews()
 
         // fix collectionView can't scrollTo correct position on iOS 14.4 and above system.
-        mainCollectionView.layoutIfNeeded()
+//        mainCollectionView.layoutIfNeeded()
 //        mainCollectionView.reloadData()
 
         if supportBottomToolBar {
@@ -366,20 +370,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             initTargetSize = true
             recalculateAseetTargetSize(inBoundingSize: view.bounds.size)
         }
-
-        if !initialScrollDone {
-            initialScrollDone = true
-
-            let offset = CGPoint(x: (view.bounds.width + PhotoBrowserViewController.minimumLineSpacing) * CGFloat(currentDisplayedIndexPath.item), y: 0)
-            mainCollectionView.setContentOffset(offset, animated: false)
-
-            if isForSelection {
-                updateAddBarItem(at: currentDisplayedIndexPath)
-            }
-            if supportCaption {
-                updateCaption(at: currentDisplayedIndexPath)
-            }
-        }
+        
+        setupFirstScroll()
     }
 
     public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
@@ -540,6 +532,20 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             }
         }
     }
+    
+    func setupFirstScroll() {
+        guard !scrollOnlyOnce else { return }
+        // scroll position shouldn't be empty, otherwise, collection view will not be in the right position.
+        mainCollectionView.selectItem(at: currentDisplayedIndexPath, animated: false, scrollPosition: .centeredHorizontally)
+        if isForSelection {
+            updateAddBarItem(at: currentDisplayedIndexPath)
+        }
+        if supportCaption {
+            updateCaption(at: currentDisplayedIndexPath)
+        }
+                
+        scrollOnlyOnce = true
+    }
 
     fileprivate func restoreOtherPreviousData() {
         activateOtherInterruptedAudioSessions()
@@ -675,18 +681,23 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             return selectedPhotos.count
         }
     }
-
+    
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        print("cellforitem indexPath: \(indexPath)")
+//        print("cellforitem call stack: \n \(Thread.callStackSymbols.forEach{print($0)})")
         if collectionView == self.mainCollectionView {
-            let photo = photos[indexPath.item]
+            var photo = photos[indexPath.item]
+            photo.targetSize = assetSize
             if photo.isVideo {
                 if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VideoDetailCell.reuseIdentifier,
                                                                  for: indexPath) as? VideoDetailCell {
+                    setupPlayer(photo: photo, for: cell)
                     return cell
                 }
             } else {
                 if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: PhotoDetailCell.reuseIdentifier,
                                                                  for: indexPath) as? PhotoDetailCell {
+                    cell.photo = photo
                     return cell
                 }
             }
@@ -706,19 +717,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
         return UICollectionViewCell()
     }
-
+    
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        stopPlayingVideoIfNeeded(at: currentDisplayedIndexPath)
-        var photo = photos[indexPath.item]
-        photo.targetSize = assetSize
-        if photo.isVideo {
-            if let videoCell = cell as? VideoDetailCell {
-                setupPlayer(photo: photo, for: videoCell)
-            }
-        } else {
-            if let photoCell = cell as? PhotoDetailCell {
-                photoCell.photo = photo
-            }
+        if collectionView == mainCollectionView, indexPath != currentDisplayedIndexPath {
+            stopPlayingIfNeeded()
         }
     }
 
@@ -786,7 +788,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
             navigationController?.popViewController(animated: true)
         }
     }
-
+    
+    // MARK: Update views
     fileprivate func updateBottomViewPlayButton(_ showPlay: Bool) {
         bottomToolView.isPlaying = showPlay
     }

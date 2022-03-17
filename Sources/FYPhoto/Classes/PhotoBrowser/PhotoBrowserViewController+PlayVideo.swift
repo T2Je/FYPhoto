@@ -147,19 +147,13 @@ extension PhotoBrowserViewController {
         isPlaying = false
     }
 
-     func stopPlayingIfNeeded() {
+    func stopPlayingIfNeeded() {
         guard let player = player, isPlaying else {
             return
         }
         player.pause()
         player.seek(to: .zero)
         isPlaying = false
-    }
-
-    func stopPlayingVideoIfNeeded(at oldIndexPath: IndexPath) {
-        if isPlaying {
-            stopPlayingIfNeeded()
-        }
     }
 
     // MARK: Target action
