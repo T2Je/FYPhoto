@@ -15,7 +15,7 @@ extension PhotoBrowserViewController {
             setupPlayer(asset: asset, for: cell.playerView)
         } else if let url = photo.url {
             cell.startLoading()
-            setupPlayer(url: url, for: cell.playerView, completion: { url in
+            setupPlayer(url: url, for: cell.playerView, completion: { _ in                
                 cell.endLoading()
             })
         }
@@ -37,26 +37,25 @@ extension PhotoBrowserViewController {
     }
 
     fileprivate func setupPlayer(url: URL, for playerView: PlayerView, completion: ((URL?) -> Void)?) {
-        if url.isFileURL {
+        if let cache = videoCache {
+            cache.fetchFilePathWith(key: url) { (result) in
+                switch result {
+                case .success(let filePath):
+                    self.setupPlayerView(filePath, playerView: playerView)
+                    completion?(filePath)
+                case .failure(let error):
+                    switch error {
+                    case .underlyingError(let _error):
+                        self.showError(error)
+                    default: break
+                    }
+                    print("FYPhoto fetch url error: \(error)")
+                    completion?(nil)
+                }
+            }
+        } else {
             setupPlayerView(url, playerView: playerView)
             completion?(url)
-        } else {
-            if let cache = videoCache {
-                cache.fetchFilePathWith(key: url) { (result) in
-                    switch result {
-                    case .success(let filePath):
-                        self.setupPlayerView(filePath, playerView: playerView)
-                        completion?(filePath)
-                    case .failure(let error):
-                        self.showError(error)
-                        print("FYPhoto fetch url error: \(error)")
-                        completion?(nil)
-                    }
-                }
-            } else {
-                setupPlayerView(url, playerView: playerView)
-                completion?(url)
-            }
         }
     }
 

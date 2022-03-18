@@ -35,7 +35,17 @@ class ZoomingScrollView: UIScrollView {
 
     var imageView = PhotoAnimatedImageView()
 
-    let activityIndicator = UIActivityIndicatorView()
+    lazy var activityIndicator: UIActivityIndicatorView = {
+        if #available(iOS 13.0, *) {
+            let activity = UIActivityIndicatorView(style: .large)
+            activity.color = .white
+            return activity
+        } else {
+            let activity = UIActivityIndicatorView(style: .whiteLarge)
+            activity.color = .white
+            return activity
+        }
+    }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -43,15 +53,8 @@ class ZoomingScrollView: UIScrollView {
     }
 
     func setup() {
-//        backgroundColor = .clear
         imageView.gestureDelegate = self
         imageView.contentMode = .scaleAspectFit
-//        activityIndicator.color = .systemGray
-        if #available(iOS 13.0, *) {
-            activityIndicator.style = .large
-        } else {
-            activityIndicator.style = .whiteLarge
-        }
 
         addSubview(imageView)
         addSubview(activityIndicator)

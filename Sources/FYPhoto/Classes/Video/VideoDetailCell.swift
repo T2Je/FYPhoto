@@ -16,7 +16,17 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
 
     var playerView = PlayerView()
 
-    var activityIndicator = UIActivityIndicatorView(style: .white)
+    lazy var activityIndicator: UIActivityIndicatorView = {
+        if #available(iOS 13.0, *) {
+            let activity = UIActivityIndicatorView(style: .large)
+            activity.color = .white
+            return activity
+        } else {
+            let activity = UIActivityIndicatorView(style: .whiteLarge)
+            activity.color = .white
+            return activity
+        }
+    }()
 
     var imageView = UIImageView()
 
@@ -46,18 +56,16 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     override init(frame: CGRect) {
 
         super.init(frame: frame)
-//        contentView.backgroundColor = .white
+
         contentView.addSubview(imageView)
         contentView.addSubview(playerView)
         playerView.layer.contentsGravity = .resizeAspectFill
 
-        contentView.addSubview(activityIndicator)
+        playerView.addSubview(activityIndicator)
 
         imageView.backgroundColor = .black
         imageView.contentMode = .scaleAspectFit
-
-        setupActivityIndicator()
-
+        
         let doubleTap = UITapGestureRecognizer(target: self, action: #selector(doubleTapVideoCell(_:)))
         doubleTap.numberOfTapsRequired = 2
         contentView.addGestureRecognizer(doubleTap)
@@ -87,35 +95,29 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
         print("video cell deinit ☠️☠️☠️")
         #endif
     }
-
-    fileprivate func setupActivityIndicator() {
-        activityIndicator.frame = CGRect(x: 0, y: 0, width: 40, height: 40)
-        activityIndicator.center = contentView.center
-        activityIndicator.isHidden = true
-    }
-
+    
     fileprivate func display(url: URL) {
-        if !activityIndicator.isAnimating {
-            activityIndicator.startAnimating()
-        }
         if let videoCache = videoCache {
             videoCache.fetchFilePathWith(key: url) { [weak self] (result) in
                 switch result {
                 case .success(let filePath):
                     self?.generateThumnbnail(filePath, completion: {
-                        self?.activityIndicator.stopAnimating()
+                        self?.endLoading()
                     })
                 case .failure(let error):
-                    self?.displayImageFailure()
-                    self?.activityIndicator.stopAnimating()
+                    switch error {
+                    case .underlyingError(let _error):
+                        self?.displayImageFailure()
+                    default: break
+                    }
                     #if DEBUG
                     print("❌ cache video error: \(error)")
                     #endif
                 }
             }
         } else {
-            generateThumnbnail(url) {
-                self.activityIndicator.stopAnimating()
+            generateThumnbnail(url) { [weak self] in
+                self?.endLoading()
             }
         }
     }
@@ -147,7 +149,6 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
                                               contentMode: PHImageContentMode.aspectFit,
                                               options: options) { [weak self] (image, _) in
             if let image = image {
-//                self?.photo?.storeImage(image)
                 self?.display(image: image)
             } else {
                 self?.displayImageFailure()
@@ -168,6 +169,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
     }
 
     func startLoading() {
+        activityIndicator.isHidden = false
         if !activityIndicator.isAnimating {
             activityIndicator.startAnimating()
         }
@@ -209,10 +211,8 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
 
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            activityIndicator.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
-            activityIndicator.centerYAnchor.constraint(equalTo: contentView.centerYAnchor),
-            activityIndicator.widthAnchor.constraint(equalToConstant: 40),
-            activityIndicator.heightAnchor.constraint(equalToConstant: 40)
+            activityIndicator.centerXAnchor.constraint(equalTo: playerView.centerXAnchor),
+            activityIndicator.centerYAnchor.constraint(equalTo: playerView.centerYAnchor),
         ])
     }
 }

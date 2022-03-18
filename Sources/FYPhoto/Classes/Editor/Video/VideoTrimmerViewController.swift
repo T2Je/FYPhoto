@@ -45,7 +45,17 @@ public class VideoTrimmerViewController: UIViewController {
     let confirmButton = UIButton()
     let pauseButton = UIButton()
 
-    let activityIndicator = UIActivityIndicatorView()
+    lazy var activityIndicator: UIActivityIndicatorView = {
+        if #available(iOS 13.0, *) {
+            let activity = UIActivityIndicatorView(style: .large)
+            activity.color = .white
+            return activity
+        } else {
+            let activity = UIActivityIndicatorView(style: .whiteLarge)
+            activity.color = .white
+            return activity
+        }
+    }()
 
     // trimmed time
     var startTime: Double = 0 {
@@ -270,12 +280,6 @@ public class VideoTrimmerViewController: UIViewController {
     }
 
     func setupActivityIndicator() {
-        if #available(iOS 13.0, *) {
-            activityIndicator.style = .large
-        } else {
-            activityIndicator.style = .whiteLarge
-        }
-
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([

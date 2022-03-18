@@ -127,8 +127,8 @@ class ViewController: UIViewController {
     }
 
     @objc func playRemoteVideo(_ sender: UIButton) {
-        let urlStr = "http://techslides.com/demos/sample-videos/small.mp4"
-//        let urlStr = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
+//        let urlStr = "http://techslides.com/demos/sample-videos/small.mp4"
+        let urlStr = "https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4"
 //        let urlStr = "https://wolverine.raywenderlich.com/content/ios/tutorials/video_streaming/foxVillage.mp4"
 //        let urlStr = "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4
         guard let url = URL(string: urlStr) else { return }
