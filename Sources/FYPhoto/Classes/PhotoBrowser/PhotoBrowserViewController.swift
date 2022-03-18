@@ -719,7 +719,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
     
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        if collectionView == mainCollectionView {
+        if collectionView == mainCollectionView &&
+            indexPath != currentDisplayedIndexPath { // fix the bug that video stops playing when collectionView keep reloading.
             var photo = photos[indexPath.item]
             photo.targetSize = assetSize
             if photo.isVideo {
