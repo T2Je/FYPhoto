@@ -546,15 +546,15 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
                 // due to the placeholder camera cell
                 let indexPathWithoutCamera = regenerate(indexPath: indexPath, if: containsCamera)
                 let selectedAsset = assets[indexPathWithoutCamera.item]
-//                if selectedAsset.mediaType == .video {
-//                    browseVideoIfValid(selectedAsset)
-//                } else {
+                if selectedAsset.mediaType == .video {
+                    browseVideoIfValid(selectedAsset)
+                } else {
                     if isSingleSelection {
                         completeSingleSelection(at: indexPath)
                     } else {
                         browseImages(at: indexPathWithoutCamera)
                     }
-//                }
+                }
             }
         } else {
             let indexPathWithoutCamera = regenerate(indexPath: indexPath, if: containsCamera)
