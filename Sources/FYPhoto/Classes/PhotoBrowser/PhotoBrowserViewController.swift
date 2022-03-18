@@ -888,11 +888,15 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 }
 
 extension PhotoBrowserViewController: UIScrollViewDelegate {
-    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView == mainCollectionView {
-            isOperatingMainPhotos = true
-            let indexPath = mainCollectionView.indexPathsForVisibleItems.last ?? IndexPath(row: 0, section: 0)
-            currentDisplayedIndexPath = indexPath
+            let visibleRect = CGRect(origin: mainCollectionView.contentOffset, size: mainCollectionView.bounds.size)
+            let visiblePoint = CGPoint(x: visibleRect.midX, y: visibleRect.midY)
+            let visibleIndexPath = mainCollectionView.indexPathForItem(at: visiblePoint)
+            if visibleIndexPath != currentDisplayedIndexPath {
+                isOperatingMainPhotos = true
+                currentDisplayedIndexPath = visibleIndexPath ?? IndexPath(item: 0, section: 0)
+            }
         }
     }
 }
