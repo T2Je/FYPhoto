@@ -695,6 +695,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VideoDetailCell.reuseIdentifier,
                                                                  for: indexPath) as? VideoDetailCell {
                     cell.photo = photo
+                    if currentDisplayedIndexPath == indexPath {
+                        // set player for cell when the collectionView first appears
+                        setupPlayer(photo: photo, for: cell)
+                    }
                     return cell
                 }
             } else {
