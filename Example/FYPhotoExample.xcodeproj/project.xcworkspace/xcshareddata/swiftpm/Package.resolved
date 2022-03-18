@@ -6,8 +6,8 @@
         "repositoryURL": "https://github.com/T2Je/FYVideoCompressor.git",
         "state": {
           "branch": null,
-          "revision": "984b44c3e50b70d9eae7e819378e51b0d0958790",
-          "version": "0.0.2"
+          "revision": "762ab24adf168a60f513ad9b3082f41b7aefa902",
+          "version": "0.0.1"
         }
       },
       {
@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/SDWebImage/SDWebImage.git",
         "state": {
           "branch": null,
-          "revision": "2e63d0061da449ad0ed130768d05dceb1496de44",
-          "version": "5.12.5"
+          "revision": "76dd4b49110b8624317fc128e7fa0d8a252018bc",
+          "version": "5.11.1"
         }
       }
     ]
