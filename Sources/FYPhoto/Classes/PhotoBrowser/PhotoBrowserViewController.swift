@@ -121,8 +121,21 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 }
             }
             updateNavigationTitle(at: currentDisplayedIndexPath)
+            updateCellVideoPlayer(at: currentDisplayedIndexPath)
             stopPlayingIfNeeded(at: oldValue)
         }
+    }
+    
+    func updateCellVideoPlayer(at indexPath: IndexPath) {
+        guard let videoCell = mainCollectionView.cellForItem(at: indexPath) as? VideoDetailCell else {
+            return
+        }
+        let photo = photos[indexPath.item]
+        guard photo.isVideo else {
+            return
+        }
+        // a scroll action may cause the `cellForItem` method to be called twice, and will cause a bug when setting up avplayer, so I decide to move setup player code here.
+        setupPlayer(photo: photo, for: videoCell)
     }
 
     var selectedThumbnailIndexPath: IndexPath? {
@@ -674,7 +687,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
     
-    public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {    
+    public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if collectionView == self.mainCollectionView {
             var photo = photos[indexPath.item]
             photo.targetSize = assetSize
@@ -707,21 +720,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
         return UICollectionViewCell()
     }
-    
-    public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        if collectionView == mainCollectionView &&
-            indexPath != currentDisplayedIndexPath { // fix the bug that video stops playing when collectionView keep reloading.
-            var photo = photos[indexPath.item]
-            photo.targetSize = assetSize
-            if photo.isVideo {
-                // a scroll action may cause the `cellForItem` method to be called twice, and will cause a bug when setting up avplayer, so I decide to move setup player code here.
-                if let videoCell = cell as? VideoDetailCell {
-                    setupPlayer(photo: photo, for: videoCell)
-                }
-            }
+
+    public func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
+        // remove video player when video cell disappears
+        if let videoCell = cell as? VideoDetailCell {
+            videoCell.playerView.player = nil
         }
     }
-
+    
     public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         if collectionView == self.thumbnailsCollectionView {
             isOperatingMainPhotos = false
