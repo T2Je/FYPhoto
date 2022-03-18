@@ -102,28 +102,26 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     var seekToZeroBeforePlay: Bool = false
 
     var currentDisplayedIndexPath: IndexPath {
-        willSet {            
-            currentPhoto = photos[newValue.item]
-            if currentDisplayedIndexPath != newValue {
-                delegate?.photoBrowser(self, scrollAt: newValue.item)
-            }
+        didSet {
+            guard currentDisplayedIndexPath != oldValue else { return }
+            
+            currentPhoto = photos[currentDisplayedIndexPath.item]
+            delegate?.photoBrowser(self, scrollAt: currentDisplayedIndexPath.item)
             if isForSelection {
-                updateAddBarItem(at: newValue)
+                updateAddBarItem(at: currentDisplayedIndexPath)
             } else {
-                updatePageControl(withPage: newValue.item)
+                updatePageControl(withPage: currentDisplayedIndexPath.item)
             }
             if supportCaption {
-                updateCaption(at: newValue)
+                updateCaption(at: currentDisplayedIndexPath)
             }
             if supportThumbnails {
                 if isOperatingMainPhotos {
-                    updateThumbnails(at: newValue)
+                    updateThumbnails(at: currentDisplayedIndexPath)
                 }
             }
-            updateNavigationTitle(at: newValue)
-            if newValue != currentDisplayedIndexPath {
-                stopPlayingIfNeeded(at: currentDisplayedIndexPath)
-            }
+            updateNavigationTitle(at: currentDisplayedIndexPath)
+            stopPlayingIfNeeded(at: oldValue)
         }
     }
 
@@ -133,13 +131,13 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 // do nothing when building PhotoBrowserViewController
                 return
             }
-            guard let idx = newValue else {
+            guard let newIndexPath = newValue else {
                 thumbnailsCollectionView.reloadData()
                 // 有值 -> 无值， 取消 thumbnail selected 状态
                 // 无值 -> 无值， selectedPhotos 改变
                 return
             }
-            guard idx != selectedThumbnailIndexPath else {
+            guard newIndexPath != selectedThumbnailIndexPath else {
                 // 没有选中时，thumbanail collectionView
                 return
             }
@@ -149,18 +147,16 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
                 return
             }
             // scroll mainCollectionView when selecting thumbnail cell
-            let thumbnailPhoto = selectedPhotos[idx.item]
+            let thumbnailPhoto = selectedPhotos[newIndexPath.item]
             let mainPhoto = photos[currentDisplayedIndexPath.item]
             if !thumbnailPhoto.isEqualTo(mainPhoto), mainCollectionView.superview != nil {
                 if let firstIndex = firstIndexOfPhoto(thumbnailPhoto, in: photos) { // 点击thumbnail cell 滑动主collectionView
                     let mainPhotoIndexPath = IndexPath(item: firstIndex, section: 0)
-//                    let offset = CGPoint(x: (view.bounds.width + PhotoBrowserViewController.minimumLineSpacing) * CGFloat(firstIndex), y: 0)
-//                    mainCollectionView.setContentOffset(offset, animated: true)
-                    // scroll to item function doesn't trigger scrollview did end decelerating delegate function
                     mainCollectionView.scrollToItem(at: mainPhotoIndexPath, at: .left, animated: true)
                     currentDisplayedIndexPath = mainPhotoIndexPath
                 }
             }
+            thumbnailsCollectionView.reloadData()
         }
         didSet {
             if !isThumbnailIndexPathInitialized {
@@ -335,10 +331,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         setupNavigationBar()
         setupBottomToolBar()
         addSubviews()
-
-        // fix collectionView can't scrollTo correct position on iOS 14.4 and above system.
-//        mainCollectionView.layoutIfNeeded()
-//        mainCollectionView.reloadData()
 
         if supportBottomToolBar {
             self.view.bringSubviewToFront(bottomToolView)
@@ -682,9 +674,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         }
     }
     
-    public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        print("cellforitem indexPath: \(indexPath)")
-//        print("cellforitem call stack: \n \(Thread.callStackSymbols.forEach{print($0)})")
+    public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {    
         if collectionView == self.mainCollectionView {
             var photo = photos[indexPath.item]
             photo.targetSize = assetSize
