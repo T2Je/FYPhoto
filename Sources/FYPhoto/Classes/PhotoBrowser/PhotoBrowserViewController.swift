@@ -84,8 +84,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     var mPlayerItem: AVPlayerItem?
     var isPlaying = false {
         willSet {
-            if currentPhoto.isVideo {
-                updateBottomViewPlayButton(newValue)
+            if supportBottomToolBar {
+                bottomToolView.isPlaying = newValue
             }
         }
     }
@@ -798,10 +798,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
     
     // MARK: Update views
-    fileprivate func updateBottomViewPlayButton(_ showPlay: Bool) {
-        bottomToolView.isPlaying = showPlay
-    }
-
     fileprivate func updateAddBarItem(at indexPath: IndexPath) {
         let photo = photos[indexPath.item]
         guard !photo.isVideo else {
