@@ -24,6 +24,11 @@ protocol CacheProtocol {
 
 /// Cache remote videos, expired in 3 days
 public class VideoCache {
+    public enum VideoRequestError: Error {
+        case cancelled
+        case emptyResponse
+        case underlyingError(Error)
+    }
     // Cache framework
 //    private static let storageDiskConfig = DiskConfig(name: "VideoReourceCache", expiry: .seconds(3600*24*3))
 //    private static let storageMemoryConfig = MemoryConfig(expiry: .never, countLimit: 10, totalCostLimit: 10)
@@ -76,7 +81,7 @@ public class VideoCache {
         if let data = cache?.data(forKey: cKey) {
             completion(.success(data))
         } else {
-            request(key) { (result: Result<Data, Error>) in
+            request(key) { (result: Result<Data, VideoRequestError>) in
                 switch result {
                 case .success(let data):
                     self.save(data: data, key: key)
@@ -90,7 +95,7 @@ public class VideoCache {
         }
     }
 
-    fileprivate func request(_ url: URL, completion: @escaping ((Result<Data, Error>) -> Void)) {
+    fileprivate func request(_ url: URL, completion: @escaping ((Result<Data, VideoRequestError>) -> Void)) {
         if let task = activeTaskMap[url] {
             task.cancel()
             activeTaskMap[url] = nil
@@ -98,13 +103,18 @@ public class VideoCache {
         let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
             if let error = error {
                 DispatchQueue.main.async {
-                    completion(.failure(error))
+                    if (error as NSError).code == -999 {
+                        completion(.failure(VideoRequestError.cancelled))
+                    } else {
+                        completion(.failure(VideoRequestError.underlyingError(error)))
+                    }
                 }
                 self.removeTask(url)
                 return
             }
 
             guard let httpResponse = response as? HTTPURLResponse else {
+                completion(.failure(VideoRequestError.emptyResponse))
                 return
             }
             if let _url = httpResponse.url {
@@ -121,7 +131,7 @@ public class VideoCache {
                 let domain = HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode)
                 let error = NSError(domain: domain, code: httpResponse.statusCode, userInfo: nil)
                 DispatchQueue.main.async {
-                    completion(.failure(error))
+                    completion(.failure(VideoRequestError.underlyingError(error)))
                 }
             }
         }
@@ -129,12 +139,15 @@ public class VideoCache {
         activeTaskMap[url] = task
     }
 
-    public func fetchFilePathWith(key: URL, completion: @escaping ((Swift.Result<URL, Error>) -> Void)) {
+    public func fetchFilePathWith(key: URL, completion: @escaping ((Swift.Result<URL, VideoRequestError>) -> Void)) {
         guard !key.isFileURL else {
             completion(.success(key))
             return
         }
-        guard let cache = cache else { return }
+        guard let cache = cache else {
+            completion(.success(key))
+            return
+        }
 
         // Use the code below to get the real video suffix.
         // "http://client.gsup.sichuanair.com/file.php?9bfc3b16aec233d025c18042e9a2b45a.mp4", this url will get `php` as it's path extension
@@ -145,7 +158,7 @@ public class VideoCache {
             let url = URL(fileURLWithPath: filePath)
             completion(.success(url))
         } else {
-            request(key) { (result: Result<Data, Error>) in
+            request(key) { (result: Result<Data, VideoRequestError>) in
                 switch result {
                 case .success(let data):
                     self.save(data: data, key: key)

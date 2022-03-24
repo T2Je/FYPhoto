@@ -48,8 +48,9 @@ class PhotoBrowserBottomToolView: UIView {
 
     var isPlaying: Bool = false {
         willSet {
-            let image = newValue ? Asset.icons8Pause.image : Asset.icons8Play.image
-            playButton.setImage(image, for: .normal)
+            if newValue != isPlaying {
+                updatePlayButtonImage(isPlaying: newValue)
+            }            
         }
     }
 
@@ -107,10 +108,18 @@ class PhotoBrowserBottomToolView: UIView {
 
     func showPlayButton(_ show: Bool) {
         playButton.isHidden = !show
+        if show {
+            updatePlayButtonImage(isPlaying: isPlaying)
+        }
     }
 
     func disableDoneButton(_ disable: Bool) {
         doneButton.isEnabled = !disable
+    }
+    
+    func updatePlayButtonImage(isPlaying: Bool) {
+        let image = isPlaying ? Asset.icons8Pause.image : Asset.icons8Play.image
+        playButton.setImage(image, for: .normal)
     }
 
     @objc func buttonClicked(_ sender: UIButton) {

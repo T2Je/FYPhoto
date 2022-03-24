@@ -8,7 +8,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'FYPhoto'
-  s.version          = '2.2.4'
+  s.version          = '2.2.6'
   s.summary          = 'FYPhoto is a photo/video picker and image browser library for iOS written in pure Swift'
 
 # This description is used to generate tags and improve search results.

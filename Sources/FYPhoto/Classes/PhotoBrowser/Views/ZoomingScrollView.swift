@@ -35,7 +35,17 @@ class ZoomingScrollView: UIScrollView {
 
     var imageView = PhotoAnimatedImageView()
 
-    let activityIndicator = UIActivityIndicatorView()
+    lazy var activityIndicator: UIActivityIndicatorView = {
+        if #available(iOS 13.0, *) {
+            let activity = UIActivityIndicatorView(style: .large)
+            activity.color = .white
+            return activity
+        } else {
+            let activity = UIActivityIndicatorView(style: .whiteLarge)
+            activity.color = .white
+            return activity
+        }
+    }()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -43,15 +53,8 @@ class ZoomingScrollView: UIScrollView {
     }
 
     func setup() {
-//        backgroundColor = .clear
         imageView.gestureDelegate = self
         imageView.contentMode = .scaleAspectFit
-//        activityIndicator.color = .systemGray
-        if #available(iOS 13.0, *) {
-            activityIndicator.style = .large
-        } else {
-            activityIndicator.style = .whiteLarge
-        }
 
         addSubview(imageView)
         addSubview(activityIndicator)
@@ -78,6 +81,7 @@ class ZoomingScrollView: UIScrollView {
     }
 
     func displayImage(_ image: UIImage) {
+        imageView.image = nil
         imageView.image = image
         imageView.contentMode = .scaleAspectFit
         setNeedsDisplay()
@@ -85,10 +89,7 @@ class ZoomingScrollView: UIScrollView {
 
     func displayAsset(_ asset: PHAsset, targetSize: CGSize) {
         imageView.setAsset(asset, targeSize: targetSize) { [weak self] (image) in
-            if let image = image {
-//                self?.photo.storeImage(image)  Avoid out of memory
-                self?.displayImage(image)
-            } else {
+            if image == nil {
                 self?.displayImageFailure()
             }
         }

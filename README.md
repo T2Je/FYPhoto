@@ -58,7 +58,7 @@ If you're a framework author and use FYPhoto as a dependency, update your Packag
 ``` swift
 let package = Package(
     dependencies: [
-        .package(url: "https://github.com/T2Je/FYPhoto.git", from: "2.2.4")
+        .package(url: "https://github.com/T2Je/FYPhoto.git", from: "2.2.6")
     ],
     // ...
 )
