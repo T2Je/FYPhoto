@@ -138,7 +138,7 @@ extension ZoomingScrollView: DetectingGestureViewDelegate {
         routerEvent(name: ImageViewGestureEvent.doubleTap.rawValue, userInfo: info)
     }
 
-    func handleLongPress() {
-        routerEvent(name: ImageViewGestureEvent.longPress.rawValue, userInfo: nil)
+    func handleLongPress(_ touchPoint: CGPoint) {
+        routerEvent(name: ImageViewGestureEvent.longPress.rawValue, userInfo: ["touchPoint": touchPoint])
     }
 }

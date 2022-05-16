@@ -618,22 +618,27 @@ public class CropImageViewController: UIViewController {
 
     @objc func cancelButtonClicked(_ sender: UIButton) {
         if viewModel.hasChanges(guideView.frame, cropView.scrollView.zoomScale) {
-            discardChangesWarning()
+            discardChangesWarning(sender)
         } else {
             dismiss(animated: true, completion: nil)
         }
     }
 
-    func discardChangesWarning() {
-        let alertVC = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+    func discardChangesWarning(_ sender: UIView) {
+        let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let discard = UIAlertAction(title: L10n.discardChanges, style: .destructive) { _ in
             self.dismiss(animated: true, completion: nil)
         }
         let cancel = UIAlertAction(title: L10n.cancel, style: .cancel, handler: nil)
-        alertVC.addAction(discard)
-        alertVC.addAction(cancel)
-
-        present(alertVC, animated: true, completion: nil)
+        alertController.addAction(discard)
+        alertController.addAction(cancel)
+        if UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiom.pad {
+            if let popoverController = alertController.popoverPresentationController {
+                popoverController.sourceView = sender
+                popoverController.sourceRect = sender.bounds
+            }
+        }
+        present(alertController, animated: true, completion: nil)
     }
 
     @objc func doneButtonClicked(_ sender: UIButton) {

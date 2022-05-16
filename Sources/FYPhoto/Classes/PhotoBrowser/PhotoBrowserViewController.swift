@@ -911,7 +911,7 @@ extension PhotoBrowserViewController {
             case .doubleTap:
                 handleDoubleTap(userInfo)
             case .longPress:
-                handleLongPress()
+                handleLongPress(userInfo)
             }
         } else {
             // pass the event
@@ -987,14 +987,14 @@ extension PhotoBrowserViewController {
         return zoomRect
     }
 
-    func handleLongPress() {
-        guard !isForSelection else {
+    func handleLongPress(_ userInfo: [AnyHashable: Any]?) {
+        guard !isForSelection, let userInfo = userInfo, let touchPint = userInfo["touchPoint"] as? CGPoint else {
             return
         }
         // long press only work for pure browser, not for selection
         if let cell = mainCollectionView.cellForItem(at: currentDisplayedIndexPath) as? CellWithPhotoProtocol,
            let photo = cell.photo {
-            delegate?.photoBrowser(self, longPressedOnPhoto: photo)
+            delegate?.photoBrowser(self, longPressedOnPhoto: photo, in: touchPint)
         }
     }
 }

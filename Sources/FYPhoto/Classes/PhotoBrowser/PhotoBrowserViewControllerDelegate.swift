@@ -17,7 +17,7 @@ public protocol PhotoBrowserViewControllerDelegate: AnyObject {
 
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, deletePhotoAtIndexWhenBrowsing index: Int)
 
-    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, longPressedOnPhoto photo: PhotoProtocol)
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, longPressedOnPhoto photo: PhotoProtocol, in location: CGPoint)
 
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, saveMediaCompletedWith error: Error?)
 
@@ -34,8 +34,8 @@ public extension PhotoBrowserViewControllerDelegate {
 }
 
 public extension PhotoBrowserViewControllerDelegate {
-    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, longPressedOnPhoto photo: PhotoProtocol) {
-        alertSavePhoto(photo, on: photoBrowser)
+    func photoBrowser(_ photoBrowser: PhotoBrowserViewController, longPressedOnPhoto photo: PhotoProtocol, in location: CGPoint) {
+        alertSavePhoto(photo, on: photoBrowser, in: location)
     }
 
     func photoBrowser(_ photoBrowser: PhotoBrowserViewController, saveMediaCompletedWith error: Error?) {
@@ -46,7 +46,7 @@ public extension PhotoBrowserViewControllerDelegate {
         }
     }
 
-    func alertSavePhoto(_ photo: PhotoProtocol, on viewController: PhotoBrowserViewController) {
+    func alertSavePhoto(_ photo: PhotoProtocol, on viewController: PhotoBrowserViewController, in location: CGPoint) {
         let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
         let actionTitle = photo.isVideo ? L10n.saveVideo : L10n.savePhoto
         let saveAction = UIAlertAction(title: actionTitle, style: .default) { (_) in
@@ -55,6 +55,13 @@ public extension PhotoBrowserViewControllerDelegate {
         let cancelAction = UIAlertAction(title: L10n.cancel, style: .cancel, handler: nil)
         alertController.addAction(saveAction)
         alertController.addAction(cancelAction)
+        
+        if UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiom.pad {
+            if let popoverController = alertController.popoverPresentationController {
+                popoverController.sourceView = viewController.view
+                popoverController.sourceRect = CGRect(origin: location, size: CGSize.zero)
+            }
+        }
         viewController.present(alertController, animated: true, completion: nil)
     }
 

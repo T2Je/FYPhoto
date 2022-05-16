@@ -12,7 +12,7 @@ import SDWebImage
 protocol DetectingGestureViewDelegate: AnyObject {
     func handleSingleTap(_ touchPoint: CGPoint)
     func handleDoubleTap(_ touchPoint: CGPoint)
-    func handleLongPress()
+    func handleLongPress(_ touchPoint: CGPoint)
 }
 
 protocol DetectingTapView {
@@ -64,8 +64,8 @@ class PhotoAnimatedImageView: SDAnimatedImageView, DetectingTapView {
     }
 
     @objc func longPressed(_ gesture: UILongPressGestureRecognizer) {
-        if gesture.state == .began {
-            gestureDelegate?.handleLongPress()
+        if gesture.state == .began {            
+            gestureDelegate?.handleLongPress(gesture.location(in: self))
         }
     }
 

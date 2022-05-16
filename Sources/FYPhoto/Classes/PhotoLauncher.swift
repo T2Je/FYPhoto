@@ -92,8 +92,13 @@ public extension PhotoLauncherDelegate {
         alert.addAction(photo)
         alert.addAction(camera)
         alert.addAction(cancel)
-        alert.popoverPresentationController?.sourceView = container.view
-        alert.popoverPresentationController?.sourceRect = config.sourceRect
+        
+        if UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiom.pad {
+            if let popoverController = alert.popoverPresentationController {
+                popoverController.sourceView = container.view
+                popoverController.sourceRect = config.sourceRect
+            }
+        }
         container.present(alert, animated: true, completion: nil)
     }
 
@@ -198,8 +203,12 @@ extension PhotoLauncher: PHPickerViewControllerDelegate {
         alert.addAction(photo)
         alert.addAction(camera)
         alert.addAction(cancel)
-        alert.popoverPresentationController?.sourceView = container.view
-        alert.popoverPresentationController?.sourceRect = config.sourceRect
+        if UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiom.pad {
+            if let popoverController = alert.popoverPresentationController {
+                popoverController.sourceView = container.view
+                popoverController.sourceRect = config.sourceRect
+            }
+        }
         container.present(alert, animated: true, completion: nil)
     }
 
