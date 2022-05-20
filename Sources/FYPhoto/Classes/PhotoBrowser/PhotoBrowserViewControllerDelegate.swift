@@ -56,7 +56,7 @@ public extension PhotoBrowserViewControllerDelegate {
         alertController.addAction(saveAction)
         alertController.addAction(cancelAction)
         
-        if UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiom.pad {
+        if UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.pad {
             if let popoverController = alertController.popoverPresentationController {
                 popoverController.sourceView = viewController.view
                 popoverController.sourceRect = CGRect(origin: location, size: CGSize.zero)

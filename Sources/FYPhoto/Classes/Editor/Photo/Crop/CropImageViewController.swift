@@ -632,7 +632,7 @@ public class CropImageViewController: UIViewController {
         let cancel = UIAlertAction(title: L10n.cancel, style: .cancel, handler: nil)
         alertController.addAction(discard)
         alertController.addAction(cancel)
-        if UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiom.pad {
+        if UIDevice.current.userInterfaceIdiom == UIUserInterfaceIdiom.pad {
             if let popoverController = alertController.popoverPresentationController {
                 popoverController.sourceView = sender
                 popoverController.sourceRect = sender.bounds
