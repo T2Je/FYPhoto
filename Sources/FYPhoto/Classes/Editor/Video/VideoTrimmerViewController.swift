@@ -172,7 +172,7 @@ public class VideoTrimmerViewController: UIViewController {
     }
 
     deinit {
-        NotificationCenter.default.removeObserver(self, name: NSNotification.Name.AVPlayerItemDidPlayToEndTime, object: playerItem)
+        NotificationCenter.default.removeObserver(self)
         removePeriodicTimeObserver()
     }
 

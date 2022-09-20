@@ -729,7 +729,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
 
     fileprivate func compressVideo(url: URL, asset: PHAsset, completion: @escaping ((Result<URL, Error>) -> Void)) {
-        FYVideoCompressor.shared.compressVideo(url, quality: compressedQuality) { (result) in
+        FYVideoCompressor().compressVideo(url, quality: compressedQuality) { (result) in
             switch result {
             case .success(let url):
                 completion(.success(url))

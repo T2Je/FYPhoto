@@ -9,6 +9,7 @@
 import XCTest
 @testable import FYPhoto
 import AVFoundation
+import FYVideoCompressor
 
 /// Could failed due to the network request timeout
 class TestVideoCache: XCTestCase {
@@ -76,7 +77,7 @@ class TestVideoCache: XCTestCase {
         print("original size: \(size)")
         let expectation = XCTestExpectation(description: "compress video")
 
-        FYVideoCompressor.shared.compressVideo(TestVideoCache.cachedURL!, quality: .mediumQuality) { (result) in
+        FYVideoCompressor().compressVideo(TestVideoCache.cachedURL!, quality: .mediumQuality) { (result) in
             expectation.fulfill()
             switch result {
             case .success(let url):
