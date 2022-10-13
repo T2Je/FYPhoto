@@ -42,9 +42,9 @@ public class VideoCache {
         return config
     }
 
-    static let videoCacheTmpDirectory: URL? = try? FileManager.tempDirectory(with: FileManager.cachedWebVideoDirName)
+    static let videoCacheTmpDirectory: URL = FileManager.tempDirectory(with: FileManager.cachedWebVideoDirName)
 
-    static let diskCache: SDDiskCache? = SDDiskCache(cachePath: videoCacheTmpDirectory?.path ?? URL(fileURLWithPath: NSTemporaryDirectory()).path,
+    static let diskCache: SDDiskCache? = SDDiskCache(cachePath: videoCacheTmpDirectory.path,
                                                      config: sdDiskConfig)
 
     private static let movieTypes: [String] = ["mp4", "m4v", "mov"]

@@ -14,11 +14,7 @@ class VideoTrimmer {
     let tempDirectory: URL
 
     private init() {
-        if let url = try? FileManager.tempDirectory(with: FileManager.trimmedVideoDirName) {
-            tempDirectory = url
-        } else {
-            tempDirectory = URL(fileURLWithPath: NSTemporaryDirectory())
-        }
+        tempDirectory = FileManager.tempDirectory(with: FileManager.trimmedVideoDirName)
     }
 
     func trimVideo(_ asset: AVAsset, from startTime: Double, to endTime: Double, completion: @escaping((Result<URL, Error>) -> Void)) {
