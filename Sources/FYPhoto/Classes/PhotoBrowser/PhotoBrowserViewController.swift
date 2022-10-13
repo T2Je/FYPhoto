@@ -339,11 +339,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         // but photoBrowser view is under a navigationBar height space
         extendedLayoutIncludesOpaqueBars = true
         setupVideoCache()
-        mainCollectionView = generateMainCollectionView()
         setupCollectionView()
         setupNavigationBar()
         setupBottomToolBar()
-        addSubviews()
+        addSomeSubviews()
 
         if supportBottomToolBar {
             self.view.bringSubviewToFront(bottomToolView)
@@ -367,10 +366,6 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
 
-        self.mainCollectionView.frame = CGRect(x: -PhotoBrowserViewController.minimumLineSpacing/2,
-                                               y: 0,
-                                               width: view.bounds.width + PhotoBrowserViewController.minimumLineSpacing,
-                                               height: view.bounds.height)
         if !initTargetSize && view.bounds.size != .zero {
             initTargetSize = true
             recalculateAseetTargetSize(inBoundingSize: view.bounds.size)
@@ -433,8 +428,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     // MARK: Setup
 
-    func addSubviews() {
-        addCollectionView()
+    func addSomeSubviews() {
         if isForSelection {
             if supportThumbnails {
                 addThumbnailCollectionView()
@@ -471,6 +465,8 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     func setupCollectionView() {
+        mainCollectionView = generateMainCollectionView()
+        view.addSubview(mainCollectionView)
         mainCollectionView.register(PhotoDetailCell.self, forCellWithReuseIdentifier: PhotoDetailCell.reuseIdentifier)
         mainCollectionView.register(VideoDetailCell.self, forCellWithReuseIdentifier: VideoDetailCell.reuseIdentifier)
         mainCollectionView.isPagingEnabled = true
@@ -478,6 +474,14 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         mainCollectionView.dataSource = self
 //        collectionView.backgroundColor = .white
         mainCollectionView.contentInsetAdjustmentBehavior = .never
+        
+        mainCollectionView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            mainCollectionView.topAnchor.constraint(equalTo: view.topAnchor),
+            mainCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: -PhotoBrowserViewController.minimumLineSpacing/2),
+            mainCollectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: 0),
+            mainCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: PhotoBrowserViewController.minimumLineSpacing/2),
+        ])
     }
 
     lazy var addItemButton: UIButton = {
@@ -541,7 +545,9 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     func setupFirstScroll() {
         guard !scrollOnlyOnce else { return }
         // scroll position shouldn't be empty, otherwise, collection view will not be in the right position.
-        mainCollectionView.selectItem(at: currentDisplayedIndexPath, animated: false, scrollPosition: .centeredHorizontally)
+//        mainCollectionView.selectItem(at: currentDisplayedIndexPath, animated: false, scrollPosition: .centeredHorizontally)
+        // animated should be true, otherwise can't scroll to the correct place.
+        mainCollectionView.scrollToItem(at: currentDisplayedIndexPath, at: [.centeredVertically, .centeredHorizontally], animated: true)
         if isForSelection {
             updateAddBarItem(at: currentDisplayedIndexPath)
         }
@@ -626,13 +632,13 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     func addCollectionView() {
         view.addSubview(mainCollectionView)
-        mainCollectionView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            mainCollectionView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            mainCollectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            mainCollectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
-            mainCollectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
-        ])
+//        mainCollectionView.translatesAutoresizingMaskIntoConstraints = false
+//        NSLayoutConstraint.activate([
+//            mainCollectionView.topAnchor.constraint(equalTo: self.view.topAnchor),
+//            mainCollectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
+//            mainCollectionView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
+//            mainCollectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor)
+//        ])
     }
 
     func addPageControl() {
@@ -888,7 +894,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 }
 
 extension PhotoBrowserViewController: UIScrollViewDelegate {
-    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         if scrollView == mainCollectionView {
             let visibleRect = CGRect(origin: mainCollectionView.contentOffset, size: mainCollectionView.bounds.size)
             let visiblePoint = CGPoint(x: visibleRect.midX, y: visibleRect.midY)
@@ -899,6 +905,9 @@ extension PhotoBrowserViewController: UIScrollViewDelegate {
             }
         }
     }
+//    public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+//
+//    }
 }
 
 // MARK: - Router event
