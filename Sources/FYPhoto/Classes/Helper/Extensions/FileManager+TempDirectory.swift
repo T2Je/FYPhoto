@@ -8,22 +8,22 @@
 import Foundation
 
 extension FileManager {
-    public enum CreateTempDirectoryError: Error, LocalizedError {
+    enum CreateTempDirectoryError: Error, LocalizedError {
         case fileExsisted
 
-        public var errorDescription: String? {
+        var errorDescription: String? {
             switch self {
             case .fileExsisted:
                 return "File exsisted"
             }
         }
     }
+    
     /// Get temp directory. If it exsists, return it, else create it.
     /// - Parameter pathComponent: path to append to temp directory.
-    /// - Throws: error when create temp directory.
     /// - Returns: temp directory location.
-    /// - Warning: Every time you call this function will return a different directory or throw an error.
-    public static func tempDirectory(with pathComponent: String = ProcessInfo.processInfo.globallyUniqueString) throws -> URL {
+    /// - Warning: Every time you call this function will return a different directory.
+    static func tempDirectory(with pathComponent: String = ProcessInfo.processInfo.globallyUniqueString) -> URL {
         var tempURL: URL
 
         // Only the volume(卷) of cache url is used.
@@ -39,22 +39,17 @@ extension FileManager {
 
         tempURL.appendPathComponent(pathComponent)
 
-        if !FileManager.default.fileExists(atPath: tempURL.absoluteString) {
+        if !FileManager.default.fileExists(atPath: tempURL.path) {
             do {
                 try FileManager.default.createDirectory(at: tempURL, withIntermediateDirectories: true, attributes: nil)
-                #if DEBUG
-                print("temp directory path👉\(tempURL)👈")
-                #endif
-                return tempURL
             } catch {
-                throw error
+                tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(pathComponent, isDirectory: true)
             }
-        } else {
-            #if DEBUG
-            print("temp directory path👉\(tempURL)👈")
-            #endif
-            return tempURL
         }
+        #if DEBUG
+        print("temp directory path \(tempURL)")
+        #endif
+        return tempURL
     }
 }
 

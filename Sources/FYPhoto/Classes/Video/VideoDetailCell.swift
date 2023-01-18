@@ -106,7 +106,7 @@ class VideoDetailCell: UICollectionViewCell, CellWithPhotoProtocol {
                     })
                 case .failure(let error):
                     switch error {
-                    case .underlyingError(let _error):
+                    case .underlyingError(_):
                         self?.displayImageFailure()
                     default: break
                     }

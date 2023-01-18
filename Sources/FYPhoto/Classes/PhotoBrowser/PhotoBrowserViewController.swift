@@ -339,11 +339,10 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         // but photoBrowser view is under a navigationBar height space
         extendedLayoutIncludesOpaqueBars = true
         setupVideoCache()
-        mainCollectionView = generateMainCollectionView()
         setupCollectionView()
         setupNavigationBar()
         setupBottomToolBar()
-        addSubviews()
+        addSomeSubviews()
 
         if supportBottomToolBar {
             self.view.bringSubviewToFront(bottomToolView)
@@ -429,8 +428,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
 
     // MARK: Setup
 
-    func addSubviews() {
-//        addCollectionView()
+    func addSomeSubviews() {
         if isForSelection {
             if supportThumbnails {
                 addThumbnailCollectionView()
@@ -467,6 +465,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
     }
 
     func setupCollectionView() {
+        mainCollectionView = generateMainCollectionView()
         view.addSubview(mainCollectionView)
         mainCollectionView.register(PhotoDetailCell.self, forCellWithReuseIdentifier: PhotoDetailCell.reuseIdentifier)
         mainCollectionView.register(VideoDetailCell.self, forCellWithReuseIdentifier: VideoDetailCell.reuseIdentifier)

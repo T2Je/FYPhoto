@@ -8,14 +8,14 @@
 import Foundation
 import Photos
 import UIKit
+import FYVideoCompressor
 
 public class PhotoPickerResource {
     let cacheDir: URL
     static var shared = PhotoPickerResource()
 
     private init() {
-        let url = try? FileManager.tempDirectory(with: FileManager.avCompositionDirName)
-        cacheDir = url ?? URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(FileManager.avCompositionDirName)
+        cacheDir = FileManager.tempDirectory(with: FileManager.avCompositionDirName)        
     }
 
     // image & video

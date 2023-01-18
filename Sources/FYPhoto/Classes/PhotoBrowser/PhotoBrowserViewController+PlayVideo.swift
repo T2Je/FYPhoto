@@ -45,7 +45,7 @@ extension PhotoBrowserViewController {
                     completion?(filePath)
                 case .failure(let error):
                     switch error {
-                    case .underlyingError(let _error):
+                    case .underlyingError(_):
                         self.showError(error)
                     default: break
                     }
