@@ -547,7 +547,7 @@ public class PhotoBrowserViewController: UIViewController, UICollectionViewDataS
         // scroll position shouldn't be empty, otherwise, collection view will not be in the right position.
 //        mainCollectionView.selectItem(at: currentDisplayedIndexPath, animated: false, scrollPosition: .centeredHorizontally)
         // animated should be true, otherwise can't scroll to the correct place.
-        mainCollectionView.scrollToItem(at: currentDisplayedIndexPath, at: [.centeredVertically, .centeredHorizontally], animated: true)
+        mainCollectionView.scrollToItem(at: currentDisplayedIndexPath, at: [.centeredVertically, .centeredHorizontally], animated: false)
         if isForSelection {
             updateAddBarItem(at: currentDisplayedIndexPath)
         }
