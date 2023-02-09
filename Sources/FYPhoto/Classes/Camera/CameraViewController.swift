@@ -61,10 +61,15 @@ public class CameraViewController: UIViewController {
     private let photoOutput = AVCapturePhotoOutput()
     private var inProgressPhotoCaptureDelegates = [Int64: PhotoCaptureProcessor]()
     // Devices
-    private var currentDevice: AVCaptureDevice?
-    private var videoDeviceDiscoverySession: AVCaptureDevice.DiscoverySession!
-    private var backDeviceDiscoverySession: AVCaptureDevice.DiscoverySession!
-    private var frontDeviceDiscoverySession: AVCaptureDevice.DiscoverySession!
+    private var currentDevice: AVCaptureDevice? {
+        didSet {
+            if let currentDevice {
+                print("video device min zoom factor: \(currentDevice.minAvailableVideoZoomFactor)")
+                print("video device zoom factor: \(currentDevice.videoZoomFactor)")
+                print("video device min zoom factor: \(currentDevice.maxAvailableVideoZoomFactor)")
+            }
+        }
+    }
 
     /// the current flash mode
     private var flashMode: AVCaptureDevice.FlashMode = .auto
@@ -90,7 +95,6 @@ public class CameraViewController: UIViewController {
     public init(tintColor: UIColor = .systemBlue) {
         self.tintColor = tintColor
         super.init(nibName: nil, bundle: nil)
-        initVideoDeviceDiscoverySession()
     }
 
     required init?(coder: NSCoder) {
@@ -304,12 +308,9 @@ public class CameraViewController: UIViewController {
         }
         session.beginConfiguration()
 
-        /*
-         Do not create an AVCaptureMovieFileOutput when setting up the session because
-         Live Photo is not supported when AVCaptureMovieFileOutput is added to the session.
-         */
+        /// set .high to enable full screen
         session.sessionPreset = .high
-
+        
         // Input
         addDeviceInput()
         if captureMode.contains(.video) {
@@ -411,7 +412,6 @@ public class CameraViewController: UIViewController {
         } else {
             print("Could not add photo output to the session")
             setupResult = .configurationFailed
-            session.commitConfiguration()
         }
     }
 
@@ -420,6 +420,9 @@ public class CameraViewController: UIViewController {
 
         if self.session.canAddOutput(movieFileOutput) {
             self.session.addOutput(movieFileOutput)
+            
+            session.sessionPreset = .high
+            
             if let connection = movieFileOutput.connection(with: .video) {
                 if connection.isVideoStabilizationSupported {
                     connection.preferredVideoStabilizationMode = .auto
@@ -432,98 +435,28 @@ public class CameraViewController: UIViewController {
             session.commitConfiguration()
         }
     }
-
-    // MARK: - Sort and Filter Devices with a Discovery Session
-    func initVideoDeviceDiscoverySession() {
-        if #available(iOS 10.2, *) {
-            if #available(iOS 11.1, *) {
-                if #available(iOS 13, *) {
-                    backDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [
-                                                                                    .builtInTripleCamera,
-                                                                                    .builtInDualCamera,
-                                                                                    .builtInDualWideCamera,
-                                                                                    .builtInWideAngleCamera],
-                                                                                  mediaType: .video,
-                                                                                  position: .back)
-
-                    frontDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTrueDepthCamera,
-                                                                                                      .builtInWideAngleCamera],
-                                                                                        mediaType: .video,
-                                                                                        position: .front)
-
-                    videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTripleCamera,
-                                                                                                 .builtInDualCamera,
-                                                                                                 .builtInDualWideCamera,
-                                                                                                 .builtInWideAngleCamera,
-                                                                                                 .builtInUltraWideCamera,
-                                                                                                 .builtInTrueDepthCamera],
-                                                                                   mediaType: .video,
-                                                                                   position: .unspecified)
-                } else {
-                    backDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [
-                                                                                    .builtInDualCamera,
-                                                                                    .builtInWideAngleCamera],
-                                                                                  mediaType: .video,
-                                                                                  position: .back)
-
-                    frontDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTrueDepthCamera,
-                                                                                                      .builtInWideAngleCamera],
-                                                                                        mediaType: .video,
-                                                                                        position: .front)
-
-                    videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera,
-                                                                                                 .builtInDualCamera,
-                                                                                                 .builtInTrueDepthCamera],
-                                                                                   mediaType: .video,
-                                                                                   position: .unspecified)
-                }
-            } else {
-                backDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [
-                                                                                .builtInDualCamera,
-                                                                                .builtInWideAngleCamera],
-                                                                              mediaType: .video,
-                                                                              position: .back)
-
-                frontDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera],
-                                                                                    mediaType: .video,
-                                                                                    position: .front)
-                videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera,
-                                                                                             .builtInDualCamera],
-                                                                               mediaType: .video, position: .unspecified)
-            }
-        } else {
-            backDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [
-                                                                            .builtInDualCamera,
-                                                                            .builtInWideAngleCamera],
-                                                                          mediaType: .video,
-                                                                          position: .back)
-
-            frontDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera],
-                                                                                mediaType: .video,
-                                                                                position: .front)
-            videoDeviceDiscoverySession = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInWideAngleCamera,
-                                                                                         .builtInDualCamera],
-                                                                           mediaType: .video, position: .unspecified)
-        }
-    }
-
+    
+    /*
+     `AVCaptureDevice.DiscoverySession(deviceTypes:`
+     The discovery session automatically sorts its devices list based on the device types you asked for,
+     https://developer.apple.com/documentation/avfoundation/capture_setup/choosing_a_capture_device
+     */
     func bestDeivice(in position: AVCaptureDevice.Position) -> AVCaptureDevice? {
-        guard !videoDeviceDiscoverySession.devices.isEmpty else {
-            alertNoDeviceAvailable()
-            return nil
-        }
         switch position {
         case .back:
-            return backDeviceDiscoverySession?.devices.first
+            #warning ("TODO 😴 get the correct zoom factor of back camera")
+            // get normal device instead of specified device
+            return AVCaptureDevice.default(for: .video)
         case .front:
-            return frontDeviceDiscoverySession.devices.first
+            return AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)
         case .unspecified:
-            return videoDeviceDiscoverySession.devices.first
+            print("Unknown capture position. Defaulting to back, dual-camera.")
+            return AVCaptureDevice.default(.builtInDualCamera, for: .video, position: .back)
         @unknown default:
             return nil
         }
     }
-
+    
     // MARK: KVO and Notifications
     private var keyValueObservations = [NSKeyValueObservation]()
     /// - Tag: ObserveInterruption
@@ -532,8 +465,10 @@ public class CameraViewController: UIViewController {
             guard let isSessionRunning = change.newValue else { return }
             DispatchQueue.main.async {
                 // Only enable the ability to change camera if the device has more than one camera.
-                if self.videoDeviceDiscoverySession.uniqueDevicePositionsCount > 1 {
+                if self.bestDeivice(in: .front) != nil && self.bestDeivice(in: .back) != nil {
                     self.cameraOverlayView.enableSwitchCamera = isSessionRunning
+                } else {
+                    self.cameraOverlayView.enableSwitchCamera = false
                 }
                 self.cameraOverlayView.enableTakePicture = isSessionRunning
                 self.cameraOverlayView.enableTakeVideo = isSessionRunning && self.movieFileOutput != nil
@@ -592,7 +527,7 @@ public class CameraViewController: UIViewController {
               let device = currentDevice
         else { return }
 
-        func zoomFactor(_ factor: CGFloat, _ maxLimit: CGFloat = 5) -> CGFloat {
+        func zoomFactor(_ factor: CGFloat, _ maxLimit: CGFloat = 10) -> CGFloat {
             return min(min(max(factor, device.minAvailableVideoZoomFactor), device.maxAvailableVideoZoomFactor), maxLimit)
         }
 
@@ -602,9 +537,9 @@ public class CameraViewController: UIViewController {
             device.unlockForConfiguration()
         }
 
-        let diff = (1 - gestureRecognizer.scale) / 10 // Reduce sensitivity        
+        let diff = (1 - gestureRecognizer.scale) / 10 // Reduce sensitivity
         let newScaleFactor = zoomFactor(device.videoZoomFactor - diff)
-
+        
         switch gestureRecognizer.state {
         case .began: fallthrough
         case .changed: updateDeviceZoomFactor(newScaleFactor)
@@ -889,8 +824,8 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
             }
 
             photoSettings.isHighResolutionPhotoEnabled = true
-            if !photoSettings.__availablePreviewPhotoPixelFormatTypes.isEmpty {
-                photoSettings.previewPhotoFormat = [kCVPixelBufferPixelFormatTypeKey as String: photoSettings.__availablePreviewPhotoPixelFormatTypes.first!]
+            if let previewPhotoPixelFormatType = photoSettings.availablePreviewPhotoPixelFormatTypes.first {
+                photoSettings.previewPhotoFormat = [kCVPixelBufferPixelFormatTypeKey as String: previewPhotoPixelFormatType]
             }
 
             if #available(iOS 13.0, *) {
