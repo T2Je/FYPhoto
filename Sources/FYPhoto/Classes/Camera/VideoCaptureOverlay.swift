@@ -138,9 +138,9 @@ public class VideoCaptureOverlay: UIView {
 
         switch gesture.state {
         case .began:
-            delegate?.startVideoCapturing()
             initialProgressView()
             progressView.startAnimation()
+            delegate?.startVideoCapturing()
         case .cancelled:
             delegate?.stopVideoCapturing(true)
             restoreProgressView()

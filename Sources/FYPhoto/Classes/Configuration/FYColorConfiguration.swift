@@ -33,7 +33,7 @@ public class FYColorConfiguration {
     // picker cell selection color
     public var selectionTitleColor: UIColor = .white
     public var selectionBackgroudColor: UIColor = .fyBlueTintColor
-
+    
     public var topBarColor =
         BarColor(itemTintColor: UIColor.fyBlueTintColor,
                  itemDisableColor: .systemGray,

@@ -753,7 +753,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     func launchCamera() {
         let presentingVC = presentingViewController
         back(animated: true) {
-            let cameraVC = CameraViewController(tintColor: self.configuration.colorConfiguration.topBarColor.itemTintColor)
+            let cameraVC = CameraViewController(tintColor: self.configuration.colorConfiguration.selectionBackgroudColor)
             cameraVC.captureMode = self.mediaOptions
             cameraVC.videoMaximumDuration = self.maximumVideoDuration
             cameraVC.moviePathExtension = self.moviePathExtension

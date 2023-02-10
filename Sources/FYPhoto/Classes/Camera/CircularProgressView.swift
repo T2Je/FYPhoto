@@ -157,7 +157,6 @@ class CircularProgressView: UIView {
 
     func timerAction(_ timer: Timer) {
         currentValue += 1
-//        print("current value\(self.currentValue)")
         if currentValue == maxValue {
             progressCompletion?()
             stopAnimation()
