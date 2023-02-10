@@ -30,6 +30,8 @@ internal enum L10n {
   internal static let confirm = L10n.tr("FYPhoto", "Confirm")
   /// 裁剪
   internal static let cropPhoto = L10n.tr("FYPhoto", "CropPhoto")
+  /// 没有需要的数据
+  internal static let dataNotFound = L10n.tr("FYPhoto", "DataNotFound")
   /// 放弃修改
   internal static let discardChanges = L10n.tr("FYPhoto", "DiscardChanges")
   /// 完成

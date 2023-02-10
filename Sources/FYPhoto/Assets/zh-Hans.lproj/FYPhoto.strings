@@ -64,6 +64,8 @@
 
 "NoVideo" = "URL不是一个视频";
 
+"DataNotFound" = "没有需要的数据";
+
 // PhotoEdit
 "Orinial" = "原始尺寸";
 "Square" = "正方形";

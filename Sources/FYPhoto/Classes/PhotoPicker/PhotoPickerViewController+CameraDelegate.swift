@@ -45,14 +45,14 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
             }
         case String(kUTTypeMovie):
             guard let videoURL = info[.mediaURL] as? URL else {
-                cameraViewController.dismiss(animated: true, completion: nil)
+                cameraViewController.dismiss(animated: true) {
+                    self.selectedVideo?(.failure(PhotoPickerError.DataNotFound))
+                }
                 return
             }
-
+            
             cameraViewController.dismiss(animated: true) {
-                let previewVC = VideoPreviewController(videoURL: videoURL)
-                previewVC.delegate = self
-                self.present(previewVC, animated: true, completion: nil)
+                self.selectedVideo?(.success(SelectedVideo(url: videoURL)))
             }
         default:
             break
@@ -61,41 +61,5 @@ extension PhotoPickerViewController: CameraViewControllerDelegate {
 
     public func cameraDidCancel(_ cameraViewController: CameraViewController) {
         cameraViewController.dismiss(animated: true, completion: nil)
-    }
-
-}
-
-extension PhotoPickerViewController: VideoPreviewControllerDelegate {
-    public func videoPreviewController(_ preview: VideoPreviewController, didSaveVideoAt path: URL) {
-        preview.delegate = nil
-//        print("video path: \(path)\npath.path: \(path.path)")
-        SaveMediaTool.saveVideoDataToAlbums(path) { result in
-            DispatchQueue.main.async {
-                preview.dismiss(animated: true, completion: {
-                    switch result {
-                    case .success(_):
-                        print("video saved successfully")
-                        self.showMessage("video saved successfully")
-                        guard let videoAsset = PhotoPickerResource.shared.allVideos().firstObject else { return }
-                        let thumbnail = videoAsset.getThumbnailImageSynchorously()
-                        PHImageManager.default().requestAVAsset(forVideo: videoAsset, options: nil) { (avAsset, _, _) in
-                            guard let urlAsset = avAsset as? AVURLAsset else { return }
-                            DispatchQueue.main.async {
-                                let selectedVideo = SelectedVideo(url: urlAsset.url)
-                                selectedVideo.briefImage = thumbnail
-                                self.selectedVideo?(.success(selectedVideo))
-                                self.dismiss(animated: true, completion: nil)
-                            }
-                        }
-                    case .failure(let error):
-                        self.showError(error)
-                    }
-                })
-            }
-        }
-    }
-
-    public func videoPreviewControllerDidCancel(_ preview: VideoPreviewController) {
-        preview.dismiss(animated: true, completion: nil)
     }
 }

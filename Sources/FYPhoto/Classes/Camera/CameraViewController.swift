@@ -11,27 +11,13 @@ import Photos
 import MobileCoreServices
 import UniformTypeIdentifiers
 
-public struct WatermarkImage {
-    let image: UIImage
-    let frame: CGRect
-
-    public init(image: UIImage, frame: CGRect) {
-        self.image = image
-        self.frame = frame
-    }
-}
-
-public protocol CameraViewControllerDelegate: AnyObject {
-    func camera(_ cameraViewController: CameraViewController, didFinishCapturingMediaInfo info: [CameraViewController.InfoKey: Any])
-    func cameraDidCancel(_ cameraViewController: CameraViewController)
-    func watermarkImage() -> WatermarkImage?
-    func cameraViewControllerStartAddingWatermark(_ cameraViewController: CameraViewController)
-    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL)
-}
-
 public class CameraViewController: UIViewController {
     public weak var delegate: CameraViewControllerDelegate?
-
+    
+    // watermark
+    public weak var watermarkDataSource: WatermarkDataSource?
+    public weak var watermarkDelegate: WatermarkDelegate?
+    
     /// capture mode. Default is image.
     public var captureMode: MediaOptions = .image
 
@@ -861,7 +847,7 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                     let image = UIImage(data: data)
                     mediaInfo[InfoKey.originalImage] = image
                     mediaInfo[InfoKey.mediaMetadata] = data
-                    if let image = image, let watermarkImage = self.delegate?.watermarkImage() {
+                    if let image = image, let watermarkImage = self.watermarkDataSource?.watermarkImage() {
                         mediaInfo[InfoKey.watermarkImage] = self.addWaterMarkImage(watermarkImage, on: image)
                     }
                 }
@@ -1017,11 +1003,11 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
 
             mediaInfo[CameraViewController.InfoKey.mediaURL] = outputFileURL
 
-            if let waterMark = self.delegate?.watermarkImage() {
-                delegate?.cameraViewControllerStartAddingWatermark(self)
+            if let waterMark = self.watermarkDataSource?.watermarkImage() {
+                watermarkDelegate?.cameraViewControllerStartAddingWatermark(self)
                 createWaterMark(waterMarkImage: waterMark, onVideo: outputFileURL) { (url) in
                     DispatchQueue.main.async {
-                        self.delegate?.camera(self, didFinishAddingWatermarkAt: url)
+                        self.watermarkDelegate?.camera(self, didFinishAddingWatermarkAt: url)
 
                         mediaInfo[CameraViewController.InfoKey.watermarkVideoURL] = url
                         self.delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
@@ -1066,12 +1052,4 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
         }
         return videoSize
     }
-}
-
-public extension CameraViewControllerDelegate {
-    func watermarkImage() -> WatermarkImage? {
-        return nil
-    }
-    func cameraViewControllerStartAddingWatermark(_ cameraViewController: CameraViewController) {}
-    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL) {}
 }

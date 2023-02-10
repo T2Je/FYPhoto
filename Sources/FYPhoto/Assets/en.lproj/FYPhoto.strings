@@ -59,6 +59,8 @@
 
 "NoVideo" = "URL isn't a video";
 
+"DataNotFound" = "data is not found";
+
 // PhotoEdit
 "Orinial" = "Original";
 "Square" = "Square";

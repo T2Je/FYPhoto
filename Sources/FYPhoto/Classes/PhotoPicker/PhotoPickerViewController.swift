@@ -37,6 +37,10 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     // call back for photo, video selections
     public var selectedPhotos: (([SelectedImage]) -> Void)?
     public var selectedVideo: ((Result<SelectedVideo, Error>) -> Void)?
+    
+    public weak var cameraDelegate: CameraViewControllerDelegate?
+    public weak var watermarkDelegate: WatermarkDelegate?
+    public weak var watermarkDataSource: WatermarkDataSource?
 
     var allPhotos: PHFetchResult<PHAsset> = PHFetchResult()
     var smartAlbums: [PHAssetCollection] = []
@@ -79,7 +83,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         return selectedFetchResults.compactMap { $0.firstObject }
     }
 
-    var safeAreaInsets: UIEdgeInsets {
+    private var safeAreaInsets: UIEdgeInsets {
         return UIApplication.shared.keyWindow?.safeAreaInsets ?? .zero
     }
 
@@ -390,7 +394,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
         }
     }
 
-    func back(animated: Bool, _ completion: (() -> Void)? = nil) {
+    func back(animated: Bool, completion: (() -> Void)? = nil) {
         self.dismiss(animated: animated, completion: {
             completion?()
         })
@@ -747,13 +751,18 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
     }
 
     func launchCamera() {
-        let cameraVC = CameraViewController(tintColor: configuration.colorConfiguration.topBarColor.itemTintColor)
-        cameraVC.captureMode = mediaOptions
-        cameraVC.videoMaximumDuration = maximumVideoDuration
-        cameraVC.moviePathExtension = moviePathExtension
-        cameraVC.delegate = self
-        cameraVC.modalPresentationStyle = .fullScreen
-        self.present(cameraVC, animated: true, completion: nil)
+        let presentingVC = presentingViewController
+        back(animated: true) {
+            let cameraVC = CameraViewController(tintColor: self.configuration.colorConfiguration.topBarColor.itemTintColor)
+            cameraVC.captureMode = self.mediaOptions
+            cameraVC.videoMaximumDuration = self.maximumVideoDuration
+            cameraVC.moviePathExtension = self.moviePathExtension
+            cameraVC.delegate = self.cameraDelegate ?? self
+            cameraVC.watermarkDelegate = self.watermarkDelegate
+            cameraVC.watermarkDataSource = self.watermarkDataSource
+            cameraVC.modalPresentationStyle = .fullScreen
+            presentingVC?.present(cameraVC, animated: true, completion: nil)
+        }
     }
 }
 

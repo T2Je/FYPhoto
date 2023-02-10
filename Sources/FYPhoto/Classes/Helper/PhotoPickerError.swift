@@ -11,6 +11,7 @@ public enum PhotoPickerError: Error {
     case VideoDurationTooLong
     case VideoMemoryOutOfSize
     case UnspportedVideoFormat
+    case DataNotFound
 }
 
 extension PhotoPickerError: LocalizedError {
@@ -22,6 +23,8 @@ extension PhotoPickerError: LocalizedError {
             return L10n.videoMemoryOutOfSize
         case .UnspportedVideoFormat:
             return L10n.unspportedVideoFormat
+        case .DataNotFound:
+            return L10n.dataNotFound
         }
     }
 }
