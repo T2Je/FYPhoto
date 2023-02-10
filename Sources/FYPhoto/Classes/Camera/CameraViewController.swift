@@ -848,7 +848,10 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                     mediaInfo[InfoKey.originalImage] = image
                     mediaInfo[InfoKey.mediaMetadata] = data
                     if let image = image, let watermarkImage = self.watermarkDataSource?.watermarkImage() {
-                        mediaInfo[InfoKey.watermarkImage] = self.addWaterMarkImage(watermarkImage, on: image)
+                        self.watermarkDelegate?.cameraViewControllerStartAddingWatermark(self)
+                        let processedImage = self.addWaterMarkImage(watermarkImage, on: image)
+                        self.watermarkDelegate?.camera(self, didFinishAddingWatermarkToImage: processedImage)
+                        mediaInfo[InfoKey.watermarkImage] = processedImage
                     }
                 }
                 self.delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
@@ -1008,7 +1011,7 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
                 createWaterMark(waterMarkImage: waterMark, onVideo: outputFileURL) { (url) in
                     DispatchQueue.main.async {
                         self.watermarkDelegate?.camera(self, didFinishAddingWatermarkAt: url)
-
+                        self.watermarkDelegate?.camera(self, didFinishAddingWatermarkToVideo: url)
                         mediaInfo[CameraViewController.InfoKey.watermarkVideoURL] = url
                         self.delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
                     }

@@ -14,7 +14,12 @@ public protocol WatermarkDataSource: AnyObject {
 
 public protocol WatermarkDelegate: AnyObject {
     func cameraViewControllerStartAddingWatermark(_ cameraViewController: CameraViewController)
+    
+    @available(swift, deprecated, message: "use `didFinishAddingWatermarkToVideo` instead")
     func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL)
+    
+    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkToVideo path: URL)
+    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkToImage image: UIImage)
 }
 
 public extension WatermarkDataSource {
@@ -24,6 +29,8 @@ public extension WatermarkDataSource {
 public extension WatermarkDelegate {
     func cameraViewControllerStartAddingWatermark(_ cameraViewController: CameraViewController) {}
     func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkAt path: URL) {}
+    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkToVideo path: URL) {}
+    func camera(_ cameraViewController: CameraViewController, didFinishAddingWatermarkToImage image: UIImage) {}
 }
 
 
