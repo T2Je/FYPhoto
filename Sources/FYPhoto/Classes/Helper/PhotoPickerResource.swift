@@ -8,14 +8,13 @@
 import Foundation
 import Photos
 import UIKit
-import FYVideoCompressor
 
 public class PhotoPickerResource {
     let cacheDir: URL
     static var shared = PhotoPickerResource()
 
     private init() {
-        cacheDir = FileManager.tempDirectory(with: FileManager.avCompositionDirName)        
+        cacheDir = FileManager.tempDirectory(with: FileManager.avCompositionDirName)
     }
 
     // image & video
@@ -79,10 +78,12 @@ public class PhotoPickerResource {
         return PHAssetCollection.fetchAssetCollections(with: .smartAlbum, subtype: .albumRegular, options: nil)
     }
 
-    public func userCollection() -> PHFetchResult<PHCollection> {
-        return PHCollectionList.fetchTopLevelUserCollections(with: nil)
+    public func userCollection() -> PHFetchResult<PHAssetCollection> {
+        let options = PHFetchOptions()
+        options.predicate = NSPredicate(format: "estimatedAssetCount > 0")
+        return PHAssetCollection.fetchAssetCollections(with: .album, subtype: .smartAlbumUserLibrary, options: nil)
     }
-
+    
     public func smartAlbumsWith(_ mediaOptions: MediaOptions) -> [PHAssetCollection] {
         if mediaOptions == .all {
             if let favoritesAlbum = favorites() {

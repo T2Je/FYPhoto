@@ -30,7 +30,7 @@ class AlbumsTableViewController: UITableViewController {
 
     let allPhotos: PHFetchResult<PHAsset>
     let smartAlbums: [PHAssetCollection]!
-    let userCollections: PHFetchResult<PHCollection>
+    let userCollections: PHFetchResult<PHAssetCollection>
 
     let sectionLocalizedTitles = ["", L10n.smartAlbums, L10n.userAlbums]
 
@@ -44,7 +44,7 @@ class AlbumsTableViewController: UITableViewController {
 //    <a target="_blank" href="https://icons8.com/icons/set/full-image">Full Image icon</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
     init(allPhotos: PHFetchResult<PHAsset>,
          smartAlbums: [PHAssetCollection],
-         userCollections: PHFetchResult<PHCollection>,
+         userCollections: PHFetchResult<PHAssetCollection>,
          selectedIndexPath: IndexPath) {
         self.allPhotos = allPhotos
         self.smartAlbums = smartAlbums
@@ -104,10 +104,9 @@ class AlbumsTableViewController: UITableViewController {
             let albumCell = tableView.dequeueReusableCell(withIdentifier: CellIdentifier.collection.rawValue, for: indexPath) as! AlbumCell
             albumCell.name = userCollections.object(at: indexPath.row).localizedTitle
             albumCell.cover = coverPlaceholder
-            if let assetCollection = userCollections.object(at: indexPath.row) as? PHAssetCollection {
-                PhotoPickerResource.shared.fetchCover(in: assetCollection, targetSize: coverSize, options: nil) { (image) in
-                    albumCell.cover = image ?? self.coverPlaceholder
-                }
+            let assetCollection = userCollections.object(at: indexPath.row)
+            PhotoPickerResource.shared.fetchCover(in: assetCollection, targetSize: coverSize, options: nil) { (image) in
+                albumCell.cover = image ?? self.coverPlaceholder
             }
             cell = albumCell
         }

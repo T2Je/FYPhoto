@@ -44,7 +44,7 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
 
     var allPhotos: PHFetchResult<PHAsset> = PHFetchResult()
     var smartAlbums: [PHAssetCollection] = []
-    var userCollections: PHFetchResult<PHCollection> = PHFetchResult()
+    var userCollections: PHFetchResult<PHAssetCollection> = PHFetchResult()
 
     /// select all photos default, used in AlbumsTableViewController
     fileprivate var selectedAlbumIndexPath = IndexPath(row: 0, section: 0)
@@ -858,12 +858,8 @@ extension PhotoPickerViewController: AlbumsTableViewControllerDelegate {
                 assets = PhotoPickerResource.shared.allAssets(in: collection)
             }
         case .userCollections:
-            let collection: PHCollection = userCollections.object(at: indexPath.row)
-            guard let assetCollection = collection as? PHAssetCollection else {
-                assertionFailure("Expected an asset collection.")
-                return
-            }
-            topBar.setTitle(collection.localizedTitle ?? "")
+            let assetCollection: PHAssetCollection = userCollections.object(at: indexPath.row)
+            topBar.setTitle(assetCollection.localizedTitle ?? "")
             if mediaOptions == .image {
                 assets = PhotoPickerResource.shared.allVideos(in: assetCollection)
             } else if mediaOptions == .video {
