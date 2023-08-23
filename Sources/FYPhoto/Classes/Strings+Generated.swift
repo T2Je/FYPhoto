@@ -66,6 +66,8 @@ internal enum L10n {
   internal static let resume = L10n.tr("FYPhoto", "Resume")
   /// 保存
   internal static let save = L10n.tr("FYPhoto", "Save")
+  /// 已保存
+  internal static let saved = L10n.tr("FYPhoto", "Saved")
   /// 保存图片
   internal static let savePhoto = L10n.tr("FYPhoto", "SavePhoto")
   /// 保存视频

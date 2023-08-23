@@ -66,6 +66,8 @@
 
 "DataNotFound" = "没有需要的数据";
 
+"Saved" = "已保存";
+
 // PhotoEdit
 "Orinial" = "原始尺寸";
 "Square" = "正方形";

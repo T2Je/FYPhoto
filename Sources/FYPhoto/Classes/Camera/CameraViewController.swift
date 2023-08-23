@@ -11,8 +11,16 @@ import Photos
 import MobileCoreServices
 import UniformTypeIdentifiers
 
+/// Camera to take photo and video
+/// Get the photo or video captured by camera by delegate or two closures, choose one
 public class CameraViewController: UIViewController {
+    
     public weak var delegate: CameraViewControllerDelegate?
+    
+    /// Call back for photo
+    internal var capturedPhotos: (([SelectedImage]) -> Void)?
+    /// Call back for video
+    internal var capturedVideo: ((Result<SelectedVideo, Error>) -> Void)?
     
     // watermark
     public weak var watermarkDataSource: WatermarkDataSource?
@@ -843,18 +851,44 @@ extension CameraViewController: VideoCaptureOverlayDelegate {
                     mediaInfo[InfoKey.mediaType] = kUTTypeImage as String
                 }
 
+                var resultImage: UIImage?
+                
                 if let data = data {
                     let image = UIImage(data: data)
                     mediaInfo[InfoKey.originalImage] = image
                     mediaInfo[InfoKey.mediaMetadata] = data
+                    
                     if let image = image, let watermarkImage = self.watermarkDataSource?.watermarkImage() {
                         self.watermarkDelegate?.cameraViewControllerStartAddingWatermark(self)
                         let processedImage = self.addWaterMarkImage(watermarkImage, on: image)
                         self.watermarkDelegate?.camera(self, didFinishAddingWatermarkToImage: processedImage)
                         mediaInfo[InfoKey.watermarkImage] = processedImage
+                        
+                        resultImage = processedImage
+                    } else {
+                        resultImage = image
                     }
                 }
-                self.delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
+                if let delegate = self.delegate {
+                    delegate.camera(self, didFinishCapturingMediaInfo: mediaInfo)
+                }
+                
+                if let closure = self.capturedPhotos, let resultImage {
+                    Self.saveImageToAlbums(resultImage) { result in
+                        switch result {
+                        case .success(_):
+                            self.showMessage(L10n.saved)
+                            let fetchOptions = PHFetchOptions()
+                            fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
+                            let result = PHAsset.fetchAssets(with: fetchOptions)
+                            let asset = result.firstObject
+                            closure([SelectedImage(asset: asset, image: resultImage)])
+                        case .failure(let failure):
+                            self.showError(failure)
+                        }
+                    }
+                    self.dismiss(animated: true)
+                }
             } photoProcessingHandler: { _ in
 
             }
@@ -1013,12 +1047,23 @@ extension CameraViewController: AVCaptureFileOutputRecordingDelegate {
                         self.watermarkDelegate?.camera(self, didFinishAddingWatermarkAt: url)
                         self.watermarkDelegate?.camera(self, didFinishAddingWatermarkToVideo: url)
                         mediaInfo[CameraViewController.InfoKey.watermarkVideoURL] = url
+                        
                         self.delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
+                        if let closure = self.capturedVideo {
+                            closure(.success(SelectedVideo(url: url)))
+                            self.dismiss(animated: true)
+                        }
                     }
                 }
-
             } else {
-                delegate?.camera(self, didFinishCapturingMediaInfo: mediaInfo)
+                if let delegate {
+                    delegate.camera(self, didFinishCapturingMediaInfo: mediaInfo)
+                }
+                                
+                if let closure = self.capturedVideo {
+                    closure(.success(SelectedVideo(url: outputFileURL)))
+                    self.dismiss(animated: true)
+                }
             }
             endBackgroundTask()
         } else {

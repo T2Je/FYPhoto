@@ -752,14 +752,18 @@ public final class PhotoPickerViewController: UIViewController, UICollectionView
 
     func launchCamera() {
         let presentingVC = presentingViewController
+        
         back(animated: true) {
             let cameraVC = CameraViewController(tintColor: self.configuration.colorConfiguration.selectionBackgroudColor)
             cameraVC.captureMode = self.mediaOptions
             cameraVC.videoMaximumDuration = self.maximumVideoDuration
             cameraVC.moviePathExtension = self.moviePathExtension
-            cameraVC.delegate = self.cameraDelegate ?? self
+            cameraVC.delegate = self.cameraDelegate
             cameraVC.watermarkDelegate = self.watermarkDelegate
             cameraVC.watermarkDataSource = self.watermarkDataSource
+            cameraVC.capturedVideo = self.selectedVideo
+            cameraVC.capturedPhotos = self.selectedPhotos
+            
             cameraVC.modalPresentationStyle = .fullScreen
             presentingVC?.present(cameraVC, animated: true, completion: nil)
         }

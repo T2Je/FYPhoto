@@ -6,6 +6,9 @@
 //
 
 import Foundation
+import MobileCoreServices
+import UIKit
+import Photos
 
 public protocol CameraViewControllerDelegate: AnyObject {
     func camera(_ cameraViewController: CameraViewController, didFinishCapturingMediaInfo info: [CameraViewController.InfoKey: Any])
